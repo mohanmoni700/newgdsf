@@ -2,6 +2,7 @@ package controllers;
 
 
 import com.compassites.model.SearchParameters;
+import com.compassites.model.SearchResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import models.Bar;
@@ -10,7 +11,8 @@ import play.data.Form;
 import play.libs.Json;
 import play.mvc.Result;
 import services.FlightSearchWrapper;
-import views.html.index;
+
+import java.util.List;
 
 import static play.mvc.Controller.request;
 
@@ -28,8 +30,8 @@ public class Application {
 
         SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         System.out.println("SearchParamerters: " + json.toString());
-
-        return play.mvc.Controller.ok(Json.toJson(flightSearchWrapper.search(searchParameters)));
+        List<SearchResponse> responseList =  flightSearchWrapper.search(searchParameters);
+        return play.mvc.Controller.ok(Json.toJson(responseList));
     }
 
 }

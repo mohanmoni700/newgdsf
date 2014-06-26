@@ -8,8 +8,10 @@ import com.compassites.model.AirSolution;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.springframework.stereotype.Service;
+import play.Logger;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -24,11 +26,11 @@ import java.util.List;
 public class TravelPortFlightSearch implements FlightSearch {
 
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage {
-
+        Logger.info("TravelPortFlightSearch called at " + new Date());
         LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
         try {
             LowFareSearchRsp response = lowFareRequestClient.search(searchParameters);
-
+            Logger.info("TravelPortFlightSearch search response at "+ new Date());
             return mapTravelportToCompassites(response) ;
         } catch (AirFaultMessage airFaultMessage) {
             throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());

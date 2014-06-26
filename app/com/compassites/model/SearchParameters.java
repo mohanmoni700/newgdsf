@@ -146,5 +146,13 @@ public class SearchParameters {
         public void setJourneyDate(Date journeyDate) {
             this.journeyDate = journeyDate;
         }
+
+
+
+    }
+
+    public String redisKey(){
+        Date journeyDate = onwardJourney.getJourneyDate();
+        return origin+destination+passengers.size()+journeyDate.getDate();
     }
 }

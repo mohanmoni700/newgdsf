@@ -7,9 +7,11 @@ import com.compassites.GDSWrapper.amadeus.SearchFlights;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import org.springframework.stereotype.Service;
+import play.Logger;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,15 +24,16 @@ import java.util.List;
 @Service
 public class AmadeusFlightSearch implements FlightSearch {
     public SearchResponse search (SearchParameters searchParameters) throws Exception{
+        Logger.info("AmadeusFlightSearch called at : " + new Date());
         SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse=new SearchResponse();
         searchResponse.setProvider("Amadeus");
         ServiceHandler serviceHandler=new ServiceHandler();
         serviceHandler.logIn();
 
-        FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply=
-        serviceHandler.searchAirlines(searchParameters);
+        FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
 
+        Logger.info("AmadeusFlightSearch search reponse at : " + new Date());
         AirSolution airSolution=new AirSolution();
         airSolution=createAirSolutionFromRecommendations(fareMasterPricerTravelBoardSearchReply);
 
