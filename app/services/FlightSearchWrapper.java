@@ -1,6 +1,5 @@
 package services;
 
-import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +7,10 @@ import org.springframework.stereotype.Service;
 import play.Logger;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
-import sun.rmi.runtime.Log;
 
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.*;
 
 /**
@@ -62,7 +61,6 @@ public class FlightSearchWrapper {
             int counter = 0;
             boolean loop = true;
             int size = results.size();
-
             Jedis j = new Jedis("localhost", 6379);
             j.connect();
 
@@ -72,7 +70,12 @@ public class FlightSearchWrapper {
                     Future<SearchResponse>  future = listIterator.next();
                     if(future.isDone()){
                         SearchResponse searchResponse = future.get();
-                        searchResponseList.add(searchResponse);
+                        if (searchResponseList.size() > 0){
+                            searchResponseList.get(0).getAirSolution().getFlightItineraryList().addAll(searchResponse.getAirSolution().getFlightItineraryList()) ;
+                        }
+                        else {
+                            searchResponseList.add(searchResponse);
+                        }
                         listIterator.remove();
                         Logger.info("Redis Key :" + searchParameters.redisKey());
                         String res = j.set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseList)));

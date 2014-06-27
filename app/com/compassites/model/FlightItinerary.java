@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import javax.xml.datatype.Duration;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,9 @@ public class FlightItinerary implements Serializable{
     }
 
     public class Journey{
+
+
+        private Duration travelTime;
         private List <AirSegmentInformation> airSegmentList;
         public Journey(){
             airSegmentList=new ArrayList<AirSegmentInformation>();
@@ -66,5 +70,17 @@ public class FlightItinerary implements Serializable{
         public void setAirSegmentList(List<AirSegmentInformation> airSegmentList) {
             this.airSegmentList = airSegmentList;
         }
+        public Duration getTravelTime() {
+            return travelTime;
+        }
+
+        public void setTravelTime(Duration travelTime) {
+            this.travelTime = travelTime;
+        }
+
+
     }
+
+
+
 }

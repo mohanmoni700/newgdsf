@@ -67,7 +67,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
                 Journey journey = journeyIterator.next();
                 flightItinerary.AddBlankJourney();
-
+                //journey.getTravelTime();
                 System.out.println("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(journeyList.indexOf(journey)).getCabinClass());
                 List<AirSegmentRef> airSegmentRefList = journey.getAirSegmentRef();
                 for (Iterator<AirSegmentRef> airSegmentRefIterator = airSegmentRefList.iterator(); airSegmentRefIterator.hasNext(); ) {
@@ -101,22 +101,34 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airSegmentInformation.setFromLocation(o);
                     airSegmentInformation.setToLocation(d);
                     String dtime = "??:??";
-                    if (airSegment != null) {
-                        if (airSegment.getDepartureTime() != null) {
-                            dtime = airSegment.getDepartureTime();
+                    String atime = "??:??";
+                    FlightDetails flightDetails = allDetails.getByRef(airSegment.getFlightDetailsRef().get(0));
+                    if (flightDetails != null) {
+                        if (flightDetails.getDepartureTime() != null) {
+                            dtime = flightDetails.getDepartureTime();
+                        }
+                        if (flightDetails.getArrivalTime() != null) {
+                            atime = flightDetails.getArrivalTime();
                         }
                     }
                     System.out.print(" at " + dtime);
+                    System.out.print(" arrives at " + atime);
                     airSegmentInformation.setDepartureTime(dtime);
-                    if ((airSegment != null) && (airSegment.getFlightTime() != null)) {
-                        System.out.println(" (flight time " + airSegment.getFlightTime() + " minutes)");
-                        airSegmentInformation.setTravelTime(String.valueOf(airSegment.getFlightTime()));
+                    airSegmentInformation.setArrivalTime(atime);
+
+                    if ((flightDetails != null) && (flightDetails.getFlightTime() != null)) {
+                        System.out.println(" (flight time " + flightDetails.getFlightTime() + " minutes)");
+                        airSegmentInformation.setTravelTime(String.valueOf(flightDetails.getFlightTime()));
                     } else {
                         System.out.println();
                     }
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList().add(airSegmentInformation);
+
                 }
+                flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setTravelTime(journey.getTravelTime());
+                System.out.println("total travel time"+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getHours()+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getMinutes() );
             }
+
             System.out.println("-----------");
             airSolution.getFlightItineraryList().add(flightItinerary);
         }

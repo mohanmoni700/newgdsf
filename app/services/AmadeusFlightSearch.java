@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import play.Logger;
 
 import java.math.BigInteger;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,7 +68,15 @@ public class AmadeusFlightSearch implements FlightSearch {
         return airSolution;
     }
 
+    public static SimpleDateFormat searchFormat = new SimpleDateFormat("ddMMyy-kkmm");
     private AirSegmentInformation createSegment(TravelProductType flightInformation){
+        try {
+            Date onwardDate = new SimpleDateFormat("ddMMyy-kkmm").parse("020714-2220");
+            Date onwardDate1 = new SimpleDateFormat("ddMMyy-kkmm").parse("030714-0700");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         AirSegmentInformation airSegmentInformation=new AirSegmentInformation();
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
         airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
