@@ -138,7 +138,8 @@ public class LowFareRequestClient extends TravelPortClient {
             SearchPassenger searchPassenger = new SearchPassenger();
             searchPassenger.setCode(passenger.getPassengerType());
             searchPassenger.setKey("COMPASS");
-            searchPassenger.setAge(new BigInteger("30"));
+            if (passenger.getAge() != null)
+                searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
             request.getSearchPassenger().add(searchPassenger);
         }
     }
