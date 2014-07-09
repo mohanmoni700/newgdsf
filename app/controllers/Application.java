@@ -4,10 +4,7 @@ package controllers;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
 import com.fasterxml.jackson.databind.JsonNode;
-
-import models.Bar;
 import org.springframework.beans.factory.annotation.Autowired;
-import play.data.Form;
 import play.libs.Json;
 import play.mvc.Result;
 import services.FlightSearchWrapper;

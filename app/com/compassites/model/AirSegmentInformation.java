@@ -1,6 +1,12 @@
 package com.compassites.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.pojomatic.Pojomatic;
+import org.pojomatic.annotations.Property;
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,7 +17,9 @@ import java.io.Serializable;
  */
 public class AirSegmentInformation implements Serializable{
     public static final long serialVersionUID = 42L;
+    @Property
     private String fromLocation;
+    @Property
     private String toLocation;
 
     private String fromTerminal;
@@ -38,11 +46,17 @@ public class AirSegmentInformation implements Serializable{
     private String toDate;
 
     private String arrivalTime;
+
     private String departureTime;
 
     private String distanceTravelled;
     private String distanceUnit;
     private String travelTime;
+    @Property
+    private String flightNumber;
+    @Property
+    private String carrierCode;
+
 
     public String getFromLocation() {
         return fromLocation;
@@ -132,6 +146,51 @@ public class AirSegmentInformation implements Serializable{
         this.carrierCode = carrierCode;
     }
 
-    private String flightNumber;
-    private String carrierCode;
+   /* @Override
+    public boolean equals(Object obj) {
+        AirSegmentInformation airSegmentInformation = null;
+        if(obj instanceof  AirSegmentInformation) {
+            airSegmentInformation = (AirSegmentInformation) obj;
+        }
+        if(!(this.fromLocation.equals(airSegmentInformation.getFromLocation()) && this.toLocation.equals(airSegmentInformation.getToLocation()))){
+            return  false;
+        }
+        if(!this.carrierCode.equals(airSegmentInformation.getCarrierCode())){
+            return false;
+        }
+        if(!this.flightNumber.equals(airSegmentInformation.getFlightNumber())){
+            return  false;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        Date date = null,date1 = null;
+        try {
+            date = sdf.parse(this.departureTime);
+            date1 = sdf.parse(airSegmentInformation.getDepartureTime());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int dateComapareResult = date.compareTo(date1);
+        if(dateComapareResult != 0){
+          return false;
+        }
+
+        return true;
+    }*/
+
+
+    @Override
+    public boolean equals(Object obj) {
+        return Pojomatic.equals(this,obj);
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Pojomatic.hashCode(this);
+    }
+
+    @Override
+    public String toString() {
+        return Pojomatic.toString(this);
+    }
 }

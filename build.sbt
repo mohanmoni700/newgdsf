@@ -14,7 +14,8 @@ libraryDependencies ++= Seq(
   "org.springframework" % "spring-test" % "3.2.1.RELEASE" % "test",
   "org.hibernate" % "hibernate-entitymanager" % "4.1.9.Final",
   "cglib" % "cglib" % "2.2.2",
-  "redis.clients" % "jedis" % "2.0.0"
+  "redis.clients" % "jedis" % "2.0.0",
+  "org.pojomatic" % "pojomatic" % "1.0"
 )
 
 play.Project.playJavaSettings

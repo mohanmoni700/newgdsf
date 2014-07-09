@@ -28,14 +28,15 @@ public class TravelPortFlightSearch implements FlightSearch {
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage {
         Logger.info("TravelPortFlightSearch called at " + new Date());
         LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
+        LowFareSearchRsp response = null;
         try {
-            LowFareSearchRsp response = lowFareRequestClient.search(searchParameters);
+            response = lowFareRequestClient.search(searchParameters);
             Logger.info("TravelPortFlightSearch search response at "+ new Date());
-            return mapTravelportToCompassites(response) ;
+
         } catch (AirFaultMessage airFaultMessage) {
             throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
         }
-
+        return mapTravelportToCompassites(response) ;
     }
 
     private SearchResponse mapTravelportToCompassites(LowFareSearchRsp travelportResponse){

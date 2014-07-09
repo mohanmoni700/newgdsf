@@ -1,21 +1,5 @@
 package com.compassites.service.search;
 
-import com.compassites.model.CabinClass;
-import com.compassites.model.Passenger;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
-import org.junit.Test;
-import services.AmadeusFlightSearch;
-import services.FlightSearch;
-import services.TravelPortFlightSearch;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
-import static org.junit.Assert.assertNotNull;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Renu
