@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import play.libs.Json;
 import play.mvc.Result;
+import play.mvc.Controller;
 import services.FlightSearchWrapper;
 
 import java.util.List;
@@ -28,7 +29,10 @@ public class Application {
         SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         System.out.println("SearchParamerters: " + json.toString());
         List<SearchResponse> responseList =  flightSearchWrapper.search(searchParameters);
-        return play.mvc.Controller.ok(Json.toJson(responseList));
+//        Controller.response().setHeader("Access-Control-Allow-Origin", "*");
+//        Controller.response().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
+//        Controller.response().setHeader("Access-Control-Allow-Headers", "accept, content-type");
+        return Controller.ok(Json.toJson(responseList));
     }
 
 }
