@@ -2,9 +2,11 @@ package configs;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @Configuration
-@ComponentScan({"controllers", "services", "com.compassites.service.search"})
+@EnableAspectJAutoProxy
+@ComponentScan({"controllers", "services", "com.compassites.*"})
 public class AppConfig {
 
 }

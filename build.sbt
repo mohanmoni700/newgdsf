@@ -11,11 +11,15 @@ libraryDependencies ++= Seq(
   "org.springframework" % "spring-tx" % "3.2.1.RELEASE",
   "org.springframework" % "spring-expression" % "3.2.1.RELEASE",
   "org.springframework" % "spring-aop" % "3.2.1.RELEASE",
+  "org.springframework" % "spring-aspects" % "3.2.1.RELEASE",
+  "org.aspectj" % "aspectjrt" % "1.6.11",
+  "org.aspectj" % "aspectjweaver" % "1.6.10",
   "org.springframework" % "spring-test" % "3.2.1.RELEASE" % "test",
   "org.hibernate" % "hibernate-entitymanager" % "4.1.9.Final",
   "cglib" % "cglib" % "2.2.2",
   "redis.clients" % "jedis" % "2.0.0",
-  "org.pojomatic" % "pojomatic" % "1.0"
+  "org.pojomatic" % "pojomatic" % "1.0",
+  "joda-time" % "joda-time" % "2.3"
 )
 
 play.Project.playJavaSettings

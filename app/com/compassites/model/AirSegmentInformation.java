@@ -1,11 +1,10 @@
 package com.compassites.model;
 
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
+
+import java.io.Serializable;
+import java.util.Date;
 
 
 /**
@@ -57,6 +56,8 @@ public class AirSegmentInformation implements Serializable{
     @Property
     private String carrierCode;
 
+    private Date departureDate;
+
 
     public String getFromLocation() {
         return fromLocation;
@@ -104,6 +105,13 @@ public class AirSegmentInformation implements Serializable{
 
     public void setDepartureTime(String departureTime) {
         this.departureTime = departureTime;
+
+       /* SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        try {
+            this.departureDate =  sdf.parse(departureTime);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }*/
     }
 
     public String getDistanceTravelled() {
@@ -146,7 +154,15 @@ public class AirSegmentInformation implements Serializable{
         this.carrierCode = carrierCode;
     }
 
-   /* @Override
+    public Date getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(Date departureDate) {
+        this.departureDate = departureDate;
+    }
+
+    /* @Override
     public boolean equals(Object obj) {
         AirSegmentInformation airSegmentInformation = null;
         if(obj instanceof  AirSegmentInformation) {

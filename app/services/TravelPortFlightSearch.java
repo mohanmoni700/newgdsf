@@ -3,17 +3,20 @@ package services;
 import com.compassites.GDSWrapper.travelport.Helper;
 import com.compassites.GDSWrapper.travelport.LowFareRequestClient;
 import com.compassites.exceptions.IncompleteDetailsMessage;
+import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.compassites.model.AirSolution;
 import com.travelport.schema.air_v26_0.*;
+import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.springframework.stereotype.Service;
 import play.Logger;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,18 +28,49 @@ import java.util.List;
 @Service
 public class TravelPortFlightSearch implements FlightSearch {
 
-    public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage {
+    @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
+    public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException {
         Logger.info("TravelPortFlightSearch called at " + new Date());
         LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
         LowFareSearchRsp response = null;
+        boolean errorExist = false;
+        String errorMessage = null;
+        String errorCode = null;
         try {
             response = lowFareRequestClient.search(searchParameters);
             Logger.info("TravelPortFlightSearch search response at "+ new Date());
+            List<ResponseMessage> responseMessageList = response.getResponseMessage();
 
+            /*for (ResponseMessage responseMessage : responseMessageList){
+               if("Error".equalsIgnoreCase(responseMessage.getType())){
+                    System.out.println("Error received from Travel port : "+ responseMessage.getValue());
+                    errorExist = true;
+                    errorCode = ""+responseMessage.getCode();
+                    errorMessage = errorMessage + responseMessage.getValue();
+                }
+            }*/
         } catch (AirFaultMessage airFaultMessage) {
             throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
+        }catch (Exception e){
+            throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
         }
-        return mapTravelportToCompassites(response) ;
+        if(errorExist){
+            Properties prop = new Properties();
+            InputStream input = null;
+            try {
+                input = new FileInputStream("conf/galileoErrorCodes.properties");
+                prop.load(input);
+                if(!prop.containsKey(errorCode)){
+                    throw new RetryException(prop.getProperty(errorCode));
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }else {
+            return mapTravelportToCompassites(response) ;
+        }
+         return null;
     }
 
     private SearchResponse mapTravelportToCompassites(LowFareSearchRsp travelportResponse){
@@ -115,6 +149,14 @@ public class TravelPortFlightSearch implements FlightSearch {
                     System.out.print(" at " + dtime);
                     System.out.print(" arrives at " + atime);
                     airSegmentInformation.setDepartureTime(dtime);
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+                    try {
+                        airSegmentInformation.setDepartureDate(sdf.parse(dtime));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
                     airSegmentInformation.setArrivalTime(atime);
 
                     if ((flightDetails != null) && (flightDetails.getFlightTime() != null)) {
