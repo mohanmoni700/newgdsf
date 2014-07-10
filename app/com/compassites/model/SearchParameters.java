@@ -21,6 +21,9 @@ public class SearchParameters {
     private Integer noOfStops;
     private JourneySpecificParameters onwardJourney;
     private JourneySpecificParameters returnJourney;
+    private Integer adultCount;
+    private Integer childCount;
+    private Integer infantCount;
 
     public JourneySpecificParameters getOnwardJourney() {
         return onwardJourney;
@@ -104,6 +107,30 @@ public class SearchParameters {
         this.stopOver = stopOver;
     }
 
+    public Integer getAdultCount() {
+        return adultCount;
+    }
+
+    public void setAdultCount(Integer adultCount) {
+        this.adultCount = adultCount;
+    }
+
+    public Integer getChildCount() {
+        return childCount;
+    }
+
+    public void setChildCount(Integer childCount) {
+        this.childCount = childCount;
+    }
+
+    public Integer getInfantCount() {
+        return infantCount;
+    }
+
+    public void setInfantCount(Integer infantCount) {
+        this.infantCount = infantCount;
+    }
+
     public class JourneySpecificParameters{
 
         public CabinClass getCabinClass() {
@@ -146,13 +173,10 @@ public class SearchParameters {
         public void setJourneyDate(Date journeyDate) {
             this.journeyDate = journeyDate;
         }
-
-
-
     }
 
     public String redisKey(){
         Date journeyDate = onwardJourney.getJourneyDate();
-        return origin+destination+passengers.size()+journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear();
+        return origin+destination+"ADT"+adultCount+"CHD"+childCount+"INF"+infantCount+journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+onwardJourney.getCabinClass().upperValue();
     }
 }

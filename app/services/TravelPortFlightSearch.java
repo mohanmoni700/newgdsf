@@ -99,7 +99,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                 AirItinerary airItinerary = AirRequestClient.getItinerary(travelportResponse, airPricingSolution);
                 AirPriceRsp priceRsp = null;
                 try {
-                    priceRsp = AirRequestClient.priceItinerary(airItinerary, "SEA", "INR", TypeCabinClass.ECONOMY, searchParameters.getPassengers() );
+                    priceRsp = AirRequestClient.priceItinerary(airItinerary, "SEA", searchParameters.getCurrency(), TypeCabinClass.ECONOMY, searchParameters.getPassengers() );
                     AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
 
                     flightItinerary.getSeamanPricingInformation().setBasePrice(airPriceSolution.getBasePrice());
