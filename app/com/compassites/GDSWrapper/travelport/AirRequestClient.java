@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.travelport;
 
+import com.compassites.model.Passenger;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.service.air_v26_0.AirAvailabilitySearchPortType;
@@ -9,7 +10,6 @@ import com.travelport.service.air_v26_0.AirService;
 import org.apache.commons.logging.LogFactory;
 
 import javax.xml.ws.BindingProvider;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -33,9 +33,12 @@ public class AirRequestClient extends TravelPortClient {
 
     static void  init(){
         if (airService == null){
+            java.net.URL url = null;
             try {
-                String path = new File(".").getCanonicalPath();
-                airService = new AirService(new java.net.URL("file:"+path+"/wsdl/galileo/air_v26_0/Air.wsdl"));
+                java.net.URL baseUrl;
+                baseUrl = AirService.class.getResource(".");
+                url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl");
+                airService = new AirService(url);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -52,9 +55,15 @@ public class AirRequestClient extends TravelPortClient {
 
     static void  initPricePort(){
         if (airService == null){
+            java.net.URL url = null;
             try {
-                airService = new AirService(new java.net.URL("file:/home/Renu/workspace/GDSServices/wsdl/galileo/air_v26_0/Air.wsdl"));
+                java.net.URL baseUrl;
+                baseUrl = AirService.class.getResource(".");
+                url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl");
+                airService = new AirService(url);
             } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -422,7 +431,7 @@ public class AirRequestClient extends TravelPortClient {
         return result;
     }
     public static void displayItineraryPrice(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass) throws AirFaultMessage {
-        AirPriceRsp priceRsp = priceItinerary(airItinerary, passengerType, currency, cabinClass);
+        AirPriceRsp priceRsp = priceItinerary(airItinerary, passengerType, currency, cabinClass, null);
 
         //print price result
         List<AirPriceResult> prices = priceRsp.getAirPriceResult();
@@ -448,11 +457,36 @@ public class AirRequestClient extends TravelPortClient {
     /**
      * This just does the price computation so it is easy to re-use.
      *
-     * @param airItinerary
+     * @param
      * @return
      * @throws com.travelport.service.air_v26_0.AirFaultMessage
      */
-    public static AirPriceRsp priceItinerary(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass ) throws AirFaultMessage {
+    private static void setSeamanPassengerList(AirPriceReq request, List<Passenger> passengers, String passengerType){
+
+        if (passengers == null){
+            SearchPassenger adult = new SearchPassenger();
+            adult.setCode(passengerType);
+            adult.setKey("COMPASS");
+            adult.setAge(new BigInteger(String.valueOf(30)));
+            request.getSearchPassenger().add(adult);
+            return;
+        }
+        for (Iterator<Passenger> passengerIterator = passengers.iterator(); passengerIterator.hasNext();) {
+            Passenger passenger = passengerIterator.next();
+            SearchPassenger searchPassenger = new SearchPassenger();
+            if (passengerType == ""){
+                searchPassenger.setCode(passenger.getPassengerType());
+            }
+            else{
+                searchPassenger.setCode(passengerType);
+            }
+            searchPassenger.setKey("COMPASS");
+            if (passenger.getAge() != null)
+                searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
+            request.getSearchPassenger().add(searchPassenger);
+        }
+    }
+    public static AirPriceRsp priceItinerary(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass, List<Passenger> passengers ) throws AirFaultMessage {
         //now lets try to price it
         AirPriceReq priceRequest = new AirPriceReq();
 
@@ -465,23 +499,10 @@ public class AirRequestClient extends TravelPortClient {
 
         priceRequest.getAirPricingCommand().add(command1);
 
-        /*
-        AirPricingCommand command2 = new AirPricingCommand();
-        command2.setCabinClass(TypeCabinClass.BUSINESS);
-        priceRequest.getAirPricingCommand().add(command2);
-
-        AirPricingCommand command3 = new AirPricingCommand();
-        command3.setCabinClass(TypeCabinClass.PREMIUM_ECONOMY);
-        priceRequest.getAirPricingCommand().add(command3);
-          */
-        //our branch
         priceRequest.setTargetBranch(BRANCH);
 
-        SearchPassenger adult = new SearchPassenger();
-        adult.setCode(passengerType);
-        adult.setKey("COMPASS");
-        adult.setAge(new BigInteger(String.valueOf(30)));
-        priceRequest.getSearchPassenger().add(adult);
+
+        setSeamanPassengerList(priceRequest, passengers, passengerType);
 
         BillingPointOfSaleInfo billingPointOfSaleInfo= new BillingPointOfSaleInfo();
         billingPointOfSaleInfo.setOriginApplication("Test-app");

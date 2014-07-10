@@ -73,7 +73,7 @@ public class FlightSearchTest {
         searchParameters.getReturnJourney().setJourneyDate(returnDate);
         searchParameters.setNoOfStops(new Integer("1"));
         Passenger passenger = new Passenger();
-        passenger.setPassengerType("SEA");
+        passenger.setPassengerType("ADT");
         searchParameters.getPassengers().add(passenger);
         FlightSearch flightSearch = new TravelPortFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);

@@ -1,5 +1,7 @@
 package services;
 
+import com.compassites.GDSWrapper.travelport.AirRequestClient;
+import com.compassites.GDSWrapper.travelport.AirReservationClient;
 import com.compassites.GDSWrapper.travelport.Helper;
 import com.compassites.GDSWrapper.travelport.LowFareRequestClient;
 import com.compassites.exceptions.IncompleteDetailsMessage;
@@ -8,6 +10,7 @@ import com.compassites.model.*;
 import com.compassites.model.AirSolution;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
+import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.springframework.stereotype.Service;
 import play.Logger;
@@ -68,12 +71,12 @@ public class TravelPortFlightSearch implements FlightSearch {
             }
 
         }else {
-            return mapTravelportToCompassites(response) ;
+            return mapTravelportToCompassites(response, searchParameters) ;
         }
          return null;
     }
 
-    private SearchResponse mapTravelportToCompassites(LowFareSearchRsp travelportResponse){
+    private SearchResponse mapTravelportToCompassites(LowFareSearchRsp travelportResponse, SearchParameters searchParameters){
         SearchResponse searchResponse= new SearchResponse();
 
         AirSolution airSolution=new AirSolution();
@@ -90,6 +93,23 @@ public class TravelPortFlightSearch implements FlightSearch {
             AirPricingSolution airPricingSolution = (AirPricingSolution)airPricingSolutionIterator.next();
             FlightItinerary flightItinerary=new FlightItinerary();
             flightItinerary.setProvider("Travelport");
+
+            //Seaman Fares
+            {
+                AirItinerary airItinerary = AirRequestClient.getItinerary(travelportResponse, airPricingSolution);
+                AirPriceRsp priceRsp = null;
+                try {
+                    priceRsp = AirRequestClient.priceItinerary(airItinerary, "SEA", "INR", TypeCabinClass.ECONOMY, searchParameters.getPassengers() );
+                    AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
+
+                    flightItinerary.getSeamanPricingInformation().setBasePrice(airPriceSolution.getBasePrice());
+                    flightItinerary.getSeamanPricingInformation().setTax(airPriceSolution.getTaxes());
+                    flightItinerary.getSeamanPricingInformation().setTotalPrice(airPriceSolution.getTotalPrice());
+
+                } catch (AirFaultMessage airFaultMessage) {
+                    airFaultMessage.printStackTrace();
+                }
+            }
             flightItinerary.getPricingInformation().setBasePrice(airPricingSolution.getBasePrice());
             flightItinerary.getPricingInformation().setTax(airPricingSolution.getTaxes());
             flightItinerary.getPricingInformation().setTotalPrice(airPricingSolution.getTotalPrice());

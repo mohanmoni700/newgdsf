@@ -1,11 +1,10 @@
 package com.compassites.model;
 
 
-import javax.xml.datatype.Duration;
-
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
+import javax.xml.datatype.Duration;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +20,13 @@ public class FlightItinerary implements Serializable{
     public FlightItinerary(){
         journeyList = new ArrayList<Journey>();
         pricingInformation = new PricingInformation();
+        seamanPricingInformation = new PricingInformation();
     }
 
     private String provider; //travelport or amadeus
     private PricingInformation pricingInformation;
+
+    private PricingInformation seamanPricingInformation;
 
     public List<Journey> getJourneyList() {
         return journeyList;
@@ -51,6 +53,14 @@ public class FlightItinerary implements Serializable{
 
     public void setPricingInformation(PricingInformation pricingInformation) {
         this.pricingInformation = pricingInformation;
+    }
+
+    public PricingInformation getSeamanPricingInformation() {
+        return seamanPricingInformation;
+    }
+
+    public void setSeamanPricingInformation(PricingInformation seamanPricingInformation) {
+        this.seamanPricingInformation = seamanPricingInformation;
     }
 
     public void AddBlankJourney(){
