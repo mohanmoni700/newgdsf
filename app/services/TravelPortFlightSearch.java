@@ -43,15 +43,15 @@ public class TravelPortFlightSearch implements FlightSearch {
             response = lowFareRequestClient.search(searchParameters);
             Logger.info("TravelPortFlightSearch search response at "+ new Date());
             List<ResponseMessage> responseMessageList = response.getResponseMessage();
-
-            /*for (ResponseMessage responseMessage : responseMessageList){
+            errorExist = response.getAirPricingSolution() == null;
+            for (ResponseMessage responseMessage : responseMessageList){
                if("Error".equalsIgnoreCase(responseMessage.getType())){
                     System.out.println("Error received from Travel port : "+ responseMessage.getValue());
-                    errorExist = true;
+
                     errorCode = ""+responseMessage.getCode();
                     errorMessage = errorMessage + responseMessage.getValue();
                 }
-            }*/
+            }
         } catch (AirFaultMessage airFaultMessage) {
             throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
         }catch (Exception e){

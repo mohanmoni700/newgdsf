@@ -16,6 +16,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -87,10 +88,22 @@ public class AmadeusFlightSearch implements FlightSearch {
     private AirSolution createAirSolutionFromRecommendations(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply){
         AirSolution airSolution=new AirSolution();
         List<FlightItinerary> flightItineraries=new ArrayList<FlightItinerary>();
+        String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
 
         //each flightindex has one itinerary
         //each itinerary has multiple segments each corresponding to one flight in the itinerary in the airSegmentInformation
         for(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation:fareMasterPricerTravelBoardSearchReply.getRecommendation()){
+
+            BigDecimal totalAmount = BigDecimal.valueOf(0);
+            BigDecimal taxAmount = BigDecimal.valueOf(0);
+            BigDecimal baseAmount = BigDecimal.valueOf(0);
+            for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct())
+            {
+                taxAmount = taxAmount.add(paxFareProduct.getPaxFareDetail().getTotalTaxAmount());
+                baseAmount = baseAmount.add(paxFareProduct.getPaxFareDetail().getTotalFareAmount());
+                totalAmount = totalAmount.add(taxAmount).add(baseAmount);
+            }
+
 
 
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()){
@@ -125,6 +138,10 @@ public class AmadeusFlightSearch implements FlightSearch {
                     i++;
 
                 }
+                flightItinerary.getPricingInformation().setBasePrice(currency + baseAmount.toString());
+                flightItinerary.getPricingInformation().setTax(currency + taxAmount.toString());
+                flightItinerary.getPricingInformation().setTotalPrice(currency + totalAmount.toString());
+                flightItinerary.getPricingInformation().setCurrency(currency);
                 flightItineraries.add(flightItinerary);
             }
         }
@@ -136,18 +153,35 @@ public class AmadeusFlightSearch implements FlightSearch {
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("ddMMyy-kkmm");
 
     private AirSegmentInformation createSegment(TravelProductType flightInformation){
+        /*
+        ** TODO: remove this code
         try {
             Date onwardDate = new SimpleDateFormat("ddMMyy-kkmm").parse("020714-2220");
             Date onwardDate1 = new SimpleDateFormat("ddMMyy-kkmm").parse("030714-0700");
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        */
 
         AirSegmentInformation airSegmentInformation=new AirSegmentInformation();
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
         airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
-        airSegmentInformation.setArrivalTime(flightInformation.getProductDateTime().getTimeOfArrival());
-        airSegmentInformation.setDepartureTime(flightInformation.getProductDateTime().getDateOfDeparture());
+        try {
+            String arrivalDateStr = flightInformation.getProductDateTime().getDateOfArrival() + "-" + flightInformation.getProductDateTime().getTimeOfArrival();
+            Date arrivalDate = new SimpleDateFormat("ddMMyy-kkmm").parse(arrivalDateStr);
+
+            String departureDateStr = flightInformation.getProductDateTime().getDateOfDeparture() + "-" + flightInformation.getProductDateTime().getTimeOfDeparture();
+            Date departureDate = new SimpleDateFormat("ddMMyy-kkmm").parse(departureDateStr);
+
+            airSegmentInformation.setArrivalTime(arrivalDate.toString());
+            airSegmentInformation.setDepartureTime(departureDate.toString());
+
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        //airSegmentInformation.setArrivalTime(flightInformation.getProductDateTime().getTimeOfArrival());
+        //airSegmentInformation.setDepartureTime(flightInformation.getProductDateTime().getDateOfDeparture());
         airSegmentInformation.setFromTerminal(flightInformation.getLocation().get(0).getTerminal());
         airSegmentInformation.setToTerminal(flightInformation.getLocation().get(1).getTerminal());
         airSegmentInformation.setToDate(flightInformation.getProductDateTime().getDateOfDeparture());
