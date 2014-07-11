@@ -157,9 +157,31 @@ public class LowFareRequestClient extends TravelPortClient {
             legs.add(returnLeg);
         }
 
+
+        //AirSearchModifiers airSearchModifiers = new AirSearchModifiers();
+
+        //airSearchModifiers.setPreferNonStop(searchParameters.getDirectFlights());
+
+        //if (searchParameters.getPreferredAirlineCode() != null) {
+        //    AirSearchModifiers.PreferredCarriers preferredCarriers = new AirSearchModifiers.PreferredCarriers();
+        //    Carrier carrier = new Carrier();
+        //    carrier.setCode(searchParameters.getPreferredAirlineCode());
+        //    preferredCarriers.getCarrier().add(carrier);
+        //    airSearchModifiers.setPreferredCarriers(preferredCarriers);
+        //}
+
+        //request.setAirSearchModifiers(airSearchModifiers);
+
         AirPricingModifiers airPricingModifiers = new AirPricingModifiers();
+
         airPricingModifiers.setCurrencyType(searchParameters.getCurrency());
+
+        // By default, both refundable and non-refundable fares are returned.
+        // If the ProhibitNonRefundableFares attribute is set to 'True', only fully refundable fares are returned in the response.
+        //airPricingModifiers.setProhibitNonRefundableFares(searchParameters.getRefundableFlights());
+
         request.setAirPricingModifiers(airPricingModifiers);
+
         return request;
     }
 

@@ -24,6 +24,9 @@ public class SearchParameters {
     private Integer adultCount;
     private Integer childCount;
     private Integer infantCount;
+    private Boolean refundableFlights;
+    private Boolean directFlights;
+    private String preferredAirlineCode;
 
     public JourneySpecificParameters getOnwardJourney() {
         return onwardJourney;
@@ -88,6 +91,9 @@ public class SearchParameters {
         onwardJourney = new JourneySpecificParameters();
         returnJourney = new JourneySpecificParameters();
         passengers = new ArrayList<Passenger>();
+        refundableFlights = false;
+        directFlights = false;
+
 
     }
 
@@ -129,6 +135,30 @@ public class SearchParameters {
 
     public void setInfantCount(Integer infantCount) {
         this.infantCount = infantCount;
+    }
+
+    public Boolean getRefundableFlights() {
+        return refundableFlights;
+    }
+
+    public void setRefundableFlights(Boolean refundableFlights) {
+        this.refundableFlights = refundableFlights;
+    }
+
+    public Boolean getDirectFlights() {
+        return directFlights;
+    }
+
+    public void setDirectFlights(Boolean directFlights) {
+        this.directFlights = directFlights;
+    }
+
+    public String getPreferredAirlineCode() {
+        return preferredAirlineCode;
+    }
+
+    public void setPreferredAirlineCode(String preferredAirlineCode) {
+        this.preferredAirlineCode = preferredAirlineCode;
     }
 
     public class JourneySpecificParameters{

@@ -61,17 +61,23 @@ public class FlightSearchTest {
         searchParameters.getOnwardJourney().setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
         searchParameters.setDestination("BLR");
-        searchParameters.setOrigin("SIN");
-        searchParameters.setWithReturnJourney(true);
+        searchParameters.setOrigin("BOM");
+        searchParameters.setWithReturnJourney(false);
 
         Calendar cal = Calendar.getInstance();
         cal.set(2014, 8, 24 );
-        Date onwardDate = new SimpleDateFormat("MM/dd/yyyy").parse("08/18/2014");
+        Date onwardDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/01/2014");
         searchParameters.getOnwardJourney().setJourneyDate(onwardDate );
         //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
         Date returnDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/14/2014");
         searchParameters.getReturnJourney().setJourneyDate(returnDate);
         searchParameters.setNoOfStops(new Integer("1"));
+        searchParameters.setDirectFlights(true);
+
+        searchParameters.setRefundableFlights(true);
+
+        //searchParameters.setPreferredAirlineCode("AI");
+
         Passenger passenger = new Passenger();
         passenger.setPassengerType("ADT");
         searchParameters.getPassengers().add(passenger);

@@ -30,7 +30,7 @@ public class TestAirReservationClient {
             LowFareSearchRsp responseTwo = lowFareRequestClient.search("BOM", "SIN", Helper.daysInFuture(45), Helper.daysInFuture(67), false, TypeCabinClass.ECONOMY, "SEA", "INR");
             AirItinerary airItinerary = AirRequestClient.getItinerary(responseTwo, responseTwo.getAirPricingSolution().get(0));
             try {
-                AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, "SEA", "INR", TypeCabinClass.ECONOMY);
+                AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, "SEA", "INR", TypeCabinClass.ECONOMY, null);
                 AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
                 AirCreateReservationRsp response = AirReservationClient.reserve(airPriceSolution);
             } catch (DatatypeConfigurationException e) {
