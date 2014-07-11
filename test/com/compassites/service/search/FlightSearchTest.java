@@ -76,7 +76,7 @@ public class FlightSearchTest {
 
         searchParameters.setRefundableFlights(true);
 
-        //searchParameters.setPreferredAirlineCode("AI");
+        //searchParameters.setPreferredAirlineCode("9W");
 
         Passenger passenger = new Passenger();
         passenger.setPassengerType("ADT");
