@@ -8,6 +8,13 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import models.Airport;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Minutes;
+import org.joda.time.Period;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 import play.Logger;
 
@@ -153,33 +160,11 @@ public class AmadeusFlightSearch implements FlightSearch {
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("ddMMyy-kkmm");
 
     private AirSegmentInformation createSegment(TravelProductType flightInformation){
-        /*
-        ** TODO: remove this code
-        try {
-            Date onwardDate = new SimpleDateFormat("ddMMyy-kkmm").parse("020714-2220");
-            Date onwardDate1 = new SimpleDateFormat("ddMMyy-kkmm").parse("030714-0700");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        */
 
         AirSegmentInformation airSegmentInformation=new AirSegmentInformation();
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
         airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
-        try {
-            String arrivalDateStr = flightInformation.getProductDateTime().getDateOfArrival() + "-" + flightInformation.getProductDateTime().getTimeOfArrival();
-            Date arrivalDate = new SimpleDateFormat("ddMMyy-kkmm").parse(arrivalDateStr);
 
-            String departureDateStr = flightInformation.getProductDateTime().getDateOfDeparture() + "-" + flightInformation.getProductDateTime().getTimeOfDeparture();
-            Date departureDate = new SimpleDateFormat("ddMMyy-kkmm").parse(departureDateStr);
-
-            airSegmentInformation.setArrivalTime(arrivalDate.toString());
-            airSegmentInformation.setDepartureTime(departureDate.toString());
-
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
         //airSegmentInformation.setArrivalTime(flightInformation.getProductDateTime().getTimeOfArrival());
         //airSegmentInformation.setDepartureTime(flightInformation.getProductDateTime().getDateOfDeparture());
         airSegmentInformation.setFromTerminal(flightInformation.getLocation().get(0).getTerminal());
@@ -188,16 +173,27 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setFromDate(flightInformation.getProductDateTime().getDateOfArrival());
         airSegmentInformation.setToLocation(flightInformation.getLocation().get(1).getLocationId());
         airSegmentInformation.setFromLocation(flightInformation.getLocation().get(0).getLocationId());
+        Airport fromAirport = new Airport();
+        Airport toAirport = new Airport();
+        List<Airport> list =  fromAirport.find.where().eq("iata_code",airSegmentInformation.getFromLocation()).findList();
+        fromAirport = list.get(0);
+        list =  fromAirport.find.where().eq("iata_code",airSegmentInformation.getToLocation()).findList();
+        toAirport = list.get(0);
+
 
         SimpleDateFormat sdf =  new SimpleDateFormat("ddMMyyHHmm") ;
-        try {
-            Date date = sdf.parse(flightInformation.getProductDateTime().getDateOfDeparture()+flightInformation.getProductDateTime().getTimeOfDeparture());
+        String DATE_FORMAT = "ddMMyyHHmm";
+        DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat.forPattern(DATE_FORMAT);
+        DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport.getTime_zone());
+        DateTime departureDate = DATETIME_FORMATTER.withZone(dateTimeZone).parseDateTime(flightInformation.getProductDateTime().getDateOfDeparture() + flightInformation.getProductDateTime().getTimeOfDeparture());
+        dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+        DateTime arrivalDate = DATETIME_FORMATTER.withZone(dateTimeZone).parseDateTime(flightInformation.getProductDateTime().getDateOfArrival()+flightInformation.getProductDateTime().getTimeOfArrival());
 
-            airSegmentInformation.setDepartureDate(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
+        airSegmentInformation.setDepartureDate(departureDate.toDate());
+        airSegmentInformation.setDepartureTime(departureDate.toString());
+        airSegmentInformation.setArrivalTime(arrivalDate.toString());
+        Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
+        airSegmentInformation.setTravelTime(""+diff.getMinutes());
 
         return airSegmentInformation;
     }

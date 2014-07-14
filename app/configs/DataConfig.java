@@ -9,12 +9,10 @@ import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import play.Play;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-
-import play.Logger;
-import play.Play;
 
 @Configuration
 @EnableTransactionManagement
@@ -46,6 +44,8 @@ public class DataConfig {
         final DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(Play.application().configuration().getString("db.default.driver"));
         dataSource.setUrl(Play.application().configuration().getString("db.default.url"));
+        dataSource.setUsername(Play.application().configuration().getString("db.default.user"));
+        dataSource.setPassword(Play.application().configuration().getString("db.default.password"));
         return dataSource;
     }
 

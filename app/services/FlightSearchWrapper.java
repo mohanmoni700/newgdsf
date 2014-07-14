@@ -1,6 +1,7 @@
 package services;
 
 import com.compassites.exceptions.RetryException;
+import com.compassites.model.AirSolution;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
@@ -66,66 +67,74 @@ public class FlightSearchWrapper {
                         searchResponse = future.get();
                     }catch (RetryException retryOnFailure){
                         exceptionCounter++;
+
                         if(exceptionCounter == flightSearchList.size()){
                             //send email to IT admin
                         }
                     }catch (Exception e){
+
                         e.printStackTrace();
                     }
 
-                    if (searchResponseList.size() > 0){
+                   /* if (searchResponseList.size() > 0){
                         searchResponseList.get(0).getAirSolution().getFlightItineraryList().addAll(searchResponse.getAirSolution().getFlightItineraryList()) ;
                     }
                     else {
                         searchResponseList.add(searchResponse);
                     }
-                    listIterator.remove();
+
                     Logger.info("Redis Key :" + searchParameters.redisKey());
                     String res = j.set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseList)));
 
-                    res = j.set(searchParameters.redisKey()+":status","partial");
-
+                    res = j.set(searchParameters.redisKey()+":status","partial");*/
+                    listIterator.remove();
                     counter ++;
-                    if(counter == 1){
-                        //hashSet.addAll(searchResponseList.get(0).getAirSolution().getFlightItineraryList());
-                        Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
-                        for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
+                    if(searchResponse != null){
+                        if(counter == 1){
+                            //hashSet.addAll(searchResponseList.get(0).getAirSolution().getFlightItineraryList());
+                            //Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
 
-                            hashMap.put(flightItinerary.hashCode(),flightItinerary);
-                        }
-                    }
-                    if(counter > 1){
-                        Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
-                        for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
-                            //Logger.info("FlightItinary string :"+flightItinerary.toString());
-                            if(hashMap.containsKey(flightItinerary.hashCode())){
-                                Logger.info("Common Flights"+Json.toJson(flightItinerary));
-                                FlightItinerary hashFlightItinerary = hashMap.get(flightItinerary.hashCode());
-                                if(hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
-                                        && flightItinerary.getPricingInformation() != null && flightItinerary.getPricingInformation().getTotalPrice() != null){
-                                    Integer hashItinaryPrice = new Integer(hashFlightItinerary.getPricingInformation().getTotalPrice().substring(3));
-                                    Integer iteratorItinaryPrice = new Integer( flightItinerary.getPricingInformation().getTotalPrice().substring(3));
-                                    if(iteratorItinaryPrice < hashItinaryPrice){
-                                        hashMap.remove(hashFlightItinerary.hashCode());
-                                        hashMap.put(flightItinerary.hashCode(),flightItinerary);
-                                     }
-                                }
-                            }else{
+                            for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
+
                                 hashMap.put(flightItinerary.hashCode(),flightItinerary);
                             }
                         }
+                        if(counter > 1){
+                            //Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
+                            for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
+                                //Logger.info("FlightItinary string :"+flightItinerary.toString());
+                                if(hashMap.containsKey(flightItinerary.hashCode())){
+                                    Logger.info("Common Flights"+Json.toJson(flightItinerary));
+                                    FlightItinerary hashFlightItinerary = hashMap.get(flightItinerary.hashCode());
+                                    if(hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
+                                            && flightItinerary.getPricingInformation() != null && flightItinerary.getPricingInformation().getTotalPrice() != null){
+                                        Integer hashItinaryPrice = new Integer(hashFlightItinerary.getPricingInformation().getTotalPrice().substring(3));
+                                        Integer iteratorItinaryPrice = new Integer( flightItinerary.getPricingInformation().getTotalPrice().substring(3));
+                                        if(iteratorItinaryPrice < hashItinaryPrice){
+                                            hashMap.remove(hashFlightItinerary.hashCode());
+                                            hashMap.put(flightItinerary.hashCode(),flightItinerary);
+                                        }
+                                    }
+                                }else{
+                                    hashMap.put(flightItinerary.hashCode(),flightItinerary);
+                                }
+                            }
+                        }
                     }
+
                 }
             }
             if(counter == searchResponseListSize){
                 loop = false;
-                j.set(searchParameters.redisKey()+":status","complete");
+                //j.set(searchParameters.redisKey()+":status","complete");
             }
         }
         Logger.info("HashMap Size: "+hashMap.size());
-
-
-
+        SearchResponse searchResponse=new SearchResponse();
+        AirSolution airSolution = new AirSolution();
+        airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
+        searchResponse.setAirSolution(airSolution);
+        searchResponseList.add(searchResponse);
         Logger.info("***********SEARCH END***********");
         return searchResponseList;
     }
