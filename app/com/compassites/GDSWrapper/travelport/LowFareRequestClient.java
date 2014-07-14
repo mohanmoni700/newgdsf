@@ -179,7 +179,7 @@ public class LowFareRequestClient extends TravelPortClient {
 
         // By default, both refundable and non-refundable fares are returned.
         // If the ProhibitNonRefundableFares attribute is set to 'True', only fully refundable fares are returned in the response.
-        //airPricingModifiers.setProhibitNonRefundableFares(searchParameters.getRefundableFlights());
+        airPricingModifiers.setProhibitNonRefundableFares(searchParameters.getRefundableFlights());
 
         request.setAirPricingModifiers(airPricingModifiers);
 
@@ -329,7 +329,7 @@ public class LowFareRequestClient extends TravelPortClient {
         modifiers.setPreferNonStop(directFlight);
         FlightType flightType = new FlightType();
         flightType.setNonStopDirects(directFlight);
-        //modifiers.setFlightType(flightType);
+        modifiers.setFlightType(flightType);
 
         if (preferredAirlineCode != null) {
             AirLegModifiers.PreferredCarriers preferredCarriers = new AirLegModifiers.PreferredCarriers();
