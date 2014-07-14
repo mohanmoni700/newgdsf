@@ -49,9 +49,38 @@ public class SearchFlights {
 
         se.getPaxReference().addAll(createPassengers(searchParameters.getPassengers()));
         se.getItinerary().add(createItinerary(searchParameters.getOrigin(),searchParameters.getDestination(),mapDate(searchParameters.getOnwardJourney().getJourneyDate())));
+        TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
+
+        if (searchParameters.getPreferredAirlineCode() != null){
+            CompanyIdentificationType214105C cid =new CompanyIdentificationType214105C();
+            cid.getCarrierId().add(searchParameters.getPreferredAirlineCode());
+            cid.setCarrierQualifier("X");
+            travelFlightInfo.getCompanyIdentity().add(cid);
+        }
+
+        if (searchParameters.getDirectFlights()){
+            ProductTypeDetailsType120801C ptd=new ProductTypeDetailsType120801C();
+            ptd.getFlightType().add("D");
+            ptd.getFlightType().add("N");
+            travelFlightInfo.setFlightDetail(ptd);
+        }
+
+        se.setTravelFlightInfo(travelFlightInfo);
+
+        if (searchParameters.getRefundableFlights()){
+            FareMasterPricerTravelBoardSearch.FareOptions fe=new FareMasterPricerTravelBoardSearch.FareOptions();
+            PricingTicketingDetailsType pdt=new PricingTicketingDetailsType();
+            PricingTicketingInformationType pit=new PricingTicketingInformationType();
+            pit.getPriceType().add("RF");
+            pdt.setPricingTicketing(pit);
+            fe.setPricingTickInfo(pdt);
+            se.setFareOptions(fe);
+        }
+
+
         if(searchParameters.getWithReturnJourney())
             se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate())));
-        //se.setFareOptions(createFareOptions());     
+        //se.setFareOptions(createFareOptions());
 //        TravelFlightInformationType148734S tfi=new TravelFlightInformationType148734S();
 //        CompanyIdentificationType214105C cid=new CompanyIdentificationType214105C();
 //        cid.getCarrierId().add("QR");
@@ -116,7 +145,7 @@ public class SearchFlights {
         FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
         OriginAndDestinationRequestType odrt=new OriginAndDestinationRequestType();
         odrt.setSegRef(new BigInteger(Integer.toString(itineraryRef++)));
-        idt.setRequestedSegmentRef(odrt);     
+        idt.setRequestedSegmentRef(odrt);
         DepartureLocationType dlt=new DepartureLocationType();
         
         MultiCityOptionType mcot=new MultiCityOptionType();

@@ -43,8 +43,14 @@ public class FlightSearchTest {
         searchParameters.setWithReturnJourney(true);
         searchParameters.setNoOfStops(new Integer("0"));
         Passenger passenger = new Passenger();
-       // passenger.setPassengerType("ADT");
-        passenger.setPassengerType("SEA");
+        searchParameters.setDirectFlights(true);
+
+        searchParameters.setRefundableFlights(true);
+
+        searchParameters.setPreferredAirlineCode("9W");
+
+        passenger.setPassengerType("ADT");
+        //passenger.setPassengerType("SEA");
         searchParameters.getPassengers().add(passenger);
         ServiceHandler serviceHandler=new ServiceHandler();
         FlightSearch flightSearch = new AmadeusFlightSearch();
