@@ -30,24 +30,24 @@ public class FlightSearchTest {
         SearchParameters searchParameters = new SearchParameters();
         searchParameters.getOnwardJourney().setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
-        searchParameters.setDestination("COK");
+        searchParameters.setDestination("SIN");
         searchParameters.setOrigin("BOM");
 
-        Date onwardDate = new SimpleDateFormat("dd/MM/yyyy").parse("18/08/2014");
+        Date onwardDate = new SimpleDateFormat("dd/MM/yyyy").parse("15/08/2014");
         searchParameters.getOnwardJourney().setJourneyDate(onwardDate);
 
         Date returnDate = new SimpleDateFormat("dd/MM/yyyy").parse("14/09/2014");
         searchParameters.getReturnJourney().setJourneyDate(returnDate);
 
 
-        searchParameters.setWithReturnJourney(true);
-        searchParameters.setNoOfStops(new Integer("0"));
+        searchParameters.setWithReturnJourney(false);
+        //searchParameters.setNoOfStops(new Integer("0"));
         Passenger passenger = new Passenger();
-        searchParameters.setDirectFlights(true);
+        //searchParameters.setDirectFlights(true);
 
-        searchParameters.setRefundableFlights(true);
+        //searchParameters.setRefundableFlights(true);
 
-        searchParameters.setPreferredAirlineCode("9W");
+        searchParameters.setPreferredAirlineCode("SQ");
 
         passenger.setPassengerType("ADT");
         //passenger.setPassengerType("SEA");
