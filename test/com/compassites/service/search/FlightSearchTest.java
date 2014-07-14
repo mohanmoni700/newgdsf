@@ -42,12 +42,15 @@ public class FlightSearchTest {
 
         searchParameters.setWithReturnJourney(false);
         //searchParameters.setNoOfStops(new Integer("0"));
-        Passenger passenger = new Passenger();
+
         //searchParameters.setDirectFlights(true);
 
         //searchParameters.setRefundableFlights(true);
 
-        searchParameters.setPreferredAirlineCode("SQ");
+        //searchParameters.setPreferredAirlineCode("SQ");
+        searchParameters.setDateType("departure");
+
+        Passenger passenger = new Passenger();
 
         passenger.setPassengerType("ADT");
         //passenger.setPassengerType("SEA");
@@ -67,22 +70,24 @@ public class FlightSearchTest {
         searchParameters.getOnwardJourney().setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
         searchParameters.setDestination("BLR");
-        searchParameters.setOrigin("BOM");
+        searchParameters.setOrigin("LAX");
         searchParameters.setWithReturnJourney(false);
 
         Calendar cal = Calendar.getInstance();
         cal.set(2014, 8, 24 );
-        Date onwardDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/01/2014");
+        Date onwardDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/04/2014");
         searchParameters.getOnwardJourney().setJourneyDate(onwardDate );
         //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
         Date returnDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/14/2014");
         searchParameters.getReturnJourney().setJourneyDate(returnDate);
-        searchParameters.setNoOfStops(new Integer("1"));
-        searchParameters.setDirectFlights(true);
+        //searchParameters.setNoOfStops(new Integer("1"));
+        //searchParameters.setDirectFlights(true);
 
-        searchParameters.setRefundableFlights(true);
+        //searchParameters.setRefundableFlights(true);
 
         //searchParameters.setPreferredAirlineCode("9W");
+
+        searchParameters.setDateType("arrival");
 
         Passenger passenger = new Passenger();
         passenger.setPassengerType("ADT");

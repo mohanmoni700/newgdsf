@@ -125,11 +125,15 @@ public class LowFareRequestClient extends TravelPortClient {
     private static TypeSearchAirLeg buildLeg(String origin, String destination,
                                              SearchParameters.JourneySpecificParameters journeySpecificParameters,
                                              Boolean directFlight,
-                                             String preferredAirlineCode){
+                                             String preferredAirlineCode,
+                                             String dateType){
         TypeCabinClass cabinClass = TypeCabinClass.valueOf(journeySpecificParameters.getCabinClass().upperValue());
         TypeSearchAirLeg airLeg = createLeg(origin, destination, cabinClass, directFlight, preferredAirlineCode);
         String journeyDate = searchFormat.format(journeySpecificParameters.getJourneyDate());
-        addDepartureDate(airLeg, journeyDate);
+        if (dateType.equalsIgnoreCase("arrival"))
+            addArrivalDate(airLeg, journeyDate);
+        else
+            addDepartureDate(airLeg, journeyDate);
 
         return airLeg;
     }
@@ -155,7 +159,8 @@ public class LowFareRequestClient extends TravelPortClient {
                                                 searchParameters.getDestination(),
                                                 searchParameters.getOnwardJourney(),
                                                 searchParameters.getDirectFlights(),
-                                                searchParameters.getPreferredAirlineCode());
+                                                searchParameters.getPreferredAirlineCode(),
+                                                searchParameters.getDateType());
         List<TypeSearchAirLeg> legs = request.getSearchAirLeg();
         legs.add(outbound);
 
@@ -164,7 +169,8 @@ public class LowFareRequestClient extends TravelPortClient {
                                                     searchParameters.getOrigin(),
                                                     searchParameters.getReturnJourney(),
                                                     searchParameters.getDirectFlights(),
-                                                    searchParameters.getPreferredAirlineCode());
+                                                    searchParameters.getPreferredAirlineCode(),
+                                                    searchParameters.getDateType());
             legs.add(returnLeg);
         }
 
@@ -348,6 +354,14 @@ public class LowFareRequestClient extends TravelPortClient {
         TypeFlexibleTimeSpec noFlex = new TypeFlexibleTimeSpec();
         noFlex.setPreferredTime(departureDate);
         leg.getSearchDepTime().add(noFlex);
+    }
+
+    public static void addArrivalDate(TypeSearchAirLeg leg, String arrivalDate) {
+        // flexible time spec is flexible in that it allows you to say
+        // days before or days after
+        TypeFlexibleTimeSpec noFlex = new TypeFlexibleTimeSpec();
+        noFlex.setPreferredTime(arrivalDate);
+        leg.getSearchArvTime().add(noFlex);
     }
 
 

@@ -48,7 +48,7 @@ public class SearchFlights {
         se.setNumberOfUnit(createNumberOfUnits(searchParameters.getPassengers().size()));
 
         se.getPaxReference().addAll(createPassengers(searchParameters.getPassengers()));
-        se.getItinerary().add(createItinerary(searchParameters.getOrigin(),searchParameters.getDestination(),mapDate(searchParameters.getOnwardJourney().getJourneyDate())));
+        se.getItinerary().add(createItinerary(searchParameters.getOrigin(),searchParameters.getDestination(),mapDate(searchParameters.getOnwardJourney().getJourneyDate()), searchParameters.getDateType()));
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
         if (searchParameters.getPreferredAirlineCode() != null){
@@ -79,7 +79,7 @@ public class SearchFlights {
 
 
         if(searchParameters.getWithReturnJourney())
-            se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate())));
+            se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate()), searchParameters.getDateType()));
         //se.setFareOptions(createFareOptions());
 //        TravelFlightInformationType148734S tfi=new TravelFlightInformationType148734S();
 //        CompanyIdentificationType214105C cid=new CompanyIdentificationType214105C();
@@ -141,7 +141,7 @@ public class SearchFlights {
         return passengers;
     }
 
-    private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(String origin,String destination,String date){
+    private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(String origin,String destination,String date, String dateType){
         FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
         OriginAndDestinationRequestType odrt=new OriginAndDestinationRequestType();
         odrt.setSegRef(new BigInteger(Integer.toString(itineraryRef++)));
@@ -160,7 +160,15 @@ public class SearchFlights {
         idt.setArrivalLocalization(alt);
         DateAndTimeInformationType dti=new DateAndTimeInformationType();
         DateAndTimeDetailsTypeI dtit=new DateAndTimeDetailsTypeI();
+        dtit.setTimeQualifier("TD");
+        dtit.setTime("0000");
         dtit.setDate(date);
+
+        if (dateType.equalsIgnoreCase("arrival")){
+            dtit.setTimeQualifier("TA");
+            dtit.setTime("2359");
+        }
+
         dti.setFirstDateTimeDetail(dtit);
         
         TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
