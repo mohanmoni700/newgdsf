@@ -7,6 +7,7 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_12_4_1a.*;
+import com.compassites.model.BookingType;
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
 
@@ -77,6 +78,15 @@ public class SearchFlights {
             se.setFareOptions(fe);
         }
 
+        if(searchParameters.getBookingType()== BookingType.SEAMEN){
+            FareMasterPricerTravelBoardSearch.FareOptions fe1=new FareMasterPricerTravelBoardSearch.FareOptions();
+            PricingTicketingDetailsType pdt1=new PricingTicketingDetailsType();
+            PricingTicketingInformationType pit1=new PricingTicketingInformationType();
+            pit1.getPriceType().add("PTC");
+            pdt1.setPricingTicketing(pit1);
+            fe1.setPricingTickInfo(pdt1);
+            se.setFareOptions(fe1);
+        }
 
         if(searchParameters.getWithReturnJourney())
             se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate()), searchParameters.getDateType()));
@@ -144,8 +154,8 @@ public class SearchFlights {
     private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(String origin,String destination,String date, String dateType){
         FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
         OriginAndDestinationRequestType odrt=new OriginAndDestinationRequestType();
-        odrt.setSegRef(new BigInteger(Integer.toString(itineraryRef++)));
-        idt.setRequestedSegmentRef(odrt);
+        odrt.setSegRef(new BigInteger(Integer.toString(1)));
+        idt.setRequestedSegmentRef(odrt);     
         DepartureLocationType dlt=new DepartureLocationType();
         
         MultiCityOptionType mcot=new MultiCityOptionType();

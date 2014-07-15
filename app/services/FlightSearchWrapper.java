@@ -89,12 +89,11 @@ public class FlightSearchWrapper {
                     res = j.set(searchParameters.redisKey()+":status","partial");*/
                     listIterator.remove();
                     counter ++;
+
                     if(searchResponse != null){
                         if(counter == 1){
                             //hashSet.addAll(searchResponseList.get(0).getAirSolution().getFlightItineraryList());
-                            //Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
-
-                            for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
+        for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
 
                                 hashMap.put(flightItinerary.hashCode(),flightItinerary);
                             }

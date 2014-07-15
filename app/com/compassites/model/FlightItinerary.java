@@ -22,6 +22,25 @@ public class FlightItinerary implements Serializable{
         pricingInformation = new PricingInformation();
         seamanPricingInformation = new PricingInformation();
     }
+    private PricingMessage pricingMessage;
+
+    public PricingMessage getPricingMessage() {
+        return pricingMessage;
+    }
+
+    public void setPricingMessage(PricingMessage pricingMessage) {
+        this.pricingMessage = pricingMessage;
+    }
+
+    private boolean priceOnlyPTC;
+
+    public boolean isPriceOnlyPTC() {
+        return priceOnlyPTC;
+    }
+
+    public void setPriceOnlyPTC(boolean priceOnlyPTC) {
+        this.priceOnlyPTC = priceOnlyPTC;
+    }
 
     private String provider; //travelport or amadeus
     private PricingInformation pricingInformation;

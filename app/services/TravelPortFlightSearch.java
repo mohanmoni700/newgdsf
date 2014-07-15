@@ -26,7 +26,7 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class TravelPortFlightSearch implements FlightSearch {
+public class TravelPortFlightSearch /*implements FlightSearch*/ {
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException {
@@ -167,7 +167,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             flightItinerary.getPricingInformation().setTotalPrice(airPricingSolution.getTotalPrice());
 
             System.out.print("Price:"+ airPricingSolution.getTotalPrice());
-            System.out.print(" [BasePrice "+airPricingSolution.getBasePrice() +", ");
+            System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");
             System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
             List<Journey> journeyList = airPricingSolution.getJourney();
             for (Iterator<Journey> journeyIterator = journeyList.iterator(); journeyIterator.hasNext();) {
