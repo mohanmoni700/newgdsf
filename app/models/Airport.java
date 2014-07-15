@@ -1,8 +1,7 @@
 package models;
 
-import com.compassites.model.SearchParameters;
-import play.libs.*;
 import play.db.ebean.Model;
+import play.libs.Json;
 import redis.clients.jedis.Jedis;
 
 import javax.persistence.Column;
@@ -208,7 +207,7 @@ public class Airport extends Model implements Serializable{
             airport = Json.fromJson(Json.parse(airportJson), Airport.class);
 
         } else {
-            airport = find.where().eq("iata_code",iataCode).findUnique();
+            airport = find.where().eq("iata_code",iataCode).findList().get(0);
             j.set(iataCode,Json.toJson(airport).toString());
 
         }
