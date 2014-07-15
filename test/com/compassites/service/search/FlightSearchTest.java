@@ -70,7 +70,7 @@ public class FlightSearchTest {
         searchParameters.getOnwardJourney().setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
         searchParameters.setDestination("BLR");
-        searchParameters.setOrigin("LAX");
+        searchParameters.setOrigin("BOM");
         searchParameters.setWithReturnJourney(false);
 
         Calendar cal = Calendar.getInstance();
@@ -94,6 +94,9 @@ public class FlightSearchTest {
         searchParameters.getPassengers().add(passenger);
         FlightSearch flightSearch = new TravelPortFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
+
+        //passenger.setPassengerType("ADT");
+        //SearchResponse responseADT =  flightSearch.search(searchParameters);
         assertNotNull(response);
         assertNotNull(response.getAirSolution());
         assertNotNull(response.getAirSolution().getFlightItineraryList());
