@@ -138,22 +138,32 @@ public class LowFareRequestClient extends TravelPortClient {
         return airLeg;
     }
 
-    private static void setPassengerList(LowFareSearchReq request, List<Passenger> passengers){
+    private static void setPassengerList(LowFareSearchReq request, List<Passenger> passengers, String bookingType){
 
         for (Iterator<Passenger> passengerIterator = passengers.iterator(); passengerIterator.hasNext();) {
             Passenger passenger = passengerIterator.next();
             SearchPassenger searchPassenger = new SearchPassenger();
-            searchPassenger.setCode(passenger.getPassengerType());
+            if (bookingType.equalsIgnoreCase("seaman")) {
+                searchPassenger.setCode("SEA");
+                searchPassenger.setPricePTCOnly(true);
+            }
+            else
+            {
+                searchPassenger.setCode(passenger.getPassengerType());
+            }
+
             searchPassenger.setKey("COMPASS");
+
             if (passenger.getAge() != null)
                 searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
+
             request.getSearchPassenger().add(searchPassenger);
         }
     }
     private static LowFareSearchReq buildQuery(SearchParameters searchParameters){
         LowFareSearchReq request = new LowFareSearchReq();
         setDefaultValues(request);
-        setPassengerList(request, searchParameters.getPassengers());
+        setPassengerList(request, searchParameters.getPassengers(), searchParameters.getSearchBookingType());
 
         TypeSearchAirLeg outbound = buildLeg(searchParameters.getOrigin(),
                                                 searchParameters.getDestination(),

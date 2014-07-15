@@ -28,6 +28,8 @@ public class SearchParameters {
     private Boolean directFlights;
     private String preferredAirlineCode;
     private String dateType;
+    private String bookingType;
+    private String searchBookingType;
 
     public JourneySpecificParameters getOnwardJourney() {
         return onwardJourney;
@@ -95,6 +97,7 @@ public class SearchParameters {
         refundableFlights = false;
         directFlights = false;
         dateType = "departure"; //Arrival = arrival, Departure = departure
+        bookingType = "seaman";
     }
 
     public List<Passenger> getPassengers() {
@@ -167,6 +170,23 @@ public class SearchParameters {
 
     public void setDateType(String dateType) {
         this.dateType = dateType;
+
+    }
+
+    public String getBookingType() {
+        return bookingType;
+    }
+
+    public void setBookingType(String bookingType) {
+        this.bookingType = bookingType;
+    }
+
+    public String getSearchBookingType() {
+        return searchBookingType;
+    }
+
+    public void setSearchBookingType(String searchBookingType) {
+        this.searchBookingType = searchBookingType;
     }
 
     public class JourneySpecificParameters{

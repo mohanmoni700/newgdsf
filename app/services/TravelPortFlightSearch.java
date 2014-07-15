@@ -1,7 +1,5 @@
 package services;
 
-import com.compassites.GDSWrapper.travelport.AirRequestClient;
-import com.compassites.GDSWrapper.travelport.AirReservationClient;
 import com.compassites.GDSWrapper.travelport.Helper;
 import com.compassites.GDSWrapper.travelport.LowFareRequestClient;
 import com.compassites.exceptions.IncompleteDetailsMessage;
@@ -10,7 +8,6 @@ import com.compassites.model.*;
 import com.compassites.model.AirSolution;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
-import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.springframework.stereotype.Service;
 import play.Logger;
@@ -34,6 +31,59 @@ public class TravelPortFlightSearch implements FlightSearch {
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException {
         Logger.info("TravelPortFlightSearch called at " + new Date());
+
+        SearchResponse seamanResponse = null;
+        SearchResponse nonSeamanResponse = null;
+
+        nonSeamanResponse = search(searchParameters, "nonseaman");
+
+        if (searchParameters.getBookingType().equalsIgnoreCase("seamen")){
+            seamanResponse = search(searchParameters, "seaman");
+        }
+
+        SearchResponse finalResponse = mergeResponse(nonSeamanResponse, seamanResponse);
+
+        return finalResponse;
+
+    }
+
+    private SearchResponse mergeResponse(SearchResponse nonSeamanResponse, SearchResponse seamanResponse) {
+        if (seamanResponse == null)
+            return nonSeamanResponse;
+        for(FlightItinerary seamanFlightItinerary : seamanResponse.getAirSolution().getFlightItineraryList()) {
+            FlightItinerary.Journey seamanOnwardJourney = seamanFlightItinerary.getJourneyList().get(0);
+            String seamanKey ="";
+            seamanFlightItinerary.setSeamanPricingInformation(seamanFlightItinerary.getPricingInformation());
+            seamanFlightItinerary.setPricingInformation(new PricingInformation());
+
+            for (AirSegmentInformation seamanOnwardAirSegment : seamanOnwardJourney.getAirSegmentList()){
+                seamanKey =  seamanKey + seamanOnwardAirSegment.getFromLocation()+ seamanOnwardAirSegment.getToLocation()+ seamanOnwardAirSegment.getCarrierCode()+"#"+ seamanOnwardAirSegment.getFlightNumber()+seamanOnwardAirSegment.getArrivalTime()+seamanOnwardAirSegment.getDepartureTime();
+
+            }
+            System.out.println("Seaman Key" + seamanKey);
+
+            for(FlightItinerary nonSeamanFlightItinerary : nonSeamanResponse.getAirSolution().getFlightItineraryList()){
+                FlightItinerary.Journey nonSeamanOnwardJourney = nonSeamanFlightItinerary.getJourneyList().get(0);
+                String nonSeamanKey ="";
+                for (AirSegmentInformation nonSeamanOnwardAirSegment : nonSeamanOnwardJourney.getAirSegmentList()){
+                    nonSeamanKey =  nonSeamanKey + nonSeamanOnwardAirSegment.getFromLocation()+ nonSeamanOnwardAirSegment.getToLocation()+ nonSeamanOnwardAirSegment.getCarrierCode()+"#"+ nonSeamanOnwardAirSegment.getFlightNumber()+nonSeamanOnwardAirSegment.getArrivalTime()+nonSeamanOnwardAirSegment.getDepartureTime();
+                }
+
+                System.out.println("Non Seaman Key" + nonSeamanKey);
+
+                if (nonSeamanKey.equalsIgnoreCase(seamanKey)){
+                    System.out.println("Matched");
+                    seamanFlightItinerary.setPricingInformation(nonSeamanFlightItinerary.getPricingInformation());
+                    break;
+                }
+            }
+
+        }
+        return seamanResponse;
+    }
+
+    private SearchResponse search (SearchParameters searchParameters, String bookingtype) throws IncompleteDetailsMessage, RetryException {
+        searchParameters.setSearchBookingType(bookingtype);
         LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
         LowFareSearchRsp response = null;
         boolean errorExist = false;
@@ -95,6 +145,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             flightItinerary.setProvider("Travelport");
 
             //Seaman Fares
+            /*
             {
                 AirItinerary airItinerary = AirRequestClient.getItinerary(travelportResponse, airPricingSolution);
                 AirPriceRsp priceRsp = null;
@@ -110,6 +161,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airFaultMessage.printStackTrace();
                 }
             }
+            */
             flightItinerary.getPricingInformation().setBasePrice(airPricingSolution.getBasePrice());
             flightItinerary.getPricingInformation().setTax(airPricingSolution.getTaxes());
             flightItinerary.getPricingInformation().setTotalPrice(airPricingSolution.getTotalPrice());
