@@ -1,12 +1,16 @@
 package models;
 
+import com.compassites.model.SearchParameters;
+import play.libs.*;
 import play.db.ebean.Model;
+import redis.clients.jedis.Jedis;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
+
 
 /**
  * Created by mahendra-singh on 25/6/14.
@@ -193,5 +197,22 @@ public class Airport extends Model implements Serializable{
 
     public void setDst(String dst) {
         this.dst = dst;
+    }
+
+    public static Airport getAiport(String iataCode){
+        Jedis j = new Jedis("localhost", 6379);
+        j.connect();
+        String airportJson = j.get(iataCode);
+        Airport airport = null;
+        if (airportJson != null) {
+            airport = Json.fromJson(Json.parse(airportJson), Airport.class);
+
+        } else {
+            airport = find.where().eq("iata_code",iataCode).findUnique();
+            j.set(iataCode,Json.toJson(airport).toString());
+
+        }
+        j.disconnect();
+        return airport;
     }
 }

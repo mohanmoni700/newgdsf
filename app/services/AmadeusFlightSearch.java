@@ -12,7 +12,6 @@ import models.Airport;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
-import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -175,11 +173,8 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setFromLocation(flightInformation.getLocation().get(0).getLocationId());
         Airport fromAirport = new Airport();
         Airport toAirport = new Airport();
-        List<Airport> list =  fromAirport.find.where().eq("iata_code",airSegmentInformation.getFromLocation()).findList();
-        fromAirport = list.get(0);
-        list =  fromAirport.find.where().eq("iata_code",airSegmentInformation.getToLocation()).findList();
-        toAirport = list.get(0);
-
+        fromAirport =  Airport.getAiport(airSegmentInformation.getFromLocation());
+        toAirport =  Airport.getAiport(airSegmentInformation.getToLocation());
 
         SimpleDateFormat sdf =  new SimpleDateFormat("ddMMyyHHmm") ;
         String DATE_FORMAT = "ddMMyyHHmm";
