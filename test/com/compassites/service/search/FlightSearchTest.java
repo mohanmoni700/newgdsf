@@ -70,7 +70,7 @@ public class FlightSearchTest {
         searchParameters.getOnwardJourney().setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
         searchParameters.setDestination("BLR");
-        searchParameters.setOrigin("BOM");
+        searchParameters.setOrigin("LAX");
         searchParameters.setWithReturnJourney(false);
 
         Calendar cal = Calendar.getInstance();
@@ -80,6 +80,7 @@ public class FlightSearchTest {
         //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
         Date returnDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/14/2014");
         searchParameters.getReturnJourney().setJourneyDate(returnDate);
+        searchParameters.setBookingType("nonseamen");
         //searchParameters.setNoOfStops(new Integer("1"));
         //searchParameters.setDirectFlights(true);
 

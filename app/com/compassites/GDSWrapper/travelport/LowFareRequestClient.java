@@ -2,6 +2,8 @@ package com.compassites.GDSWrapper.travelport;
 
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
@@ -9,12 +11,23 @@ import com.travelport.service.air_v26_0.AirLowFareSearchPortType;
 import com.travelport.service.air_v26_0.AirService;
 import org.apache.commons.logging.LogFactory;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 import javax.xml.ws.BindingProvider;
+import java.io.ByteArrayOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.List;
+
+import static javax.xml.bind.JAXBContext.newInstance;
 
 /**
  * Created with IntelliJ IDEA.
@@ -112,7 +125,16 @@ public class LowFareRequestClient extends TravelPortClient {
         request.setAirPricingModifiers(airPricingModifiers);
 
         init();
+
         response = airLowFareSearchPortTypePort.service(request);
+        try {
+            Writer writer = new FileWriter("Response.json");
+            Gson gson = new Gson();
+            gson.toJson(response, writer);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return response;
 
     }
@@ -206,10 +228,53 @@ public class LowFareRequestClient extends TravelPortClient {
         LowFareSearchReq request = buildQuery(searchParameters);
         LowFareSearchRsp response;
         init();
+
+        try {
+            Writer writer = new FileWriter("Request"+searchParameters.getSearchBookingType()+".json");
+            Gson gson = new GsonBuilder().create();
+            gson.toJson(request, writer);
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         response = airLowFareSearchPortTypePort.service(request);
+
+
+        try {
+            Writer writer = new FileWriter("Response.json");
+            Gson gson = new GsonBuilder().create();
+            gson.toJson(response, writer);
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         return response;
     }
 
+    public static SOAPMessage encodeSOAPMessage(LowFareSearchReq request) throws JAXBException, SOAPException, IOException {
+        JAXBContext context = newInstance("com.travelport.schema.air_v26_0");
+        Marshaller marshaller = context.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        //Next, create the actual message
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage message = messageFactory.createMessage();
+        marshaller.marshal(request, message.getSOAPBody());
+
+        message.saveChanges();
+        ByteArrayOutputStream in = new ByteArrayOutputStream();
+        Writer writer = new FileWriter("Request.json");
+        message.writeTo(in);
+        writer.write(String.valueOf(in));
+        writer.close();
+        return message;
+    }
     public List<AirItinerary> getAllItinerary( LowFareSearchRsp rsp){
         Helper.AirSegmentMap allSegments = Helper.createAirSegmentMap(
                 rsp.getAirSegmentList().getAirSegment());

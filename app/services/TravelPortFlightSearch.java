@@ -60,7 +60,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                 seamanKey =  seamanKey + seamanOnwardAirSegment.getFromLocation()+ seamanOnwardAirSegment.getToLocation()+ seamanOnwardAirSegment.getCarrierCode()+"#"+ seamanOnwardAirSegment.getFlightNumber()+seamanOnwardAirSegment.getArrivalTime()+seamanOnwardAirSegment.getDepartureTime();
 
             }
-            System.out.println("Seaman Key" + seamanKey);
+            //System.out.println("Seaman Key" + seamanKey);
 
             for(FlightItinerary nonSeamanFlightItinerary : nonSeamanResponse.getAirSolution().getFlightItineraryList()){
                 FlightItinerary.Journey nonSeamanOnwardJourney = nonSeamanFlightItinerary.getJourneyList().get(0);
@@ -69,10 +69,10 @@ public class TravelPortFlightSearch implements FlightSearch {
                     nonSeamanKey =  nonSeamanKey + nonSeamanOnwardAirSegment.getFromLocation()+ nonSeamanOnwardAirSegment.getToLocation()+ nonSeamanOnwardAirSegment.getCarrierCode()+"#"+ nonSeamanOnwardAirSegment.getFlightNumber()+nonSeamanOnwardAirSegment.getArrivalTime()+nonSeamanOnwardAirSegment.getDepartureTime();
                 }
 
-                System.out.println("Non Seaman Key" + nonSeamanKey);
+                //System.out.println("Non Seaman Key" + nonSeamanKey);
 
                 if (nonSeamanKey.equalsIgnoreCase(seamanKey)){
-                    System.out.println("Matched");
+                    //System.out.println("Matched");
                     seamanFlightItinerary.setPricingInformation(nonSeamanFlightItinerary.getPricingInformation());
                     break;
                 }
