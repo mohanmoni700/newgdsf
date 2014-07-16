@@ -9,6 +9,7 @@ import com.compassites.model.AirSolution;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
+import models.AirlineCode;
 import org.springframework.stereotype.Service;
 import play.Logger;
 
@@ -121,12 +122,12 @@ public class TravelPortFlightSearch implements FlightSearch {
             }
 
         }else {
-            return mapTravelportToCompassites(response, searchParameters) ;
+            return createAirSolutionFromRecommendations(response, searchParameters) ;
         }
          return null;
     }
 
-    private SearchResponse mapTravelportToCompassites(LowFareSearchRsp travelportResponse, SearchParameters searchParameters){
+    private SearchResponse createAirSolutionFromRecommendations(LowFareSearchRsp travelportResponse, SearchParameters searchParameters){
         SearchResponse searchResponse= new SearchResponse();
 
         AirSolution airSolution=new AirSolution();
@@ -193,6 +194,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
                     AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
                     airSegmentInformation.setCarrierCode(carrier);
+                    airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(carrier));
                     airSegmentInformation.setFlightNumber(flightNum);
                     System.out.print(carrier + "#" + flightNum);
                     String o = "???", d = "???";

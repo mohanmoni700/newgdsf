@@ -8,6 +8,7 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import models.AirlineCode;
 import models.Airport;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -199,6 +200,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setArrivalTime(arrivalDate.toString());
         Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
         airSegmentInformation.setTravelTime(""+diff.getMinutes());
+        airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
 
         return airSegmentInformation;
     }
@@ -206,7 +208,7 @@ public class AmadeusFlightSearch implements FlightSearch {
     private SearchResponse addSeamenFareToSolution(AirSolution allSolution,AirSolution seamenSolution){
         System.out.println();
         System.out.println("==============================================================================");
-        System.out.println("All Solution Length:::::"+allSolution.getFlightItineraryList().size());
+        System.out.println("All Solution Length:::::" + allSolution.getFlightItineraryList().size());
         System.out.println("Seamen Solution Length:::::"+seamenSolution.getFlightItineraryList().size());
         System.out.println("==============================================================================");
         System.out.println();

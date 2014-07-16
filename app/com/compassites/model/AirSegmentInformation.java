@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import models.AirlineCode;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
@@ -55,6 +56,8 @@ public class AirSegmentInformation implements Serializable{
     private String flightNumber;
     @Property
     private String carrierCode;
+
+    private AirlineCode airline;
 
     private Date departureDate;
 
@@ -208,5 +211,13 @@ public class AirSegmentInformation implements Serializable{
     @Override
     public String toString() {
         return Pojomatic.toString(this);
+    }
+
+    public AirlineCode getAirline() {
+        return airline;
+    }
+
+    public void setAirline(AirlineCode airline) {
+        this.airline = airline;
     }
 }
