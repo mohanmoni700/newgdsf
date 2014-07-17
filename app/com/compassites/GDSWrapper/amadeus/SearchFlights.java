@@ -10,6 +10,7 @@ import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.BookingType;
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
+import play.libs.Json;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class SearchFlights {
         se.setNumberOfUnit(createNumberOfUnits(searchParameters.getPassengers().size()));
 
         se.getPaxReference().addAll(createPassengers(searchParameters.getPassengers()));
-        se.getItinerary().add(createItinerary(searchParameters.getOrigin(),searchParameters.getDestination(),mapDate(searchParameters.getOnwardJourney().getJourneyDate()), searchParameters.getDateType()));
+        se.getItinerary().add(createItinerary(searchParameters.getOrigin(),searchParameters.getDestination(),mapDate(searchParameters.getOnwardJourney().getJourneyDate()), searchParameters.getDateType(),searchParameters.getOnwardJourney().getTransit()));
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
         if (searchParameters.getPreferredAirlineCode() != null){
@@ -89,7 +90,7 @@ public class SearchFlights {
         }
 
         if(searchParameters.getWithReturnJourney())
-            se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate()), searchParameters.getDateType()));
+            se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate()), searchParameters.getDateType(),searchParameters.getReturnJourney().getTransit()));
         //se.setFareOptions(createFareOptions());
 //        TravelFlightInformationType148734S tfi=new TravelFlightInformationType148734S();
 //        CompanyIdentificationType214105C cid=new CompanyIdentificationType214105C();
@@ -97,6 +98,7 @@ public class SearchFlights {
 //        cid.setCarrierQualifier("M");
 //        tfi.getCompanyIdentity().add(cid);
 //        se.setTravelFlightInfo(tfi);
+        System.out.println("Amadeus Request : "+ Json.toJson(se));
         return se;
     }
 
@@ -151,7 +153,7 @@ public class SearchFlights {
         return passengers;
     }
 
-    private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(String origin,String destination,String date, String dateType){
+    private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(String origin,String destination,String date, String dateType,String transit){
         FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
         OriginAndDestinationRequestType odrt=new OriginAndDestinationRequestType();
         odrt.setSegRef(new BigInteger(Integer.toString(1)));
@@ -161,12 +163,14 @@ public class SearchFlights {
         MultiCityOptionType mcot=new MultiCityOptionType();
         mcot.setLocationId(origin);
         dlt.getDepMultiCity().add(mcot);
+
         idt.setDepartureLocalization(dlt);        
         ArrivalLocalizationType alt=new ArrivalLocalizationType();
         
         MultiCityOptionType mcot1=new MultiCityOptionType();
         mcot1.setLocationId(destination);
         alt.getArrivalMultiCity().add(mcot1);
+
         idt.setArrivalLocalization(alt);
         DateAndTimeInformationType dti=new DateAndTimeInformationType();
         DateAndTimeDetailsTypeI dtit=new DateAndTimeDetailsTypeI();
@@ -180,14 +184,20 @@ public class SearchFlights {
         }
 
         dti.setFirstDateTimeDetail(dtit);
-        
-        TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
-        ProductTypeDetailsType120801C ptd=new ProductTypeDetailsType120801C();
-        ptd.getFlightType().add("D");
-        fi.setFlightDetail(ptd);
-        
-        //idt.setFlightInfo(fi);
         idt.setTimeDetails(dti);
+
+        TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
+        //ProductTypeDetailsType120801C ptd=new ProductTypeDetailsType120801C();
+        //ptd.getFlightType().add("D");
+        //fi.setFlightDetail(ptd);
+        if(transit != null){
+            ConnectPointDetailsType195492C connectingPoint = new ConnectPointDetailsType195492C();
+            connectingPoint.setInclusionIdentifier("M");
+            connectingPoint.setLocationId(transit);
+            fi.getInclusionDetail().add(connectingPoint);
+            idt.setFlightInfo(fi);
+        }
+
         return idt;
     } 
 }

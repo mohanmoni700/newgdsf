@@ -30,8 +30,8 @@ public class FlightSearchTest {
         SearchParameters searchParameters = new SearchParameters();
         searchParameters.getOnwardJourney().setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
-        searchParameters.setDestination("SIN");
-        searchParameters.setOrigin("BOM");
+        searchParameters.setDestination("DEL");
+        searchParameters.setOrigin("BLR");
 
         Date onwardDate = new SimpleDateFormat("dd/MM/yyyy").parse("15/08/2014");
         searchParameters.getOnwardJourney().setJourneyDate(onwardDate);
@@ -55,6 +55,8 @@ public class FlightSearchTest {
         passenger.setPassengerType("ADT");
         //passenger.setPassengerType("SEA");
         searchParameters.getPassengers().add(passenger);
+
+        searchParameters.getOnwardJourney().setTransit("BOM");
         ServiceHandler serviceHandler=new ServiceHandler();
         FlightSearch flightSearch = new AmadeusFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
@@ -69,8 +71,10 @@ public class FlightSearchTest {
         SearchParameters searchParameters = new SearchParameters();
         searchParameters.getOnwardJourney().setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
+
         searchParameters.setDestination("BLR");
         searchParameters.setOrigin("LAX");
+
         searchParameters.setWithReturnJourney(false);
 
         Calendar cal = Calendar.getInstance();
@@ -80,7 +84,7 @@ public class FlightSearchTest {
         //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
         Date returnDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/14/2014");
         searchParameters.getReturnJourney().setJourneyDate(returnDate);
-        searchParameters.setBookingType("nonseamen");
+        //searchParameters.setBookingType("nonseamen");
         //searchParameters.setNoOfStops(new Integer("1"));
         //searchParameters.setDirectFlights(true);
 
@@ -92,6 +96,7 @@ public class FlightSearchTest {
 
         Passenger passenger = new Passenger();
         passenger.setPassengerType("ADT");
+        searchParameters.getOnwardJourney().setTransit("AUH");
         searchParameters.getPassengers().add(passenger);
         FlightSearch flightSearch = new TravelPortFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);

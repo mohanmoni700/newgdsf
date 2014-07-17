@@ -187,7 +187,7 @@ public class SearchParameters {
     }
 
     public void setSearchBookingType(String searchBookingType) {
-        this.searchBookingType = searchBookingType;
+        this.searchBookingType =   searchBookingType;
     }
 
     public class JourneySpecificParameters{
@@ -220,6 +220,7 @@ public class SearchParameters {
         private String preferredAirlineCode;
         private String preferredFood;
         private Date journeyDate;
+        private String transit;
 
         public JourneySpecificParameters(){
             cabinClass = CabinClass.ECONOMY;
@@ -231,6 +232,14 @@ public class SearchParameters {
 
         public void setJourneyDate(Date journeyDate) {
             this.journeyDate = journeyDate;
+        }
+
+        public String getTransit() {
+            return transit;
+        }
+
+        public void setTransit(String transit) {
+            this.transit = transit;
         }
     }
 
