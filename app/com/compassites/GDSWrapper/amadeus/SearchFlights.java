@@ -13,55 +13,52 @@ import com.compassites.model.SearchParameters;
 import play.libs.Json;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
- *
  * @author mahendra-singh
  */
 public class SearchFlights {
 
-    static int itineraryRef=1;
+    static int itineraryRef = 1;
 
 
     //using deprecated methods
     //change to calendar dates everywhere
 
-    private String mapDate(Date date){
-        String amadeusDate="";
-        Calendar calDate=Calendar.getInstance();
+    private String mapDate(Date date) {
+        String amadeusDate = "";
+        Calendar calDate = Calendar.getInstance();
         calDate.setTime(date);
-        String day= String.valueOf(calDate.get(Calendar.DAY_OF_MONTH));
-        String month= String.valueOf(calDate.get(Calendar.MONTH)+1);
-        String year= String.valueOf(calDate.get(Calendar.YEAR));
-        day=day.length()==1?"0"+day:day;
-        month=month.length()==1?"0"+month:month;
-        year=year.length()==1?"0"+year:year;
-        amadeusDate=day+month+year.substring(2);
+        String day = String.valueOf(calDate.get(Calendar.DAY_OF_MONTH));
+        String month = String.valueOf(calDate.get(Calendar.MONTH) + 1);
+        String year = String.valueOf(calDate.get(Calendar.YEAR));
+        day = day.length() == 1 ? "0" + day : day;
+        month = month.length() == 1 ? "0" + month : month;
+        year = year.length() == 1 ? "0" + year : year;
+        amadeusDate = day + month + year.substring(2);
         return amadeusDate;
     }
 
     //search flights with 2 cities- faremastertravelboard service
-    public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters){
-        FareMasterPricerTravelBoardSearch se=new FareMasterPricerTravelBoardSearch();
-        se.setNumberOfUnit(createNumberOfUnits(searchParameters.getPassengers().size()));
+    public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters) {
+        FareMasterPricerTravelBoardSearch se = new FareMasterPricerTravelBoardSearch();
+        se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
 
-        se.getPaxReference().addAll(createPassengers(searchParameters.getPassengers()));
+        se.getPaxReference().addAll(createPassengers(searchParameters));
         se.getItinerary().add(createItinerary(searchParameters.getOrigin(),searchParameters.getDestination(),mapDate(searchParameters.getOnwardJourney().getJourneyDate()), searchParameters.getDateType(),searchParameters.getOnwardJourney().getTransit()));
+
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
-        if (searchParameters.getPreferredAirlineCode() != null){
-            CompanyIdentificationType214105C cid =new CompanyIdentificationType214105C();
+        if (searchParameters.getPreferredAirlineCode() != null) {
+            CompanyIdentificationType214105C cid = new CompanyIdentificationType214105C();
             cid.getCarrierId().add(searchParameters.getPreferredAirlineCode());
             cid.setCarrierQualifier("X");
             travelFlightInfo.getCompanyIdentity().add(cid);
         }
 
-        if (searchParameters.getDirectFlights()){
-            ProductTypeDetailsType120801C ptd=new ProductTypeDetailsType120801C();
+        if (searchParameters.getDirectFlights()) {
+            ProductTypeDetailsType120801C ptd = new ProductTypeDetailsType120801C();
             ptd.getFlightType().add("D");
             ptd.getFlightType().add("N");
             travelFlightInfo.setFlightDetail(ptd);
@@ -69,20 +66,20 @@ public class SearchFlights {
 
         se.setTravelFlightInfo(travelFlightInfo);
 
-        if (searchParameters.getRefundableFlights()){
-            FareMasterPricerTravelBoardSearch.FareOptions fe=new FareMasterPricerTravelBoardSearch.FareOptions();
-            PricingTicketingDetailsType pdt=new PricingTicketingDetailsType();
-            PricingTicketingInformationType pit=new PricingTicketingInformationType();
+        if (searchParameters.getRefundableFlights()) {
+            FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
+            PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
+            PricingTicketingInformationType pit = new PricingTicketingInformationType();
             pit.getPriceType().add("RF");
             pdt.setPricingTicketing(pit);
             fe.setPricingTickInfo(pdt);
             se.setFareOptions(fe);
         }
 
-        if(searchParameters.getBookingType()== BookingType.SEAMEN){
-            FareMasterPricerTravelBoardSearch.FareOptions fe1=new FareMasterPricerTravelBoardSearch.FareOptions();
-            PricingTicketingDetailsType pdt1=new PricingTicketingDetailsType();
-            PricingTicketingInformationType pit1=new PricingTicketingInformationType();
+        if (searchParameters.getBookingType() == BookingType.SEAMEN) {
+            FareMasterPricerTravelBoardSearch.FareOptions fe1 = new FareMasterPricerTravelBoardSearch.FareOptions();
+            PricingTicketingDetailsType pdt1 = new PricingTicketingDetailsType();
+            PricingTicketingInformationType pit1 = new PricingTicketingInformationType();
             pit1.getPriceType().add("PTC");
             pdt1.setPricingTicketing(pit1);
             fe1.setPricingTickInfo(pdt1);
@@ -91,6 +88,7 @@ public class SearchFlights {
 
         if(searchParameters.getWithReturnJourney())
             se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate()), searchParameters.getDateType(),searchParameters.getReturnJourney().getTransit()));
+
         //se.setFareOptions(createFareOptions());
 //        TravelFlightInformationType148734S tfi=new TravelFlightInformationType148734S();
 //        CompanyIdentificationType214105C cid=new CompanyIdentificationType214105C();
@@ -102,10 +100,10 @@ public class SearchFlights {
         return se;
     }
 
-    private FareMasterPricerTravelBoardSearch.FareOptions createFareOptions(){
-        FareMasterPricerTravelBoardSearch.FareOptions fe=new FareMasterPricerTravelBoardSearch.FareOptions();
-        PricingTicketingDetailsType pdt=new PricingTicketingDetailsType();
-        PricingTicketingInformationType pit=new PricingTicketingInformationType();
+    private FareMasterPricerTravelBoardSearch.FareOptions createFareOptions() {
+        FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
+        PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
+        PricingTicketingInformationType pit = new PricingTicketingInformationType();
         pit.getPriceType().add("RP");
         pit.getPriceType().add("RU");
         pit.getPriceType().add("TAC");
@@ -114,9 +112,9 @@ public class SearchFlights {
         pit.getPriceType().add("NSD");
 
         pdt.setPricingTicketing(pit);
-        
-        CodedAttributeType78503S fid=new CodedAttributeType78503S();
-        CodedAttributeInformationType120700C cid=new CodedAttributeInformationType120700C();
+
+        CodedAttributeType78503S fid = new CodedAttributeType78503S();
+        CodedAttributeInformationType120700C cid = new CodedAttributeInformationType120700C();
         cid.setFeeType("NPS");
         cid.setFeeIdNumber("0");
         fid.getFeeId().add(cid);
@@ -125,13 +123,13 @@ public class SearchFlights {
         return fe;
     }
 
-    private NumberOfUnitsType createNumberOfUnits(int noOfPassengers){
-        NumberOfUnitsType nu=new NumberOfUnitsType();
-        NumberOfUnitDetailsType191580C nudt=new NumberOfUnitDetailsType191580C();
+    private NumberOfUnitsType createNumberOfUnits(int noOfPassengers) {
+        NumberOfUnitsType nu = new NumberOfUnitsType();
+        NumberOfUnitDetailsType191580C nudt = new NumberOfUnitDetailsType191580C();
         nudt.setNumberOfUnits(new BigInteger(Integer.toString(noOfPassengers)));
         nudt.setTypeOfUnit("PX");
 
-        NumberOfUnitDetailsType191580C nudt1=new NumberOfUnitDetailsType191580C();
+        NumberOfUnitDetailsType191580C nudt1 = new NumberOfUnitDetailsType191580C();
         nudt1.setNumberOfUnits(new BigInteger("200"));
         nudt1.setTypeOfUnit("RC");
         nu.getUnitNumberDetail().add(nudt);
@@ -139,17 +137,39 @@ public class SearchFlights {
         return nu;
     }
 
-    private List<TravellerReferenceInformationType> createPassengers(List<Passenger> listOfPassengers){
-        List<TravellerReferenceInformationType> passengers=new ArrayList<TravellerReferenceInformationType>();
-        int reference=1;
-        for(Passenger passenger:listOfPassengers){
-            TravellerReferenceInformationType traveller=new TravellerReferenceInformationType();
-            TravellerDetailsType tdt=new TravellerDetailsType();
+    private List<TravellerReferenceInformationType> createPassengers(SearchParameters searchParameters) {
+        List<TravellerReferenceInformationType> passengers = new ArrayList<TravellerReferenceInformationType>();
+        Stack<BigInteger> adultReferenceNumbers = new Stack<>();
+        int reference = 1;
+
+        for (Passenger passenger : searchParameters.getPassengers()) {
+            if ((passenger.getPassengerType().equals("INF")) && (searchParameters.getBookingType() == BookingType.SEAMEN)) {
+                continue;
+            }
+            adultReferenceNumbers.push(BigInteger.ONE);
+            TravellerReferenceInformationType traveller = new TravellerReferenceInformationType();
+            TravellerDetailsType tdt = new TravellerDetailsType();
             tdt.setRef(new BigInteger(Integer.toString(reference++)));
-            traveller.getPtc().add(passenger.getPassengerType());
+
+            if (searchParameters.getBookingType() != BookingType.SEAMEN) {
+
+                switch (passenger.getPassengerType()) {
+                    case "ADT":
+                        adultReferenceNumbers.push(new BigInteger(Integer.toString(reference)));
+                        break;
+                    case "INF":
+                        tdt.setInfantIndicator(BigInteger.valueOf(1));
+                        tdt.setRef(adultReferenceNumbers.pop());
+                        break;
+                }
+                traveller.getPtc().add(passenger.getPassengerType());
+            } else {
+                traveller.getPtc().add("SEA");
+            }
             traveller.getTraveller().add(tdt);
             passengers.add(traveller);
         }
+
         return passengers;
     }
 
@@ -157,28 +177,28 @@ public class SearchFlights {
         FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
         OriginAndDestinationRequestType odrt=new OriginAndDestinationRequestType();
         odrt.setSegRef(new BigInteger(Integer.toString(1)));
-        idt.setRequestedSegmentRef(odrt);     
-        DepartureLocationType dlt=new DepartureLocationType();
-        
-        MultiCityOptionType mcot=new MultiCityOptionType();
+        idt.setRequestedSegmentRef(odrt);
+        DepartureLocationType dlt = new DepartureLocationType();
+
+        MultiCityOptionType mcot = new MultiCityOptionType();
         mcot.setLocationId(origin);
         dlt.getDepMultiCity().add(mcot);
-
-        idt.setDepartureLocalization(dlt);        
+        idt.setDepartureLocalization(dlt);
         ArrivalLocalizationType alt=new ArrivalLocalizationType();
         
         MultiCityOptionType mcot1=new MultiCityOptionType();
+
         mcot1.setLocationId(destination);
         alt.getArrivalMultiCity().add(mcot1);
 
         idt.setArrivalLocalization(alt);
-        DateAndTimeInformationType dti=new DateAndTimeInformationType();
-        DateAndTimeDetailsTypeI dtit=new DateAndTimeDetailsTypeI();
+        DateAndTimeInformationType dti = new DateAndTimeInformationType();
+        DateAndTimeDetailsTypeI dtit = new DateAndTimeDetailsTypeI();
         dtit.setTimeQualifier("TD");
         dtit.setTime("0000");
         dtit.setDate(date);
 
-        if (dateType.equalsIgnoreCase("arrival")){
+        if (dateType.equalsIgnoreCase("arrival")) {
             dtit.setTimeQualifier("TA");
             dtit.setTime("2359");
         }
@@ -199,5 +219,5 @@ public class SearchFlights {
         }
 
         return idt;
-    } 
+    }
 }
