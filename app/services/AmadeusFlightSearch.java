@@ -120,17 +120,17 @@ public class AmadeusFlightSearch implements FlightSearch {
 
 
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
-                int i = 0;
+                int returnCounter = 0;
                 FlightItinerary flightItinerary = new FlightItinerary();
                 flightItinerary.setProvider("Amadeus");
                 for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
+                    int multiStopCounter=0;
                     BigInteger flightDetailReference = referencingDetailsType.getRefNumber();
-                    FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlights = fareMasterPricerTravelBoardSearchReply.getFlightIndex().get(i).getGroupOfFlights().get(flightDetailReference.intValue() - 1);
+                    FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlights = fareMasterPricerTravelBoardSearchReply.getFlightIndex().get(multiStopCounter).getGroupOfFlights().get(flightDetailReference.intValue() - 1);
                     for (FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlights.getFlightDetails()) {
                         AirSegmentInformation airSegmentInformation = createSegment(flightDetails.getFlightInformation());
                         flightItinerary.AddBlankJourney();
-                        flightItinerary.getJourneyList().get(i).getAirSegmentList().add(airSegmentInformation);
-
+                        flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().add(airSegmentInformation);
                     }
                     for (ProposedSegmentDetailsType proposedSegmentDetailsTypes : groupOfFlights.getPropFlightGrDetail().getFlightProposal()) {
                         if ("EFT".equals(proposedSegmentDetailsTypes.getUnitQualifier())) {
@@ -148,7 +148,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                             break;
                         }
                     }
-                    i++;
+                    multiStopCounter++;
 
                 }
                 flightItinerary.getPricingInformation().setBasePrice(currency + baseAmount.toString());
