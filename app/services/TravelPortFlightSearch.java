@@ -6,6 +6,7 @@ import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.compassites.model.AirSolution;
+import com.compassites.model.Journey;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
@@ -31,28 +32,41 @@ public class TravelPortFlightSearch implements FlightSearch {
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException {
-        Logger.info("TravelPortFlightSearch called at " + new Date());
+        Logger.info("[TravelPort] search called at " + new Date());
 
         SearchResponse seamanResponse = null;
         SearchResponse nonSeamanResponse = null;
 
+        Logger.info("[Travelport] Starting non-seaman search");
         nonSeamanResponse = search(searchParameters, "nonseaman");
-
+        Logger.info("[Travelport] End non-seaman search. Response size: "+ nonSeamanResponse.getAirSolution().getFlightItineraryList().size() );
+        /*if(seamanResponse.getAirSolution().getFlightItineraryList().size() > 0){
+            System.out.print("bs");
+        }*/
         if (searchParameters.getBookingType()==BookingType.SEAMEN){
+            Logger.info("[Travelport] Starting seaman search.");
+
             seamanResponse = search(searchParameters, "seaman");
+            Logger.info("[Travelport] End seaman search. Response size: "+ seamanResponse.getAirSolution().getFlightItineraryList().size());
         }
 
         SearchResponse finalResponse = mergeResponse(nonSeamanResponse, seamanResponse);
 
+        finalResponse.setProvider("Travelport");
         return finalResponse;
 
+    }
+
+    @Override
+    public String provider() {
+        return "Travelport";
     }
 
     private SearchResponse mergeResponse(SearchResponse nonSeamanResponse, SearchResponse seamanResponse) {
         if (seamanResponse == null)
             return nonSeamanResponse;
         for(FlightItinerary seamanFlightItinerary : seamanResponse.getAirSolution().getFlightItineraryList()) {
-            FlightItinerary.Journey seamanOnwardJourney = seamanFlightItinerary.getJourneyList().get(0);
+            Journey seamanOnwardJourney = seamanFlightItinerary.getJourneyList().get(0);
             String seamanKey ="";
             seamanFlightItinerary.setSeamanPricingInformation(seamanFlightItinerary.getPricingInformation());
             seamanFlightItinerary.setPricingInformation(new PricingInformation());
@@ -64,7 +78,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             //System.out.println("Seaman Key" + seamanKey);
 
             for(FlightItinerary nonSeamanFlightItinerary : nonSeamanResponse.getAirSolution().getFlightItineraryList()){
-                FlightItinerary.Journey nonSeamanOnwardJourney = nonSeamanFlightItinerary.getJourneyList().get(0);
+                Journey nonSeamanOnwardJourney = nonSeamanFlightItinerary.getJourneyList().get(0);
                 String nonSeamanKey ="";
                 for (AirSegmentInformation nonSeamanOnwardAirSegment : nonSeamanOnwardJourney.getAirSegmentList()){
                     nonSeamanKey =  nonSeamanKey + nonSeamanOnwardAirSegment.getFromLocation()+ nonSeamanOnwardAirSegment.getToLocation()+ nonSeamanOnwardAirSegment.getCarrierCode()+"#"+ nonSeamanOnwardAirSegment.getFlightNumber()+nonSeamanOnwardAirSegment.getArrivalTime()+nonSeamanOnwardAirSegment.getDepartureTime();
@@ -92,12 +106,12 @@ public class TravelPortFlightSearch implements FlightSearch {
         String errorCode = null;
         try {
             response = lowFareRequestClient.search(searchParameters);
-            Logger.info("TravelPortFlightSearch search response at "+ new Date());
+            Logger.info("[TravelPort] FlightSearch search response at "+ new Date());
             List<ResponseMessage> responseMessageList = response.getResponseMessage();
             errorExist = ((response.getAirPricingSolution() ==null) || ( response.getAirPricingSolution().size() == 0)) ;
             for (ResponseMessage responseMessage : responseMessageList){
                if("Error".equalsIgnoreCase(responseMessage.getType())){
-                    System.out.println("Error received from Travel port : "+ responseMessage.getValue());
+                    Logger.info("[Travelport] Error received from Travel port : "+ responseMessage.getValue());
 
                     errorCode = ""+responseMessage.getCode();
                     errorMessage = errorMessage + responseMessage.getValue();
@@ -167,16 +181,15 @@ public class TravelPortFlightSearch implements FlightSearch {
             flightItinerary.getPricingInformation().setTax(airPricingSolution.getTaxes());
             flightItinerary.getPricingInformation().setTotalPrice(airPricingSolution.getTotalPrice());
 
-            System.out.print("Price:"+ airPricingSolution.getTotalPrice());
-            System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");
-            System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
-            List<Journey> journeyList = airPricingSolution.getJourney();
-            for (Iterator<Journey> journeyIterator = journeyList.iterator(); journeyIterator.hasNext();) {
+            //System.out.print("Price:"+ airPricingSolution.getTotalPrice());
+            //System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");
+            //System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
+            List<com.travelport.schema.air_v26_0.Journey> journeyList = airPricingSolution.getJourney();
+            for (Iterator<com.travelport.schema.air_v26_0.Journey> journeyIterator = journeyList.iterator(); journeyIterator.hasNext();) {
 
-                Journey journey = journeyIterator.next();
+                com.travelport.schema.air_v26_0.Journey journey = journeyIterator.next();
                 flightItinerary.AddBlankJourney();
-                //journey.getTravelTime();
-                System.out.println("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(journeyList.indexOf(journey)).getCabinClass());
+                //System.out.println("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(journeyList.indexOf(journey)).getCabinClass());
                 List<AirSegmentRef> airSegmentRefList = journey.getAirSegmentRef();
                 for (Iterator<AirSegmentRef> airSegmentRefIterator = airSegmentRefList.iterator(); airSegmentRefIterator.hasNext(); ) {
                     AirSegmentRef airSegmentRef = airSegmentRefIterator.next();
@@ -196,7 +209,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airSegmentInformation.setCarrierCode(carrier);
                     airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(carrier));
                     airSegmentInformation.setFlightNumber(flightNum);
-                    System.out.print(carrier + "#" + flightNum);
+                    //System.out.print(carrier + "#" + flightNum);
                     String o = "???", d = "???";
                     if (airSegment != null) {
                         if (airSegment.getOrigin() != null) {
@@ -206,8 +219,9 @@ public class TravelPortFlightSearch implements FlightSearch {
                             d = airSegment.getDestination();
                         }
                     }
-                    System.out.print(" from " + o + " to " + d);
+                    //System.out.print(" from " + o + " to " + d);
                     airSegmentInformation.setFromLocation(o);
+                    airSegmentInformation.setToLocation(d);
                     airSegmentInformation.setToLocation(d);
                     String dtime = "??:??";
                     String atime = "??:??";
@@ -220,8 +234,8 @@ public class TravelPortFlightSearch implements FlightSearch {
                             atime = flightDetails.getArrivalTime();
                         }
                     }
-                    System.out.print(" at " + dtime);
-                    System.out.print(" arrives at " + atime);
+                    //System.out.print(" at " + dtime);
+                    //System.out.print(" arrives at " + atime);
                     airSegmentInformation.setDepartureTime(dtime);
 
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
@@ -234,19 +248,19 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airSegmentInformation.setArrivalTime(atime);
 
                     if ((flightDetails != null) && (flightDetails.getFlightTime() != null)) {
-                        System.out.println(" (flight time " + flightDetails.getFlightTime() + " minutes)");
+                        //System.out.println(" (flight time " + flightDetails.getFlightTime() + " minutes)");
                         airSegmentInformation.setTravelTime(String.valueOf(flightDetails.getFlightTime()));
                     } else {
-                        System.out.println();
+                        //System.out.println();
                     }
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList().add(airSegmentInformation);
 
                 }
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setTravelTime(journey.getTravelTime());
-                System.out.println("total travel time"+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getHours()+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getMinutes() );
+                //System.out.println("total travel time"+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getHours()+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getMinutes() );
             }
 
-            System.out.println("-----------");
+            //System.out.println("-----------");
             airSolution.getFlightItineraryList().add(flightItinerary);
         }
 

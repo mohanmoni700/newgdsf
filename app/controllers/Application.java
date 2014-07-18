@@ -32,7 +32,7 @@ public class Application {
 //        Controller.response().setHeader("Access-Control-Allow-Origin", "*");
 //        Controller.response().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
 //        Controller.response().setHeader("Access-Control-Allow-Headers", "accept, content-type");
-        return Controller.ok(Json.toJson(responseList));
+        return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 
 }

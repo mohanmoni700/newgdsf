@@ -10,7 +10,6 @@ import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.BookingType;
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
-import play.libs.Json;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -96,7 +95,7 @@ public class SearchFlights {
 //        cid.setCarrierQualifier("M");
 //        tfi.getCompanyIdentity().add(cid);
 //        se.setTravelFlightInfo(tfi);
-        System.out.println("Amadeus Request : "+ Json.toJson(se));
+        //System.out.println("Amadeus Request : "+ Json.toJson(se));
         return se;
     }
 

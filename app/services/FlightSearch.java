@@ -13,4 +13,5 @@ import com.compassites.model.SearchResponse;
  */
 public interface FlightSearch {
     public SearchResponse search(SearchParameters searchParameters) throws IncompleteDetailsMessage,Exception;
+    public String provider();
 }

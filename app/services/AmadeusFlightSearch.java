@@ -100,6 +100,11 @@ public class AmadeusFlightSearch implements FlightSearch {
         return searchResponse;
     }
 
+    @Override
+    public String provider() {
+        return "Amadeus";
+    }
+
     private AirSolution createAirSolutionFromRecommendations(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
         AirSolution airSolution = new AirSolution();
         List<FlightItinerary> flightItineraries = new ArrayList<FlightItinerary>();
@@ -134,7 +139,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                     }
                     for (ProposedSegmentDetailsType proposedSegmentDetailsTypes : groupOfFlights.getPropFlightGrDetail().getFlightProposal()) {
                         if ("EFT".equals(proposedSegmentDetailsTypes.getUnitQualifier())) {
-                            FlightItinerary.Journey journey = flightItinerary.getJourneyList().get(0);
+                            Journey journey = flightItinerary.getJourneyList().get(0);
                             String elapsedTime = proposedSegmentDetailsTypes.getRef();
                             String hours = elapsedTime.substring(0, 2);
                             String minutes = elapsedTime.substring(2);
@@ -207,8 +212,8 @@ public class AmadeusFlightSearch implements FlightSearch {
     private SearchResponse addSeamenFareToSolution(AirSolution allSolution, AirSolution seamenSolution) {
         System.out.println();
         System.out.println("==============================================================================");
-        System.out.println("All Solution Length:::::" + allSolution.getFlightItineraryList().size());
-        System.out.println("Seamen Solution Length:::::" + seamenSolution.getFlightItineraryList().size());
+        System.out.println("[Amadeus] All Solution Length:::::" + allSolution.getFlightItineraryList().size());
+        System.out.println("[Amadeus] Seamen Solution Length:::::"+seamenSolution.getFlightItineraryList().size());
         System.out.println("==============================================================================");
         System.out.println();
         SearchResponse searchResponse = new SearchResponse();
