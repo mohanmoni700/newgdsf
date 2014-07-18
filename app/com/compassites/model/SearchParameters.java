@@ -245,6 +245,12 @@ public class SearchParameters {
 
     public String redisKey(){
         Date journeyDate = onwardJourney.getJourneyDate();
-        return origin+destination+"ADT"+adultCount+"CHD"+childCount+"INF"+infantCount+journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+onwardJourney.getCabinClass().upperValue();
+        String key = "";
+        key = key+ origin+ destination +"ADT:"+ adultCount +"CHD:"+ childCount +"INF:"+ infantCount+
+                journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+ onwardJourney.getCabinClass().upperValue();
+        key = key + "RF:"+refundableFlights + "DR:" + directFlights + "PA:" + preferredAirlineCode;
+        key = key + "TR:"+onwardJourney.getTransit()+"DT:" + dateType + "BK" + bookingType;
+        return key;
+
     }
 }
