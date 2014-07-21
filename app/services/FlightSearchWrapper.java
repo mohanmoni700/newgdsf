@@ -1,5 +1,6 @@
 package services;
 
+import com.compassites.constants.CacheConstants;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.AirSolution;
 import com.compassites.model.FlightItinerary;
@@ -16,8 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.*;
-
-import static java.lang.Thread.sleep;
 
 /**
  * Created by user on 17-06-2014.
@@ -38,7 +37,7 @@ public class FlightSearchWrapper {
         final Jedis j = new Jedis("localhost", 6379);
         j.connect();
 
-        j.set(redisKey+":status","started");
+        j.setex(redisKey+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,"started");
 
         ExecutorService newExecutor = new ThreadPoolExecutor(maxThreads, maxThreads, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
         List<Future<SearchResponse>> futureSearchResponseList = new ArrayList<>();
@@ -149,8 +148,8 @@ public class FlightSearchWrapper {
                         }
 
                         //searchResponseList.add(searchResponseCache);
-                        String res = j.set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseCache)));
-                        res = j.set(searchParameters.redisKey()+":status","partial");
+                        String res = j.setex(searchParameters.redisKey(), CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.stringify(Json.toJson(searchResponseCache)));
+                        res = j.setex(searchParameters.redisKey()+":status", CacheConstants.CACHE_TIMEOUT_IN_SECS, "partial");
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;
                         Logger.info("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
@@ -164,7 +163,7 @@ public class FlightSearchWrapper {
             }
             if(counter == searchResponseListSize){
                 loop = false;
-                j.set(searchParameters.redisKey()+":status","complete");
+                j.setex(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS, "complete");
                 Logger.info("***********SEARCH END key: ["+ redisKey +"]***********");
             }
         }
@@ -207,7 +206,7 @@ public class FlightSearchWrapper {
     }
 
     private void setCacheValue(Jedis j, String key, String value){
-        j.set(key, value);
+        j.setex(key, CacheConstants.CACHE_TIMEOUT_IN_SECS,  value);
     }
 
 }
