@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
  * Time: 4:35 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SearchParameters {
+public class SearchParameters implements Serializable{
     private String origin;
     private String destination;
     private String stopOver;
@@ -19,37 +20,39 @@ public class SearchParameters {
     private List <Passenger> passengers;
     private Boolean withReturnJourney;
     private Integer noOfStops;
-    private JourneySpecificParameters onwardJourney;
-    private JourneySpecificParameters returnJourney;
     private Integer adultCount;
     private Integer childCount;
     private Integer infantCount;
     private Boolean refundableFlights;
     private Boolean directFlights;
-    private String preferredAirlineCode;
-    private String dateType;
+    private DateType dateType;
+    private JourneyType journeyType;
     private String searchBookingType;
-
     private BookingType bookingType;
+    private CabinClass cabinClass;
+    private String preferredAirlines;
+    private String preferredFood;
+    private Date fromDate;
+    private Date returnDate;
+    private String transit;
+    private String nationality;
 
-    public void setBookingType(BookingType bookingType) {
-        this.bookingType = bookingType;
+    public String getNationality() {
+        return nationality;
     }
 
-    public JourneySpecificParameters getOnwardJourney() {
-        return onwardJourney;
+    public void setNationality(String nationality) {
+        this.nationality = nationality;
     }
 
-    public void setOnwardJourney(JourneySpecificParameters onwardJourney) {
-        this.onwardJourney = onwardJourney;
-    }
-
-    public JourneySpecificParameters getReturnJourney() {
-        return returnJourney;
-    }
-
-    public void setReturnJourney(JourneySpecificParameters returnJourney) {
-        this.returnJourney = returnJourney;
+    public SearchParameters(){
+        withReturnJourney = false;
+        currency = "INR";
+        passengers = new ArrayList<Passenger>();
+        refundableFlights = false;
+        directFlights = false;
+        dateType = DateType.DEPARTURE; //Arrival = arrival, Departure = departure
+        bookingType = BookingType.SEAMEN;
     }
 
     public String getOrigin() {
@@ -68,12 +71,28 @@ public class SearchParameters {
         this.destination = destination;
     }
 
+    public String getStopOver() {
+        return stopOver;
+    }
+
+    public void setStopOver(String stopOver) {
+        this.stopOver = stopOver;
+    }
+
     public String getCurrency() {
         return currency;
     }
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public List<Passenger> getPassengers() {
+        return passengers;
+    }
+
+    public void setPassengers(List<Passenger> passengers) {
+        this.passengers = passengers;
     }
 
     public Boolean getWithReturnJourney() {
@@ -90,35 +109,6 @@ public class SearchParameters {
 
     public void setNoOfStops(Integer noOfStops) {
         this.noOfStops = noOfStops;
-    }
-
-    public SearchParameters(){
-
-        withReturnJourney = false;
-        currency = "INR";
-        onwardJourney = new JourneySpecificParameters();
-        returnJourney = new JourneySpecificParameters();
-        passengers = new ArrayList<Passenger>();
-        refundableFlights = false;
-        directFlights = false;
-        dateType = "departure"; //Arrival = arrival, Departure = departure
-        bookingType = BookingType.SEAMEN;
-    }
-
-    public List<Passenger> getPassengers() {
-        return passengers;
-    }
-
-    public void setPassengers(List<Passenger> passengers) {
-        this.passengers = passengers;
-    }
-
-    public String getStopOver() {
-        return stopOver;
-    }
-
-    public void setStopOver(String stopOver) {
-        this.stopOver = stopOver;
     }
 
     public Integer getAdultCount() {
@@ -161,25 +151,20 @@ public class SearchParameters {
         this.directFlights = directFlights;
     }
 
-    public String getPreferredAirlineCode() {
-        return preferredAirlineCode;
-    }
-
-    public void setPreferredAirlineCode(String preferredAirlineCode) {
-        this.preferredAirlineCode = preferredAirlineCode;
-    }
-
-    public String getDateType() {
+    public DateType getDateType() {
         return dateType;
     }
 
-    public void setDateType(String dateType) {
+    public void setDateType(DateType dateType) {
         this.dateType = dateType;
-
     }
 
-    public BookingType getBookingType() {
-        return bookingType;
+    public JourneyType getJourneyType() {
+        return journeyType;
+    }
+
+    public void setJourneyType(JourneyType journeyType) {
+        this.journeyType = journeyType;
     }
 
     public String getSearchBookingType() {
@@ -187,70 +172,69 @@ public class SearchParameters {
     }
 
     public void setSearchBookingType(String searchBookingType) {
-        this.searchBookingType =   searchBookingType;
+        this.searchBookingType = searchBookingType;
     }
 
-    public class JourneySpecificParameters{
+    public BookingType getBookingType() {
+        return bookingType;
+    }
 
-        public CabinClass getCabinClass() {
-            return cabinClass;
-        }
+    public void setBookingType(BookingType bookingType) {
+        this.bookingType = bookingType;
+    }
 
-        public void setCabinClass(CabinClass cabinClass) {
-            this.cabinClass = cabinClass;
-        }
+    public CabinClass getCabinClass() {
+        return cabinClass;
+    }
 
-        public String getPreferredAirlineCode() {
-            return preferredAirlineCode;
-        }
+    public void setCabinClass(CabinClass cabinClass) {
+        this.cabinClass = cabinClass;
+    }
 
-        public void setPreferredAirlineCode(String preferredAirlineCode) {
-            this.preferredAirlineCode = preferredAirlineCode;
-        }
+    public String getPreferredAirlines() {
+        return preferredAirlines;
+    }
 
-        public String getPreferredFood() {
-            return preferredFood;
-        }
+    public void setPreferredAirlines(String preferredAirlines) {
+        this.preferredAirlines = preferredAirlines;
+    }
 
-        public void setPreferredFood(String preferredFood) {
-            this.preferredFood = preferredFood;
-        }
+    public String getPreferredFood() {
+        return preferredFood;
+    }
 
-        private CabinClass cabinClass;
-        private String preferredAirlineCode;
-        private String preferredFood;
-        private Date journeyDate;
-        private String transit;
+    public void setPreferredFood(String preferredFood) {
+        this.preferredFood = preferredFood;
+    }
 
-        public JourneySpecificParameters(){
-            cabinClass = CabinClass.ECONOMY;
-        }
+    public Date getFromDate() {
+        return fromDate;
+    }
 
-        public Date getJourneyDate() {
-            return journeyDate;
-        }
+    public void setFromDate(Date fromDate) {
+        this.fromDate = fromDate;
+    }
 
-        public void setJourneyDate(Date journeyDate) {
-            this.journeyDate = journeyDate;
-        }
+    public Date getReturnDate() {
+        return returnDate;
+    }
 
-        public String getTransit() {
-            return transit;
-        }
+    public void setReturnDate(Date returnDate) {
+        this.returnDate = returnDate;
+    }
 
-        public void setTransit(String transit) {
-            this.transit = transit;
-        }
+    public String getTransit() {
+        return transit;
     }
 
     public String redisKey(){
-        Date journeyDate = onwardJourney.getJourneyDate();
+        Date journeyDate = fromDate;
         String key = "";
         key = key+ origin+ destination +"ADT:"+ adultCount +"CHD:"+ childCount +"INF:"+ infantCount+
-                journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+ onwardJourney.getCabinClass().upperValue();
-        key = key + "RF:"+refundableFlights + "DR:" + directFlights + "PA:" + preferredAirlineCode;
-        key = key + "TR:"+onwardJourney.getTransit()+"DT:" + dateType + "BK" + bookingType;
+                journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+ cabinClass.upperValue();
+        key = key + "RF:"+refundableFlights + "DR:" + directFlights + "PA:" + preferredAirlines;
+        key = key + "TR:"+transit+"DT:" + dateType + "BK" + bookingType;
         return key;
-
     }
+
 }

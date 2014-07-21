@@ -8,6 +8,7 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.BookingType;
+import com.compassites.model.DateType;
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
 
@@ -45,13 +46,13 @@ public class SearchFlights {
         se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
 
         se.getPaxReference().addAll(createPassengers(searchParameters));
-        se.getItinerary().add(createItinerary(searchParameters.getOrigin(),searchParameters.getDestination(),mapDate(searchParameters.getOnwardJourney().getJourneyDate()), searchParameters.getDateType(),searchParameters.getOnwardJourney().getTransit()));
+        se.getItinerary().add(createItinerary(searchParameters));
 
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
-        if (searchParameters.getPreferredAirlineCode() != null) {
+        if (searchParameters.getPreferredAirlines() != null) {
             CompanyIdentificationType214105C cid = new CompanyIdentificationType214105C();
-            cid.getCarrierId().add(searchParameters.getPreferredAirlineCode());
+            cid.getCarrierId().add(searchParameters.getPreferredAirlines());
             cid.setCarrierQualifier("X");
             travelFlightInfo.getCompanyIdentity().add(cid);
         }
@@ -86,7 +87,7 @@ public class SearchFlights {
         }
 
         if(searchParameters.getWithReturnJourney())
-            se.getItinerary().add(createItinerary(searchParameters.getDestination(), searchParameters.getOrigin(), mapDate(searchParameters.getReturnJourney().getJourneyDate()), searchParameters.getDateType(),searchParameters.getReturnJourney().getTransit()));
+            se.getItinerary().add(createItinerary(searchParameters));
 
         //se.setFareOptions(createFareOptions());
 //        TravelFlightInformationType148734S tfi=new TravelFlightInformationType148734S();
@@ -172,7 +173,7 @@ public class SearchFlights {
         return passengers;
     }
 
-    private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(String origin,String destination,String date, String dateType,String transit){
+    private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(SearchParameters searchParameters){
         FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
         OriginAndDestinationRequestType odrt=new OriginAndDestinationRequestType();
         odrt.setSegRef(new BigInteger(Integer.toString(1)));
@@ -180,14 +181,14 @@ public class SearchFlights {
         DepartureLocationType dlt = new DepartureLocationType();
 
         MultiCityOptionType mcot = new MultiCityOptionType();
-        mcot.setLocationId(origin);
+        mcot.setLocationId(searchParameters.getOrigin());
         dlt.getDepMultiCity().add(mcot);
         idt.setDepartureLocalization(dlt);
         ArrivalLocalizationType alt=new ArrivalLocalizationType();
         
         MultiCityOptionType mcot1=new MultiCityOptionType();
 
-        mcot1.setLocationId(destination);
+        mcot1.setLocationId(searchParameters.getDestination());
         alt.getArrivalMultiCity().add(mcot1);
 
         idt.setArrivalLocalization(alt);
@@ -195,9 +196,9 @@ public class SearchFlights {
         DateAndTimeDetailsTypeI dtit = new DateAndTimeDetailsTypeI();
         dtit.setTimeQualifier("TD");
         dtit.setTime("0000");
-        dtit.setDate(date);
+        dtit.setDate(mapDate(searchParameters.getFromDate()));
 
-        if (dateType.equalsIgnoreCase("arrival")) {
+        if (searchParameters.getDateType()== DateType.ARRIVAL) {
             dtit.setTimeQualifier("TA");
             dtit.setTime("2359");
         }
@@ -209,10 +210,10 @@ public class SearchFlights {
         //ProductTypeDetailsType120801C ptd=new ProductTypeDetailsType120801C();
         //ptd.getFlightType().add("D");
         //fi.setFlightDetail(ptd);
-        if(transit != null){
+        if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
             ConnectPointDetailsType195492C connectingPoint = new ConnectPointDetailsType195492C();
             connectingPoint.setInclusionIdentifier("M");
-            connectingPoint.setLocationId(transit);
+            connectingPoint.setLocationId(searchParameters.getTransit());
             fi.getInclusionDetail().add(connectingPoint);
             idt.setFlightInfo(fi);
         }

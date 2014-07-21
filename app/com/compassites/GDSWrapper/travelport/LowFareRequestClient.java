@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.travelport;
 
+import com.compassites.model.DateType;
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
 import com.google.gson.Gson;
@@ -144,16 +145,12 @@ public class LowFareRequestClient extends TravelPortClient {
         AirRequestClient.addPointOfSale(request, "JustOneClick");
     }
 
-    private static TypeSearchAirLeg buildLeg(String origin, String destination,
-                                             SearchParameters.JourneySpecificParameters journeySpecificParameters,
-                                             Boolean directFlight,
-                                             String preferredAirlineCode,
-                                             String dateType,
-                                             String transit){
-        TypeCabinClass cabinClass = TypeCabinClass.valueOf(journeySpecificParameters.getCabinClass().upperValue());
-        TypeSearchAirLeg airLeg = createLeg(origin, destination, cabinClass, directFlight, preferredAirlineCode,transit);
-        String journeyDate = searchFormat.format(journeySpecificParameters.getJourneyDate());
-        if (dateType.equalsIgnoreCase("arrival"))
+    private static TypeSearchAirLeg buildLeg(SearchParameters searchParameters){
+
+        TypeCabinClass cabinClass = TypeCabinClass.valueOf(searchParameters.getCabinClass().upperValue());
+        TypeSearchAirLeg airLeg = createLeg(searchParameters.getOrigin(), searchParameters.getDestination(), cabinClass, searchParameters.getDirectFlights(), searchParameters.getPreferredAirlines(),searchParameters.getTransit());
+        String journeyDate = searchFormat.format(searchParameters.getFromDate());
+        if (searchParameters.getDateType()== DateType.ARRIVAL)
             addArrivalDate(airLeg, journeyDate);
         else
             addDepartureDate(airLeg, journeyDate);
@@ -188,24 +185,12 @@ public class LowFareRequestClient extends TravelPortClient {
         setDefaultValues(request);
         setPassengerList(request, searchParameters.getPassengers(), searchParameters.getSearchBookingType());
 
-        TypeSearchAirLeg outbound = buildLeg(searchParameters.getOrigin(),
-                                                searchParameters.getDestination(),
-                                                searchParameters.getOnwardJourney(),
-                                                searchParameters.getDirectFlights(),
-                                                searchParameters.getPreferredAirlineCode(),
-                                                searchParameters.getDateType(),
-                                                searchParameters.getOnwardJourney().getTransit() );
+        TypeSearchAirLeg outbound = buildLeg(searchParameters);
         List<TypeSearchAirLeg> legs = request.getSearchAirLeg();
         legs.add(outbound);
 
         if (searchParameters.getWithReturnJourney()){
-            TypeSearchAirLeg returnLeg = buildLeg(searchParameters.getDestination(),
-                                                    searchParameters.getOrigin(),
-                                                    searchParameters.getReturnJourney(),
-                                                    searchParameters.getDirectFlights(),
-                                                    searchParameters.getPreferredAirlineCode(),
-                                                    searchParameters.getDateType(),
-                                                    searchParameters.getReturnJourney().getTransit());
+            TypeSearchAirLeg returnLeg = buildLeg(searchParameters);
             legs.add(returnLeg);
         }
 
