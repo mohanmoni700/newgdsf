@@ -39,6 +39,10 @@ public class Journey{
 
     public void setTravelTimeStr() {
         String timeStr ="" ;
+        if (this.travelTime == null){
+            this.travelTimeStr = "NULL!!!";
+            return;
+        }
         if (travelTime.getMonths() > 0){
             timeStr = timeStr + travelTime.getMonths() +" Month(s) ";
         }
