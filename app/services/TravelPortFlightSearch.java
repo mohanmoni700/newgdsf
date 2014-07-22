@@ -7,6 +7,7 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.compassites.model.AirSolution;
 import com.compassites.model.Journey;
+import com.sun.xml.ws.client.ClientTransportException;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
@@ -104,6 +105,7 @@ public class TravelPortFlightSearch implements FlightSearch {
         boolean errorExist = false;
         String errorMessage = null;
         String errorCode = null;
+        SearchResponse searchResponse=new SearchResponse();
         try {
             response = lowFareRequestClient.search(searchParameters);
             Logger.info("[TravelPort] FlightSearch search response at "+ new Date());
@@ -118,19 +120,67 @@ public class TravelPortFlightSearch implements FlightSearch {
                 }
             }
         } catch (AirFaultMessage airFaultMessage) {
-            throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
+            //throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
+
+            Properties prop = new Properties();
+            InputStream input = null;
+            try {
+                input = new FileInputStream("conf/errorCodes.properties");
+                prop.load(input);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            ErrorMessage errMessage = new ErrorMessage();
+            errMessage.setMessage(prop.getProperty("partialResults"));
+            errMessage.setProvider("Travelport");
+            errMessage.setType(ErrorMessage.ErrorType.ERROR);
+            searchResponse.getErrorMessageList().add(errMessage);
+            return searchResponse;
+        }catch (ClientTransportException clientTransportException){
+
+            clientTransportException.printStackTrace();
+            throw new RetryException(clientTransportException.getMessage());
         }catch (Exception e){
-            throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
+            //throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
+
+            Properties prop = new Properties();
+            InputStream input = null;
+            try {
+                input = new FileInputStream("conf/errorCodes.properties");
+                prop.load(input);
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+
+            ErrorMessage errMessage = new ErrorMessage();
+            errMessage.setMessage(prop.getProperty("partialResults"));
+            errMessage.setProvider("Travelport");
+            errMessage.setType(ErrorMessage.ErrorType.ERROR);
+            searchResponse.getErrorMessageList().add(errMessage);
+            return searchResponse;
         }
         if(errorExist){
             Properties prop = new Properties();
             InputStream input = null;
             try {
-                input = new FileInputStream("conf/galileoErrorCodes.properties");
+
+                input = new FileInputStream("conf/repeatErrorCodes.properties");
                 prop.load(input);
-                if(!prop.containsKey(errorCode)){
+                errorCode = "Travelport."+errorCode;
+                if(prop.containsKey(errorCode)){
                     throw new RetryException(prop.getProperty(errorCode));
                 }
+                input = new FileInputStream("conf/errorCodes.properties");
+                prop.load(input);
+                ErrorMessage errMessage = new ErrorMessage();
+                errMessage.setErrorCode(errorCode);
+                if(prop.containsKey(errorCode)){
+                    errMessage.setMessage(prop.getProperty(errorCode));
+                }
+                errMessage.setProvider("Travelport");
+                errMessage.setType(ErrorMessage.ErrorType.WARNING);
+                searchResponse.getErrorMessageList().add(errMessage);
             }catch (Exception e){
                 e.printStackTrace();
             }

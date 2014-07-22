@@ -65,11 +65,30 @@ public class AmadeusFlightSearch implements FlightSearch {
             throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
         } catch (ClientTransportException clientTransportException) {
 
-            clientTransportException.printStackTrace();
-            throw new RetryException(clientTransportException.getMessage());
-        } catch (Exception e) {
+            //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
+            Properties prop = new Properties();
+            InputStream input = null;
+            input = new FileInputStream("conf/errorCodes.properties");
+            prop.load(input);
+            ErrorMessage errMessage = new ErrorMessage();
+            errMessage.setMessage(prop.getProperty("partialResults"));
+            errMessage.setProvider("Amadeus");
+            errMessage.setType(ErrorMessage.ErrorType.ERROR);
+            searchResponse.getErrorMessageList().add(errMessage);
+            return searchResponse;
+        }catch (Exception e) {
             e.printStackTrace();
-            throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
+            //throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
+            Properties prop = new Properties();
+            InputStream input = null;
+            input = new FileInputStream("conf/errorCodes.properties");
+            prop.load(input);
+            ErrorMessage errMessage = new ErrorMessage();
+            errMessage.setMessage(prop.getProperty("partialResults"));
+            errMessage.setProvider("Amadeus");
+            errMessage.setType(ErrorMessage.ErrorType.ERROR);
+            searchResponse.getErrorMessageList().add(errMessage);
+            return searchResponse;
         }
 
         Logger.info("AmadeusFlightSearch search reponse at : " + new Date());
@@ -80,12 +99,25 @@ public class AmadeusFlightSearch implements FlightSearch {
             Properties prop = new Properties();
             InputStream input = null;
             try {
-                input = new FileInputStream("conf/amadeusErrorCodes.properties");
+                input = new FileInputStream("conf/repeatErrorCodes.properties");
                 prop.load(input);
-                if (!prop.containsKey(errorCode)) {
+                errorCode = "amadeus."+errorCode;
+                if(prop.containsKey(errorCode)){
                     throw new RetryException(prop.getProperty(errorCode));
                 }
-            } catch (Exception e) {
+                input = new FileInputStream("conf/errorCodes.properties");
+                prop.load(input);
+                ErrorMessage errMessage = new ErrorMessage();
+                errMessage.setErrorCode(errorCode);
+                if(prop.containsKey(errorCode)){
+                    errMessage.setMessage(prop.getProperty(errorCode));
+                }
+
+                errMessage.setProvider("Amadeus");
+                errMessage.setType(ErrorMessage.ErrorType.WARNING);
+                searchResponse.getErrorMessageList().add(errMessage);
+            }catch (Exception e){
+
                 e.printStackTrace();
             }
         } else {

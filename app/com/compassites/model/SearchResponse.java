@@ -1,5 +1,8 @@
 package com.compassites.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Renu
@@ -12,6 +15,12 @@ public class SearchResponse {
     //private AirSolution airSolutionReturn;
     private String provider; //Amedeus or Travelport (Galileo)
 
+    private List<ErrorMessage> errorMessageList;
+
+    public SearchResponse() {
+        airSolution = new AirSolution();
+        errorMessageList = new ArrayList<>();
+    }
 
     public String getProvider() {
         return provider;
@@ -28,4 +37,8 @@ public class SearchResponse {
     public void setAirSolution(AirSolution airSolution) {
         this.airSolution = airSolution;
     }
+
+    public List<ErrorMessage> getErrorMessageList() { return errorMessageList; }
+
+    public void setErrorMessageList(List<ErrorMessage> errorMessageList) { this.errorMessageList = errorMessageList; }
 }

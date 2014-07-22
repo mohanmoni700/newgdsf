@@ -33,7 +33,7 @@ public class RetryOnFailureTest {
        /* Properties prop = new Properties();
         InputStream input = null;
         try {
-            input = new FileInputStream("conf/amadeusErrorCodes.properties");
+            input = new FileInputStream("conf/repeatErrorCodes.properties");
             // load a properties file
             prop.load(input);
             System.out.println(prop.getProperty("1181")+" : "+ prop.containsKey("1181"));

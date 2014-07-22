@@ -2,20 +2,16 @@ package services;
 
 import com.compassites.constants.CacheConstants;
 import com.compassites.exceptions.RetryException;
-import com.compassites.model.AirSolution;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
+import com.compassites.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.Logger;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -37,11 +33,11 @@ public class FlightSearchWrapper {
         final Jedis j = new Jedis("localhost", 6379);
         j.connect();
 
-        j.setex(redisKey+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,"started");
+        j.setex(redisKey + ":status", CacheConstants.CACHE_TIMEOUT_IN_SECS, "started");
 
         ExecutorService newExecutor = new ThreadPoolExecutor(maxThreads, maxThreads, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
         List<Future<SearchResponse>> futureSearchResponseList = new ArrayList<>();
-
+        List<ErrorMessage> errorMessageList = new ArrayList<>();
         for (final FlightSearch flightSearch: flightSearchList){
             final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
 
@@ -89,8 +85,31 @@ public class FlightSearchWrapper {
                             Logger.error("["+redisKey+"]All providers gave error");
                             //send email to IT admin
                         }
-                    } catch (Exception e) {
-
+                        Properties prop = new Properties();
+                        InputStream input = null;
+                        try {
+                            input = new FileInputStream("conf/errorCodes.properties");
+                            prop.load(input);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        ErrorMessage errMessage = new ErrorMessage();
+                        errMessage.setMessage(prop.getProperty("retrialError"));
+                        errMessage.setType(ErrorMessage.ErrorType.ERROR);
+                        errorMessageList.add(errMessage);
+                    }catch (Exception e){
+                        Properties prop = new Properties();
+                        InputStream input = null;
+                        try {
+                            input = new FileInputStream("conf/errorCodes.properties");
+                            prop.load(input);
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
+                        }
+                        ErrorMessage errMessage = new ErrorMessage();
+                        errMessage.setMessage(prop.getProperty("partialResults"));
+                        errMessage.setType(ErrorMessage.ErrorType.ERROR);
+                        errorMessageList.add(errMessage);
                         e.printStackTrace();
                     }
 
@@ -116,8 +135,10 @@ public class FlightSearchWrapper {
                             searchResponseList  = searchResponseCache;
                             //hashSet.addAll(searchResponseList.get(0).getAirSolution().getFlightItineraryList());
                             for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
+
                                 hashMap.put(flightItinerary.hashCode(),flightItinerary);
                             }
+                            errorMessageList.addAll(searchResponse.getErrorMessageList());
                         }
                         if (counter > 1) {
                             //Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
@@ -139,17 +160,19 @@ public class FlightSearchWrapper {
                                     hashMap.put(flightItinerary.hashCode(), flightItinerary);
                                 }
                             }
-
+                            errorMessageList.addAll(searchResponse.getErrorMessageList());
                             AirSolution airSolution = new AirSolution();
                             airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
                             searchResponseCache.setAirSolution(airSolution);
-
+                            searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
 
                         }
 
                         //searchResponseList.add(searchResponseCache);
+                        searchResponseCache.setErrorMessageList(errorMessageList);
                         String res = j.setex(searchParameters.redisKey(), CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.stringify(Json.toJson(searchResponseCache)));
                         res = j.setex(searchParameters.redisKey()+":status", CacheConstants.CACHE_TIMEOUT_IN_SECS, "partial");
+
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;
                         Logger.info("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
@@ -162,14 +185,22 @@ public class FlightSearchWrapper {
                 }
             }
             if(counter == searchResponseListSize){
+
                 loop = false;
+                if(hashMap.size() == 0 && errorMessageList.size() > 0)  {
+                    SearchResponse searchResponse = new SearchResponse();
+                    searchResponse.setErrorMessageList(errorMessageList);
+                    String res = j.setex(searchParameters.redisKey(), CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.stringify(Json.toJson(searchResponse)));
+                }
                 j.setex(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS, "complete");
+
                 Logger.info("***********SEARCH END key: ["+ redisKey +"]***********");
             }
         }
         /*
         Logger.info("HashMap Size: "+hashMap.size());
         SearchResponse searchResponse=new SearchResponse();
+        searchResponse.setErrorMessageList(errorMessageList);
         AirSolution airSolution = new AirSolution();
         airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
         searchResponse.setAirSolution(airSolution);
@@ -206,7 +237,7 @@ public class FlightSearchWrapper {
     }
 
     private void setCacheValue(Jedis j, String key, String value){
-        j.setex(key, CacheConstants.CACHE_TIMEOUT_IN_SECS,  value);
+        j.setex(key, CacheConstants.CACHE_TIMEOUT_IN_SECS, value);
     }
 
 }

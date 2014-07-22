@@ -36,11 +36,11 @@ public class FlightSearchTest {
         Date onwardDate = new SimpleDateFormat("dd/MM/yyyy").parse("15/08/2014");
         searchParameters.getOnwardJourney().setJourneyDate(onwardDate);
 
-        Date returnDate = new SimpleDateFormat("dd/MM/yyyy").parse("14/09/2014");
+        Date returnDate = new SimpleDateFormat("dd/MM/yyyy").parse("14/07/2014");
         searchParameters.getReturnJourney().setJourneyDate(returnDate);
 
 
-        searchParameters.setWithReturnJourney(false);
+        searchParameters.setWithReturnJourney(true);
         //searchParameters.setNoOfStops(new Integer("0"));
 
         //searchParameters.setDirectFlights(true);
