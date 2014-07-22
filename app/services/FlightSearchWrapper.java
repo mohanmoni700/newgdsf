@@ -3,6 +3,7 @@ package services;
 import com.compassites.constants.CacheConstants;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.Logger;
@@ -40,6 +41,7 @@ public class FlightSearchWrapper {
         ExecutorService newExecutor = new ThreadPoolExecutor(maxThreads, maxThreads, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
         List<Future<SearchResponse>> futureSearchResponseList = new ArrayList<>();
         List<ErrorMessage> errorMessageList = new ArrayList<>();
+        HashMap<Integer,FlightItinerary> hashMap =  new HashMap<>();
         for (final FlightSearch flightSearch: flightSearchList){
             final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
 
@@ -56,6 +58,19 @@ public class FlightSearchWrapper {
                             return response;
                         }
                     }));
+                }else {
+                    String cachedResponse =  j.get(redisKey);
+                    JsonNode rs = null;
+                    if (cachedResponse != null)
+                        rs = Json.parse(cachedResponse);
+                    SearchResponse chachedRespons = null;
+                    if (rs != null){
+                        SearchResponse chachedResponse = Json.fromJson(rs, SearchResponse.class);
+                        for(FlightItinerary flightItinerary : chachedResponse.getAirSolution().getFlightItineraryList()){
+                            hashMap.put(flightItinerary.hashCode(),flightItinerary);
+                        }
+                    }
+
                 }
 
             } catch (Exception e) {
@@ -70,7 +85,7 @@ public class FlightSearchWrapper {
         boolean loop = true;
         int searchResponseListSize = futureSearchResponseList.size();
         int exceptionCounter = 0;
-        HashMap<Integer,FlightItinerary> hashMap =  new HashMap<>();
+
         while(loop){
             ListIterator<Future<SearchResponse>> listIterator = futureSearchResponseList.listIterator();
             while (listIterator.hasNext()) {
@@ -113,43 +128,32 @@ public class FlightSearchWrapper {
                     if(searchResponse != null){
                         Logger.info("["+redisKey+"]Received Response "+ counter +" from : " + searchResponse.getProvider()+" Size: " + searchResponse.getAirSolution().getFlightItineraryList().size());
                         SearchResponse searchResponseCache=new SearchResponse();
-                        if(counter == 1){
-                            searchResponseCache =  searchResponse;
-                            searchResponseList  = searchResponseCache;
-                            //hashSet.addAll(searchResponseList.get(0).getAirSolution().getFlightItineraryList());
-                            for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()){
 
-                                hashMap.put(flightItinerary.hashCode(),flightItinerary);
-                            }
-                            errorMessageList.addAll(searchResponse.getErrorMessageList());
-                        }
-                        if (counter > 1) {
-                            //Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
-                            for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()) {
-                                //Logger.info("FlightItinary string :"+flightItinerary.toString());
-                                if(hashMap.containsKey(flightItinerary.hashCode())){
-                                    //Logger.info("Common Flights"+Json.toJson(flightItinerary));
-                                    FlightItinerary hashFlightItinerary = hashMap.get(flightItinerary.hashCode());
-                                    if (hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
-                                            && flightItinerary.getPricingInformation() != null && flightItinerary.getPricingInformation().getTotalPrice() != null) {
-                                        Integer hashItinaryPrice = new Integer(hashFlightItinerary.getPricingInformation().getTotalPrice().substring(3));
-                                        Integer iteratorItinaryPrice = new Integer(flightItinerary.getPricingInformation().getTotalPrice().substring(3));
-                                        if (iteratorItinaryPrice < hashItinaryPrice) {
-                                            hashMap.remove(hashFlightItinerary.hashCode());
-                                            hashMap.put(flightItinerary.hashCode(), flightItinerary);
-                                        }
+                        //Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
+                        for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()) {
+                            //Logger.info("FlightItinary string :"+flightItinerary.toString());
+                            if(hashMap.containsKey(flightItinerary.hashCode())){
+                                //Logger.info("Common Flights"+Json.toJson(flightItinerary));
+                                FlightItinerary hashFlightItinerary = hashMap.get(flightItinerary.hashCode());
+                                if (hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
+                                        && flightItinerary.getPricingInformation() != null && flightItinerary.getPricingInformation().getTotalPrice() != null) {
+                                    Integer hashItinaryPrice = new Integer(hashFlightItinerary.getPricingInformation().getTotalPrice().substring(3));
+                                    Integer iteratorItinaryPrice = new Integer(flightItinerary.getPricingInformation().getTotalPrice().substring(3));
+                                    if (iteratorItinaryPrice < hashItinaryPrice) {
+                                        hashMap.remove(hashFlightItinerary.hashCode());
+                                        hashMap.put(flightItinerary.hashCode(), flightItinerary);
                                     }
-                                } else {
-                                    hashMap.put(flightItinerary.hashCode(), flightItinerary);
                                 }
+                            } else {
+                                hashMap.put(flightItinerary.hashCode(), flightItinerary);
                             }
-                            errorMessageList.addAll(searchResponse.getErrorMessageList());
-                            AirSolution airSolution = new AirSolution();
-                            airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
-                            searchResponseCache.setAirSolution(airSolution);
-                            searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
-
                         }
+                        errorMessageList.addAll(searchResponse.getErrorMessageList());
+                        AirSolution airSolution = new AirSolution();
+                        airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
+                        searchResponseCache.setAirSolution(airSolution);
+                        searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
+
 
                         //searchResponseList.add(searchResponseCache);
                         searchResponseCache.setErrorMessageList(errorMessageList);
