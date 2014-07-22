@@ -1,5 +1,8 @@
 package com.compassites.model;
 
+
+import org.pojomatic.annotations.Property;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,27 +15,39 @@ import java.util.List;
  * Time: 4:35 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SearchParameters implements Serializable{
+public class SearchParameters implements Serializable {
+    @Property
     private String origin;
+    @Property
     private String destination;
     private String stopOver;
     private String currency;
-    private List <Passenger> passengers;
+    private List<Passenger> passengers;
     private Boolean withReturnJourney;
     private Integer noOfStops;
+    @Property
     private Integer adultCount;
+    @Property
     private Integer childCount;
+    @Property
     private Integer infantCount;
+    @Property
     private Boolean refundableFlights;
+    @Property
     private Boolean directFlights;
     private DateType dateType;
     private JourneyType journeyType;
     private String searchBookingType;
+    @Property
     private BookingType bookingType;
+    @Property
     private CabinClass cabinClass;
+
     private String preferredAirlines;
     private String preferredFood;
+    @Property
     private Date fromDate;
+    @Property
     private Date returnDate;
     private String transit;
     private String nationality;
@@ -227,14 +242,21 @@ public class SearchParameters implements Serializable{
         return transit;
     }
 
+    public void setTransit(String transit) {
+        this.transit = transit;
+    }
+
     public String redisKey(){
-        Date journeyDate = fromDate;
+        Date journeyDate = this.fromDate;
         String key = "";
-        key = key+ origin+ destination +"ADT:"+ adultCount +"CHD:"+ childCount +"INF:"+ infantCount+
-                journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+ cabinClass.upperValue();
-        key = key + "RF:"+refundableFlights + "DR:" + directFlights + "PA:" + preferredAirlines;
-        key = key + "TR:"+transit+"DT:" + dateType + "BK" + bookingType;
+        key = key+ this.origin+ this.destination +"ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+
+                journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+ this.cabinClass;
+        key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + this.preferredAirlines;
+        key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType;
         return key;
     }
 
+    /*public String redisKey(){
+        return Integer.toString(Pojomatic.hashCode(this));
+    }*/
 }
