@@ -17,11 +17,11 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 import play.Logger;
+import utils.ErrorMessageHelper;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -66,28 +66,16 @@ public class AmadeusFlightSearch implements FlightSearch {
         } catch (ClientTransportException clientTransportException) {
 
             //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
-            Properties prop = new Properties();
-            InputStream input = null;
-            input = new FileInputStream("conf/errorCodes.properties");
-            prop.load(input);
-            ErrorMessage errMessage = new ErrorMessage();
-            errMessage.setMessage(prop.getProperty("partialResults"));
-            errMessage.setProvider("Amadeus");
-            errMessage.setType(ErrorMessage.ErrorType.ERROR);
-            searchResponse.getErrorMessageList().add(errMessage);
+
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
+            searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
         }catch (Exception e) {
             e.printStackTrace();
             //throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
-            Properties prop = new Properties();
-            InputStream input = null;
-            input = new FileInputStream("conf/errorCodes.properties");
-            prop.load(input);
-            ErrorMessage errMessage = new ErrorMessage();
-            errMessage.setMessage(prop.getProperty("partialResults"));
-            errMessage.setProvider("Amadeus");
-            errMessage.setType(ErrorMessage.ErrorType.ERROR);
-            searchResponse.getErrorMessageList().add(errMessage);
+
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
+            searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
         }
 
@@ -96,25 +84,17 @@ public class AmadeusFlightSearch implements FlightSearch {
         AirSolution airSolution = new AirSolution();
         if (errorMessage != null) {
             String errorCode = errorMessage.getApplicationError().getApplicationErrorDetail().getError();
-            Properties prop = new Properties();
             InputStream input = null;
             try {
-                input = new FileInputStream("conf/repeatErrorCodes.properties");
-                prop.load(input);
-                errorCode = "amadeus."+errorCode;
-                if(prop.containsKey(errorCode)){
-                    throw new RetryException(prop.getProperty(errorCode));
-                }
-                input = new FileInputStream("conf/errorCodes.properties");
-                prop.load(input);
-                ErrorMessage errMessage = new ErrorMessage();
-                errMessage.setErrorCode(errorCode);
-                if(prop.containsKey(errorCode)){
-                    errMessage.setMessage(prop.getProperty(errorCode));
-                }
 
-                errMessage.setProvider("Amadeus");
-                errMessage.setType(ErrorMessage.ErrorType.WARNING);
+                errorCode = "amadeus."+errorCode;
+                boolean errorCodeExist = ErrorMessageHelper.checkErrorCodeExist(errorCode);
+                if(errorCodeExist){
+                    ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage(errorCode, ErrorMessage.ErrorType.WARNING, "Amadeus");
+                    throw new RetryException(errMessage.getMessage());
+                }
+                ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage(errorCode, ErrorMessage.ErrorType.WARNING, "Amadeus");
+
                 searchResponse.getErrorMessageList().add(errMessage);
             }catch (Exception e){
 

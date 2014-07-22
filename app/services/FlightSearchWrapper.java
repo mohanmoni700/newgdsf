@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service;
 import play.Logger;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
+import utils.ErrorMessageHelper;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.*;
 
 /**
@@ -85,31 +87,12 @@ public class FlightSearchWrapper {
                             Logger.error("["+redisKey+"]All providers gave error");
                             //send email to IT admin
                         }
-                        Properties prop = new Properties();
-                        InputStream input = null;
-                        try {
-                            input = new FileInputStream("conf/errorCodes.properties");
-                            prop.load(input);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        ErrorMessage errMessage = new ErrorMessage();
-                        errMessage.setMessage(prop.getProperty("retrialError"));
-                        errMessage.setType(ErrorMessage.ErrorType.ERROR);
-                        errorMessageList.add(errMessage);
+                        ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("retrialError",ErrorMessage.ErrorType.ERROR,"Application");
+                        errorMessageList.add(errorMessage);
                     }catch (Exception e){
-                        Properties prop = new Properties();
-                        InputStream input = null;
-                        try {
-                            input = new FileInputStream("conf/errorCodes.properties");
-                            prop.load(input);
-                        } catch (Exception exception) {
-                            exception.printStackTrace();
-                        }
-                        ErrorMessage errMessage = new ErrorMessage();
-                        errMessage.setMessage(prop.getProperty("partialResults"));
-                        errMessage.setType(ErrorMessage.ErrorType.ERROR);
-                        errorMessageList.add(errMessage);
+
+                        ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults",ErrorMessage.ErrorType.WARNING,"Application");
+                        errorMessageList.add(errorMessage);
                         e.printStackTrace();
                     }
 

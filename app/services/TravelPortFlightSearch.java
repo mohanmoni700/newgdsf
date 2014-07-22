@@ -14,12 +14,14 @@ import com.travelport.service.air_v26_0.AirFaultMessage;
 import models.AirlineCode;
 import org.springframework.stereotype.Service;
 import play.Logger;
+import utils.ErrorMessageHelper;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -122,19 +124,8 @@ public class TravelPortFlightSearch implements FlightSearch {
         } catch (AirFaultMessage airFaultMessage) {
             //throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
 
-            Properties prop = new Properties();
-            InputStream input = null;
-            try {
-                input = new FileInputStream("conf/errorCodes.properties");
-                prop.load(input);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
-            ErrorMessage errMessage = new ErrorMessage();
-            errMessage.setMessage(prop.getProperty("partialResults"));
-            errMessage.setProvider("Travelport");
-            errMessage.setType(ErrorMessage.ErrorType.ERROR);
+            ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
             searchResponse.getErrorMessageList().add(errMessage);
             return searchResponse;
         }catch (ClientTransportException clientTransportException){
@@ -144,46 +135,20 @@ public class TravelPortFlightSearch implements FlightSearch {
         }catch (Exception e){
             //throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
 
-            Properties prop = new Properties();
-            InputStream input = null;
-            try {
-                input = new FileInputStream("conf/errorCodes.properties");
-                prop.load(input);
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-
-            ErrorMessage errMessage = new ErrorMessage();
-            errMessage.setMessage(prop.getProperty("partialResults"));
-            errMessage.setProvider("Travelport");
-            errMessage.setType(ErrorMessage.ErrorType.ERROR);
+            ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
             searchResponse.getErrorMessageList().add(errMessage);
             return searchResponse;
         }
         if(errorExist){
-            Properties prop = new Properties();
-            InputStream input = null;
-            try {
 
-                input = new FileInputStream("conf/repeatErrorCodes.properties");
-                prop.load(input);
-                errorCode = "Travelport."+errorCode;
-                if(prop.containsKey(errorCode)){
-                    throw new RetryException(prop.getProperty(errorCode));
-                }
-                input = new FileInputStream("conf/errorCodes.properties");
-                prop.load(input);
-                ErrorMessage errMessage = new ErrorMessage();
-                errMessage.setErrorCode(errorCode);
-                if(prop.containsKey(errorCode)){
-                    errMessage.setMessage(prop.getProperty(errorCode));
-                }
-                errMessage.setProvider("Travelport");
-                errMessage.setType(ErrorMessage.ErrorType.WARNING);
-                searchResponse.getErrorMessageList().add(errMessage);
-            }catch (Exception e){
-                e.printStackTrace();
+            errorCode = "Travelport."+errorCode;
+            boolean errorCodeExist = ErrorMessageHelper.checkErrorCodeExist(errorCode);
+            if(errorCodeExist){
+                ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage(errorCode, ErrorMessage.ErrorType.WARNING, "Travelport");
+                throw new RetryException(errMessage.getMessage());
             }
+            ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage(errorCode, ErrorMessage.ErrorType.WARNING, "Travelport");
+            searchResponse.getErrorMessageList().add(errMessage);
 
         }else {
             return createAirSolutionFromRecommendations(response, searchParameters) ;
