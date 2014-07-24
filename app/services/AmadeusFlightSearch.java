@@ -215,8 +215,9 @@ public class AmadeusFlightSearch implements FlightSearch {
         Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
 
         airSegmentInformation.setTravelTime(""+diff.getMinutes());
-        airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
-
+        if(flightInformation.getCompanyId()!=null&&flightInformation.getCompanyId().getMarketingCarrier()!=null&&flightInformation.getCompanyId().getMarketingCarrier().length()>=2) {
+            airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
+        }
 
         return airSegmentInformation;
     }
