@@ -195,6 +195,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             flightItinerary.getPricingInformation().setBasePrice(airPricingSolution.getBasePrice());
             flightItinerary.getPricingInformation().setTax(airPricingSolution.getTaxes());
             flightItinerary.getPricingInformation().setTotalPrice(airPricingSolution.getTotalPrice());
+            flightItinerary.getPricingInformation().setTotalPriceValue(Long.parseLong(airPricingSolution.getTotalPrice().substring(3)));
 
             //System.out.print("Price:"+ airPricingSolution.getTotalPrice());
             //System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");

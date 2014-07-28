@@ -8,6 +8,10 @@ public class PricingInformation {
     private String tax;
     private String totalPrice;
     private String currency;
+    private Long totalPriceValue;
+
+    public PricingInformation() {
+    }
 
     public String getBasePrice() {
         return basePrice;
@@ -39,5 +43,13 @@ public class PricingInformation {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public Long getTotalPriceValue() {
+        return totalPriceValue;
+    }
+
+    public void setTotalPriceValue(Long totalPriceValue) {
+        this.totalPriceValue = totalPriceValue;
     }
 }

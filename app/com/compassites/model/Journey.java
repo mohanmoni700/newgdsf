@@ -5,6 +5,7 @@ import org.pojomatic.annotations.Property;
 
 import javax.xml.datatype.Duration;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -14,6 +15,7 @@ public class Journey{
 
     private Duration travelTime;
     private String travelTimeStr;
+    private Long travelTimeMillis;
 
     @Property
     private List<AirSegmentInformation> airSegmentList;
@@ -41,6 +43,7 @@ public class Journey{
         String timeStr ="" ;
         if (this.travelTime == null){
             this.travelTimeStr = "NULL!!!";
+            this.travelTimeMillis = Long.valueOf(0);
             return;
         }
         if (travelTime.getMonths() > 0){
@@ -59,6 +62,8 @@ public class Journey{
             timeStr = timeStr + travelTime.getSeconds() +" Seconds ";
         }
         this.travelTimeStr = timeStr;
+        Calendar c = Calendar.getInstance();
+        this.travelTimeMillis = travelTime.getTimeInMillis(c);
     }
 
     public String getTravelTimeStr(){
@@ -79,5 +84,13 @@ public class Journey{
     @Override
     public String toString() {
         return Pojomatic.toString(this);
+    }
+
+    public Long getTravelTimeMillis() {
+        return travelTimeMillis;
+    }
+
+    public void setTravelTimeMillis(Long travelTimeMillis) {
+        this.travelTimeMillis = travelTimeMillis;
     }
 }
