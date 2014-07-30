@@ -1,11 +1,13 @@
 package models;
 
+import com.compassites.constants.CacheConstants;
 import play.db.ebean.Model;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.util.List;
 
 /**
  * Created by Renu on 6/24/14.
@@ -45,8 +47,12 @@ public class AirlineCode {
             airline  = Json.fromJson(Json.parse(airlineJson), AirlineCode.class);
 
         } else {
-            airline = find.where().eq("iata_code",airlineCode).findList().get(0);
-            j.set(cacheKey,Json.toJson(airline).toString());
+            List<AirlineCode> airlines = find.where().eq("iata_code",airlineCode).findList();
+            if (airlines.size() > 0)
+                airline = find.where().eq("iata_code",airlineCode).findList().get(0);
+            else
+                airline = new AirlineCode( airlineCode, "","", "", airlineCode,""  );
+            j.setex(cacheKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.toJson(airline).toString());
 
         }
         j.disconnect();
