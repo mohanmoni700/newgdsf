@@ -205,9 +205,11 @@ public class TravelPortFlightSearch implements FlightSearch {
 
                 com.travelport.schema.air_v26_0.Journey journey = journeyIterator.next();
                 flightItinerary.AddBlankJourney();
+                int journeyStopCounter = -1;
                 //System.out.println("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(journeyList.indexOf(journey)).getCabinClass());
                 List<AirSegmentRef> airSegmentRefList = journey.getAirSegmentRef();
                 for (Iterator<AirSegmentRef> airSegmentRefIterator = airSegmentRefList.iterator(); airSegmentRefIterator.hasNext(); ) {
+                    journeyStopCounter++;
                     AirSegmentRef airSegmentRef = airSegmentRefIterator.next();
                     TypeBaseAirSegment airSegment = allSegments.getByRef(airSegmentRef);
                     String carrier = "??";
@@ -270,9 +272,11 @@ public class TravelPortFlightSearch implements FlightSearch {
                         //System.out.println();
                     }
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList().add(airSegmentInformation);
+                    flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline );
 
                 }
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setTravelTime(journey.getTravelTime());
+                flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setNoOfStops(journeyStopCounter);
                 //System.out.println("total travel time"+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getHours()+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getMinutes() );
             }
 

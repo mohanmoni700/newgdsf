@@ -142,13 +142,20 @@ public class AmadeusFlightSearch implements FlightSearch {
                 flightItinerary.setProvider("Amadeus");
                 for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
                     int multiStopCounter=0;
+                    int journeyStopCounter = -1;
                     BigInteger flightDetailReference = referencingDetailsType.getRefNumber();
                     FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlights = fareMasterPricerTravelBoardSearchReply.getFlightIndex().get(multiStopCounter).getGroupOfFlights().get(flightDetailReference.intValue() - 1);
                     for (FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlights.getFlightDetails()) {
                         AirSegmentInformation airSegmentInformation = createSegment(flightDetails.getFlightInformation());
                         flightItinerary.AddBlankJourney();
                         flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().add(airSegmentInformation);
+                        flightItinerary.getJourneyList().get(multiStopCounter).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline );
+                        journeyStopCounter++;
+
                     }
+
+                    flightItinerary.getJourneyList().get(multiStopCounter).setNoOfStops(journeyStopCounter);
+
                     for (ProposedSegmentDetailsType proposedSegmentDetailsTypes : groupOfFlights.getPropFlightGrDetail().getFlightProposal()) {
                         if ("EFT".equals(proposedSegmentDetailsTypes.getUnitQualifier())) {
                             Journey journey = flightItinerary.getJourneyList().get(0);

@@ -16,6 +16,8 @@ public class Journey{
     private Duration travelTime;
     private String travelTimeStr;
     private Long travelTimeMillis;
+    private String airlinesStrForFilter;
+    private Integer noOfStops;
 
     @Property
     private List<AirSegmentInformation> airSegmentList;
@@ -92,5 +94,21 @@ public class Journey{
 
     public void setTravelTimeMillis(Long travelTimeMillis) {
         this.travelTimeMillis = travelTimeMillis;
+    }
+
+    public String getAirlinesStrForFilter() {
+        return airlinesStrForFilter;
+    }
+
+    public void setAirlinesStrForFilter(String airlinesStrForFilter) {
+        this.airlinesStrForFilter = airlinesStrForFilter;
+    }
+
+    public Integer getNoOfStops() {
+        return noOfStops;
+    }
+
+    public void setNoOfStops(Integer noOfStops) {
+        this.noOfStops = noOfStops;
     }
 }
