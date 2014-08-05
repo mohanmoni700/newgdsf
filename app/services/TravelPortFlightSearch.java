@@ -12,6 +12,7 @@ import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import models.AirlineCode;
+import models.Airport;
 import org.springframework.stereotype.Service;
 import play.Logger;
 import utils.ErrorMessageHelper;
@@ -240,7 +241,9 @@ public class TravelPortFlightSearch implements FlightSearch {
                     //System.out.print(" from " + o + " to " + d);
                     airSegmentInformation.setFromLocation(o);
                     airSegmentInformation.setToLocation(d);
-                    airSegmentInformation.setToLocation(d);
+                    airSegmentInformation.setFromAirport(Airport.getAiport(o));
+                    airSegmentInformation.setToAirport(Airport.getAiport(d));
+
                     String dtime = "??:??";
                     String atime = "??:??";
                     FlightDetails flightDetails = allDetails.getByRef(airSegment.getFlightDetailsRef().get(0));

@@ -220,6 +220,8 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setDepartureDate(departureDate.toDate());
         airSegmentInformation.setDepartureTime(departureDate.toString());
         airSegmentInformation.setArrivalTime(arrivalDate.toString());
+        airSegmentInformation.setFromAirport(fromAirport);
+        airSegmentInformation.setToAirport(toAirport);
         Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
 
         airSegmentInformation.setTravelTime(""+diff.getMinutes());
