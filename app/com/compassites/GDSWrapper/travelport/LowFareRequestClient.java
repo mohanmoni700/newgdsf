@@ -169,7 +169,7 @@ public class LowFareRequestClient extends TravelPortClient {
             }
             else
             {
-                searchPassenger.setCode(passenger.getPassengerType());
+                searchPassenger.setCode(passenger.getPassengerType().toString());
             }
 
             searchPassenger.setKey("COMPASS");

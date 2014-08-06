@@ -10,7 +10,7 @@ package com.compassites.model;
 public class Passenger {
     private String name;
     private Integer age;
-    private String  passengerType;
+    private PassengerTypeCode passengerType;
 
     public String getName() {
         return name;
@@ -28,11 +28,11 @@ public class Passenger {
         this.age = age;
     }
 
-    public String getPassengerType() {
+    public PassengerTypeCode getPassengerType() {
         return passengerType;
     }
 
-    public void setPassengerType(String passengerType) {
+    public void setPassengerType(PassengerTypeCode passengerType) {
         this.passengerType = passengerType;
     }
 }

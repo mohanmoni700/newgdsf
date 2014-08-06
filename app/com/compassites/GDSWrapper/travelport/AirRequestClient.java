@@ -475,7 +475,7 @@ public class AirRequestClient extends TravelPortClient {
             Passenger passenger = passengerIterator.next();
             SearchPassenger searchPassenger = new SearchPassenger();
             if (passengerType == ""){
-                searchPassenger.setCode(passenger.getPassengerType());
+                searchPassenger.setCode(passenger.getPassengerType().toString());
             }
             else{
                 searchPassenger.setCode(passengerType);

@@ -17,7 +17,6 @@ public class TestEquals {
         fi1.getPricingInformation().setTax("INR41449");
         fi1.getPricingInformation().setTotalPrice("INR91949");
         fi1.AddBlankJourney();
-        FlightItinerary.Journey journey = fi1.getJourneyList().get(0);
         AirSegmentInformation segmentInformation = new AirSegmentInformation();
         segmentInformation.setFromLocation("BOM");
         segmentInformation.setToLocation("BLR");
@@ -26,15 +25,12 @@ public class TestEquals {
         segmentInformation.setCarrierCode("9W");
 
         fi1.AddBlankJourney();
-        FlightItinerary.Journey returnJourney = fi1.getJourneyList().get(1);
         AirSegmentInformation segmentInformation1 = new AirSegmentInformation();
         segmentInformation1.setFromLocation("BLR");
         segmentInformation1.setToLocation("BOM");
         segmentInformation1.setDepartureTime("2014-08-16T015:08:00.000+05:30");
         segmentInformation1.setFlightNumber("7133");
         segmentInformation1.setCarrierCode("9W");
-        journey.getAirSegmentList().add(segmentInformation);
-        returnJourney.getAirSegmentList().add(segmentInformation1);
 
 
         FlightItinerary fi2 = new FlightItinerary();
@@ -43,7 +39,6 @@ public class TestEquals {
         fi2.getPricingInformation().setTax("INR9528");
         fi2.getPricingInformation().setTotalPrice("INR95178");
         fi2.AddBlankJourney();
-        FlightItinerary.Journey journey2 = fi2.getJourneyList().get(0);
         AirSegmentInformation segmentInformation3 = new AirSegmentInformation();
         segmentInformation3.setFromLocation("BOM");
         segmentInformation3.setToLocation("BLR");
@@ -52,15 +47,12 @@ public class TestEquals {
         segmentInformation3.setCarrierCode("9W");
 
         fi2.AddBlankJourney();
-        FlightItinerary.Journey returnJourney1 = fi2.getJourneyList().get(1);
         AirSegmentInformation segmentInformation4 = new AirSegmentInformation();
         segmentInformation4.setFromLocation("BLR");
         segmentInformation4.setToLocation("BOM");
         segmentInformation4.setDepartureTime("2014-08-16T015:08:00.000+05:30");
         segmentInformation4.setFlightNumber("7133");
         segmentInformation4.setCarrierCode("9W");
-        journey2.getAirSegmentList().add(segmentInformation3);
-        returnJourney1.getAirSegmentList().add(segmentInformation4);
 
         //assertThat(fi1.equals(fi2),is(false));
         System.out.println("Equals method using :" + fi1.equals(fi2));

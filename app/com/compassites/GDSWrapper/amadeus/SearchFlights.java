@@ -7,10 +7,7 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_12_4_1a.*;
-import com.compassites.model.BookingType;
-import com.compassites.model.DateType;
-import com.compassites.model.Passenger;
-import com.compassites.model.SearchParameters;
+import com.compassites.model.*;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -25,7 +22,6 @@ public class SearchFlights {
 
     //using deprecated methods
     //change to calendar dates everywhere
-
     private String mapDate(Date date) {
         String amadeusDate = "";
         Calendar calDate = Calendar.getInstance();
@@ -154,17 +150,17 @@ public class SearchFlights {
             if (searchParameters.getBookingType() != BookingType.SEAMEN) {
 
                 switch (passenger.getPassengerType()) {
-                    case "ADT":
+                    case ADT:
                         adultReferenceNumbers.push(new BigInteger(Integer.toString(reference)));
                         break;
-                    case "INF":
+                    case INF:
                         tdt.setInfantIndicator(BigInteger.valueOf(1));
                         tdt.setRef(adultReferenceNumbers.pop());
                         break;
                 }
-                traveller.getPtc().add(passenger.getPassengerType());
+                traveller.getPtc().add(passenger.getPassengerType().toString());
             } else {
-                traveller.getPtc().add("SEA");
+                traveller.getPtc().add(PassengerTypeCode.SEA.toString());
             }
             traveller.getTraveller().add(tdt);
             passengers.add(traveller);
