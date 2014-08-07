@@ -19,7 +19,6 @@ public class SearchFlights {
 
     static int itineraryRef = 1;
 
-
     //using deprecated methods
     //change to calendar dates everywhere
     private String mapDate(Date date) {
@@ -36,7 +35,7 @@ public class SearchFlights {
         return amadeusDate;
     }
 
-    //search flights with 2 cities- faremastertravelboard service
+    //search flights with 2 cities- faremasterpricertravelboardsearch service
     public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters) {
         FareMasterPricerTravelBoardSearch se = new FareMasterPricerTravelBoardSearch();
         se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
@@ -47,29 +46,17 @@ public class SearchFlights {
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
         if (searchParameters.getPreferredAirlines() != null) {
-            CompanyIdentificationType214105C cid = new CompanyIdentificationType214105C();
-            cid.getCarrierId().add(searchParameters.getPreferredAirlines());
-            cid.setCarrierQualifier("X");
-            travelFlightInfo.getCompanyIdentity().add(cid);
+            setPreferredAirlines(travelFlightInfo,searchParameters.getPreferredAirlines());
         }
 
         if (searchParameters.getDirectFlights()) {
-            ProductTypeDetailsType120801C ptd = new ProductTypeDetailsType120801C();
-            ptd.getFlightType().add("D");
-            ptd.getFlightType().add("N");
-            travelFlightInfo.setFlightDetail(ptd);
+            setDirectFlights(travelFlightInfo);
         }
 
         se.setTravelFlightInfo(travelFlightInfo);
 
         if (searchParameters.getRefundableFlights()) {
-            FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
-            PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
-            PricingTicketingInformationType pit = new PricingTicketingInformationType();
-            pit.getPriceType().add("RF");
-            pdt.setPricingTicketing(pit);
-            fe.setPricingTickInfo(pdt);
-            se.setFareOptions(fe);
+            setRefundableFlights(se);
         }
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
@@ -82,8 +69,9 @@ public class SearchFlights {
             se.setFareOptions(fe1);
         }
 
-        if(searchParameters.getWithReturnJourney())
+        if(searchParameters.getWithReturnJourney()){
             se.getItinerary().add(createItinerary(searchParameters));
+        }
 
         //se.setFareOptions(createFareOptions());
 //        TravelFlightInformationType148734S tfi=new TravelFlightInformationType148734S();
@@ -94,6 +82,30 @@ public class SearchFlights {
 //        se.setTravelFlightInfo(tfi);
         //System.out.println("Amadeus Request : "+ Json.toJson(se));
         return se;
+    }
+
+    private void setPreferredAirlines(TravelFlightInformationType148734S travelFlightInfo,String carrier){
+        CompanyIdentificationType214105C cid = new CompanyIdentificationType214105C();
+        cid.getCarrierId().add(carrier);
+        cid.setCarrierQualifier("X");
+        travelFlightInfo.getCompanyIdentity().add(cid);
+    }
+
+    private void setDirectFlights(TravelFlightInformationType148734S travelFlightInfo){
+        ProductTypeDetailsType120801C ptd = new ProductTypeDetailsType120801C();
+        ptd.getFlightType().add("D");
+        ptd.getFlightType().add("N");
+        travelFlightInfo.setFlightDetail(ptd);
+    }
+
+    private void setRefundableFlights(FareMasterPricerTravelBoardSearch se){
+        FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
+        PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
+        PricingTicketingInformationType pit = new PricingTicketingInformationType();
+        pit.getPriceType().add("RF");
+        pdt.setPricingTicketing(pit);
+        fe.setPricingTickInfo(pdt);
+        se.setFareOptions(fe);
     }
 
     private FareMasterPricerTravelBoardSearch.FareOptions createFareOptions() {
@@ -207,13 +219,17 @@ public class SearchFlights {
         //ptd.getFlightType().add("D");
         //fi.setFlightDetail(ptd);
         if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
-            ConnectPointDetailsType195492C connectingPoint = new ConnectPointDetailsType195492C();
-            connectingPoint.setInclusionIdentifier("M");
-            connectingPoint.setLocationId(searchParameters.getTransit());
-            fi.getInclusionDetail().add(connectingPoint);
-            idt.setFlightInfo(fi);
+            setTransitPoint(searchParameters.getTransit(),fi,idt);
         }
 
         return idt;
+    }
+
+    private void setTransitPoint(String transitPoint,TravelFlightInformationType141002S fi,FareMasterPricerTravelBoardSearch.Itinerary idt){
+        ConnectPointDetailsType195492C connectingPoint = new ConnectPointDetailsType195492C();
+        connectingPoint.setInclusionIdentifier("M");
+        connectingPoint.setLocationId(transitPoint);
+        fi.getInclusionDetail().add(connectingPoint);
+        idt.setFlightInfo(fi);
     }
 }
