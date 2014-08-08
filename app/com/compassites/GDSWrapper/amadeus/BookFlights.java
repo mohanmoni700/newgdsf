@@ -14,78 +14,108 @@ import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.RelatedproductInformation;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation;
-import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation.BoardPointDetails;
-import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation.CompanyDetails;
-import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation.FlightDate;
-import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation.FlightIdentification;
-import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation.OffpointDetails;
+import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation.*;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.MessageActionDetails;
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.FlightItinerary;
+import com.compassites.model.Journey;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
  * @author mahendra-singh
+ * @author yaseen
  */
 public class BookFlights {
-    public AirSellFromRecommendation sellFromRecommendation(){
-        AirSellFromRecommendation sfr=new AirSellFromRecommendation(); 
+
+    public AirSellFromRecommendation sellFromRecommendation(FlightItinerary flightItinerary ){
+        AirSellFromRecommendation sfr=new AirSellFromRecommendation();
         sfr.setMessageActionDetails(createMessageActionDetails());
-        sfr.getItineraryDetails().add(createItineraryDetails());
+
+        for(Journey journey: flightItinerary.getJourneyList()){
+            if(journey.getAirSegmentList().size() > 0){
+                sfr.getItineraryDetails().add(createItineraryDetails(journey));
+            }
+        }
+
         return sfr;
     }
-    
+
     public MessageActionDetails createMessageActionDetails(){
         MessageActionDetails mad=new MessageActionDetails();
-        MessageFunctionDetails mfd=new MessageFunctionDetails();
+        com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.MessageActionDetails.MessageFunctionDetails mfd= new MessageActionDetails.MessageFunctionDetails();
         mfd.getAdditionalMessageFunction().add("M1");
         mfd.setMessageFunction("183");
+        mad.setMessageFunctionDetails(mfd);
         return mad;
     }
-    
-    public ItineraryDetails createItineraryDetails(){
-        ItineraryDetails id=new ItineraryDetails();
-        OriginDestinationDetails odd=new  OriginDestinationDetails();
-        odd.setOrigin("SIN");
-        odd.setDestination("MNL");
+
+    public ItineraryDetails createItineraryDetails(Journey journey){
+
+        ItineraryDetails itineraryDetails = new ItineraryDetails();
+        OriginDestinationDetails originDestinationDetails = new  OriginDestinationDetails();
+
+        List<AirSegmentInformation> airSegmentList = journey.getAirSegmentList();
+        originDestinationDetails.setOrigin(airSegmentList.get(0).getFromLocation());
+        originDestinationDetails.setDestination(airSegmentList.get(airSegmentList.size() - 1).getToLocation());
+
         Message message=new Message();
         MessageFunctionDetails mfd=new MessageFunctionDetails();
         mfd.setMessageFunction("183");
-        message.setMessageFunctionDetails(mfd);        
-        
-        id.setMessage(message);
-        id.setOriginDestinationDetails(odd);         
-        id.getSegmentInformation().add(createSegmentInformation());
+        message.setMessageFunctionDetails(mfd);
+
+        itineraryDetails.setMessage(message);
+        itineraryDetails.setOriginDestinationDetails(originDestinationDetails);
+        for(AirSegmentInformation airSegmentInformation : airSegmentList){
+            itineraryDetails.getSegmentInformation().add(createSegmentInformation(airSegmentInformation));
+        }
+
         //id.getSegmentInformation().add(createSegmentInformation1());
-        return id;
+        return itineraryDetails;
     }
-    
-    public SegmentInformation createSegmentInformation(){
-        SegmentInformation si=new SegmentInformation();
-        TravelProductInformation tpi=new TravelProductInformation();
-        FlightDate fd=new FlightDate();
-        fd.setDepartureDate("300614");
-        BoardPointDetails bpd=new BoardPointDetails();
-        bpd.setTrueLocationId("SIN");
-        OffpointDetails opd=new OffpointDetails();
-        opd.setTrueLocationId("MNL");
-        CompanyDetails cd=new CompanyDetails();
-        cd.setMarketingCompany("SQ");
-        FlightIdentification fi=new FlightIdentification();
-        fi.setFlightNumber("910");
-        fi.setBookingClass("Y");
-        RelatedproductInformation rpi=new RelatedproductInformation();
-        rpi.getStatusCode().add("NN");
-        rpi.setQuantity(new BigDecimal("1"));        
-        tpi.setBoardPointDetails(bpd);
-        tpi.setCompanyDetails(cd);
-        tpi.setFlightDate(fd);
-        tpi.setFlightIdentification(fi);
-        tpi.setOffpointDetails(opd);
-        si.setTravelProductInformation(tpi);   
-        si.setRelatedproductInformation(rpi);
-        return si;
+
+    public SegmentInformation createSegmentInformation(AirSegmentInformation airSegmentInformation){
+        SegmentInformation segmentInformation=new SegmentInformation();
+        TravelProductInformation travelProductInformation=new TravelProductInformation();
+
+        FlightDate flightDate=new FlightDate();
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("ddMMyy");
+        String date = fmt.print(new DateTime(airSegmentInformation.getDepartureDate()));
+        //flightDate.setDepartureDate("300614");
+        flightDate.setDepartureDate(date);
+
+        BoardPointDetails boardPointDetails=new BoardPointDetails();
+        boardPointDetails.setTrueLocationId(airSegmentInformation.getFromLocation());
+
+        OffpointDetails offpointDetails =new OffpointDetails();
+        offpointDetails.setTrueLocationId(airSegmentInformation.getToLocation());
+
+        CompanyDetails companyDetails=new CompanyDetails();
+        companyDetails.setMarketingCompany(airSegmentInformation.getCarrierCode());
+
+        FlightIdentification flightIdentification=new FlightIdentification();
+        flightIdentification.setFlightNumber(airSegmentInformation.getFlightNumber());
+        flightIdentification.setBookingClass("Y");
+
+        RelatedproductInformation relatedproductInformation=new RelatedproductInformation();
+        relatedproductInformation.getStatusCode().add("NN");
+        relatedproductInformation.setQuantity(new BigDecimal("1"));
+
+        travelProductInformation.setBoardPointDetails(boardPointDetails);
+        travelProductInformation.setCompanyDetails(companyDetails);
+        travelProductInformation.setFlightDate(flightDate);
+        travelProductInformation.setFlightIdentification(flightIdentification);
+        travelProductInformation.setOffpointDetails(offpointDetails);
+        segmentInformation.setTravelProductInformation(travelProductInformation);
+        segmentInformation.setRelatedproductInformation(relatedproductInformation);
+        return segmentInformation;
     }
-    
+
     public SegmentInformation createSegmentInformation1(){
         SegmentInformation si=new SegmentInformation();
         TravelProductInformation tpi=new TravelProductInformation();
@@ -102,14 +132,14 @@ public class BookFlights {
         fi.setBookingClass("Y");
         RelatedproductInformation rpi=new RelatedproductInformation();
         rpi.getStatusCode().add("NN");
-        rpi.setQuantity(new BigDecimal("1"));        
+        rpi.setQuantity(new BigDecimal("1"));
         tpi.setBoardPointDetails(bpd);
         tpi.setCompanyDetails(cd);
         tpi.setFlightDate(fd);
         tpi.setFlightIdentification(fi);
         tpi.setOffpointDetails(opd);
-        si.setTravelProductInformation(tpi);   
+        si.setTravelProductInformation(tpi);
         si.setRelatedproductInformation(rpi);
         return si;
-    }    
+    }
 }

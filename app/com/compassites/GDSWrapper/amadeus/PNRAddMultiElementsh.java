@@ -5,7 +5,6 @@ import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.ElementManagementData;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.ElementManagementData.Reference;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FopExtension;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FormOfPayment;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FormOfPayment.Fop;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FreetextData;
@@ -20,21 +19,28 @@ import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.Passenge
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Passenger;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Traveller;
+import com.compassites.model.traveller.TravellerMasterInfo;
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class PNRAddMultiElementsh {
 
-    public PNRAddMultiElements getMultiElements() {
+    public PNRAddMultiElements getMultiElements(TravellerMasterInfo travellerMasterInfo) {
         PNRAddMultiElements element = new PNRAddMultiElements();
         PnrActions pnrActions = new PnrActions();
         pnrActions.getOptionCode().add(new BigDecimal("0"));
         element.setPnrActions(pnrActions);
         
-        element.getTravellerInfo().add(addPassenger());
+        //element.getTravellerInfo().add(addPassenger());
         //element.getTravellerInfo().add(addChildPassenger());
         //element.getTravellerInfo().add(addInfantPassenger());
+        element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
         DataElementsMaster dem = new DataElementsMaster();
         dem.setMarker1(new Marker1());
         
@@ -47,7 +53,63 @@ public class PNRAddMultiElementsh {
         element.setDataElementsMaster(dem);
         return element;
     }
-    
+
+
+    private List<TravellerInfo> getPassengersList(TravellerMasterInfo travellerMasterInfo){
+
+        int passengerCount = 1;
+        List<TravellerInfo> travellerInfoList = new ArrayList<>();
+
+        for (com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()){
+            TravellerInfo travellerInfo = new TravellerInfo();
+            ElementManagementPassenger emp = new ElementManagementPassenger();
+            ElementManagementPassenger.Reference rf = new ElementManagementPassenger.Reference();
+            rf.setNumber(String.valueOf(passengerCount));
+            rf.setQualifier("PR");
+            emp.setReference(rf);
+            emp.setSegmentName("NM");
+            travellerInfo.setElementManagementPassenger(emp);
+
+            PassengerData passengerData = new PassengerData();
+            TravellerInformation ti = new TravellerInformation();
+            Traveller tr = new Traveller();
+            tr.setSurname(traveller.getPersonalDetails().getLastName());
+            tr.setQuantity(new BigDecimal("1"));
+
+            Passenger p = new Passenger();
+            p.setFirstName(traveller.getPersonalDetails().getFirstName()+" "+traveller.getPersonalDetails().getMiddleName());
+            //p.setIdentificationCode("ID1234");
+            //p.setType("SEA");
+            p.setType(getPassengerType(traveller.getPersonalDetails().getDateOfBirth()));
+
+            ti.getPassenger().add(p);
+            ti.setTraveller(tr);
+            passengerData.setTravellerInformation(ti);
+            travellerInfo.getPassengerData().add(passengerData);
+
+            travellerInfoList.add(travellerInfo);
+        }
+
+        return travellerInfoList;
+    }
+
+    private String getPassengerType(Date passengerDOB){
+        LocalDate birthdate = new LocalDate (passengerDOB);          //Birth date
+        LocalDate now = new LocalDate();                    //Today's date
+        Period period = new Period(birthdate, now,  PeriodType.yearMonthDay());
+        int age = period.getYears();
+        String passengerType;
+        if(age <= 2){
+            passengerType = "INF";
+        }else if (age <= 12){
+            passengerType = "CH";
+        }else{
+            passengerType = "ADT";
+        }
+
+       return passengerType;
+
+    }
     public TravellerInfo addPassenger(){
         TravellerInfo travellerInfo = new TravellerInfo();
         ElementManagementPassenger emp = new ElementManagementPassenger();

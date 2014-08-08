@@ -3,11 +3,14 @@ package controllers;
 
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import play.libs.Json;
 import play.mvc.Result;
 import play.mvc.Controller;
+import services.BookingService;
+import services.BookingServiceImpl;
 import services.FlightSearchWrapper;
 
 import java.util.List;
@@ -33,6 +36,17 @@ public class Application {
 //        Controller.response().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
 //        Controller.response().setHeader("Access-Control-Allow-Headers", "accept, content-type");
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
+    }
+
+
+    public Result generatePNR(){
+        JsonNode json = request().body().asJson();
+
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        BookingService bookingService = new BookingServiceImpl();
+        bookingService.generatePNR(travellerMasterInfo);
+        System.out.println("Traveller info received: " + json.toString());
+        return Controller.ok();
     }
 
 }

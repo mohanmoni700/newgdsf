@@ -11,9 +11,10 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
+import com.compassites.model.traveller.TravellerMasterInfo;
 
-import javax.print.URIException;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
 import java.net.URL;
@@ -62,14 +63,14 @@ public class ServiceHandler {
         return mPortType.fareMasterPricerTravelBoardSearch(new SearchFlights().createSearchQuery(searchParameters), mSession.getSession());
     }
     
-    public AirSellFromRecommendationReply sellFromRecommendation() {
+    public AirSellFromRecommendationReply sellFromRecommendation(FlightItinerary flightItinerary ) {
         mSession.incrementSequenceNumber();
-        return mPortType.airSellFromRecommendation(new BookFlights().sellFromRecommendation(), mSession.getSession());
+        return mPortType.airSellFromRecommendation(new BookFlights().sellFromRecommendation(flightItinerary), mSession.getSession());
     }
 
-    public PNRReply addMultiElementsToPNR1(){
+    public PNRReply addMultiElementsToPNR1(TravellerMasterInfo travellerMasterInfo){
         mSession.incrementSequenceNumber();
-        return mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().getMultiElements(), mSession.getSession());
+        return mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo), mSession.getSession());
     }
 
     //pricing transaction
@@ -90,7 +91,7 @@ public class ServiceHandler {
     
     public PNRReply retrivePNR(String num){
         mSession.incrementSequenceNumber();
-        return mPortType.pnrRetrieve(new PNRRetriev().retrieve(),mSession.getSession());
+        return mPortType.pnrRetrieve(new PNRRetriev().retrieve(num),mSession.getSession());
     }
     
     public DocIssuanceIssueTicketReply issueTicket(){

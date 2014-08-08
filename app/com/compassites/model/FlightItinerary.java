@@ -33,6 +33,8 @@ public class FlightItinerary implements Serializable{
 
     private boolean priceOnlyPTC;
 
+    private long id;
+
     public boolean isPriceOnlyPTC() {
         return priceOnlyPTC;
     }
@@ -86,10 +88,15 @@ public class FlightItinerary implements Serializable{
         journeyList.add(journey);
     }
 
+    public long getId() {
+        return id;
+    }
 
+    public void setId(long id) {
+        this.id = id;
+    }
 
-
-   /* @Override
+/* @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof FlightItinerary)){
              return  false;

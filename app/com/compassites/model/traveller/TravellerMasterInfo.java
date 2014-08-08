@@ -1,0 +1,47 @@
+package com.compassites.model.traveller;
+
+
+import com.compassites.model.FlightItinerary;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by user on 06-08-2014.
+ */
+public class TravellerMasterInfo {
+
+    private List<Traveller> travellersList;
+
+    private AdditionalInfo additionalInfo;
+
+    private FlightItinerary itinerary;
+
+    public TravellerMasterInfo() {
+        this.travellersList = new ArrayList<>();
+    }
+
+    public AdditionalInfo getAdditionalInfo() {
+        return additionalInfo;
+    }
+
+    public void setAdditionalInfo(AdditionalInfo additionalInfo) {
+        this.additionalInfo = additionalInfo;
+    }
+
+    public List<Traveller> getTravellersList() {
+        return travellersList;
+    }
+
+    public void setTravellersList(List<Traveller> travellersList) {
+        this.travellersList = travellersList;
+    }
+
+    public FlightItinerary getItinerary() {
+        return itinerary;
+    }
+
+    public void setItinerary(FlightItinerary itinerary) {
+        this.itinerary = itinerary;
+    }
+}

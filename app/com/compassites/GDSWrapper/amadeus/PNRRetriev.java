@@ -43,7 +43,8 @@ public class PNRRetriev {
         PNRRetrieve rtr=new PNRRetrieve();
         RetrievalFacts rf=new RetrievalFacts();
         Retrieve rv=new Retrieve();
-        rv.setType("7");
+        rv.setType("2");
+        rv.setOption1("A");
         rf.setRetrieve(rv);
         ReservationOrProfileIdentifier rid=new ReservationOrProfileIdentifier();
         Reservation rs=new Reservation();

@@ -80,9 +80,14 @@ public class AmadeusFlightSearch implements FlightSearch {
         }
 
         Logger.info("AmadeusFlightSearch search reponse at : " + new Date());
+        FareMasterPricerTravelBoardSearchReply.ErrorMessage seamenErrorMessage = null;
         FareMasterPricerTravelBoardSearchReply.ErrorMessage errorMessage = fareMasterPricerTravelBoardSearchReply.getErrorMessage();
+        if(seamenReply != null){
+            seamenErrorMessage = seamenReply.getErrorMessage();
+        }
+
         AirSolution airSolution = new AirSolution();
-        if (errorMessage != null) {
+        if (errorMessage != null ) {
             String errorCode = errorMessage.getApplicationError().getApplicationErrorDetail().getError();
             InputStream input = null;
             try {
@@ -102,7 +107,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             }
         } else {
             airSolution = createAirSolutionFromRecommendations(fareMasterPricerTravelBoardSearchReply);
-            if (searchParameters.getBookingType() == BookingType.SEAMEN) {
+            if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage != null) {
                 AirSolution seamenSolution = new AirSolution();
                 seamenSolution = createAirSolutionFromRecommendations(seamenReply);
                 addSeamenFareToSolution(airSolution, seamenSolution);

@@ -1,0 +1,11 @@
+package services;
+
+import com.compassites.model.traveller.TravellerMasterInfo;
+
+/**
+ * Created by user on 07-08-2014.
+ */
+public interface BookingService {
+
+    public String generatePNR(TravellerMasterInfo travellerMasterInfo);
+}

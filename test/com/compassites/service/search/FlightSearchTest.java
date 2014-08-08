@@ -4,6 +4,7 @@ import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
+import com.compassites.model.*;
 import org.junit.Test;
 import services.AmadeusFlightSearch;
 import services.FlightSearch;
@@ -27,6 +28,8 @@ public class FlightSearchTest {
     @Test
     public void AmadeusFlightSearchPassingTest() throws ParseException,Exception {
         SearchParameters searchParameters = new SearchParameters();
+
+        searchParameters.setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
         searchParameters.setDestination("DEL");
         searchParameters.setOrigin("BLR");
@@ -34,6 +37,7 @@ public class FlightSearchTest {
         Date onwardDate = new SimpleDateFormat("dd/MM/yyyy").parse("15/08/2014");
 
         Date returnDate = new SimpleDateFormat("dd/MM/yyyy").parse("14/07/2014");
+        searchParameters.setFromDate(onwardDate);
 
 
         searchParameters.setWithReturnJourney(true);
@@ -44,11 +48,16 @@ public class FlightSearchTest {
         //searchParameters.setRefundableFlights(true);
 
         //searchParameters.setPreferredAirlineCode("SQ");
+        searchParameters.setDateType(DateType.DEPARTURE);
 
         Passenger passenger = new Passenger();
 
         searchParameters.getPassengers().add(passenger);
 
+        searchParameters.setTransit("BOM");
+        searchParameters.setAdultCount(1);
+        searchParameters.setChildCount(0);
+        searchParameters.setInfantCount(0);
         ServiceHandler serviceHandler=new ServiceHandler();
         FlightSearch flightSearch = new AmadeusFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
@@ -61,6 +70,8 @@ public class FlightSearchTest {
     @Test
     public void TravelportFlightSearchPassingTest() throws ParseException,Exception {
         SearchParameters searchParameters = new SearchParameters();
+
+        searchParameters.setCabinClass(CabinClass.ECONOMY);
         searchParameters.setCurrency("INR");
 
         searchParameters.setDestination("BLR");
@@ -73,6 +84,9 @@ public class FlightSearchTest {
         Date onwardDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/04/2014");
         //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
         Date returnDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/14/2014");
+        searchParameters.setFromDate(onwardDate);
+        //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
+        searchParameters.setReturnDate(returnDate);
         //searchParameters.setBookingType("nonseamen");
         //searchParameters.setNoOfStops(new Integer("1"));
         //searchParameters.setDirectFlights(true);
@@ -81,7 +95,11 @@ public class FlightSearchTest {
 
         //searchParameters.setPreferredAirlineCode("9W");
 
+        searchParameters.setDateType(DateType.DEPARTURE);
+
         Passenger passenger = new Passenger();
+        passenger.setPassengerType(PassengerTypeCode.ADT);
+        searchParameters.setTransit("AUH");
         searchParameters.getPassengers().add(passenger);
         FlightSearch flightSearch = new TravelPortFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
