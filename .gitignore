@@ -9,3 +9,7 @@
 /db.h2.db
 /testdb.h2.db
 *.json
+Requestnonseaman.json
+Requestseaman.json
+Responsenonseaman.json
+Responseseaman.json
