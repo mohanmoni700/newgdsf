@@ -5,10 +5,10 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.Logger;
 import play.libs.Json;
-import redis.clients.jedis.Jedis;
 import utils.ErrorMessageHelper;
 
 import java.util.ArrayList;
@@ -26,6 +26,8 @@ public class FlightSearchWrapper {
     @Autowired
     private List<FlightSearch> flightSearchList;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     public List<SearchResponse> search(final SearchParameters searchParameters) {
         final String redisKey = searchParameters.redisKey();
@@ -33,11 +35,9 @@ public class FlightSearchWrapper {
         SearchResponse searchResponseList = new SearchResponse();
         int maxThreads = 5;
         int queueSize = 100;
-        final Jedis j = new Jedis("localhost", 6379);
-        j.connect();
 
-        j.setex(redisKey + ":status", CacheConstants.CACHE_TIMEOUT_IN_SECS, "started");
-
+        redisTemplate.opsForValue().set(redisKey + ":status", "started");
+        redisTemplate.expire(redisKey,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
         ExecutorService newExecutor = new ThreadPoolExecutor(maxThreads, maxThreads, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
         List<Future<SearchResponse>> futureSearchResponseList = new ArrayList<>();
         List<ErrorMessage> errorMessageList = new ArrayList<>();
@@ -49,17 +49,17 @@ public class FlightSearchWrapper {
                 System.out.println("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
                 //Call provider if response is not already present;
 
-                if (!checkOrSetStatus(j, providerStatusCacheKey)) {
+                if (!checkOrSetStatus(providerStatusCacheKey)) {
                     futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                         public SearchResponse call() throws Exception {
                             SearchResponse response = flightSearch.search(searchParameters);
                             Logger.info("[" + redisKey + "]Response from provider:" + flightSearch.provider());
-                            checkResponseAndSetStatus(response, providerStatusCacheKey, j);
+                            checkResponseAndSetStatus(response, providerStatusCacheKey);
                             return response;
                         }
                     }));
                 }else {
-                    String cachedResponse =  j.get(redisKey);
+                    String cachedResponse = (String) redisTemplate.opsForValue().get(redisKey);
                     JsonNode rs = null;
                     if (cachedResponse != null)
                         rs = Json.parse(cachedResponse);
@@ -74,7 +74,7 @@ public class FlightSearchWrapper {
                 }
 
             } catch (Exception e) {
-                checkResponseAndSetStatus(null, providerStatusCacheKey, j);
+                checkResponseAndSetStatus(null, providerStatusCacheKey);
                 Logger.info("["+redisKey+"]Response from provider:" +flightSearch.provider());
                 e.printStackTrace();
             }
@@ -119,7 +119,7 @@ public class FlightSearchWrapper {
                     }
 
                     Logger.info("Redis Key :" + searchParameters.redisKey());
-                    String res = j.set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseList)));
+                    String res = je(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseList)));
 
                     res = j.set(searchParameters.redisKey()+":status","partial");*/
                     listIterator.remove();
@@ -157,9 +157,10 @@ public class FlightSearchWrapper {
 
                         //searchResponseList.add(searchResponseCache);
                         searchResponseCache.setErrorMessageList(errorMessageList);
-                        String res = j.setex(searchParameters.redisKey(), CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.stringify(Json.toJson(searchResponseCache)));
-                        res = j.setex(searchParameters.redisKey()+":status", CacheConstants.CACHE_TIMEOUT_IN_SECS, "partial");
-
+                        redisTemplate.opsForValue().set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseCache)));
+                        redisTemplate.expire(searchParameters.redisKey(),CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
+                        redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "partial");
+                        redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;
                         Logger.info("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
@@ -177,10 +178,11 @@ public class FlightSearchWrapper {
                 if(hashMap.size() == 0 && errorMessageList.size() > 0)  {
                     SearchResponse searchResponse = new SearchResponse();
                     searchResponse.setErrorMessageList(errorMessageList);
-                    String res = j.setex(searchParameters.redisKey(), CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.stringify(Json.toJson(searchResponse)));
+                    redisTemplate.opsForValue().set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponse)));
+                    redisTemplate.expire(searchParameters.redisKey(),CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                 }
-                j.setex(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS, "complete");
-
+                redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "complete");
+                redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                 Logger.info("***********SEARCH END key: ["+ redisKey +"]***********");
             }
         }
@@ -206,25 +208,27 @@ public class FlightSearchWrapper {
         return false;
     }
 
-    private void checkResponseAndSetStatus(SearchResponse response, String providerStatusCacheKey, Jedis j) {
+    private void checkResponseAndSetStatus(SearchResponse response, String providerStatusCacheKey) {
         String status = "invalid";
         if (validResponse(response))
             status = "success";
-        setCacheValue(j, providerStatusCacheKey, status);
+        setCacheValue(providerStatusCacheKey, status);
     }
 
-    private Boolean checkOrSetStatus(Jedis j, String key){
-        String status = j.get(key);
+    private Boolean checkOrSetStatus(String key){
+        String status = (String) redisTemplate.opsForValue().get(key);
         if (status != null){
             return status.equalsIgnoreCase("success");
         }
 
-        setCacheValue(j, key, "in-progress");
+        setCacheValue(key, "in-progress");
         return false;
     }
 
-    private void setCacheValue(Jedis j, String key, String value){
-        j.setex(key, CacheConstants.CACHE_TIMEOUT_IN_SECS, value);
+    private void setCacheValue(String key, String value){
+        redisTemplate.opsForValue().set( key, value );
+        redisTemplate.expire( key,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS );
+
     }
 
 }
