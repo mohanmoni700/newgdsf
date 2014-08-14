@@ -53,6 +53,8 @@ public class AirSegmentInformation implements Serializable{
     private String distanceTravelled;
     private String distanceUnit;
     private String travelTime;
+    private Integer connectionTime;
+    private String connectionTimeStr;
     @Property
     private String flightNumber;
     @Property
@@ -238,5 +240,33 @@ public class AirSegmentInformation implements Serializable{
 
     public void setToAirport(Airport toAirport) {
         this.toAirport = toAirport;
+    }
+
+    public Integer getConnectionTime() {
+        return connectionTime;
+    }
+
+    public void setConnectionTime(Integer connectionTime) {
+        this.connectionTime = connectionTime;
+        this.setConnectionTimeStr();
+    }
+
+    public String getConnectionTimeStr() {
+        return connectionTimeStr;
+    }
+
+    public void setConnectionTimeStr() {
+
+        this.connectionTimeStr = "" ;
+        if (this.connectionTime == null || this.connectionTime == 0){
+            return;
+        }
+        int h = this.connectionTime / 60;
+        int m = this.connectionTime % 60;
+        if (h > 0)
+            this.connectionTimeStr = h +" Hour(s) ";
+        if (m > 0)
+            this.connectionTimeStr = this.connectionTimeStr + m +" Minutes";
+
     }
 }
