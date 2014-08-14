@@ -159,7 +159,7 @@ public class FlightSearchWrapper {
                         searchResponseCache.setErrorMessageList(errorMessageList);
                         redisTemplate.opsForValue().set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseCache)));
                         redisTemplate.expire(searchParameters.redisKey(),CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
-                        redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "partial");
+                        redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "partial" + counter);
                         redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;

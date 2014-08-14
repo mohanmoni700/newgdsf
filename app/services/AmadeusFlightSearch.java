@@ -26,7 +26,10 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -150,11 +153,17 @@ public class AmadeusFlightSearch implements FlightSearch {
                     int journeyStopCounter = -1;
                     BigInteger flightDetailReference = referencingDetailsType.getRefNumber();
                     FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlights = fareMasterPricerTravelBoardSearchReply.getFlightIndex().get(multiStopCounter).getGroupOfFlights().get(flightDetailReference.intValue() - 1);
+                    String prevArrivalTime = "";
                     for (FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlights.getFlightDetails()) {
-                        AirSegmentInformation airSegmentInformation = createSegment(flightDetails.getFlightInformation());
+                        AirSegmentInformation airSegmentInformation = createSegment(flightDetails.getFlightInformation(), prevArrivalTime);
+                        if (journeyStopCounter > -1){
+                            flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().get(journeyStopCounter).setConnectionTime(airSegmentInformation.getConnectionTime());
+                            airSegmentInformation.setConnectionTime(0);
+                        }
                         flightItinerary.AddBlankJourney();
                         flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().add(airSegmentInformation);
-                        flightItinerary.getJourneyList().get(multiStopCounter).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline );
+                        flightItinerary.getJourneyList().get(multiStopCounter).setAirlinesStrForFilter(" " + airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline);
+                        prevArrivalTime = airSegmentInformation.getArrivalTime();
                         journeyStopCounter++;
 
                     }
@@ -195,7 +204,7 @@ public class AmadeusFlightSearch implements FlightSearch {
 
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("ddMMyy-kkmm");
 
-    private AirSegmentInformation createSegment(TravelProductType flightInformation) {
+    private AirSegmentInformation createSegment(TravelProductType flightInformation, String prevArrivalTime) {
 
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
@@ -228,6 +237,18 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setFromAirport(fromAirport);
         airSegmentInformation.setToAirport(toAirport);
         Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
+
+        if (prevArrivalTime.equalsIgnoreCase("")){
+            airSegmentInformation.setConnectionTime(0);
+        }else
+        {
+            String pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+            DateTimeFormatter dtf = DateTimeFormat.forPattern(pattern);
+            DateTime prevArrivalDateTime = dtf.parseDateTime(prevArrivalTime);
+            Minutes diffDeparture = Minutes.minutesBetween(prevArrivalDateTime, departureDate);
+            airSegmentInformation.setConnectionTime(diffDeparture.getMinutes());
+
+        }
 
         airSegmentInformation.setTravelTime(""+diff.getMinutes());
         if(flightInformation.getCompanyId()!=null&&flightInformation.getCompanyId().getMarketingCarrier()!=null&&flightInformation.getCompanyId().getMarketingCarrier().length()>=2) {
