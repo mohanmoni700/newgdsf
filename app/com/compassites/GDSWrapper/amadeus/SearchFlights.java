@@ -87,7 +87,8 @@ public class SearchFlights {
     private void setPreferredAirlines(TravelFlightInformationType148734S travelFlightInfo,String carrier){
         CompanyIdentificationType214105C cid = new CompanyIdentificationType214105C();
         cid.getCarrierId().add(carrier);
-        cid.setCarrierQualifier("X");
+        cid.getCarrierId().add("YY");
+        cid.setCarrierQualifier("M");
         travelFlightInfo.getCompanyIdentity().add(cid);
     }
 
