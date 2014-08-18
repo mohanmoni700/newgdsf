@@ -243,7 +243,8 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airSegmentInformation.setToLocation(d);
                     airSegmentInformation.setFromAirport(Airport.getAiport(o));
                     airSegmentInformation.setToAirport(Airport.getAiport(d));
-                    airSegmentInformation.setConnectionTime(airSegment.getConnection().getDuration());
+                    if (airSegment.getConnection() != null)
+                        airSegmentInformation.setConnectionTime(airSegment.getConnection().getDuration());
 
                     String dtime = "??:??";
                     String atime = "??:??";
