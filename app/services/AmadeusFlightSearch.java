@@ -174,14 +174,18 @@ public class AmadeusFlightSearch implements FlightSearch {
                         if ("EFT".equals(proposedSegmentDetailsTypes.getUnitQualifier())) {
                             Journey journey = flightItinerary.getJourneyList().get(0);
                             String elapsedTime = proposedSegmentDetailsTypes.getRef();
-                            String hours = elapsedTime.substring(0, 2);
-                            String minutes = elapsedTime.substring(2);
+                            String strHours = elapsedTime.substring(0, 2);
+                            String strMinutes = elapsedTime.substring(2);
                             Duration duration = null;
+                            Integer hours = new Integer(strHours);
+                            int days = hours / 24;
+                            int dayHours = hours -(days * 24);
                             try {
-                                duration = DatatypeFactory.newInstance().newDuration(true, 0, 0, 0, new Integer(hours), new Integer(minutes), 0);
+                                duration = DatatypeFactory.newInstance().newDuration(true, 0, 0,days, dayHours,new Integer(strMinutes), 0);
                             } catch (DatatypeConfigurationException e) {
                                 e.printStackTrace();
                             }
+                            ;
                             journey.setTravelTime(duration);
                             break;
                         }
