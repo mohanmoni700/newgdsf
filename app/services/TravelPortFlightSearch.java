@@ -170,7 +170,10 @@ public class TravelPortFlightSearch implements FlightSearch {
         Helper.FlightDetailsMap allDetails = Helper.createFlightDetailsMap(
                 travelportResponse.getFlightDetailsList().getFlightDetails());
         List<AirPricingSolution> airPricingSolutions =  travelportResponse.getAirPricingSolution();
-        for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
+
+        flightIteratorLoop: for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
+
+
             AirPricingSolution airPricingSolution = (AirPricingSolution)airPricingSolutionIterator.next();
             FlightItinerary flightItinerary=new FlightItinerary();
             flightItinerary.setProvider("Travelport");
@@ -250,10 +253,14 @@ public class TravelPortFlightSearch implements FlightSearch {
                     String atime = "??:??";
                     FlightDetails flightDetails = allDetails.getByRef(airSegment.getFlightDetailsRef().get(0));
                     if (flightDetails != null) {
-                        if (flightDetails.getDepartureTime() != null) {
+                        if (flightDetails.getDepartureTime() == null) {
+                            continue  flightIteratorLoop;
+                        }else{
                             dtime = flightDetails.getDepartureTime();
                         }
-                        if (flightDetails.getArrivalTime() != null) {
+                        if (flightDetails.getArrivalTime() == null) {
+                            continue flightIteratorLoop;
+                        }else {
                             atime = flightDetails.getArrivalTime();
                         }
                     }
