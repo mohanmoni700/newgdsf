@@ -16,6 +16,7 @@ import models.Airport;
 import org.springframework.stereotype.Service;
 import play.Logger;
 import utils.ErrorMessageHelper;
+import utils.StringUtility;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -196,9 +197,9 @@ public class TravelPortFlightSearch implements FlightSearch {
                 }
             }
             */
-            flightItinerary.getPricingInformation().setBasePrice(airPricingSolution.getBasePrice());
-            flightItinerary.getPricingInformation().setTax(airPricingSolution.getTaxes());
-            flightItinerary.getPricingInformation().setTotalPrice(airPricingSolution.getTotalPrice());
+            flightItinerary.getPricingInformation().setBasePrice(StringUtility.getPriceFromString(airPricingSolution.getBasePrice()));
+            flightItinerary.getPricingInformation().setTax(StringUtility.getPriceFromString(airPricingSolution.getTaxes()));
+            flightItinerary.getPricingInformation().setTotalPrice(StringUtility.getPriceFromString(airPricingSolution.getTotalPrice()));
             flightItinerary.getPricingInformation().setTotalPriceValue(Long.parseLong(airPricingSolution.getTotalPrice().substring(3)));
 
             //System.out.print("Price:"+ airPricingSolution.getTotalPrice());

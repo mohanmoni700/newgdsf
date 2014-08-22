@@ -193,9 +193,9 @@ public class AmadeusFlightSearch implements FlightSearch {
                     multiStopCounter++;
 
                 }
-                flightItinerary.getPricingInformation().setBasePrice(currency + baseAmount.toString());
-                flightItinerary.getPricingInformation().setTax(currency + taxAmount.toString());
-                flightItinerary.getPricingInformation().setTotalPrice(currency + totalAmount.toString());
+                flightItinerary.getPricingInformation().setBasePrice( baseAmount.toString());
+                flightItinerary.getPricingInformation().setTax( taxAmount.toString());
+                flightItinerary.getPricingInformation().setTotalPrice(totalAmount.toString());
                 flightItinerary.getPricingInformation().setTotalPriceValue(totalAmount.longValue());
                 flightItinerary.getPricingInformation().setCurrency(currency);
                 flightItineraries.add(flightItinerary);
