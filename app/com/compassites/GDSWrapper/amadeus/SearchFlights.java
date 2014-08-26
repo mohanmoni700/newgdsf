@@ -8,7 +8,12 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.*;
+import play.libs.Json;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -81,6 +86,15 @@ public class SearchFlights {
 //        tfi.getCompanyIdentity().add(cid);
 //        se.setTravelFlightInfo(tfi);
         //System.out.println("Amadeus Request : "+ Json.toJson(se));
+        File file=new File("seamenRequestPA");
+        FileOutputStream os= null;
+        try {
+            os = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        PrintStream out = new PrintStream(os);
+        out.print(Json.toJson(se));
         return se;
     }
 

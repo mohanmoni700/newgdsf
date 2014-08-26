@@ -17,12 +17,16 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 import play.Logger;
+import play.libs.Json;
 import utils.ErrorMessageHelper;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -59,6 +63,11 @@ public class AmadeusFlightSearch implements FlightSearch {
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
                 searchParameters.setBookingType(BookingType.SEAMEN);
+                File file=new File("seamenAmadeusResponseCF.json");
+                FileOutputStream os=new FileOutputStream(file);
+                PrintStream out = new PrintStream(os);
+                out.print(Json.toJson(fareMasterPricerTravelBoardSearchReply));
+
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
             }
