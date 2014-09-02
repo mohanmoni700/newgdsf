@@ -1,11 +1,15 @@
 package com.compassites.service.login;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+
 /**
  * Created by user on 25-06-2014.
  */
 public class TestEquals {
-
     @Test
     public void testFlightItinaryEquals(){
 

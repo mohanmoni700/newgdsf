@@ -1,21 +1,28 @@
 package com.compassites.service.search;
 
+import com.avaje.ebean.Ebean;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.Passenger;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
 import com.compassites.model.*;
+import models.AirlineCode;
+import models.Airport;
+import org.junit.Before;
 import org.junit.Test;
+import play.libs.Yaml;
+import play.test.Helpers;
+import play.test.WithApplication;
 import services.AmadeusFlightSearch;
 import services.FlightSearch;
 import services.TravelPortFlightSearch;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 import static junit.framework.TestCase.assertNotNull;
+import static play.test.Helpers.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,19 +31,34 @@ import static junit.framework.TestCase.assertNotNull;
  * Time: 4:03 PM
  * To change this template use File | Settings | File Templates.
  */
-public class FlightSearchTest {
+public class FlightSearchTest extends WithApplication {
+    @Before
+    public void setUp() {
+        final HashMap<String,String> postgres = new HashMap<String, String>();
+        postgres.put("db.default.driver","com.mysql.jdbc.Driver");
+        postgres.put("db.default.url","jdbc:mysql://localhost/jocdb_development");
+        postgres.put("db.default.user", "jocdbuser");
+        postgres.put("db.default.password", "jocdbpassword");
+
+        start(fakeApplication(postgres));
+    }
+
+
     @Test
     public void AmadeusFlightSearchPassingTest() throws ParseException,Exception {
         SearchParameters searchParameters = new SearchParameters();
 
+        Properties properties=new Properties();
+        properties.load(getClass().getClassLoader().getResourceAsStream("amadeusFlightDetails.properties"));
+        String dateFormat=properties.getProperty("dateFormat");
         searchParameters.setCabinClass(CabinClass.ECONOMY);
-        searchParameters.setCurrency("INR");
-        searchParameters.setDestination("DEL");
-        searchParameters.setOrigin("BLR");
+        searchParameters.setCurrency(properties.getProperty("currency"));
+        searchParameters.setDestination(properties.getProperty("destination"));
+        searchParameters.setOrigin(properties.getProperty("origin"));
 
-        Date onwardDate = new SimpleDateFormat("dd/MM/yyyy").parse("15/08/2014");
+        Date onwardDate = new SimpleDateFormat(dateFormat).parse(properties.getProperty("onwardDate"));
 
-        Date returnDate = new SimpleDateFormat("dd/MM/yyyy").parse("14/07/2014");
+        Date returnDate = new SimpleDateFormat(dateFormat).parse(properties.getProperty("returnDate"));
         searchParameters.setFromDate(onwardDate);
 
 
@@ -54,10 +76,10 @@ public class FlightSearchTest {
 
         searchParameters.getPassengers().add(passenger);
 
-        searchParameters.setTransit("BOM");
-        searchParameters.setAdultCount(1);
-        searchParameters.setChildCount(0);
-        searchParameters.setInfantCount(0);
+        searchParameters.setTransit(properties.getProperty("transit"));
+        searchParameters.setAdultCount(Integer.parseInt(properties.getProperty("adultCount")));
+        searchParameters.setChildCount(Integer.parseInt(properties.getProperty("childCount")));
+        searchParameters.setInfantCount(Integer.parseInt(properties.getProperty("infantCount")));
         ServiceHandler serviceHandler=new ServiceHandler();
         FlightSearch flightSearch = new AmadeusFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
@@ -71,22 +93,26 @@ public class FlightSearchTest {
     public void TravelportFlightSearchPassingTest() throws ParseException,Exception {
         SearchParameters searchParameters = new SearchParameters();
 
-        searchParameters.setCabinClass(CabinClass.ECONOMY);
-        searchParameters.setCurrency("INR");
+        Properties properties=new Properties();
+        properties.load(getClass().getClassLoader().getResourceAsStream("travelportFlightDetails.properties"));
+        String dateFormat=properties.getProperty("dateFormat");
 
-        searchParameters.setDestination("BLR");
-        searchParameters.setOrigin("LAX");
+        searchParameters.setCabinClass(CabinClass.ECONOMY);
+        searchParameters.setCurrency(properties.getProperty("currency"));
+
+        searchParameters.setDestination(properties.getProperty("destination"));
+        searchParameters.setOrigin(properties.getProperty("origin"));
 
         searchParameters.setWithReturnJourney(false);
 
         Calendar cal = Calendar.getInstance();
         cal.set(2014, 8, 24 );
-        Date onwardDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/04/2014");
+        Date onwardDate = new SimpleDateFormat(dateFormat).parse(properties.getProperty("onwardDate"));
         //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
-        Date returnDate = new SimpleDateFormat("MM/dd/yyyy").parse("09/14/2014");
+        Date returnDate = new SimpleDateFormat(dateFormat).parse(properties.getProperty("returnDate"));
         searchParameters.setFromDate(onwardDate);
         //searchParameters.setOnwardDate(Date.valueOf("24/06/2014"));
-        searchParameters.setReturnDate(returnDate);
+        //searchParameters.setReturnDate(returnDate);
         //searchParameters.setBookingType("nonseamen");
         //searchParameters.setNoOfStops(new Integer("1"));
         //searchParameters.setDirectFlights(true);
@@ -97,9 +123,14 @@ public class FlightSearchTest {
 
         searchParameters.setDateType(DateType.DEPARTURE);
 
+        searchParameters.setAdultCount(Integer.parseInt(properties.getProperty("adultCount")));
+        searchParameters.setChildCount(Integer.parseInt(properties.getProperty("childCount")));
+        searchParameters.setInfantCount(Integer.parseInt(properties.getProperty("infantCount")));
+
+
         Passenger passenger = new Passenger();
         passenger.setPassengerType(PassengerTypeCode.ADT);
-        searchParameters.setTransit("AUH");
+        //searchParameters.setTransit(properties.getProperty("transit"));
         searchParameters.getPassengers().add(passenger);
         TravelPortFlightSearch flightSearch = new TravelPortFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
@@ -110,4 +141,6 @@ public class FlightSearchTest {
         assertNotNull(response.getAirSolution());
         assertNotNull(response.getAirSolution().getFlightItineraryList());
     }
+
+
 }

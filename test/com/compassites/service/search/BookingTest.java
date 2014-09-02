@@ -12,6 +12,7 @@ import services.BookingServiceWrapper;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 /**
  * Created by user on 23-07-2014.
@@ -19,14 +20,19 @@ import java.util.Date;
 public class BookingTest {
     @Test
     public void sellFormRecommendation()throws Exception{
+        Properties properties=new Properties();
+        properties.load(getClass().getClassLoader().getResourceAsStream("bookingDetails.properties"));
+
+
         FlightItinerary fi1 = new FlightItinerary();
-        fi1.setProvider("Amadeus");
-        fi1.getPricingInformation().setBasePrice("INR8850");
-        fi1.getPricingInformation().setTax("INR8850");
-        fi1.getPricingInformation().setTotalPrice("INR8850");
+        fi1.setProvider(properties.getProperty("provider"));
+        fi1.getPricingInformation().setBasePrice(properties.getProperty("price"));
+        fi1.getPricingInformation().setTax(properties.getProperty("price"));
+        fi1.getPricingInformation().setTotalPrice(properties.getProperty("price"));
         fi1.AddBlankJourney();
         Journey journey = fi1.getJourneyList().get(0);
         AirSegmentInformation segmentInformation = new AirSegmentInformation();
+<<<<<<< HEAD
         segmentInformation.setFromLocation("BLR");
         segmentInformation.setToLocation("MAA");
         segmentInformation.setArrivalTime("2014-09-03T23:30:00.000+05:30");
@@ -38,6 +44,13 @@ public class BookingTest {
         segmentInformation.setDepartureDate(dateFormat.parse("2014-09-03"));
         segmentInformation.setToTerminal("D");
         segmentInformation.setBookingClass("V");
+=======
+        segmentInformation.setFromLocation(properties.getProperty("fromLocation"));
+        segmentInformation.setToLocation(properties.getProperty("toLocation"));
+        segmentInformation.setDepartureTime(properties.getProperty("departureTime"));
+        segmentInformation.setFlightNumber(properties.getProperty("flightNumber"));
+        segmentInformation.setCarrierCode(properties.getProperty("carrierCode"));
+>>>>>>> Test case input from properties files
         journey.getAirSegmentList().add(segmentInformation);
 
         /*AirSegmentInformation segmentInformation1 = new AirSegmentInformation();
@@ -52,10 +65,10 @@ public class BookingTest {
         TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
         Traveller traveller = new Traveller();
         PersonalDetails personalDetails = new PersonalDetails();
-        Date dob = new Date("Sat, 12 Aug 1995 13:30:00 GMT+0430");
+        Date dob = new Date(properties.getProperty("dateOfBirth"));
         personalDetails.setDateOfBirth(dob);
-        personalDetails.setLastName("DUPONT");
-        personalDetails.setFirstName("MATHIEU");
+        personalDetails.setLastName(properties.getProperty("lastName"));
+        personalDetails.setFirstName(properties.getProperty("firstName"));
         traveller.setPersonalDetails(personalDetails);
         travellerMasterInfo.getTravellersList().add(traveller);
         travellerMasterInfo.setItinerary(fi1);
