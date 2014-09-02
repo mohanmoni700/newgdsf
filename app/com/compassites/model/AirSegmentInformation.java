@@ -66,6 +66,7 @@ public class AirSegmentInformation implements Serializable{
 
     private Date departureDate;
 
+    private String bookingClass;
 
     public String getFromLocation() {
         return fromLocation;
@@ -268,5 +269,13 @@ public class AirSegmentInformation implements Serializable{
         if (m > 0)
             this.connectionTimeStr = this.connectionTimeStr + m +" Minutes";
 
+    }
+
+    public String getBookingClass() {
+        return bookingClass;
+    }
+
+    public void setBookingClass(String bookingClass) {
+        this.bookingClass = bookingClass;
     }
 }

@@ -45,7 +45,7 @@ public class AirReservationClient  extends TravelPortClient {
         if (airService == null){
             try {
                 String path = new File(".").getCanonicalPath();
-                airService = new AirService(new java.net.URL("file:"+path+"/wsdl/galileo/universal_v26_0/UniversalRecord.wsdl"));
+                airService = new AirService(new java.net.URL("http://localhost:9000/wsdl/galileo/universal_v26_0/UniversalRecord.wsdl"));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {

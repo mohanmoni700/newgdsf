@@ -32,8 +32,9 @@ import java.util.List;
  * Time: 3:43 PM
  * To change this template use File | Settings | File Templates.
  */
+//TODO-implement flightsearch interface
 @Service
-public class TravelPortFlightSearch implements FlightSearch {
+public class TravelPortFlightSearch  {
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException {
@@ -62,7 +63,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
     }
 
-    @Override
+    //@Override
     public String provider() {
         return "Travelport";
     }

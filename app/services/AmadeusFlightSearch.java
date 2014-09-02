@@ -152,6 +152,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                 totalAmount = totalAmount.add(taxAmount).add(baseAmount);
             }
 
+            //String cabinClass = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getMajCabin().get(0).getBookingClassDetails().get(0).getDesignator();
 
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                 int returnCounter = 0;
@@ -161,10 +162,15 @@ public class AmadeusFlightSearch implements FlightSearch {
                     int multiStopCounter=0;
                     int journeyStopCounter = -1;
                     BigInteger flightDetailReference = referencingDetailsType.getRefNumber();
+
+                    List<FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares> groupOfFaresList = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getGroupOfFares();
                     FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlights = fareMasterPricerTravelBoardSearchReply.getFlightIndex().get(multiStopCounter).getGroupOfFlights().get(flightDetailReference.intValue() - 1);
                     String prevArrivalTime = "";
+                    int segmentIndex = 0;
                     for (FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlights.getFlightDetails()) {
+                        String rbd = groupOfFaresList.get(segmentIndex).getProductInformation().getCabinProduct().getRbd();
                         AirSegmentInformation airSegmentInformation = createSegment(flightDetails.getFlightInformation(), prevArrivalTime);
+                        airSegmentInformation.setBookingClass(rbd);
                         if (journeyStopCounter > -1){
                             flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().get(journeyStopCounter).setConnectionTime(airSegmentInformation.getConnectionTime());
                             airSegmentInformation.setConnectionTime(0);
@@ -209,6 +215,8 @@ public class AmadeusFlightSearch implements FlightSearch {
                 flightItinerary.getPricingInformation().setCurrency(currency);
                 flightItineraries.add(flightItinerary);
             }
+
+
         }
 
         airSolution.setFlightItineraryList(flightItineraries);

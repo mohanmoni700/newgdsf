@@ -1,6 +1,5 @@
 package com.compassites.service.search;
 
-import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
@@ -8,9 +7,10 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.junit.Test;
-import services.BookingService;
-import services.BookingServiceImpl;
+import services.AmadeusBookinServiceImpl;
+import services.BookingServiceWrapper;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -27,11 +27,17 @@ public class BookingTest {
         fi1.AddBlankJourney();
         Journey journey = fi1.getJourneyList().get(0);
         AirSegmentInformation segmentInformation = new AirSegmentInformation();
-        segmentInformation.setFromLocation("SIN");
-        segmentInformation.setToLocation("MNL");
-        segmentInformation.setDepartureTime("2014-06-30T009:50:00.000+05:30");
-        segmentInformation.setFlightNumber("910");
+        segmentInformation.setFromLocation("BLR");
+        segmentInformation.setToLocation("MAA");
+        segmentInformation.setArrivalTime("2014-09-03T23:30:00.000+05:30");
+        segmentInformation.setDepartureTime("2014-09-03T22:20:00.000+05:30");
+        segmentInformation.setFlightNumber("2736");
         segmentInformation.setCarrierCode("9W");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        segmentInformation.setDepartureDate(dateFormat.parse("2014-09-03"));
+        segmentInformation.setToTerminal("D");
+        segmentInformation.setBookingClass("V");
         journey.getAirSegmentList().add(segmentInformation);
 
         /*AirSegmentInformation segmentInformation1 = new AirSegmentInformation();
@@ -54,9 +60,11 @@ public class BookingTest {
         travellerMasterInfo.getTravellersList().add(traveller);
         travellerMasterInfo.setItinerary(fi1);
         try {
-            ServiceHandler serviceHandler = new ServiceHandler();
-            serviceHandler.logIn();
-            BookingService bookingService = new BookingServiceImpl();
+           /* ServiceHandler serviceHandler = new ServiceHandler();
+            serviceHandler.logIn();*/
+            AmadeusBookinServiceImpl amadeusBookinService = new AmadeusBookinServiceImpl();
+            BookingServiceWrapper bookingService = new BookingServiceWrapper();
+            bookingService.setAmadeusBookinService(amadeusBookinService);
             bookingService.generatePNR(travellerMasterInfo);
            /* AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.sellFromRecommendation(fi1);
             PNRReply pnrReply = serviceHandler.addMultiElementsToPNR1(travellerMasterInfo);

@@ -93,6 +93,7 @@ public class PNRAddMultiElementsh {
         return travellerInfoList;
     }
 
+    //TODO-- Add Seaman type to the adult passenger
     private String getPassengerType(Date passengerDOB){
         LocalDate birthdate = new LocalDate (passengerDOB);          //Birth date
         LocalDate now = new LocalDate();                    //Today's date

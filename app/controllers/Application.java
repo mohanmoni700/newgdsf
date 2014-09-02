@@ -1,16 +1,16 @@
 package controllers;
 
 
+import com.compassites.model.PNRResponse;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import play.libs.Json;
-import play.mvc.Result;
 import play.mvc.Controller;
-import services.BookingService;
-import services.BookingServiceImpl;
+import play.mvc.Result;
+import services.BookingServiceWrapper;
 import services.FlightSearchWrapper;
 
 import java.util.List;
@@ -23,6 +23,8 @@ public class Application {
     @Autowired
     private FlightSearchWrapper flightSearchWrapper;
 
+    @Autowired
+    private BookingServiceWrapper bookingService;
 
     public Result flightSearch(){
         //SearchParameters searchParameters = new Gson().fromJson(request().body().asText(), SearchParameters.class);
@@ -43,10 +45,9 @@ public class Application {
         JsonNode json = request().body().asJson();
 
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
-        BookingService bookingService = new BookingServiceImpl();
-        bookingService.generatePNR(travellerMasterInfo);
+        PNRResponse pnrResponse = bookingService.generatePNR(travellerMasterInfo);
         System.out.println("Traveller info received: " + json.toString());
-        return Controller.ok();
+        return Controller.ok(Json.toJson(pnrResponse));
     }
 
 }

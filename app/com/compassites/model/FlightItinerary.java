@@ -96,7 +96,9 @@ public class FlightItinerary implements Serializable{
         this.id = id;
     }
 
-/* @Override
+
+
+    /* @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof FlightItinerary)){
              return  false;

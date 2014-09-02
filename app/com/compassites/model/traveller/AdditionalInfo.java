@@ -5,6 +5,8 @@ package com.compassites.model.traveller;
  */
 public class AdditionalInfo {
 
+    private Integer Id;
+
     private String phoneNumber;
 
     private String email;
@@ -13,11 +15,19 @@ public class AdditionalInfo {
 
     private String vesselName;
 
-    private String vesselRegistrationCountry;
+    private String vesselRegistration;
 
     private String purposeOfTravel;
 
+    private String emergencyContactNumber;
 
+    public Integer getId() {
+        return Id;
+    }
+
+    public void setId(Integer id) {
+        Id = id;
+    }
 
     public String getPhoneNumber() {
         return phoneNumber;
@@ -51,12 +61,12 @@ public class AdditionalInfo {
         this.vesselName = vesselName;
     }
 
-    public String getVesselRegistrationCountry() {
-        return vesselRegistrationCountry;
+    public String getVesselRegistration() {
+        return vesselRegistration;
     }
 
-    public void setVesselRegistrationCountry(String vesselRegistrationCountry) {
-        this.vesselRegistrationCountry = vesselRegistrationCountry;
+    public void setVesselRegistration(String vesselRegistration) {
+        this.vesselRegistration = vesselRegistration;
     }
 
     public String getPurposeOfTravel() {
@@ -65,5 +75,13 @@ public class AdditionalInfo {
 
     public void setPurposeOfTravel(String purposeOfTravel) {
         this.purposeOfTravel = purposeOfTravel;
+    }
+
+    public String getEmergencyContactNumber() {
+        return emergencyContactNumber;
+    }
+
+    public void setEmergencyContactNumber(String emergencyContactNumber) {
+        this.emergencyContactNumber = emergencyContactNumber;
     }
 }

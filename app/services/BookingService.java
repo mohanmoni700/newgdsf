@@ -1,5 +1,6 @@
 package services;
 
+import com.compassites.model.PNRResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 
 /**
@@ -7,5 +8,5 @@ import com.compassites.model.traveller.TravellerMasterInfo;
  */
 public interface BookingService {
 
-    public String generatePNR(TravellerMasterInfo travellerMasterInfo);
+    public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo);
 }

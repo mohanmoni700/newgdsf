@@ -100,7 +100,8 @@ public class BookFlights {
 
         FlightIdentification flightIdentification=new FlightIdentification();
         flightIdentification.setFlightNumber(airSegmentInformation.getFlightNumber());
-        flightIdentification.setBookingClass("Y");
+        //flightIdentification.setBookingClass("Y");
+        flightIdentification.setBookingClass(airSegmentInformation.getBookingClass());
 
         RelatedproductInformation relatedproductInformation=new RelatedproductInformation();
         relatedproductInformation.getStatusCode().add("NN");

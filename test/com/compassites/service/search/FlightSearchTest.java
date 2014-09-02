@@ -101,7 +101,7 @@ public class FlightSearchTest {
         passenger.setPassengerType(PassengerTypeCode.ADT);
         searchParameters.setTransit("AUH");
         searchParameters.getPassengers().add(passenger);
-        FlightSearch flightSearch = new TravelPortFlightSearch();
+        TravelPortFlightSearch flightSearch = new TravelPortFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
 
         //passenger.setPassengerType("ADT");

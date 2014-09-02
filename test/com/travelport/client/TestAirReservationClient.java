@@ -33,6 +33,7 @@ public class TestAirReservationClient {
                 AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, "SEA", "INR", TypeCabinClass.ECONOMY, null);
                 AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
                 AirCreateReservationRsp response = AirReservationClient.reserve(airPriceSolution);
+                System.out.println("Results");
             } catch (DatatypeConfigurationException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
