@@ -66,7 +66,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                 File file=new File("seamenAmadeusResponseCF.json");
                 FileOutputStream os=new FileOutputStream(file);
                 PrintStream out = new PrintStream(os);
-                out.print(Json.toJson(fareMasterPricerTravelBoardSearchReply));
+                out.print(Json.toJson(seamenReply));
 
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
@@ -119,7 +119,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             }
         } else {
             airSolution = createAirSolutionFromRecommendations(fareMasterPricerTravelBoardSearchReply);
-            if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage != null) {
+            if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 AirSolution seamenSolution = new AirSolution();
                 seamenSolution = createAirSolutionFromRecommendations(seamenReply);
                 addSeamenFareToSolution(airSolution, seamenSolution);

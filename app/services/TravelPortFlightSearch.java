@@ -34,7 +34,7 @@ import java.util.List;
  */
 //TODO-implement flightsearch interface
 @Service
-public class TravelPortFlightSearch  {
+public class TravelPortFlightSearch  implements FlightSearch{
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException {
