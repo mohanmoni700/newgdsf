@@ -32,7 +32,6 @@ import java.util.List;
  * Time: 3:43 PM
  * To change this template use File | Settings | File Templates.
  */
-//TODO-implement flightsearch interface
 @Service
 public class TravelPortFlightSearch  implements FlightSearch{
 
@@ -285,6 +284,9 @@ public class TravelPortFlightSearch  implements FlightSearch{
                     } else {
                         //System.out.println();
                     }
+                    airSegmentInformation.setFlightDetailsKey(flightDetails.getKey());
+                    airSegmentInformation.setAirSegmentKey(airSegment.getKey());
+
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList().add(airSegmentInformation);
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline );
 

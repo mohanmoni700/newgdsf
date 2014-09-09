@@ -1,5 +1,9 @@
 package com.compassites.GDSWrapper.travelport;
 
+import com.compassites.model.traveller.Traveller;
+import com.compassites.model.traveller.TravellerMasterInfo;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.travelport.schema.air_v26_0.AirPricingSolution;
 import com.travelport.schema.air_v26_0.TypeAvailabilitySource;
 import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
@@ -18,12 +22,11 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.BindingProvider;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.net.MalformedURLException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -61,7 +64,7 @@ public class AirReservationClient  extends TravelPortClient {
 
     }
 
-    public static AirCreateReservationRsp reserve(AirPricingSolution airPricingSolution) throws DatatypeConfigurationException {
+    public static AirCreateReservationRsp reserve(AirPricingSolution airPricingSolution,TravellerMasterInfo travellerMasterInfo) throws DatatypeConfigurationException {
         AirCreateReservationReq request = new AirCreateReservationReq();
         AirCreateReservationRsp response = new AirCreateReservationRsp();
         request.setAuthorizedBy("TEST");
@@ -74,34 +77,10 @@ public class AirReservationClient  extends TravelPortClient {
         request.setProviderCode(GDS);
         request.setTargetBranch(BRANCH);
 
-        //make the traveller info
-        BookingTraveler traveller = new BookingTraveler();
-        //traveller.setGender("Male");
 
-        //home email
-        Email email = new Email();
-        email.setEmailID("hughc@example.com");
-        email.setType("Home");
-        traveller.getEmail().add(email);
-
-        PhoneNumber phone = new PhoneNumber();
-        phone.setCountryCode("33");
-        phone.setAreaCode("6");
-        phone.setNumber("42000000");
-        phone.setType("Mobile");
-        traveller.getPhoneNumber().add(phone);
-        //name
-        BookingTravelerName name = new BookingTravelerName();
-        name.setPrefix("Mr");
-        name.setFirst("Hugh");
-        name.setLast("Capet");
-        traveller.setBookingTravelerName(name);
-
-        //adult
-        traveller.setTravelerType("SEA");
 
         //put traveller in request
-        request.getBookingTraveler().add(traveller);
+        request.getBookingTraveler().addAll(createBookingTravellers(travellerMasterInfo));
 
         //point of sale, YYY
         //PointOfSale pos=new PointOfSale();
@@ -194,6 +173,15 @@ public class AirReservationClient  extends TravelPortClient {
 		 * need to be a bit careful as the server is quite particular about
 		 * the values passed here...null seems to me "I accept the defauls"
 		 */
+        Writer writer = null;
+        try {
+            writer = new FileWriter("AirReserveRequest.json");
+            Gson gson = new GsonBuilder().create();
+            gson.toJson(request, writer);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             init();
             response = airCreateReservationPortType.service(request, null);
@@ -203,13 +191,21 @@ public class AirReservationClient  extends TravelPortClient {
             availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
+        try {
+            writer = new FileWriter("AirReserveResponse.json");
+            Gson gson = new GsonBuilder().create();
+            gson.toJson(response, writer);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return response;
 
     }
 
     public static AirPricingSolution stripNonXmitSections(AirPricingSolution airPricingSolution) {
 	    /*
-        <air:AirSegment Key="0T" Group="0" Carrier="AA" FlightNumber="789" ProviderCode="1G"
+        <air:AirSegment Key="0T" Group="0" Carrier="AA" FlightNumber="789" ProviderCode="1G"                                                       8
                 Origin="ORD" Destination="DEN" DepartureTime="2012-04-01T13:05:00.000-06:00"
                 ArrivalTime="2012-04-02T14:35:00.000-07:00" Distance="903" ClassOfService="Y"
                 ETicketability="Yes" Equipment="738" ChangeOfPlane="false"
@@ -245,5 +241,41 @@ public class AirReservationClient  extends TravelPortClient {
         airPricingSolution.getFareNote().clear();
         airPricingSolution.setOptionalServices(null);
         return airPricingSolution;
+    }
+
+    static public List<BookingTraveler> createBookingTravellers(TravellerMasterInfo travellerMasterInfo){
+        List<BookingTraveler> bookingTravelerList =  new ArrayList<>();
+        //make the traveller info
+        for(Traveller traveller : travellerMasterInfo.getTravellersList()){
+            BookingTraveler bookingTraveler = new BookingTraveler();
+            //traveller.setGender("Male");
+
+            //home email
+            Email email = new Email();
+            email.setEmailID(travellerMasterInfo.getAdditionalInfo().getEmail());
+            email.setType("Home");
+            bookingTraveler.getEmail().add(email);
+
+            PhoneNumber phone = new PhoneNumber();
+            phone.setCountryCode("33");
+            //phone.setAreaCode("6");
+            phone.setNumber(travellerMasterInfo.getAdditionalInfo().getPhoneNumber());
+            phone.setType("Mobile");
+            bookingTraveler.getPhoneNumber().add(phone);
+            //name
+            BookingTravelerName name = new BookingTravelerName();
+
+            name.setPrefix(traveller.getPersonalDetails().getGender());
+            name.setFirst(traveller.getPersonalDetails().getFirstName());
+            name.setMiddle(traveller.getPersonalDetails().getMiddleName());
+            name.setLast(traveller.getPersonalDetails().getLastName());
+            bookingTraveler.setBookingTravelerName(name);
+
+            //adult
+            bookingTraveler.setTravelerType("SEA");
+
+            bookingTravelerList.add(bookingTraveler);
+        }
+        return bookingTravelerList;
     }
 }

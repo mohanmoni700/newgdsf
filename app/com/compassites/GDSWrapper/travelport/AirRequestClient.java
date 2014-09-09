@@ -1,6 +1,13 @@
 package com.compassites.GDSWrapper.travelport;
 
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.Passenger;
+import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.traveller.Traveller;
+import com.compassites.model.traveller.TravellerMasterInfo;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.service.air_v26_0.AirAvailabilitySearchPortType;
@@ -8,12 +15,19 @@ import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirPricePortType;
 import com.travelport.service.air_v26_0.AirService;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
+import org.joda.time.Years;
 
 import javax.xml.ws.BindingProvider;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -211,8 +225,7 @@ public class AirRequestClient extends TravelPortClient {
     }
 
     public static AirItinerary getItinerary(LowFareSearchRsp response, AirPricingSolution airPricingSolution){
-        Helper.AirSegmentMap allSegments =
-                Helper.createAirSegmentMap(response.getAirSegmentList().getAirSegment());
+        Helper.AirSegmentMap allSegments = Helper.createAirSegmentMap(response.getAirSegmentList().getAirSegment());
         Helper.FlightDetailsMap allDetails = Helper.createFlightDetailsMap(
                 response.getFlightDetailsList().getFlightDetails());
         /*
@@ -481,12 +494,13 @@ public class AirRequestClient extends TravelPortClient {
                 searchPassenger.setCode(passengerType);
             }
             searchPassenger.setKey("COMPASS");
+            searchPassenger.setPricePTCOnly(true);
             if (passenger.getAge() != null)
                 searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
             request.getSearchPassenger().add(searchPassenger);
         }
     }
-    public static AirPriceRsp priceItinerary(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass, List<Passenger> passengers ) throws AirFaultMessage {
+    public static AirPriceRsp priceItinerary(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass, List<Passenger> passengers ) throws AirFaultMessage{
         //now lets try to price it
         AirPriceReq priceRequest = new AirPriceReq();
 
@@ -511,9 +525,27 @@ public class AirRequestClient extends TravelPortClient {
         airPricingModifiers.setCurrencyType(currency);
         priceRequest.setAirPricingModifiers(airPricingModifiers);
 
-        initPricePort();
-        return airPricePortType.service(priceRequest);
+        Writer writer = null;
+        try {
+            writer = new FileWriter("AirpriceReq.json");
+            Gson gson = new GsonBuilder().create();
+            gson.toJson(priceRequest, writer);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        initPricePort();
+        AirPriceRsp airPriceRsp = airPricePortType.service(priceRequest);
+        try {
+            writer = new FileWriter("AirpriceRes.json");
+            Gson gson = new GsonBuilder().create();
+            gson.toJson(airPriceRsp, writer);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return airPriceRsp;
     }
 
 
@@ -566,4 +598,82 @@ public class AirRequestClient extends TravelPortClient {
         }
     }
 
+
+    public static AirItinerary buildAirItinerary(TravellerMasterInfo travellerMasterInfo){
+        AirItinerary airItinerary = new AirItinerary();
+
+        FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+
+        List<TypeBaseAirSegment> typeBaseAirSegmentList = new ArrayList<>();
+        for(com.compassites.model.Journey journey : flightItinerary.getJourneyList()){
+            for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
+                TypeBaseAirSegment typeBaseAirSegment = new TypeBaseAirSegment();
+                typeBaseAirSegment.setOrigin(airSegmentInformation.getFromLocation());
+                typeBaseAirSegment.setDestination(airSegmentInformation.getToLocation());
+                typeBaseAirSegment.setCarrier(airSegmentInformation.getCarrierCode());
+                typeBaseAirSegment.setFlightNumber(airSegmentInformation.getFlightNumber());
+                typeBaseAirSegment.setDepartureTime(airSegmentInformation.getDepartureTime());
+                typeBaseAirSegment.setArrivalTime(airSegmentInformation.getArrivalTime());
+                typeBaseAirSegment.setFlightTime(new BigInteger(airSegmentInformation.getTravelTime()));
+                typeBaseAirSegment.setProviderCode(GDS);
+                typeBaseAirSegment.setKey(airSegmentInformation.getAirSegmentKey());
+                FlightDetails flightDetails = new FlightDetails();
+                flightDetails.setOrigin(airSegmentInformation.getFromLocation());
+                flightDetails.setDestination(airSegmentInformation.getToLocation());
+                flightDetails.setDepartureTime(airSegmentInformation.getDepartureTime());
+                flightDetails.setArrivalTime(airSegmentInformation.getArrivalTime());
+                flightDetails.setOriginTerminal(airSegmentInformation.getFromTerminal());
+                flightDetails.setDestinationTerminal(airSegmentInformation.getToTerminal());
+                flightDetails.setKey(airSegmentInformation.getFlightDetailsKey());
+                typeBaseAirSegment.getFlightDetails().add(flightDetails);
+
+                typeBaseAirSegmentList.add(typeBaseAirSegment);
+            }
+        }
+        airItinerary.getAirSegment().addAll(typeBaseAirSegmentList);
+        return airItinerary;
+
+    }
+
+    public static List<Passenger> createPassengers(List<Traveller> travellerList,PassengerTypeCode passengerTypeCode){
+
+        List<Passenger> passengerList = new ArrayList<>();
+
+        for(Traveller traveller : travellerList){
+
+            Passenger passenger = new Passenger();
+            LocalDate birthDate = new LocalDate (traveller.getPersonalDetails().getDateOfBirth());
+            LocalDate now = new LocalDate();
+            Years age = Years.yearsBetween(birthDate, now);
+            passenger.setAge(age.getYears());
+            passenger.setName(traveller.getPersonalDetails().getFirstName());
+            passenger.setName(getPassengerType(traveller.getPersonalDetails().getDateOfBirth(), passengerTypeCode));
+
+            passengerList.add(passenger);
+        }
+        return passengerList;
+    }
+
+    private static String getPassengerType(Date passengerDOB, PassengerTypeCode passengerTypeCode){
+        LocalDate birthDate = new LocalDate (passengerDOB);          //Birth date
+        LocalDate now = new LocalDate();                    //Today's date
+        Period period = new Period(birthDate, now,  PeriodType.yearMonthDay());
+        int age = period.getYears();
+        String passengerType;
+        if(age <= 2){
+            passengerType = "INF";
+        }else if (age <= 12){
+            passengerType = "CH";
+        }else{
+            if(passengerTypeCode == PassengerTypeCode.SEA){
+                passengerType = "SEA";
+            } else {
+                passengerType = "ADT";
+            }
+
+        }
+
+        return passengerType;
+
+    }
 }

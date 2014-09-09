@@ -68,6 +68,10 @@ public class AirSegmentInformation implements Serializable{
 
     private String bookingClass;
 
+    private String airSegmentKey;
+
+    private String flightDetailsKey;
+
     public String getFromLocation() {
         return fromLocation;
     }
@@ -277,5 +281,21 @@ public class AirSegmentInformation implements Serializable{
 
     public void setBookingClass(String bookingClass) {
         this.bookingClass = bookingClass;
+    }
+
+    public String getFlightDetailsKey() {
+        return flightDetailsKey;
+    }
+
+    public void setFlightDetailsKey(String flightDetailsKey) {
+        this.flightDetailsKey = flightDetailsKey;
+    }
+
+    public String getAirSegmentKey() {
+        return airSegmentKey;
+    }
+
+    public void setAirSegmentKey(String airSegmentKey) {
+        this.airSegmentKey = airSegmentKey;
     }
 }

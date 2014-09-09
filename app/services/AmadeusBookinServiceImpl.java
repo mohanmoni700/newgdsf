@@ -34,14 +34,15 @@ public class AmadeusBookinServiceImpl implements BookingService {
         }
         serviceHandler.logIn();
         AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.sellFromRecommendation(travellerMasterInfo.getItinerary());
+
         boolean flightAvailable = checkFlightAvailability(sellFromRecommendation);
 
         FarePricePNRWithBookingClassReply pricePNRReply = null;
         if(flightAvailable){
             PNRReply gdsPNRReply = serviceHandler.addMultiElementsToPNR1(travellerMasterInfo);
             pricePNRReply = serviceHandler.pricePNR();
-            boolean isFareValied = checkFare(pricePNRReply,travellerMasterInfo);
-            if(isFareValied){
+            boolean isFareValid = checkFare(pricePNRReply,travellerMasterInfo);
+            if(isFareValid){
                 TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
                 gdsPNRReply = serviceHandler.savePNR();
                 String tstRefNo = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber();

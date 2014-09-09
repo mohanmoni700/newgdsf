@@ -85,6 +85,7 @@ public class LowFareRequestClient extends TravelPortClient {
         }
     }
 
+    //TODO-Remove the age hard coding
     public static LowFareSearchRsp search(String origin,
                                               String destination, String dateOut,
                                               String dateBack, Boolean returnJourney,

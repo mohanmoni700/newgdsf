@@ -19,6 +19,7 @@ import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.Passenge
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Passenger;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Traveller;
+import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
@@ -80,7 +81,11 @@ public class PNRAddMultiElementsh {
             p.setFirstName(traveller.getPersonalDetails().getFirstName()+" "+traveller.getPersonalDetails().getMiddleName());
             //p.setIdentificationCode("ID1234");
             //p.setType("SEA");
-            p.setType(getPassengerType(traveller.getPersonalDetails().getDateOfBirth()));
+            if(travellerMasterInfo.isSeamen()){
+                p.setType(PassengerTypeCode.SEA.toString());
+            }else {
+                p.setType(getPassengerType(traveller.getPersonalDetails().getDateOfBirth()));
+            }
 
             ti.getPassenger().add(p);
             ti.setTraveller(tr);

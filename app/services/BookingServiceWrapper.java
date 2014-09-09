@@ -14,6 +14,10 @@ public class BookingServiceWrapper {
     @Autowired
     private AmadeusBookinServiceImpl amadeusBookinService;
 
+    @Autowired
+    private TravelportBookingServiceImpl travelportBookingService;
+
+
     public AmadeusBookinServiceImpl getAmadeusBookinService() {
         return amadeusBookinService;
     }
@@ -23,8 +27,13 @@ public class BookingServiceWrapper {
     }
 
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
-
-        PNRResponse pnrResponse = amadeusBookinService.generatePNR(travellerMasterInfo);
+        String provider = travellerMasterInfo.getItinerary().getProvider();
+        PNRResponse pnrResponse = null;
+        if("Travelport".equalsIgnoreCase(provider)){
+            pnrResponse  = travelportBookingService.generatePNR(travellerMasterInfo);
+        }else{
+            pnrResponse  = amadeusBookinService.generatePNR(travellerMasterInfo);
+        }
 
         return pnrResponse;
     }

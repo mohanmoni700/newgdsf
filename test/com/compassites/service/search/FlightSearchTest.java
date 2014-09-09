@@ -1,28 +1,22 @@
 package com.compassites.service.search;
 
-import com.avaje.ebean.Ebean;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.Passenger;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
 import com.compassites.model.*;
-import models.AirlineCode;
-import models.Airport;
 import org.junit.Before;
 import org.junit.Test;
-import play.libs.Yaml;
-import play.test.Helpers;
 import play.test.WithApplication;
 import services.AmadeusFlightSearch;
-import services.FlightSearch;
 import services.TravelPortFlightSearch;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Properties;
 
 import static junit.framework.TestCase.assertNotNull;
-import static play.test.Helpers.*;
+import static play.test.Helpers.fakeApplication;
 
 /**
  * Created with IntelliJ IDEA.
@@ -81,7 +75,7 @@ public class FlightSearchTest extends WithApplication {
         searchParameters.setChildCount(Integer.parseInt(properties.getProperty("childCount")));
         searchParameters.setInfantCount(Integer.parseInt(properties.getProperty("infantCount")));
         ServiceHandler serviceHandler=new ServiceHandler();
-        FlightSearch flightSearch = new AmadeusFlightSearch();
+        AmadeusFlightSearch flightSearch = new AmadeusFlightSearch();
         SearchResponse response =  flightSearch.search(searchParameters);
         assertNotNull(response);
         assertNotNull(response.getAirSolution());

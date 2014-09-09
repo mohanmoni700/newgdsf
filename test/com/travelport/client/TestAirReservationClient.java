@@ -1,3 +1,4 @@
+/*
 package com.travelport.client;
 
 import com.compassites.GDSWrapper.travelport.AirRequestClient;
@@ -15,13 +16,15 @@ import org.junit.Test;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 
+*/
 /**
  * Created with IntelliJ IDEA.
  * User: Renu
  * Date: 5/22/14
  * Time: 4:21 PM
  * To change this template use File | Settings | File Templates.
- */
+ *//*
+
 public class TestAirReservationClient {
     @Test
     public void TestReservation(){
@@ -44,3 +47,4 @@ public class TestAirReservationClient {
     }
 
     }
+*/

@@ -198,6 +198,22 @@ public class Airport extends Model implements Serializable{
         this.dst = dst;
     }
 
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getGmtOffset() {
+        return gmtOffset;
+    }
+
+    public void setGmtOffset(String gmtOffset) {
+        this.gmtOffset = gmtOffset;
+    }
+
     public static Airport getAiport(String iataCode){
         Jedis j = new Jedis("localhost", 6379);
         j.connect();
