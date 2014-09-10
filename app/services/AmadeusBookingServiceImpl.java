@@ -15,7 +15,7 @@ import java.util.List;
 
 
 @Service
-public class AmadeusBookinServiceImpl implements BookingService {
+public class AmadeusBookingServiceImpl implements BookingService {
 
     private final String amadeusFlightAvailibilityCode = "OK";
 

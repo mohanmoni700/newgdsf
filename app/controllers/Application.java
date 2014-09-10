@@ -42,6 +42,7 @@ public class Application {
 
 
     public Result generatePNR(){
+
         JsonNode json = request().body().asJson();
 
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);

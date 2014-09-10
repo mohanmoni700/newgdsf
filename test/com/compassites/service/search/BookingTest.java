@@ -7,7 +7,7 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.junit.Test;
-import services.AmadeusBookinServiceImpl;
+import services.AmadeusBookingServiceImpl;
 import services.BookingServiceWrapper;
 
 import java.text.SimpleDateFormat;
@@ -73,9 +73,9 @@ public class BookingTest {
         try {
            /* ServiceHandler serviceHandler = new ServiceHandler();
             serviceHandler.logIn();*/
-            AmadeusBookinServiceImpl amadeusBookinService = new AmadeusBookinServiceImpl();
+            AmadeusBookingServiceImpl amadeusBookinService = new AmadeusBookingServiceImpl();
             BookingServiceWrapper bookingService = new BookingServiceWrapper();
-            bookingService.setAmadeusBookinService(amadeusBookinService);
+            bookingService.setAmadeusBookingService(amadeusBookinService);
             bookingService.generatePNR(travellerMasterInfo);
            /* AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.sellFromRecommendation(fi1);
             PNRReply pnrReply = serviceHandler.addMultiElementsToPNR1(travellerMasterInfo);

@@ -12,27 +12,27 @@ import org.springframework.stereotype.Service;
 public class BookingServiceWrapper {
 
     @Autowired
-    private AmadeusBookinServiceImpl amadeusBookinService;
+    private AmadeusBookingServiceImpl amadeusBookingService;
 
     @Autowired
-    private TravelportBookingServiceImpl travelportBookingService;
+    private TravelPortBookingServiceImpl travelPortBookingService;
 
 
-    public AmadeusBookinServiceImpl getAmadeusBookinService() {
-        return amadeusBookinService;
+    public AmadeusBookingServiceImpl getAmadeusBookingService() {
+        return amadeusBookingService;
     }
 
-    public void setAmadeusBookinService(AmadeusBookinServiceImpl amadeusBookinService) {
-        this.amadeusBookinService = amadeusBookinService;
+    public void setAmadeusBookingService(AmadeusBookingServiceImpl amadeusBookingService) {
+        this.amadeusBookingService = amadeusBookingService;
     }
 
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
         String provider = travellerMasterInfo.getItinerary().getProvider();
         PNRResponse pnrResponse = null;
         if("Travelport".equalsIgnoreCase(provider)){
-            pnrResponse  = travelportBookingService.generatePNR(travellerMasterInfo);
+            pnrResponse  = travelPortBookingService.generatePNR(travellerMasterInfo);
         }else{
-            pnrResponse  = amadeusBookinService.generatePNR(travellerMasterInfo);
+            pnrResponse  = amadeusBookingService.generatePNR(travellerMasterInfo);
         }
 
         return pnrResponse;

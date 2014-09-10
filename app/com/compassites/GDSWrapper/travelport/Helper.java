@@ -4,6 +4,8 @@ import com.travelport.schema.air_v26_0.AirSegmentRef;
 import com.travelport.schema.air_v26_0.FlightDetails;
 import com.travelport.schema.air_v26_0.FlightDetailsRef;
 import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
+import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
+import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -53,6 +55,27 @@ public class Helper {
 
     }
 
+
+    /**
+     * Utility class for building a map that knows about all the segments in the
+     * response.
+     */
+    public static class ReservationInfoMap extends HashMap<String, ProviderReservationInfo> {
+        public void add(ProviderReservationInfo providerReservationInfo) {
+            put(providerReservationInfo.getKey(), providerReservationInfo);
+        }
+
+        @Override
+        public ProviderReservationInfo get(Object wontWork) {
+            throw new RuntimeException("This is disallowed because it was a " + "common mistake to pass a ProviderReservationInfoRef here instead "
+                    + "of the string contained in the ProviderReservationInfoRef");
+        }
+
+        public ProviderReservationInfo getByRef(ProviderReservationInfoRef ref) {
+            return super.get(ref.getKey());
+        }
+    }
+
     // this is the format we SEND to travelport
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -95,7 +118,20 @@ public class Helper {
         return segmentMap;
     }
 
+    /**
+     * Take a ProviderReservationInfo list and construct a map of all the reservationInfo into a
+     * info map. This makes other parts of the work easier.
+     */
+    public static  ReservationInfoMap createReservationInfoMap(List<ProviderReservationInfo> reservationInfos){
+        ReservationInfoMap reservationInfoMap = new ReservationInfoMap();
 
+        for(ProviderReservationInfo reservationInfo : reservationInfos){
+            reservationInfoMap.add(reservationInfo);
+        }
+
+        return  reservationInfoMap;
+
+    }
     /**
      * Parse a number from something with a currency code on the front.  Aborts
      * if the number cannot be understood.

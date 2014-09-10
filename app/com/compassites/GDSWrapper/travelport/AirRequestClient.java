@@ -484,6 +484,7 @@ public class AirRequestClient extends TravelPortClient {
             request.getSearchPassenger().add(adult);
             return;
         }
+        int i = 1;
         for (Iterator<Passenger> passengerIterator = passengers.iterator(); passengerIterator.hasNext();) {
             Passenger passenger = passengerIterator.next();
             SearchPassenger searchPassenger = new SearchPassenger();
@@ -493,11 +494,12 @@ public class AirRequestClient extends TravelPortClient {
             else{
                 searchPassenger.setCode(passengerType);
             }
-            searchPassenger.setKey("COMPASS");
+            searchPassenger.setKey("COMPASS"+i);
             searchPassenger.setPricePTCOnly(true);
             if (passenger.getAge() != null)
                 searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
             request.getSearchPassenger().add(searchPassenger);
+            i++;
         }
     }
     public static AirPriceRsp priceItinerary(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass, List<Passenger> passengers ) throws AirFaultMessage{
