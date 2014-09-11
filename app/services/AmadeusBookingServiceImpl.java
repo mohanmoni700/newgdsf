@@ -33,13 +33,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
             e.printStackTrace();
         }
         serviceHandler.logIn();
-        AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.sellFromRecommendation(travellerMasterInfo.getItinerary());
+        AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.checkFlightAvailability(travellerMasterInfo.getItinerary());
 
-        boolean flightAvailable = checkFlightAvailability(sellFromRecommendation);
+        boolean flightAvailable = validateFlightAvailability(sellFromRecommendation);
 
         FarePricePNRWithBookingClassReply pricePNRReply = null;
         if(flightAvailable){
-            PNRReply gdsPNRReply = serviceHandler.addMultiElementsToPNR1(travellerMasterInfo);
+            PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
             pricePNRReply = serviceHandler.pricePNR();
             boolean isFareValid = checkFare(pricePNRReply,travellerMasterInfo);
             if(isFareValid){
@@ -69,7 +69,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
 
-    public boolean checkFlightAvailability(AirSellFromRecommendationReply sellFromRecommendation){
+    public boolean validateFlightAvailability(AirSellFromRecommendationReply sellFromRecommendation){
         boolean errors = true;
         for (AirSellFromRecommendationReply.ItineraryDetails itinerary : sellFromRecommendation.getItineraryDetails()){
             for(AirSellFromRecommendationReply.ItineraryDetails.SegmentInformation segmentInformation : itinerary.getSegmentInformation()){
@@ -91,9 +91,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
             if(totalFareIdentifier.equals(fareData.getFareDataQualifier())){
                 totalFare = new Long(fareData.getFareAmount());
+                break;
             }
-            break;
+
         }
+        Long searchPrice = 0L;
+        if(travellerMasterInfo.isSeamen()){
+            searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
+        }else {
+            searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
+        }
+
+
         if(totalFare == travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue()) {
             return true;
         }

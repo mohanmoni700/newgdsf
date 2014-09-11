@@ -185,6 +185,7 @@ public class AirReservationClient  extends TravelPortClient {
         try {
             init();
             response = airCreateReservationPortType.service(request, null);
+
         } catch (com.travelport.service.universal_v26_0.AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (AvailabilityFaultMessage availabilityFaultMessage) {

@@ -83,11 +83,13 @@ public class PNRAddMultiElementsh {
             //p.setType("SEA");
             if(travellerMasterInfo.isSeamen()){
                 p.setType(PassengerTypeCode.SEA.toString());
+
             }else {
                 p.setType(getPassengerType(traveller.getPersonalDetails().getDateOfBirth()));
             }
 
             ti.getPassenger().add(p);
+
             ti.setTraveller(tr);
             passengerData.setTravellerInformation(ti);
             travellerInfo.getPassengerData().add(passengerData);
