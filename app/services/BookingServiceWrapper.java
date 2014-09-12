@@ -15,7 +15,7 @@ public class BookingServiceWrapper {
     private AmadeusBookingServiceImpl amadeusBookingService;
 
     @Autowired
-    private TravelPortBookingServiceImpl travelPortBookingService;
+    private TravelportBookingServiceImpl travelPortBookingService;
 
 
     public AmadeusBookingServiceImpl getAmadeusBookingService() {
