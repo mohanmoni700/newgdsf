@@ -27,7 +27,7 @@ import java.util.List;
 */
 
 @Service
-public class TravelPortBookingServiceImpl implements BookingService {
+public class TravelportBookingServiceImpl implements BookingService {
 
     @Override
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
