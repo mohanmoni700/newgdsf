@@ -56,9 +56,7 @@ public class TravelPortBookingServiceImpl implements BookingService {
             }
 
             System.out.println("Results");
-         /*catch (DatatypeConfigurationException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }*/
+
         } catch (AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }catch (Exception e){
