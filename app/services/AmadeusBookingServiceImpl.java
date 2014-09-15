@@ -40,7 +40,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         FarePricePNRWithBookingClassReply pricePNRReply = null;
         if(flightAvailable){
             PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
-            pricePNRReply = serviceHandler.pricePNR();
+            pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo);
             boolean isFareValid = checkFare(pricePNRReply,travellerMasterInfo);
             if(isFareValid){
                 TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
@@ -48,15 +48,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 String tstRefNo = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber();
                 gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
                 pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
-            }else{
+            }else {
 
                 ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partial", ErrorMessage.ErrorType.ERROR, "Amadeus");
                 System.out.println("Response : " + sellFromRecommendation.getMessage());
             }
-
-
-
-        }  else {
+        }else {
             String errorCode = sellFromRecommendation.getErrorAtMessageLevel().get(0).getErrorSegment().getErrorDetails().getErrorCode();
             errorCode = "amadeus." + errorCode;
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");

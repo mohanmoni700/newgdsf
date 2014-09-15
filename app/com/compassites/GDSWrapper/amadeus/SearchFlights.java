@@ -86,7 +86,7 @@ public class SearchFlights {
 //        tfi.getCompanyIdentity().add(cid);
 //        se.setTravelFlightInfo(tfi);
         //System.out.println("Amadeus Request : "+ Json.toJson(se));
-        File file=new File("seamenRequestPA");
+        File file=new File(searchParameters.getBookingType()+"RequestPA.json");
         FileOutputStream os= null;
         try {
             os = new FileOutputStream(file);

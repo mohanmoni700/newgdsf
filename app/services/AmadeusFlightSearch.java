@@ -44,7 +44,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class AmadeusFlightSearch implements FlightSearch {
+public class AmadeusFlightSearch implements FlightSearch{
 
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
@@ -129,7 +129,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         return searchResponse;
     }
 
-    @Override
+    //@Override
     public String provider() {
         return "Amadeus";
     }

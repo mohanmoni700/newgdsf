@@ -11,6 +11,12 @@ public class PNRResponse {
 
     private String validTillDate;
 
+    private boolean isPriceChanged;
+
+    private Long originalPrice;
+
+    private Long changedPrice;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -33,5 +39,29 @@ public class PNRResponse {
 
     public void setValidTillDate(String validTillDate) {
         this.validTillDate = validTillDate;
+    }
+
+    public boolean isPriceChanged() {
+        return isPriceChanged;
+    }
+
+    public void setPriceChanged(boolean isPriceChanged) {
+        this.isPriceChanged = isPriceChanged;
+    }
+
+    public Long getOriginalPrice() {
+        return originalPrice;
+    }
+
+    public void setOriginalPrice(Long originalPrice) {
+        this.originalPrice = originalPrice;
+    }
+
+    public Long getChangedPrice() {
+        return changedPrice;
+    }
+
+    public void setChangedPrice(Long changedPrice) {
+        this.changedPrice = changedPrice;
     }
 }

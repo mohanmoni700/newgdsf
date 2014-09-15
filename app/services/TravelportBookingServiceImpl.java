@@ -1,6 +1,7 @@
 package services;
 
 import com.compassites.GDSWrapper.travelport.*;
+import com.compassites.model.ErrorMessage;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
@@ -13,6 +14,7 @@ import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.springframework.stereotype.Service;
+import utils.ErrorMessageHelper;
 import utils.StringUtility;
 
 import java.text.ParseException;
@@ -32,7 +34,7 @@ public class TravelportBookingServiceImpl implements BookingService {
     @Override
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
         LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
-        PNRResponse pnrResponse = null;
+        PNRResponse pnrResponse = new PNRResponse();
         LowFareSearchRsp responseTwo = null;
         try {
             //AirItinerary airItinerary = AirRequestClient.getItinerary(responseTwo, responseTwo.getAirPricingSolution().get(0));
@@ -50,17 +52,26 @@ public class TravelportBookingServiceImpl implements BookingService {
             boolean fareIsValid =  checkFare(priceRsp,travellerMasterInfo);
             if(fareIsValid){
                 AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
-                AirCreateReservationRsp reservationRsp = AirReservationClient.reserve(airPriceSolution,travellerMasterInfo);
+                AirCreateReservationRsp reservationRsp = AirReservationClient.reserve(airPriceSolution, travellerMasterInfo);
                 UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient.retrievePNR(reservationRsp);
                 pnrResponse = retrievePNR(universalRecordRetrieveRsp);
+            }else {
+
+                /*ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("priceChange", ErrorMessage.ErrorType.ERROR,"TravelPort");
+                pnrResponse.setErrorMessage(errorMessage);*/
+                pnrResponse.setPriceChanged(true);
             }
 
             System.out.println("Results");
 
         } catch (AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR,"TravelPort");
+            pnrResponse.setErrorMessage(errorMessage);
         }catch (Exception e){
             e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR,"TravelPort");
+            pnrResponse.setErrorMessage(errorMessage);
         }
         return pnrResponse;
     }

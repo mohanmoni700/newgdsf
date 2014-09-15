@@ -120,9 +120,9 @@ public class ServiceHandler {
     }
 
     //pricing transaction
-    public FarePricePNRWithBookingClassReply pricePNR() {
+    public FarePricePNRWithBookingClassReply pricePNR(TravellerMasterInfo travellerMasterInfo) {
         mSession.incrementSequenceNumber();
-        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption();
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(travellerMasterInfo);
 
         JSONFileUtility.createJsonFile(pricePNRWithBookingClass,"pricePNRWithBookingClassReq.json");
 
