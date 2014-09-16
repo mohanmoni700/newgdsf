@@ -6,6 +6,7 @@
 
 package com.compassites.GDSWrapper.amadeus;
 
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.CurrencyOverride;
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.CurrencyOverride.FirstRateDetail;
@@ -20,22 +21,36 @@ import java.math.BigDecimal;
  * @author mahendra-singh
  */
 public class PricePNR {
-    public FarePricePNRWithBookingClass getPNRPricingOption(TravellerMasterInfo travellerMasterInfo){
+    public FarePricePNRWithBookingClass getPNRPricingOption(TravellerMasterInfo travellerMasterInfo, PNRReply pnrReply){
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
         OverrideInformation oi=new OverrideInformation();
         FarePricePNRWithBookingClass.PaxSegReference paxSegReference = new FarePricePNRWithBookingClass.PaxSegReference();
         FarePricePNRWithBookingClass.PaxSegReference.RefDetails refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
 
-        refDetails.setRefQualifier("S");
+
+        for(PNRReply.OriginDestinationDetails originatorDetails : pnrReply.getOriginDestinationDetails())  {
+            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originatorDetails.getItineraryInfo()){
+                refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
+                refDetails.setRefQualifier(itineraryInfo.getElementManagementItinerary().getReference().getQualifier());
+                refDetails.setRefNumber(new BigDecimal(itineraryInfo.getElementManagementItinerary().getReference().getNumber()));
+                paxSegReference.getRefDetails().add(refDetails);
+
+            }
+        }
+       /* refDetails.setRefQualifier("S");
         refDetails.setRefNumber(new BigDecimal(1));
         paxSegReference.getRefDetails().add(refDetails);
+        refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
+        refDetails.setRefQualifier("S");
+        refDetails.setRefNumber(new BigDecimal(2));
+        paxSegReference.getRefDetails().add(refDetails);*/
         pricepnr.setPaxSegReference(paxSegReference);
 
         AttributeDetails ad=new AttributeDetails();
         //ad.setAttributeType("BK");
         //ad.setAttributeType("NOP");
         //ad.setAttributeDescription("XN");
-        ad.setAttributeType("PTC");
+        ad.setAttributeType("ptc");
         oi.getAttributeDetails().add(ad);
         pricepnr.setOverrideInformation(oi);
 

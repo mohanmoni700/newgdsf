@@ -14,7 +14,6 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
-import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.google.gson.Gson;
@@ -72,9 +71,9 @@ public class ServiceHandler {
         return mPortType.fareMasterPricerTravelBoardSearch(new SearchFlights().createSearchQuery(searchParameters), mSession.getSession());
     }
     
-    public AirSellFromRecommendationReply checkFlightAvailability(FlightItinerary flightItinerary) {
+    public AirSellFromRecommendationReply checkFlightAvailability(TravellerMasterInfo travellerMasterInfo) {
         mSession.incrementSequenceNumber();
-        AirSellFromRecommendation sellFromRecommendation = new BookFlights().sellFromRecommendation(flightItinerary);
+        AirSellFromRecommendation sellFromRecommendation = new BookFlights().sellFromRecommendation(travellerMasterInfo);
 
         Writer writer = null;
         try {
@@ -120,9 +119,9 @@ public class ServiceHandler {
     }
 
     //pricing transaction
-    public FarePricePNRWithBookingClassReply pricePNR(TravellerMasterInfo travellerMasterInfo) {
+    public FarePricePNRWithBookingClassReply pricePNR(TravellerMasterInfo travellerMasterInfo, PNRReply pnrReply) {
         mSession.incrementSequenceNumber();
-        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(travellerMasterInfo);
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(travellerMasterInfo, pnrReply);
 
         JSONFileUtility.createJsonFile(pricePNRWithBookingClass,"pricePNRWithBookingClassReq.json");
 

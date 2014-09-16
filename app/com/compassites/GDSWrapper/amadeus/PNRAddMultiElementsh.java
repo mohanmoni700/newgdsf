@@ -85,7 +85,7 @@ public class PNRAddMultiElementsh {
                 p.setType(PassengerTypeCode.SEA.toString());
 
             }else {
-                p.setType(getPassengerType(traveller.getPersonalDetails().getDateOfBirth()));
+                p.setType(getPassengerType(traveller.getPassportDetails().getDateOfBirth()));
             }
 
             ti.getPassenger().add(p);

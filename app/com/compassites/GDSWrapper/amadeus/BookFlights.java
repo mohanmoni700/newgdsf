@@ -16,9 +16,8 @@ import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.ItineraryDetails.SegmentInformation.TravelProductInformation.*;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.MessageActionDetails;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
+import com.compassites.model.*;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -33,13 +32,20 @@ import java.util.List;
  */
 public class BookFlights {
 
-    public AirSellFromRecommendation sellFromRecommendation(FlightItinerary flightItinerary ){
+    public AirSellFromRecommendation sellFromRecommendation(TravellerMasterInfo travellerMasterInfo){
         AirSellFromRecommendation sfr=new AirSellFromRecommendation();
         sfr.setMessageActionDetails(createMessageActionDetails());
-
-        for(Journey journey: flightItinerary.getJourneyList()){
+        FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+        for(int i=0;i < flightItinerary.getJourneyList().size();i++){
+            Journey journey = flightItinerary.getJourneyList().get(i);
+            FareJourney fareJourney;
+            if(travellerMasterInfo.isSeamen()){
+                fareJourney = flightItinerary.getSeamanPricingInformation().getFareJourneyList().get(i);
+            }else {
+                fareJourney = flightItinerary.getPricingInformation().getFareJourneyList().get(i);
+            }
             if(journey.getAirSegmentList().size() > 0){
-                sfr.getItineraryDetails().add(createItineraryDetails(journey));
+                sfr.getItineraryDetails().add(createItineraryDetails(journey,fareJourney));
             }
         }
 
@@ -55,7 +61,7 @@ public class BookFlights {
         return mad;
     }
 
-    public ItineraryDetails createItineraryDetails(Journey journey){
+    public ItineraryDetails createItineraryDetails(Journey journey, FareJourney  fareJourney){
 
         ItineraryDetails itineraryDetails = new ItineraryDetails();
         OriginDestinationDetails originDestinationDetails = new  OriginDestinationDetails();
@@ -71,15 +77,15 @@ public class BookFlights {
 
         itineraryDetails.setMessage(message);
         itineraryDetails.setOriginDestinationDetails(originDestinationDetails);
-        for(AirSegmentInformation airSegmentInformation : airSegmentList){
-            itineraryDetails.getSegmentInformation().add(createSegmentInformation(airSegmentInformation));
+        for(int i=0;i < airSegmentList.size();i++){
+            itineraryDetails.getSegmentInformation().add(createSegmentInformation(airSegmentList.get(i),fareJourney.getFareSegmentList().get(i)));
         }
 
         //id.getSegmentInformation().add(createSegmentInformation1());
         return itineraryDetails;
     }
 
-    public SegmentInformation createSegmentInformation(AirSegmentInformation airSegmentInformation){
+    public SegmentInformation createSegmentInformation(AirSegmentInformation airSegmentInformation, FareSegment fareSegment){
         SegmentInformation segmentInformation=new SegmentInformation();
         TravelProductInformation travelProductInformation=new TravelProductInformation();
 
@@ -101,7 +107,7 @@ public class BookFlights {
         FlightIdentification flightIdentification=new FlightIdentification();
         flightIdentification.setFlightNumber(airSegmentInformation.getFlightNumber());
         //flightIdentification.setBookingClass("Y");
-        flightIdentification.setBookingClass(airSegmentInformation.getBookingClass());
+        flightIdentification.setBookingClass(fareSegment.getBookingClass());
 
         RelatedproductInformation relatedproductInformation=new RelatedproductInformation();
         relatedproductInformation.getStatusCode().add("NN");

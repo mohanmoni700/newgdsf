@@ -68,6 +68,11 @@ public class AmadeusFlightSearch implements FlightSearch{
                 PrintStream out = new PrintStream(os);
                 out.print(Json.toJson(seamenReply));
 
+                file=new File("nonseamenAmadeusResponseCF.json");
+                os=new FileOutputStream(file);
+                out = new PrintStream(os);
+                out.print(Json.toJson(fareMasterPricerTravelBoardSearchReply));
+
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
             }
@@ -148,8 +153,9 @@ public class AmadeusFlightSearch implements FlightSearch{
             BigDecimal baseAmount = BigDecimal.valueOf(0);
             for (FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
                 taxAmount = taxAmount.add(paxFareProduct.getPaxFareDetail().getTotalTaxAmount());
-                baseAmount = baseAmount.add(paxFareProduct.getPaxFareDetail().getTotalFareAmount());
-                totalAmount = totalAmount.add(taxAmount).add(baseAmount);
+                totalAmount = totalAmount.add(paxFareProduct.getPaxFareDetail().getTotalFareAmount());
+                baseAmount = baseAmount.add(totalAmount.subtract(taxAmount));
+
             }
 
             //String cabinClass = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getMajCabin().get(0).getBookingClassDetails().get(0).getDesignator();
@@ -167,20 +173,28 @@ public class AmadeusFlightSearch implements FlightSearch{
                     FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlights = fareMasterPricerTravelBoardSearchReply.getFlightIndex().get(multiStopCounter).getGroupOfFlights().get(flightDetailReference.intValue() - 1);
                     String prevArrivalTime = "";
                     int segmentIndex = 0;
+                    List<FareJourney> fareJourneyList = new ArrayList<>();
+                    List<FareSegment> fareSegmentList = new ArrayList<>();
                     for (FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlights.getFlightDetails()) {
                         String rbd = groupOfFaresList.get(segmentIndex).getProductInformation().getCabinProduct().getRbd();
+                        FareSegment fareSegment = new FareSegment();
+                        fareSegment.setBookingClass(rbd);
+                        fareSegmentList.add(fareSegment);
                         AirSegmentInformation airSegmentInformation = createSegment(flightDetails.getFlightInformation(), prevArrivalTime);
                         airSegmentInformation.setBookingClass(rbd);
                         if (journeyStopCounter > -1){
                             flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().get(journeyStopCounter).setConnectionTime(airSegmentInformation.getConnectionTime());
                             airSegmentInformation.setConnectionTime(0);
                         }
+
                         flightItinerary.AddBlankJourney();
+                        flightItinerary.getPricingInformation().addBlankFareJourney();
+                        flightItinerary.getPricingInformation().getFareJourneyList().get(multiStopCounter).getFareSegmentList().add(fareSegment);
                         flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().add(airSegmentInformation);
                         flightItinerary.getJourneyList().get(multiStopCounter).setAirlinesStrForFilter(" " + airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline);
                         prevArrivalTime = airSegmentInformation.getArrivalTime();
                         journeyStopCounter++;
-
+                        segmentIndex++;
                     }
 
                     flightItinerary.getJourneyList().get(multiStopCounter).setNoOfStops(journeyStopCounter);

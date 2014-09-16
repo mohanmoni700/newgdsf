@@ -33,14 +33,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
             e.printStackTrace();
         }
         serviceHandler.logIn();
-        AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.checkFlightAvailability(travellerMasterInfo.getItinerary());
+        AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.checkFlightAvailability(travellerMasterInfo);
 
         boolean flightAvailable = validateFlightAvailability(sellFromRecommendation);
 
         FarePricePNRWithBookingClassReply pricePNRReply = null;
         if(flightAvailable){
             PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
-            pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo);
+            pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo, gdsPNRReply);
             boolean isFareValid = checkFare(pricePNRReply,travellerMasterInfo);
             if(isFareValid){
                 TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
@@ -100,7 +100,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
 
 
-        if(totalFare == travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue()) {
+        if(totalFare.equals(searchPrice)) {
             return true;
         }
 

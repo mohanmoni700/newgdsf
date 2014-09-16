@@ -644,12 +644,12 @@ public class AirRequestClient extends TravelPortClient {
         for(Traveller traveller : travellerList){
 
             Passenger passenger = new Passenger();
-            LocalDate birthDate = new LocalDate (traveller.getPersonalDetails().getDateOfBirth());
+            LocalDate birthDate = new LocalDate (traveller.getPassportDetails().getDateOfBirth());
             LocalDate now = new LocalDate();
             Years age = Years.yearsBetween(birthDate, now);
             passenger.setAge(age.getYears());
             passenger.setName(traveller.getPersonalDetails().getFirstName());
-            passenger.setName(getPassengerType(traveller.getPersonalDetails().getDateOfBirth(), passengerTypeCode));
+            passenger.setName(getPassengerType(traveller.getPassportDetails().getDateOfBirth(), passengerTypeCode));
 
             passengerList.add(passenger);
         }
