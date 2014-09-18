@@ -82,8 +82,8 @@ public class TravelportBookingServiceImpl implements BookingService {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
         Long totalPrice = new Long(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getTotalPrice()));
-        //if(totalPrice.equals(searchPrice)){
-        if(false){
+        if(totalPrice.equals(searchPrice)){
+
             pnrResponse.setPriceChanged(false);
             pnrResponse.setFlightAvailable(true);
             return pnrResponse;
