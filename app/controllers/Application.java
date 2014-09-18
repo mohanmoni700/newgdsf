@@ -47,7 +47,7 @@ public class Application {
 
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.generatePNR(travellerMasterInfo);
-        System.out.println("Traveller info received: " + json.toString());
+        System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
 

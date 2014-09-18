@@ -11,6 +11,9 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import org.springframework.stereotype.Service;
 import utils.ErrorMessageHelper;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 
@@ -27,41 +30,45 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
         ServiceHandler serviceHandler = null;
         PNRResponse pnrResponse = new PNRResponse();
+        FarePricePNRWithBookingClassReply pricePNRReply = null;
         try {
             serviceHandler = new ServiceHandler();
+
+            serviceHandler.logIn();
+            AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.checkFlightAvailability(travellerMasterInfo);
+
+            if(sellFromRecommendation.getErrorAtMessageLevel() != null && sellFromRecommendation.getErrorAtMessageLevel().size() > 0){
+
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
+                pnrResponse.setErrorMessage(errorMessage);
+            }else{
+
+                boolean flightAvailable = validateFlightAvailability(sellFromRecommendation);
+
+                if (flightAvailable) {
+                    PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
+                    pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo, gdsPNRReply);
+                    pnrResponse = checkFare(pricePNRReply, travellerMasterInfo);
+                    if (!pnrResponse.isPriceChanged()) {
+                        TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
+                        gdsPNRReply = serviceHandler.savePNR();
+                        String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+                        gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
+                        //pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+                        pnrResponse = createPNRResponse(gdsPNRReply, pricePNRReply);
+                    }
+                } else {
+
+                    pnrResponse.setFlightAvailable(false);
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        serviceHandler.logIn();
-        AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.checkFlightAvailability(travellerMasterInfo);
-
-        boolean flightAvailable = validateFlightAvailability(sellFromRecommendation);
-
-        FarePricePNRWithBookingClassReply pricePNRReply = null;
-        if(flightAvailable){
-            PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
-            pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo, gdsPNRReply);
-            boolean isFareValid = checkFare(pricePNRReply,travellerMasterInfo);
-            if(isFareValid){
-                TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
-                gdsPNRReply = serviceHandler.savePNR();
-                String tstRefNo = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber();
-                gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
-                pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
-            }else {
-
-                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partial", ErrorMessage.ErrorType.ERROR, "Amadeus");
-                System.out.println("Response : " + sellFromRecommendation.getMessage());
-            }
-        }else {
-            String errorCode = sellFromRecommendation.getErrorAtMessageLevel().get(0).getErrorSegment().getErrorDetails().getErrorCode();
-            errorCode = "amadeus." + errorCode;
-            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
-            System.out.println("Response : " + sellFromRecommendation.getMessage());
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
             pnrResponse.setErrorMessage(errorMessage);
         }
-        FarePricePNRWithBookingClassReply.FareList.LastTktDate.DateTime dateTime = pricePNRReply.getFareList().get(0).getLastTktDate().getDateTime();
-        pnrResponse.setValidTillDate(""+dateTime.getDay()+dateTime.getMonth()+dateTime.getYear());
+
         return pnrResponse;
     }
 
@@ -81,8 +88,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
 
-    public boolean checkFare(FarePricePNRWithBookingClassReply pricePNRReply,TravellerMasterInfo travellerMasterInfo){
+    public PNRResponse checkFare(FarePricePNRWithBookingClassReply pricePNRReply,TravellerMasterInfo travellerMasterInfo){
         Long totalFare = 0L;
+        PNRResponse pnrResponse = new PNRResponse();
         List<FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation> fareList = pricePNRReply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
         for (FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation fareData : fareList){
 
@@ -101,10 +109,44 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
         if(totalFare.equals(searchPrice)) {
-            return true;
+            return pnrResponse;
+        }
+        pnrResponse.setChangedPrice(totalFare);
+        pnrResponse.setOriginalPrice(searchPrice);
+        pnrResponse.setPriceChanged(true);
+        return pnrResponse;
+
+    }
+
+    public String getPNRNoFromResponse(PNRReply gdsPNRReply){
+        String pnrNumber = null;
+        for(PNRReply.PnrHeader pnrHeader: gdsPNRReply.getPnrHeader()){
+            pnrNumber = pnrHeader.getReservationInfo().getReservation().getControlNumber();
         }
 
-        return false;
+        return pnrNumber;
+    }
 
+    public PNRResponse createPNRResponse(PNRReply gdsPNRReply,FarePricePNRWithBookingClassReply pricePNRReply){
+        PNRResponse pnrResponse = new PNRResponse();
+
+        for(PNRReply.PnrHeader pnrHeader: gdsPNRReply.getPnrHeader()){
+            pnrResponse.setPnrNumber(pnrHeader.getReservationInfo().getReservation().getControlNumber());
+        }
+        FarePricePNRWithBookingClassReply.FareList.LastTktDate.DateTime dateTime = pricePNRReply.getFareList().get(0).getLastTktDate().getDateTime();
+        String day = ((dateTime.getDay().toString().length() == 1) ? "0"+dateTime.getDay(): dateTime.getDay().toString());
+        String month = ((dateTime.getMonth().toString().length() == 1) ? "0"+dateTime.getMonth(): dateTime.getMonth().toString());
+        String year = dateTime.getYear().toString();
+        //pnrResponse.setValidTillDate(""+dateTime.getDay()+dateTime.getMonth()+dateTime.getYear());
+        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
+        Date lastTicketingDate = null;
+        try {
+           lastTicketingDate =  sdf.parse(day+month+year);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        pnrResponse.setValidTillDate(lastTicketingDate.toString());
+        pnrResponse.setFlightAvailable(true);
+        return pnrResponse;
     }
 }

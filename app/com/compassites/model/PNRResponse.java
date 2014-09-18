@@ -13,6 +13,8 @@ public class PNRResponse {
 
     private boolean isPriceChanged;
 
+    private boolean isFlightAvailable;
+
     private Long originalPrice;
 
     private Long changedPrice;
@@ -63,5 +65,13 @@ public class PNRResponse {
 
     public void setChangedPrice(Long changedPrice) {
         this.changedPrice = changedPrice;
+    }
+
+    public boolean isFlightAvailable() {
+        return isFlightAvailable;
+    }
+
+    public void setFlightAvailable(boolean isFlightAvailable) {
+        this.isFlightAvailable = isFlightAvailable;
     }
 }

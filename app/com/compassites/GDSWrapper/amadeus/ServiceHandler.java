@@ -16,15 +16,10 @@ import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import utils.JSONFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,15 +70,8 @@ public class ServiceHandler {
         mSession.incrementSequenceNumber();
         AirSellFromRecommendation sellFromRecommendation = new BookFlights().sellFromRecommendation(travellerMasterInfo);
 
-        Writer writer = null;
-        try {
-            writer = new FileWriter("sellFromRecommendationReq.json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(sellFromRecommendation, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        JSONFileUtility.createJsonFile(sellFromRecommendation,"sellFromRecommendationReq.json");
+
         AirSellFromRecommendationReply sellFromRecommendationReply = mPortType.airSellFromRecommendation(sellFromRecommendation, mSession.getSession());
 
         JSONFileUtility.createJsonFile(sellFromRecommendationReply,"sellFromRecommendationRes.json");
@@ -96,25 +84,12 @@ public class ServiceHandler {
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo);
 
-        Writer writer = null;
-        try {
-            writer = new FileWriter("pnrAddMultiElementsReq.json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(pnrAddMultiElements, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        JSONFileUtility.createJsonFile(pnrAddMultiElements,"pnrAddMultiElementsReq.json");
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
 
-        try {
-            writer = new FileWriter("pnrAddMultiElementsRes.json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(pnrReply, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        JSONFileUtility.createJsonFile(pnrReply,"pnrAddMultiElementsRes.json");
         return  pnrReply;
     }
 

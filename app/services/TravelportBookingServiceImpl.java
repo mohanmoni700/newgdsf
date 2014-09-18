@@ -49,17 +49,12 @@ public class TravelportBookingServiceImpl implements BookingService {
             List<Passenger> passengerList = AirRequestClient.createPassengers(travellerMasterInfo.getTravellersList(),passengerType);
 
             AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, passengerType.toString(), "INR", typeCabinClass, passengerList);
-            boolean fareIsValid =  checkFare(priceRsp,travellerMasterInfo);
-            if(fareIsValid){
+            pnrResponse =  checkFare(priceRsp,travellerMasterInfo);
+            if(!pnrResponse.isPriceChanged()){
                 AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
                 AirCreateReservationRsp reservationRsp = AirReservationClient.reserve(airPriceSolution, travellerMasterInfo);
                 UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient.retrievePNR(reservationRsp);
                 pnrResponse = retrievePNR(universalRecordRetrieveRsp);
-            }else {
-
-                /*ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("priceChange", ErrorMessage.ErrorType.ERROR,"TravelPort");
-                pnrResponse.setErrorMessage(errorMessage);*/
-                pnrResponse.setPriceChanged(true);
             }
 
             System.out.println("Results");
@@ -73,11 +68,13 @@ public class TravelportBookingServiceImpl implements BookingService {
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR,"TravelPort");
             pnrResponse.setErrorMessage(errorMessage);
         }
+
         return pnrResponse;
     }
 
 
-    public boolean checkFare(AirPriceRsp priceRsp,TravellerMasterInfo travellerMasterInfo){
+    public PNRResponse checkFare(AirPriceRsp priceRsp,TravellerMasterInfo travellerMasterInfo){
+        PNRResponse pnrResponse = new PNRResponse();
         Long searchPrice = 0L;
         if(travellerMasterInfo.isSeamen()){
             searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
@@ -85,11 +82,17 @@ public class TravelportBookingServiceImpl implements BookingService {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
         Long totalPrice = new Long(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getTotalPrice()));
-        if(totalPrice.equals(searchPrice)){
-            return true;
+        //if(totalPrice.equals(searchPrice)){
+        if(false){
+            pnrResponse.setPriceChanged(false);
+            pnrResponse.setFlightAvailable(true);
+            return pnrResponse;
         }
-
-        return false;
+        pnrResponse.setChangedPrice(totalPrice);
+        pnrResponse.setOriginalPrice(searchPrice);
+        pnrResponse.setFlightAvailable(true);
+        pnrResponse.setPriceChanged(true);
+        return pnrResponse;
     }
 
     public PNRResponse retrievePNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp){
