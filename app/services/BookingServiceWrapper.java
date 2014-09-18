@@ -38,6 +38,16 @@ public class BookingServiceWrapper {
         return pnrResponse;
     }
 
+    public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
+        String provider = travellerMasterInfo.getItinerary().getProvider();
+        PNRResponse pnrResponse = null;
+        if("Travelport".equalsIgnoreCase(provider)){
+            pnrResponse  = travelPortBookingService.priceChangePNR(travellerMasterInfo);
+        }else{
+            pnrResponse  = amadeusBookingService.priceChangePNR(travellerMasterInfo);
+        }
 
+        return pnrResponse;
+    }
 
 }

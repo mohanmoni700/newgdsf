@@ -9,4 +9,6 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 public interface BookingService {
 
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo);
+
+    public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo);
 }

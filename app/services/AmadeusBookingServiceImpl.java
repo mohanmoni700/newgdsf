@@ -41,27 +41,27 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
                 ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
                 pnrResponse.setErrorMessage(errorMessage);
-            }else{
-
-                boolean flightAvailable = validateFlightAvailability(sellFromRecommendation);
-
-                if (flightAvailable) {
-                    PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
-                    pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo, gdsPNRReply);
-                    pnrResponse = checkFare(pricePNRReply, travellerMasterInfo);
-                    if (!pnrResponse.isPriceChanged()) {
-                        TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
-                        gdsPNRReply = serviceHandler.savePNR();
-                        String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
-                        gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
-                        //pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
-                        pnrResponse = createPNRResponse(gdsPNRReply, pricePNRReply);
-                    }
-                } else {
-
-                    pnrResponse.setFlightAvailable(false);
-                }
             }
+
+            boolean flightAvailable = validateFlightAvailability(sellFromRecommendation);
+
+            if (flightAvailable) {
+                PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
+                pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo, gdsPNRReply);
+                pnrResponse = checkFare(pricePNRReply, travellerMasterInfo);
+                if (!pnrResponse.isPriceChanged()) {
+                    TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
+                    gdsPNRReply = serviceHandler.savePNR();
+                    String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+                    gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
+                    //pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+                    pnrResponse = createPNRResponse(gdsPNRReply, pricePNRReply);
+                }
+            } else {
+
+                pnrResponse.setFlightAvailable(false);
+            }
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -70,6 +70,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
 
         return pnrResponse;
+    }
+
+    @Override
+    public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
+            return generatePNR(travellerMasterInfo);
     }
 
 
@@ -114,6 +119,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         pnrResponse.setChangedPrice(totalFare);
         pnrResponse.setOriginalPrice(searchPrice);
         pnrResponse.setPriceChanged(true);
+        pnrResponse.setFlightAvailable(true);
         return pnrResponse;
 
     }

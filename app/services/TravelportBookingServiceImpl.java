@@ -54,10 +54,9 @@ public class TravelportBookingServiceImpl implements BookingService {
                 AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
                 AirCreateReservationRsp reservationRsp = AirReservationClient.reserve(airPriceSolution, travellerMasterInfo);
                 UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient.retrievePNR(reservationRsp);
-                pnrResponse = retrievePNR(universalRecordRetrieveRsp);
+                pnrResponse = retrievePNR(universalRecordRetrieveRsp,pnrResponse);
             }
 
-            System.out.println("Results");
 
         } catch (AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -70,6 +69,12 @@ public class TravelportBookingServiceImpl implements BookingService {
         }
 
         return pnrResponse;
+    }
+
+    @Override
+    public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
+
+        return generatePNR(travellerMasterInfo);
     }
 
 
@@ -95,30 +100,36 @@ public class TravelportBookingServiceImpl implements BookingService {
         return pnrResponse;
     }
 
-    public PNRResponse retrievePNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp){
-        PNRResponse pnrResponse =  new PNRResponse();
+    public PNRResponse retrievePNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp, PNRResponse pnrResponse){
+//        PNRResponse pnrResponse =  new PNRResponse();
         Helper.ReservationInfoMap reservationInfoMap = Helper.createReservationInfoMap(universalRecordRetrieveRsp.getUniversalRecord().getProviderReservationInfo());
+        Date lastDate = null;
         for(AirReservation airReservation : universalRecordRetrieveRsp.getUniversalRecord().getAirReservation()){
             for(ProviderReservationInfoRef reservationInfoRef : airReservation.getProviderReservationInfoRef()){
                 ProviderReservationInfo reservationInfo = reservationInfoMap.getByRef(reservationInfoRef);
                 pnrResponse.setPnrNumber(reservationInfo.getLocatorCode());
             }
         }
-        String remarkData = universalRecordRetrieveRsp.getUniversalRecord().getGeneralRemark().get(0).getRemarkData();
-        int i = remarkData.lastIndexOf("BY");
-        String subString = remarkData.substring(i+2);
-
-        subString = subString.trim();
-        String[] args1 = subString.split("/");
-        String dateString = args1[0]+"/"+args1[1];
-        dateString = dateString+ Calendar.getInstance().get(Calendar.YEAR);
-        SimpleDateFormat sdf = new SimpleDateFormat("HHmm/ddMMMyyyy");
-        Date lastDate = null;
         try {
+            String remarkData = universalRecordRetrieveRsp.getUniversalRecord().getGeneralRemark().get(0).getRemarkData();
+            int i = remarkData.lastIndexOf("BY");
+            String subString = remarkData.substring(i+2);
+
+            subString = subString.trim();
+            String[] args1 = subString.split("/");
+            String dateString = args1[0]+"/"+args1[1];
+            dateString = dateString+ Calendar.getInstance().get(Calendar.YEAR);
+            SimpleDateFormat sdf = new SimpleDateFormat("HHmm/ddMMMyyyy");
+
             lastDate = sdf.parse(dateString);
-        } catch (ParseException e) {
+        } catch (NullPointerException e){
+            e.printStackTrace();
+            pnrResponse.setFlightAvailable(false);
+
+        }catch (ParseException e) {
             e.printStackTrace();
         }
+
         pnrResponse.setValidTillDate(lastDate.toString());
         return pnrResponse;
     }

@@ -8,6 +8,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import play.libs.Json;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import services.BookingServiceWrapper;
@@ -47,6 +48,17 @@ public class Application {
 
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.generatePNR(travellerMasterInfo);
+        System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        return Controller.ok(Json.toJson(pnrResponse));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result priceChangePNR(){
+
+        JsonNode json = request().body().asJson();
+
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        PNRResponse pnrResponse = bookingService.priceChangePNR(travellerMasterInfo);
         System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }

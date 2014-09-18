@@ -19,6 +19,8 @@ public class PNRResponse {
 
     private Long changedPrice;
 
+    private String priceChangeKey;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -73,5 +75,13 @@ public class PNRResponse {
 
     public void setFlightAvailable(boolean isFlightAvailable) {
         this.isFlightAvailable = isFlightAvailable;
+    }
+
+    public String getPriceChangeKey() {
+        return priceChangeKey;
+    }
+
+    public void setPriceChangeKey(String priceChangeKey) {
+        this.priceChangeKey = priceChangeKey;
     }
 }
