@@ -51,6 +51,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 pnrResponse = checkFare(pricePNRReply, travellerMasterInfo);
                 if (!pnrResponse.isPriceChanged()) {
                     TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
+                    if(ticketCreateTSTFromPricingReply.getApplicationError() != null){
+                        String errorCode = ticketCreateTSTFromPricingReply.getApplicationError().getApplicationErrorInfo().getApplicationErrorDetail().getApplicationErrorCode();
+
+                        ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
+                        pnrResponse.setErrorMessage(errorMessage);
+                        pnrResponse.setFlightAvailable(false);
+                        return pnrResponse;
+                    }
                     gdsPNRReply = serviceHandler.savePNR();
                     String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
                     gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
