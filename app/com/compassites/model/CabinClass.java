@@ -25,7 +25,9 @@ public enum  CabinClass {
     @XmlEnumValue("PremiumEconomy")
     PREMIUM_ECONOMY("PremiumEconomy"),
     @XmlEnumValue("PremiumFirst")
-    PREMIUM_FIRST("PremiumFirst");
+    PREMIUM_FIRST("PremiumFirst"),
+    @XmlEnumValue("PremiumBusiness")
+    PREMIUM_BUSINESS("PremiumBusiness");
 
     private final String value;
 
