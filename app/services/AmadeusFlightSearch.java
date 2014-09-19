@@ -294,7 +294,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     private Journey setJourney(Journey journey,FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlight){
         //no of stops
-        journey.setNoOfStops(groupOfFlight.getFlightDetails().size());
+        journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
         //set travel time
         Iterator iterator=groupOfFlight.getPropFlightGrDetail().getFlightProposal().iterator();
         if(iterator.hasNext()){
