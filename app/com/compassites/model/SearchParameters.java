@@ -15,7 +15,7 @@ import java.util.List;
  * Time: 4:35 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SearchParameters implements Serializable {
+public class SearchParameters implements Serializable,Cloneable {
     @Property
     private String origin;
     @Property
@@ -254,6 +254,15 @@ public class SearchParameters implements Serializable {
         key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + this.preferredAirlines;
         key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType;
         return key;
+    }
+
+    public SearchParameters clone(){
+        try {
+            return (SearchParameters)super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /*public String redisKey(){

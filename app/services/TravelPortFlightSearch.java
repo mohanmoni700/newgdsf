@@ -6,7 +6,6 @@ import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.compassites.model.AirSolution;
-import com.compassites.model.Journey;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
@@ -15,15 +14,14 @@ import models.AirlineCode;
 import models.Airport;
 import org.springframework.stereotype.Service;
 import play.Logger;
+import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.StringUtility;
 
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,10 +31,10 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class TravelPortFlightSearch implements FlightSearch{
+public class TravelPortFlightSearch /*implements FlightSearch*/{
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
-    public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException {
+    public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException, IOException {
         Logger.info("[TravelPort] search called at " + new Date());
 
         SearchResponse seamanResponse = null;
@@ -45,12 +43,9 @@ public class TravelPortFlightSearch implements FlightSearch{
         Logger.info("[Travelport] Starting non-seaman search");
         nonSeamanResponse = search(searchParameters, "nonseaman");
         Logger.info("[Travelport] End non-seaman search. Response size: "+ nonSeamanResponse.getAirSolution().getFlightItineraryList().size() );
-        /*if(seamanResponse.getAirSolution().getFlightItineraryList().size() > 0){
-            System.out.print("bs");
-        }*/
+
         if (searchParameters.getBookingType()==BookingType.SEAMEN){
             Logger.info("[Travelport] Starting seaman search.");
-
             seamanResponse = search(searchParameters, "seaman");
             Logger.info("[Travelport] End seaman search. Response size: "+ seamanResponse.getAirSolution().getFlightItineraryList().size());
         }
@@ -58,6 +53,10 @@ public class TravelPortFlightSearch implements FlightSearch{
         SearchResponse finalResponse = mergeResponse(nonSeamanResponse, seamanResponse);
 
         finalResponse.setProvider("Travelport");
+        File file = new File("travelport-roundtrip.json");
+        FileOutputStream os = new FileOutputStream(file);
+        PrintStream out = new PrintStream(os);
+        out.print(Json.toJson(finalResponse));
         return finalResponse;
 
     }
@@ -67,7 +66,7 @@ public class TravelPortFlightSearch implements FlightSearch{
         return "Travelport";
     }
 
-    private SearchResponse mergeResponse(SearchResponse nonSeamanResponse, SearchResponse seamanResponse) {
+    /*private SearchResponse mergeResponse(SearchResponse nonSeamanResponse, SearchResponse seamanResponse) {
         if (seamanResponse == null)
             return nonSeamanResponse;
         for(FlightItinerary seamanFlightItinerary : seamanResponse.getAirSolution().getFlightItineraryList()) {
@@ -101,6 +100,50 @@ public class TravelPortFlightSearch implements FlightSearch{
         }
         return seamanResponse;
     }
+*/
+    private SearchResponse mergeResponse(SearchResponse nonSeamanResponse, SearchResponse seamanResponse) throws FileNotFoundException {
+        if (seamanResponse == null)
+            return nonSeamanResponse;
+        Map<Integer,FlightItinerary> seamenFlightItineraryMap=new HashMap();
+        Map<Integer,FlightItinerary> nonSeamenFlightItineraryMap=new HashMap();
+        //TODO-use merge sort later for efficiency
+        for(FlightItinerary seamanFlightItinerary : seamanResponse.getAirSolution().getFlightItineraryList()){
+            seamenFlightItineraryMap.put(seamanFlightItinerary.hashCode(), seamanFlightItinerary);
+        }
+        for(FlightItinerary seamanFlightItinerary : nonSeamanResponse.getAirSolution().getFlightItineraryList()){
+            nonSeamenFlightItineraryMap.put(seamanFlightItinerary.hashCode(),seamanFlightItinerary);
+        }
+        for(Integer hashCode : seamenFlightItineraryMap.keySet()) {
+            FlightItinerary seamenItinerary = null;
+            if(nonSeamenFlightItineraryMap.containsKey(hashCode)){
+                seamenItinerary=nonSeamenFlightItineraryMap.get(hashCode);
+                seamenItinerary.setPriceOnlyPTC(true);
+                seamenItinerary.setSeamanPricingInformation(seamenFlightItineraryMap.get(hashCode).getPricingInformation());
+                nonSeamenFlightItineraryMap.put(hashCode,seamenItinerary);
+            }
+        }
+        AirSolution airSolution = new AirSolution();
+        airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(nonSeamenFlightItineraryMap.values()));
+        nonSeamanResponse.setAirSolution(airSolution);
+        File file = new File("travelport-airsolution-roundtrip.json");
+        File seamen = new File("travelport-seamen-roundtrip.json");
+        File nonseamen = new File("travelport-nonseamen-roundtrip.json");
+
+        FileOutputStream os = new FileOutputStream(file);
+        FileOutputStream sos = new FileOutputStream(seamen);
+        FileOutputStream nsos = new FileOutputStream(nonseamen);
+
+        PrintStream out = new PrintStream(os);
+        PrintStream sout = new PrintStream(sos);
+        PrintStream nout = new PrintStream(nsos);
+
+        out.print(Json.toJson(nonSeamenFlightItineraryMap));
+        sout.print(Json.toJson(seamenFlightItineraryMap));
+        nout.print(Json.toJson(nonSeamanResponse));
+
+        return nonSeamanResponse;
+    }
+
 
     private SearchResponse search (SearchParameters searchParameters, String bookingtype) throws IncompleteDetailsMessage, RetryException {
         searchParameters.setSearchBookingType(bookingtype);
@@ -288,7 +331,7 @@ public class TravelPortFlightSearch implements FlightSearch{
                     airSegmentInformation.setAirSegmentKey(airSegment.getKey());
 
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList().add(airSegmentInformation);
-                    flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline );
+                    flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline);
 
                 }
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setTravelTime(journey.getTravelTime());

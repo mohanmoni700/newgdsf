@@ -191,7 +191,16 @@ public class LowFareRequestClient extends TravelPortClient {
         legs.add(outbound);
 
         if (searchParameters.getWithReturnJourney()){
-            TypeSearchAirLeg returnLeg = buildLeg(searchParameters);
+            SearchParameters returnParameters=new SearchParameters();
+            returnParameters=searchParameters.clone();
+            String origin=searchParameters.getOrigin();
+            String destination=searchParameters.getDestination();
+            returnParameters.setFromDate(searchParameters.getReturnDate());
+            returnParameters.setReturnDate(searchParameters.getFromDate());
+            returnParameters.setOrigin(destination);
+            returnParameters.setDestination(origin);
+
+            TypeSearchAirLeg returnLeg = buildLeg(returnParameters);
             legs.add(returnLeg);
         }
 

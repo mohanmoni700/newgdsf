@@ -228,7 +228,6 @@ public class FlightSearchWrapper {
     private void setCacheValue(String key, String value){
         redisTemplate.opsForValue().set( key, value );
         redisTemplate.expire( key,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS );
-
     }
 
 }

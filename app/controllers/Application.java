@@ -28,17 +28,19 @@ public class Application {
     private BookingServiceWrapper bookingService;
 
     public Result flightSearch(){
-        //SearchParameters searchParameters = new Gson().fromJson(request().body().asText(), SearchParameters.class);
         System.out.println("Request recieved");
         JsonNode json = request().body().asJson();
 
         SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         System.out.println("SearchParamerters: " + json.toString());
         List<SearchResponse> responseList =  flightSearchWrapper.search(searchParameters);
+        return Controller.ok(Json.toJson(searchParameters.redisKey()));
+
+
+
+//        Controller.response().setHeader("Access-Control-Allow-Headers", "accept, content-type");
 //        Controller.response().setHeader("Access-Control-Allow-Origin", "*");
 //        Controller.response().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
-//        Controller.response().setHeader("Access-Control-Allow-Headers", "accept, content-type");
-        return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 
 
