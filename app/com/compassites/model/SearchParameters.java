@@ -252,7 +252,7 @@ public class SearchParameters implements Serializable,Cloneable {
         key = key+ this.origin+ this.destination +"ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+
                 journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+ this.cabinClass;
         key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + this.preferredAirlines;
-        key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType;
+        key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType+"JT"+this.journeyType;
         return key;
     }
 
