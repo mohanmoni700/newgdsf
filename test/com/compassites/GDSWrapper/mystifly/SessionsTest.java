@@ -11,7 +11,7 @@ public class SessionsTest {
 	public void test() {
 		SessionsHandler sessionHandler = new SessionsHandler();
 		sessionHandler.login();
-		assertNotNull(sessionHandler.getSessionRS().getSessionId());
+		assertNotNull(sessionHandler.login().getSessionId());
 	}
 
 }

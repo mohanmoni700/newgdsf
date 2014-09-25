@@ -35,12 +35,6 @@ public class Application {
         System.out.println("SearchParamerters: " + json.toString());
         List<SearchResponse> responseList =  flightSearchWrapper.search(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
-
-
-
-//        Controller.response().setHeader("Access-Control-Allow-Headers", "accept, content-type");
-//        Controller.response().setHeader("Access-Control-Allow-Origin", "*");
-//        Controller.response().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
     }
 
 

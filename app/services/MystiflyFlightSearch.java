@@ -79,12 +79,14 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 			AirItineraryPricingInfo airlinePricingInfo = pricedItinerary
 					.getAirItineraryPricingInfo();
+			
 			PricingInformation pricingInfo = setPricingInformtions(airlinePricingInfo);
 			flightItinerary.setPricingInformation(pricingInfo);
 
 			ArrayOfOriginDestinationOption arrayOfOriginDestinationOptions = pricedItinerary
 					.getOriginDestinationOptions();
 			List<Journey> journies = addJournies(arrayOfOriginDestinationOptions);
+			flightItinerary.setFareSourceCode(airlinePricingInfo.getFareSourceCode());
 			flightItinerary.setJourneyList(journies);
 			flightItineraryList.add(flightItinerary);
 		}
@@ -95,10 +97,15 @@ public class MystiflyFlightSearch implements FlightSearch {
 			AirItineraryPricingInfo airlinePricingInfo) {
 		ItinTotalFare itinTotalFare = airlinePricingInfo.getItinTotalFare();
 		PricingInformation pricingInfo = new PricingInformation();
-		pricingInfo.setBasePrice(itinTotalFare.getBaseFare().getAmount());
 		pricingInfo.setCurrency(itinTotalFare.getBaseFare().getCurrencyCode());
-		pricingInfo.setTax(itinTotalFare.getTotalTax().getAmount());
-		pricingInfo.setTotalPrice(itinTotalFare.getTotalFare().getAmount());
+		
+		// TODO: Fix decimals.
+		String baseFare = itinTotalFare.getBaseFare().getAmount();
+		pricingInfo.setBasePrice(baseFare.substring(0, baseFare.length() - 3));
+		String tax = itinTotalFare.getTotalTax().getAmount();
+		pricingInfo.setTax(tax.substring(0, tax.length() - 3));
+		String total = itinTotalFare.getTotalFare().getAmount();
+		pricingInfo.setTotalPrice(total.substring(0, total.length() - 3));
 		return pricingInfo;
 	}
 
@@ -147,7 +154,8 @@ public class MystiflyFlightSearch implements FlightSearch {
 			airSegmentInfo.setFlightNumber(airline.getFlightNumber());
 
 			// What is MarketingAirlineCode?
-			airSegmentInfo.setCarrierCode(airline.getCode());
+			airSegmentInfo.setCarrierCode(flightSegment.getMarketingAirlineCode());
+//			airSegmentInfo.setCarrierCode(airline.getCode());
 			airSegmentInfo.setFromAirport(Airport.getAiport(flightSegment
 					.getDepartureAirportLocationCode()));
 			// TODO: Check timezone

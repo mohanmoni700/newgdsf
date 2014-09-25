@@ -16,7 +16,9 @@ public class BookingServiceWrapper {
 
     @Autowired
     private TravelportBookingServiceImpl travelPortBookingService;
-
+    
+    @Autowired
+    private MystiflyBookingServiceImpl mystiflyBookingService;
 
     public AmadeusBookingServiceImpl getAmadeusBookingService() {
         return amadeusBookingService;
@@ -29,24 +31,26 @@ public class BookingServiceWrapper {
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
         String provider = travellerMasterInfo.getItinerary().getProvider();
         PNRResponse pnrResponse = null;
-        if("Travelport".equalsIgnoreCase(provider)){
-            pnrResponse  = travelPortBookingService.generatePNR(travellerMasterInfo);
-        }else{
-            pnrResponse  = amadeusBookingService.generatePNR(travellerMasterInfo);
+        if("Travelport".equalsIgnoreCase(provider)) {
+            pnrResponse = travelPortBookingService.generatePNR(travellerMasterInfo);
+        } else if ("Amadeus".equalsIgnoreCase(provider)) {
+            pnrResponse = amadeusBookingService.generatePNR(travellerMasterInfo);
+        } else {
+        	pnrResponse = mystiflyBookingService.generatePNR(travellerMasterInfo);
         }
-
         return pnrResponse;
     }
 
     public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
         String provider = travellerMasterInfo.getItinerary().getProvider();
         PNRResponse pnrResponse = null;
-        if("Travelport".equalsIgnoreCase(provider)){
-            pnrResponse  = travelPortBookingService.priceChangePNR(travellerMasterInfo);
-        }else{
-            pnrResponse  = amadeusBookingService.priceChangePNR(travellerMasterInfo);
+        if("Travelport".equalsIgnoreCase(provider)) {
+            pnrResponse = travelPortBookingService.priceChangePNR(travellerMasterInfo);
+        } else if ("Amadeus".equalsIgnoreCase(provider)) {
+        	pnrResponse = amadeusBookingService.priceChangePNR(travellerMasterInfo);
+		} else {
+			pnrResponse = mystiflyBookingService.priceChangePNR(travellerMasterInfo);
         }
-
         return pnrResponse;
     }
 

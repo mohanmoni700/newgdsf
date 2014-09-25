@@ -35,8 +35,7 @@ public class LowFareRequestClient {
 
 	public AirLowFareSearchRS search(SearchParameters searchParams) {
 		SessionsHandler sessionsHandler = new SessionsHandler();
-		sessionsHandler.login();
-		SessionCreateRS sessionRQ = sessionsHandler.getSessionRS();
+		SessionCreateRS sessionRS = sessionsHandler.login();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
 		AirLowFareSearchDocument airLowFareSearchDocument = AirLowFareSearchDocument.Factory
@@ -45,7 +44,7 @@ public class LowFareRequestClient {
 				.addNewAirLowFareSearch();
 		AirLowFareSearchRQ airLowFareSearchRQ = airLowFareSearch.addNewRq();
 
-		airLowFareSearchRQ.setSessionId(sessionRQ.getSessionId());
+		airLowFareSearchRQ.setSessionId(sessionRS.getSessionId());
 		airLowFareSearchRQ.setIsRefundable(searchParams.getRefundableFlights());
 
 		ArrayOfOriginDestinationInformation originDestinationInformations = airLowFareSearchRQ
