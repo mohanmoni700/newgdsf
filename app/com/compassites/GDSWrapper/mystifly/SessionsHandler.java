@@ -28,6 +28,8 @@ public class SessionsHandler {
 			Options options = onePointStub._getServiceClient().getOptions();
 			options.setProperty(HTTPConstants.HTTP_PROTOCOL_VERSION,
 					HTTPConstants.HEADER_PROTOCOL_10);
+			options.setTimeOutInMilliSeconds(180000);
+
 		} catch (AxisFault e) {
 			// TODO: Log Error
 			e.printStackTrace();
