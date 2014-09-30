@@ -1,11 +1,6 @@
 package com.compassites.GDSWrapper.mystifly;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.rmi.RemoteException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -70,29 +65,11 @@ public class BookFlightClient {
 			// TODO: Set dynamic values
 			travelerInfo.setAreaCode("809");
 			travelerInfo.setCountryCode("91");
-
 			airBookRQ.setTarget(Target.TEST);
+
 			BookFlightResponseDocument rsDoc = onePointStub
 					.bookFlight(bookFlightDocument);
 			airBookRS = rsDoc.getBookFlightResponse().getBookFlightResult();
-
-			// Log to file
-			String filename = "/home/santhosh/BookRS-"
-					+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-							.format(Calendar.getInstance().getTime()) + ".xml";
-			File logFile = new File(filename);
-			BufferedWriter writer;
-			try {
-				writer = new BufferedWriter(new FileWriter(logFile));
-				writer.write(rsDoc.xmlText());
-				writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			// End of Log to file
-
-			// } catch (AxisFault e) {
-			// e.printStackTrace();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
