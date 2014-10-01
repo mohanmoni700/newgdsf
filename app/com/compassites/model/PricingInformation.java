@@ -12,10 +12,11 @@ public class PricingInformation {
     private String totalPrice;
     private String currency;
     private Long totalPriceValue;
-    private List<FareJourney> fareJourneyList;
+
+    private List<PAXFareDetails> paxFareDetailsList;
 
     public PricingInformation() {
-        fareJourneyList = new ArrayList<>();
+        paxFareDetailsList= new ArrayList<>();
     }
 
     public String getBasePrice() {
@@ -58,16 +59,11 @@ public class PricingInformation {
         this.totalPriceValue = totalPriceValue;
     }
 
-    public List<FareJourney> getFareJourneyList() {
-        return fareJourneyList;
+    public List<PAXFareDetails> getPaxFareDetailsList() {
+        return paxFareDetailsList;
     }
 
-    public void setFareJourneyList(List<FareJourney> fareJourneyList) {
-        this.fareJourneyList = fareJourneyList;
-    }
-
-    public void addBlankFareJourney(){
-        FareJourney fareJourney = new FareJourney();
-        fareJourneyList.add(fareJourney);
+    public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
+        this.paxFareDetailsList = paxFareDetailsList;
     }
 }

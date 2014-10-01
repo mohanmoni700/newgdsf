@@ -65,7 +65,7 @@ public class PNRAddMultiElementsh {
             TravellerInfo travellerInfo = new TravellerInfo();
             ElementManagementPassenger emp = new ElementManagementPassenger();
             ElementManagementPassenger.Reference rf = new ElementManagementPassenger.Reference();
-            rf.setNumber(String.valueOf(passengerCount));
+            rf.setNumber(String.valueOf(passengerCount++));
             rf.setQualifier("PR");
             emp.setReference(rf);
             emp.setSegmentName("NM");

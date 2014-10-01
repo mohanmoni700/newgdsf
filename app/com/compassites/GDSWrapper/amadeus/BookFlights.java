@@ -38,11 +38,11 @@ public class BookFlights {
         FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
         for(int i=0;i < flightItinerary.getJourneyList().size();i++){
             Journey journey = flightItinerary.getJourneyList().get(i);
-            FareJourney fareJourney;
+            FareJourney fareJourney = null;
             if(travellerMasterInfo.isSeamen()){
-                fareJourney = flightItinerary.getSeamanPricingInformation().getFareJourneyList().get(i);
+                fareJourney = flightItinerary.getSeamanPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
             }else {
-                fareJourney = flightItinerary.getPricingInformation().getFareJourneyList().get(i);
+                fareJourney = flightItinerary.getPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
             }
             if(journey.getAirSegmentList().size() > 0){
                 sfr.getItineraryDetails().add(createItineraryDetails(journey,fareJourney));

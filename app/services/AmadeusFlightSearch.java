@@ -252,10 +252,12 @@ public class AmadeusFlightSearch implements FlightSearch{
                 FlightItinerary flightItinerary = new FlightItinerary();
                 flightItinerary.setProvider("Amadeus");
                 //pricing information
+                List<FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares> groupOfFaresList = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getGroupOfFares();
                 FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct = recommendation.getPaxFareProduct().get(0);
                 flightItinerary.setPricingInformation(setPricingInformation(paxFareProduct.getPaxFareDetail().getTotalTaxAmount(), paxFareProduct.getPaxFareDetail().getTotalFareAmount(), currency));
-
+                flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation));
                 //journey information
+
                 flightItinerary=createJourneyInformation(segmentRef,flightItinerary);
                 flightItineraryList.add(flightItinerary);
             }
@@ -463,5 +465,25 @@ public class AmadeusFlightSearch implements FlightSearch{
         airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(allFaresHash.values()));
         searchResponse.setAirSolution(airSolution);
         return searchResponse;
+    }
+
+
+    private List<PAXFareDetails> createFareDetails(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation){
+        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
+        for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct :recommendation.getPaxFareProduct()){
+            PAXFareDetails paxFareDetails = new PAXFareDetails();
+            for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails :paxFareProduct.getFareDetails()){
+                FareJourney fareJourney = new FareJourney();
+                for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares: fareDetails.getGroupOfFares()){
+                    FareSegment fareSegment = new FareSegment();
+                    fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
+                    paxFareDetails.setPassengerTypeCode(PassengerTypeCode.valueOf(groupOfFares.getProductInformation().getFareProductDetail().getPassengerType()));
+                    fareJourney.getFareSegmentList().add(fareSegment);
+                }
+                paxFareDetails.getFareJourneyList().add(fareJourney);
+            }
+            paxFareDetailsList.add(paxFareDetails);
+        }
+        return paxFareDetailsList;
     }
 }
