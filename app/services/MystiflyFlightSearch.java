@@ -107,6 +107,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		pricingInfo.setTax(tax.substring(0, tax.length() - 3));
 		String total = itinTotalFare.getTotalFare().getAmount();
 		pricingInfo.setTotalPrice(total.substring(0, total.length() - 3));
+		pricingInfo.setTotalPriceValue(Long.parseLong(pricingInfo.getTotalPrice()));
 		return pricingInfo;
 	}
 
