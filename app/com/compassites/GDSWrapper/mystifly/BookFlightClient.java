@@ -63,8 +63,8 @@ public class BookFlightClient {
 			travelerInfo.setEmail(addInfo.getEmail());
 
 			// TODO: Set dynamic values
-			travelerInfo.setAreaCode("809");
-			travelerInfo.setCountryCode("91");
+//			travelerInfo.setAreaCode("809");
+//			travelerInfo.setCountryCode("91");
 			airBookRQ.setTarget(Target.TEST);
 
 			BookFlightResponseDocument rsDoc = onePointStub
