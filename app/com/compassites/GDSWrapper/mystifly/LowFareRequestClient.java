@@ -1,31 +1,18 @@
 package com.compassites.GDSWrapper.mystifly;
 
-import java.rmi.RemoteException;
-import java.util.Calendar;
-import java.util.List;
-
+import com.compassites.model.Passenger;
+import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.SearchParameters;
 import onepoint.mystifly.AirLowFareSearchDocument;
 import onepoint.mystifly.AirLowFareSearchDocument.AirLowFareSearch;
 import onepoint.mystifly.AirLowFareSearchResponseDocument;
 import onepoint.mystifly.OnePointStub;
-
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRQ;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripType;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationInformation;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPassengerTypeQuantity;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.CabinType;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.MaxStopsQuantity.Enum;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationInformation;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerType;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantity;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelPreferences;
 
-import com.compassites.model.JourneyType;
-import com.compassites.model.Passenger;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.SearchParameters;
+import java.rmi.RemoteException;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * 
@@ -52,7 +39,7 @@ public class LowFareRequestClient {
 		OriginDestinationInformation onwardTrip = originDestinationInformations
 				.addNewOriginDestinationInformation();
 		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(searchParams.getFromDate());
+		/*calendar.setTime(searchParams.getFromDate());
 		onwardTrip.setDepartureDateTime(calendar);
 		onwardTrip.setOriginLocationCode(searchParams.getOrigin());
 		onwardTrip.setDestinationLocationCode(searchParams.getDestination());
@@ -64,7 +51,7 @@ public class LowFareRequestClient {
 			returnTrip.setDepartureDateTime(calendar);
 			returnTrip.setOriginLocationCode(searchParams.getDestination());
 			returnTrip.setDestinationLocationCode(searchParams.getOrigin());
-		}
+		}*/
 
 		// Set passenger info
 		ArrayOfPassengerTypeQuantity passengers = airLowFareSearchRQ

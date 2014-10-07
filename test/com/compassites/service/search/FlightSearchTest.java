@@ -1,3 +1,4 @@
+/*
 package com.compassites.service.search;
 
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
@@ -18,13 +19,15 @@ import java.util.Properties;
 import static junit.framework.TestCase.assertNotNull;
 import static play.test.Helpers.fakeApplication;
 
+*/
 /**
  * Created with IntelliJ IDEA.
  * User: Renu
  * Date: 5/23/14
  * Time: 4:03 PM
  * To change this template use File | Settings | File Templates.
- */
+ *//*
+
 public class FlightSearchTest extends WithApplication {
     @Before
     public void setUp() {
@@ -138,3 +141,4 @@ public class FlightSearchTest extends WithApplication {
 
 
 }
+*/

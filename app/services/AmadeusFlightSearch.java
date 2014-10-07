@@ -266,14 +266,17 @@ public class AmadeusFlightSearch implements FlightSearch{
     }
 
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef,FlightItinerary flightItinerary){
-        Journey forwardJourney=new Journey();
-        Journey returnJourney=new Journey();
+        /*Journey forwardJourney=new Journey();
+        Journey returnJourney=new Journey();*/
         int flightIndexNumber=0;
         for(ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
             //0 is for forward journey and refQualifier should be S for segment
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
-                flightItinerary.getJourneyList().add(setJourney(flightIndexNumber == 0 ? forwardJourney : returnJourney, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
-                flightIndexNumber = ++flightIndexNumber % 2;
+                Journey journey=new Journey();
+                flightItinerary.getJourneyList().add(setJourney(journey,flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
+                //flightItinerary.getJourneyList().add(setJourney(flightIndexNumber == 0 ? forwardJourney : returnJourney, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
+                //flightIndexNumber = ++flightIndexNumber % 2;
+                ++flightIndexNumber;
             }
         }
         return flightItinerary;

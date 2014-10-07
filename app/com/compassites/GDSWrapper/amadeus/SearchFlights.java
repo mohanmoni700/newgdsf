@@ -46,11 +46,7 @@ public class SearchFlights {
         se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
 
         se.getPaxReference().addAll(createPassengers(searchParameters));
-        switch (searchParameters.getJourneyType()){
-            case ONE_WAY:se.getItinerary().add(createOneWayItinerary(searchParameters));break;
-            case ROUND_TRIP:se.getItinerary().addAll(createRoundTripItinerary(searchParameters));break;
-            default:break;
-        }
+        se.getItinerary().addAll(createItinerary(searchParameters));
 
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
@@ -228,39 +224,20 @@ public class SearchFlights {
         return itinerary;
     }
 
-    private List<FareMasterPricerTravelBoardSearch.Itinerary> createRoundTripItinerary(SearchParameters searchParameters){
+    private List<FareMasterPricerTravelBoardSearch.Itinerary> createItinerary(SearchParameters searchParameters){
         List<FareMasterPricerTravelBoardSearch.Itinerary> itineraryList=new ArrayList<>();
-
-        FareMasterPricerTravelBoardSearch.Itinerary forwardItinerary=new FareMasterPricerTravelBoardSearch.Itinerary();
-        setItineraryLocationDetails(forwardItinerary,new BigInteger(Integer.toString(1)),searchParameters.getOrigin(),searchParameters.getDestination());
-        forwardItinerary.setTimeDetails(setDateAndTimeInformationType(DateType.ARRIVAL,mapDate(searchParameters.getFromDate())));
-
-        FareMasterPricerTravelBoardSearch.Itinerary returnItinerary=new FareMasterPricerTravelBoardSearch.Itinerary();
-        setItineraryLocationDetails(returnItinerary,new BigInteger(Integer.toString(1)),searchParameters.getDestination(),searchParameters.getOrigin());
-        returnItinerary.setTimeDetails(setDateAndTimeInformationType(DateType.ARRIVAL,mapDate(searchParameters.getReturnDate())));
-
-        TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
-        if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
-            setTransitPoint(searchParameters.getTransit(),fi,forwardItinerary);
-            setTransitPoint(searchParameters.getTransit(),fi,returnItinerary);
+        int counter=1;
+        for(SearchJourney searchJourney:searchParameters.getJourneyList()){
+            FareMasterPricerTravelBoardSearch.Itinerary itinerary=new FareMasterPricerTravelBoardSearch.Itinerary();
+            setItineraryLocationDetails(itinerary,new BigInteger(Integer.toString(counter++)),searchJourney.getOrigin(),searchJourney.getDestination());
+            itinerary.setTimeDetails(setDateAndTimeInformationType(DateType.ARRIVAL,mapDate(searchJourney.getTravelDate())));
+            if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
+                TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
+                setTransitPoint(searchParameters.getTransit(),fi,itinerary);
+            }
+            itineraryList.add(itinerary);
         }
-
-        itineraryList.add(forwardItinerary);
-        itineraryList.add(returnItinerary);
-
         return itineraryList;
-    }
-
-    private FareMasterPricerTravelBoardSearch.Itinerary createOneWayItinerary(SearchParameters searchParameters){
-        FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
-        setItineraryLocationDetails(idt,new BigInteger(Integer.toString(1)),searchParameters.getOrigin(),searchParameters.getDestination());
-        idt.setTimeDetails(setDateAndTimeInformationType(searchParameters.getDateType(),mapDate(searchParameters.getFromDate())));
-
-        TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
-        if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
-            setTransitPoint(searchParameters.getTransit(),fi,idt);
-        }
-        return idt;
     }
 
     private void setTransitPoint(String transitPoint,TravelFlightInformationType141002S fi,FareMasterPricerTravelBoardSearch.Itinerary idt){
