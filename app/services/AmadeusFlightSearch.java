@@ -368,12 +368,12 @@ public class AmadeusFlightSearch implements FlightSearch{
         return airSegmentInformation;
     }
 
-    private PricingInformation setPricingInformation(BigDecimal baseAmount, BigDecimal taxAmount, String currency) {
+    private PricingInformation setPricingInformation(BigDecimal taxAmount, BigDecimal totalAmount, String currency) {
         PricingInformation pricingInformation = new PricingInformation();
-        pricingInformation.setBasePrice(baseAmount.toString());
+        pricingInformation.setBasePrice(totalAmount.subtract(taxAmount).toString());
         pricingInformation.setTax(taxAmount.toString());
-        pricingInformation.setTotalPrice(taxAmount.add(baseAmount).toString());
-        pricingInformation.setTotalPriceValue(taxAmount.add(baseAmount).longValue());
+        pricingInformation.setTotalPrice(totalAmount.toString());
+        pricingInformation.setTotalPriceValue(totalAmount.longValue());
         pricingInformation.setCurrency(currency);
         return pricingInformation;
     }
