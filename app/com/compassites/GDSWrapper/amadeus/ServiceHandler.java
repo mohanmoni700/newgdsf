@@ -3,17 +3,20 @@ package com.compassites.GDSWrapper.amadeus;
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
 import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply;
+import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
+import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
+import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
-import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import utils.JSONFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
@@ -63,20 +66,45 @@ public class ServiceHandler {
         return mPortType.fareMasterPricerTravelBoardSearch(new SearchFlights().createSearchQuery(searchParameters), mSession.getSession());
     }
     
-    public AirSellFromRecommendationReply sellFromRecommendation(FlightItinerary flightItinerary ) {
+    public AirSellFromRecommendationReply checkFlightAvailability(TravellerMasterInfo travellerMasterInfo) {
         mSession.incrementSequenceNumber();
-        return mPortType.airSellFromRecommendation(new BookFlights().sellFromRecommendation(flightItinerary), mSession.getSession());
+        AirSellFromRecommendation sellFromRecommendation = new BookFlights().sellFromRecommendation(travellerMasterInfo);
+
+        JSONFileUtility.createJsonFile(sellFromRecommendation,"sellFromRecommendationReq.json");
+
+        AirSellFromRecommendationReply sellFromRecommendationReply = mPortType.airSellFromRecommendation(sellFromRecommendation, mSession.getSession());
+
+        JSONFileUtility.createJsonFile(sellFromRecommendationReply,"sellFromRecommendationRes.json");
+
+        return   sellFromRecommendationReply;
     }
 
-    public PNRReply addMultiElementsToPNR1(TravellerMasterInfo travellerMasterInfo){
+    public PNRReply addTravellerInfoToPNR(TravellerMasterInfo travellerMasterInfo){
         mSession.incrementSequenceNumber();
-        return mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo), mSession.getSession());
+
+        PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo);
+
+
+        JSONFileUtility.createJsonFile(pnrAddMultiElements,"pnrAddMultiElementsReq.json");
+        PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
+
+
+        JSONFileUtility.createJsonFile(pnrReply,"pnrAddMultiElementsRes.json");
+        return  pnrReply;
     }
 
     //pricing transaction
-    public FarePricePNRWithBookingClassReply pricePNR() {
+    public FarePricePNRWithBookingClassReply pricePNR(TravellerMasterInfo travellerMasterInfo, PNRReply pnrReply) {
         mSession.incrementSequenceNumber();
-        return mPortType.farePricePNRWithBookingClass(new PricePNR().getPNRPricingOption(), mSession.getSession());
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(travellerMasterInfo, pnrReply);
+
+        JSONFileUtility.createJsonFile(pricePNRWithBookingClass,"pricePNRWithBookingClassReq.json");
+
+        FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply = mPortType.farePricePNRWithBookingClass(pricePNRWithBookingClass, mSession.getSession());
+
+        JSONFileUtility.createJsonFile(pricePNRWithBookingClassReply,"pricePNRWithBookingClassRes.json");
+
+        return pricePNRWithBookingClassReply;
     }
 
     public TicketCreateTSTFromPricingReply createTST() {

@@ -1,6 +1,7 @@
 package com.compassites.model.traveller;
 
 
+import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
 
 import java.util.ArrayList;
@@ -16,6 +17,10 @@ public class TravellerMasterInfo {
     private AdditionalInfo additionalInfo;
 
     private FlightItinerary itinerary;
+
+    private boolean seamen;
+
+    private CabinClass cabinClass;
 
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
@@ -43,5 +48,21 @@ public class TravellerMasterInfo {
 
     public void setItinerary(FlightItinerary itinerary) {
         this.itinerary = itinerary;
+    }
+
+    public boolean isSeamen() {
+        return seamen;
+    }
+
+    public void setSeamen(boolean seamen) {
+        this.seamen = seamen;
+    }
+
+    public CabinClass getCabinClass() {
+        return cabinClass;
+    }
+
+    public void setCabinClass(CabinClass cabinClass) {
+        this.cabinClass = cabinClass;
     }
 }

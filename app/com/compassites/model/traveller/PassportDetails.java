@@ -27,6 +27,8 @@ public class PassportDetails extends Model implements Serializable{
     private Date dateOfIssue;
     @Column(name="date_of_expiry")
     private Date dateOfExpiry;
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
 
     public Integer getId() {
         return Id;
@@ -74,5 +76,13 @@ public class PassportDetails extends Model implements Serializable{
 
     public void setPassportNumber(String passportNumber) {
         this.passportNumber = passportNumber;
+    }
+
+    public Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 }

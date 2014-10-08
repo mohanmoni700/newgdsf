@@ -12,23 +12,46 @@ import org.springframework.stereotype.Service;
 public class BookingServiceWrapper {
 
     @Autowired
-    private AmadeusBookinServiceImpl amadeusBookinService;
+    private AmadeusBookingServiceImpl amadeusBookingService;
 
-    public AmadeusBookinServiceImpl getAmadeusBookinService() {
-        return amadeusBookinService;
+    @Autowired
+    private TravelportBookingServiceImpl travelPortBookingService;
+    
+    @Autowired
+    private MystiflyBookingServiceImpl mystiflyBookingService;
+
+    public AmadeusBookingServiceImpl getAmadeusBookingService() {
+        return amadeusBookingService;
     }
 
-    public void setAmadeusBookinService(AmadeusBookinServiceImpl amadeusBookinService) {
-        this.amadeusBookinService = amadeusBookinService;
+    public void setAmadeusBookingService(AmadeusBookingServiceImpl amadeusBookingService) {
+        this.amadeusBookingService = amadeusBookingService;
     }
 
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
-
-        PNRResponse pnrResponse = amadeusBookinService.generatePNR(travellerMasterInfo);
-
+        String provider = travellerMasterInfo.getItinerary().getProvider();
+        PNRResponse pnrResponse = null;
+        if("Travelport".equalsIgnoreCase(provider)) {
+            pnrResponse = travelPortBookingService.generatePNR(travellerMasterInfo);
+        } else if ("Amadeus".equalsIgnoreCase(provider)) {
+            pnrResponse = amadeusBookingService.generatePNR(travellerMasterInfo);
+        } else {
+        	pnrResponse = mystiflyBookingService.generatePNR(travellerMasterInfo);
+        }
         return pnrResponse;
     }
 
-
+    public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
+        String provider = travellerMasterInfo.getItinerary().getProvider();
+        PNRResponse pnrResponse = null;
+        if("Travelport".equalsIgnoreCase(provider)) {
+            pnrResponse = travelPortBookingService.priceChangePNR(travellerMasterInfo);
+        } else if ("Amadeus".equalsIgnoreCase(provider)) {
+        	pnrResponse = amadeusBookingService.priceChangePNR(travellerMasterInfo);
+		} else {
+			pnrResponse = mystiflyBookingService.priceChangePNR(travellerMasterInfo);
+        }
+        return pnrResponse;
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
@@ -11,14 +12,20 @@ import java.util.List;
 /**
  * Created by Renu on 7/18/14.
  */
-public class Journey{
+public class Journey
+{
 
     private Duration travelTime;
     private String travelTimeStr;
     private Long travelTimeMillis;
     private String airlinesStrForFilter;
     private Integer noOfStops;
+    @JsonIgnore
+    private Integer hashCode;
 
+    public Integer getHashCode() {
+        return hashCode;
+    }
     @Property
     private List<AirSegmentInformation> airSegmentList;
     public Journey(){
@@ -26,16 +33,18 @@ public class Journey{
     }
 
     public List<AirSegmentInformation> getAirSegmentList() {
+        this.hashCode=hashCode();
         return airSegmentList;
     }
 
     public void setAirSegmentList(List<AirSegmentInformation> airSegmentList) {
+        this.hashCode=hashCode();
         this.airSegmentList = airSegmentList;
     }
+
     public Duration getTravelTime() {
         return travelTime;
     }
-
     public void setTravelTime(Duration travelTime) {
         this.travelTime = travelTime;
         this.setTravelTimeStr();

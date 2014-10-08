@@ -11,6 +11,16 @@ public class PNRResponse {
 
     private String validTillDate;
 
+    private boolean isPriceChanged;
+
+    private boolean isFlightAvailable;
+
+    private Long originalPrice;
+
+    private Long changedPrice;
+
+    private String priceChangeKey;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -33,5 +43,45 @@ public class PNRResponse {
 
     public void setValidTillDate(String validTillDate) {
         this.validTillDate = validTillDate;
+    }
+
+    public boolean isPriceChanged() {
+        return isPriceChanged;
+    }
+
+    public void setPriceChanged(boolean isPriceChanged) {
+        this.isPriceChanged = isPriceChanged;
+    }
+
+    public Long getOriginalPrice() {
+        return originalPrice;
+    }
+
+    public void setOriginalPrice(Long originalPrice) {
+        this.originalPrice = originalPrice;
+    }
+
+    public Long getChangedPrice() {
+        return changedPrice;
+    }
+
+    public void setChangedPrice(Long changedPrice) {
+        this.changedPrice = changedPrice;
+    }
+
+    public boolean isFlightAvailable() {
+        return isFlightAvailable;
+    }
+
+    public void setFlightAvailable(boolean isFlightAvailable) {
+        this.isFlightAvailable = isFlightAvailable;
+    }
+
+    public String getPriceChangeKey() {
+        return priceChangeKey;
+    }
+
+    public void setPriceChangeKey(String priceChangeKey) {
+        this.priceChangeKey = priceChangeKey;
     }
 }

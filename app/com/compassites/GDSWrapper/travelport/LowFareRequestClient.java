@@ -2,6 +2,7 @@ package com.compassites.GDSWrapper.travelport;
 
 import com.compassites.model.DateType;
 import com.compassites.model.Passenger;
+import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -43,8 +45,8 @@ public class LowFareRequestClient extends TravelPortClient {
     static AirService airService = null;
     static AirLowFareSearchPortType airLowFareSearchPortTypePort = null;
 
-    static void  init(){
-        if (airService == null){
+    static void  init() {
+        if (airService == null) {
             java.net.URL url = null;
             try {
                 //String path = new File(".").getCanonicalPath();
@@ -62,29 +64,15 @@ public class LowFareRequestClient extends TravelPortClient {
 
 
         }
-        if (airLowFareSearchPortTypePort == null){
-            airLowFareSearchPortTypePort  = airService.getAirLowFareSearchPort();
+        if (airLowFareSearchPortTypePort == null) {
+            airLowFareSearchPortTypePort = airService.getAirLowFareSearchPort();
             LogFactory.getLog(AirRequestClient.class).info("Initializing AirAvailabilitySearchPortType....");
             setRequestContext((BindingProvider) airLowFareSearchPortTypePort, ServiceName);
             LogFactory.getLog(AirRequestClient.class).info("Initialized");
         }
     }
-    public static void addAdultPassengers(BaseLowFareSearchReq request, int n) {
-        for (int i = 0; i < n; ++i) {
-            SearchPassenger adult = new SearchPassenger();
-            adult.setCode("ADT");
-            request.getSearchPassenger().add(adult);
-        }
-    }
 
-    public static void addSeamanPassengers(BaseLowFareSearchReq request, int n) {
-        for (int i = 0; i < n; ++i) {
-            SearchPassenger adult = new SearchPassenger();
-            adult.setCode("SEA");
-            request.getSearchPassenger().add(adult);
-        }
-    }
-
+    //TODO-Remove the age hard coding
     public static LowFareSearchRsp search(String origin,
                                               String destination, String dateOut,
                                               String dateBack, Boolean returnJourney,
@@ -145,17 +133,19 @@ public class LowFareRequestClient extends TravelPortClient {
         AirRequestClient.addPointOfSale(request, "JustOneClick");
     }
 
-    private static TypeSearchAirLeg buildLeg(SearchParameters searchParameters){
-
-        TypeCabinClass cabinClass = TypeCabinClass.valueOf(searchParameters.getCabinClass().upperValue());
-        TypeSearchAirLeg airLeg = createLeg(searchParameters.getOrigin(), searchParameters.getDestination(), cabinClass, searchParameters.getDirectFlights(), searchParameters.getPreferredAirlines(),searchParameters.getTransit());
-        String journeyDate = searchFormat.format(searchParameters.getFromDate());
-        if (searchParameters.getDateType()== DateType.ARRIVAL)
-            addArrivalDate(airLeg, journeyDate);
-        else
-            addDepartureDate(airLeg, journeyDate);
-
-        return airLeg;
+    private static List<TypeSearchAirLeg> buildLeg(SearchParameters searchParameters){
+        List<TypeSearchAirLeg> airLegList=new ArrayList<>();
+        for(SearchJourney journey:searchParameters.getJourneyList()) {
+            TypeCabinClass cabinClass = TypeCabinClass.valueOf(searchParameters.getCabinClass().upperValue());
+            TypeSearchAirLeg airLeg = createLeg(journey.getOrigin(), journey.getDestination(), cabinClass, searchParameters.getDirectFlights(), searchParameters.getPreferredAirlines(), searchParameters.getTransit());
+            String journeyDate = searchFormat.format(journey.getTravelDate());
+            if (searchParameters.getDateType() == DateType.ARRIVAL)
+                addArrivalDate(airLeg, journeyDate);
+            else
+                addDepartureDate(airLeg, journeyDate);
+            airLegList.add(airLeg);
+        }
+        return airLegList;
     }
 
     private static void setPassengerList(LowFareSearchReq request, List<Passenger> passengers, String bookingType){
@@ -185,14 +175,22 @@ public class LowFareRequestClient extends TravelPortClient {
         setDefaultValues(request);
         setPassengerList(request, searchParameters.getPassengers(), searchParameters.getSearchBookingType());
 
-        TypeSearchAirLeg outbound = buildLeg(searchParameters);
         List<TypeSearchAirLeg> legs = request.getSearchAirLeg();
-        legs.add(outbound);
+        legs.addAll(buildLeg(searchParameters));
 
-        if (searchParameters.getWithReturnJourney()){
-            TypeSearchAirLeg returnLeg = buildLeg(searchParameters);
+        /*if (searchParameters.getWithReturnJourney()){
+            SearchParameters returnParameters=new SearchParameters();
+            returnParameters=searchParameters.clone();
+            String origin=searchParameters.getOrigin();
+            String destination=searchParameters.getDestination();
+            returnParameters.setFromDate(searchParameters.getReturnDate());
+            returnParameters.setReturnDate(searchParameters.getFromDate());
+            returnParameters.setOrigin(destination);
+            returnParameters.setDestination(origin);
+
+            TypeSearchAirLeg returnLeg = buildLeg(returnParameters);
             legs.add(returnLeg);
-        }
+        }*/
 
         AirSearchModifiers modifiers = AirRequestClient.createModifiersWithProviders(GDS);
         request.setAirSearchModifiers(modifiers);

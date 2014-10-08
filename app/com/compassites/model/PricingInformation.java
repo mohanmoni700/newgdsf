@@ -1,5 +1,8 @@
 package com.compassites.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by mahendra-singh on 23/5/14.
  */
@@ -10,7 +13,10 @@ public class PricingInformation {
     private String currency;
     private Long totalPriceValue;
 
+    private List<PAXFareDetails> paxFareDetailsList;
+
     public PricingInformation() {
+        paxFareDetailsList= new ArrayList<>();
     }
 
     public String getBasePrice() {
@@ -51,5 +57,13 @@ public class PricingInformation {
 
     public void setTotalPriceValue(Long totalPriceValue) {
         this.totalPriceValue = totalPriceValue;
+    }
+
+    public List<PAXFareDetails> getPaxFareDetailsList() {
+        return paxFareDetailsList;
+    }
+
+    public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
+        this.paxFareDetailsList = paxFareDetailsList;
     }
 }

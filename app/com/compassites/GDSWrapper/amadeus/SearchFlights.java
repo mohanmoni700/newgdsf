@@ -46,7 +46,7 @@ public class SearchFlights {
         se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
 
         se.getPaxReference().addAll(createPassengers(searchParameters));
-        se.getItinerary().add(createItinerary(searchParameters));
+        se.getItinerary().addAll(createItinerary(searchParameters));
 
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
@@ -74,19 +74,7 @@ public class SearchFlights {
             se.setFareOptions(fe1);
         }
 
-        if(searchParameters.getWithReturnJourney()){
-            se.getItinerary().add(createItinerary(searchParameters));
-        }
-
-        //se.setFareOptions(createFareOptions());
-//        TravelFlightInformationType148734S tfi=new TravelFlightInformationType148734S();
-//        CompanyIdentificationType214105C cid=new CompanyIdentificationType214105C();
-//        cid.getCarrierId().add("QR");
-//        cid.setCarrierQualifier("M");
-//        tfi.getCompanyIdentity().add(cid);
-//        se.setTravelFlightInfo(tfi);
-        //System.out.println("Amadeus Request : "+ Json.toJson(se));
-        File file=new File("seamenRequestPA");
+        File file=new File("seamenRequest");
         FileOutputStream os= null;
         try {
             os = new FileOutputStream(file);
@@ -196,48 +184,60 @@ public class SearchFlights {
         return passengers;
     }
 
-    private FareMasterPricerTravelBoardSearch.Itinerary createItinerary(SearchParameters searchParameters){
-        FareMasterPricerTravelBoardSearch.Itinerary idt=new FareMasterPricerTravelBoardSearch.Itinerary();
-        OriginAndDestinationRequestType odrt=new OriginAndDestinationRequestType();
-        odrt.setSegRef(new BigInteger(Integer.toString(1)));
-        idt.setRequestedSegmentRef(odrt);
+    private DepartureLocationType setDepartureLocationType(String origin){
         DepartureLocationType dlt = new DepartureLocationType();
-
         MultiCityOptionType mcot = new MultiCityOptionType();
-        mcot.setLocationId(searchParameters.getOrigin());
+        mcot.setLocationId(origin);
         dlt.getDepMultiCity().add(mcot);
-        idt.setDepartureLocalization(dlt);
+        return dlt;
+    }
+
+    private ArrivalLocalizationType setArrivalLocalizationType(String destination){
         ArrivalLocalizationType alt=new ArrivalLocalizationType();
-        
         MultiCityOptionType mcot1=new MultiCityOptionType();
-
-        mcot1.setLocationId(searchParameters.getDestination());
+        mcot1.setLocationId(destination);
         alt.getArrivalMultiCity().add(mcot1);
+        return alt;
+    }
 
-        idt.setArrivalLocalization(alt);
+    private DateAndTimeInformationType setDateAndTimeInformationType(DateType dateType,String fromDate){
         DateAndTimeInformationType dti = new DateAndTimeInformationType();
         DateAndTimeDetailsTypeI dtit = new DateAndTimeDetailsTypeI();
-        dtit.setTimeQualifier("TD");
-        dtit.setTime("0000");
-        dtit.setDate(mapDate(searchParameters.getFromDate()));
-
-        if (searchParameters.getDateType()== DateType.ARRIVAL) {
+        if (dateType== DateType.ARRIVAL) {
             dtit.setTimeQualifier("TA");
             dtit.setTime("2359");
+        }else {
+            dtit.setTimeQualifier("TD");
+            dtit.setTime("0000");
         }
-
+        dtit.setDate(fromDate);
         dti.setFirstDateTimeDetail(dtit);
-        idt.setTimeDetails(dti);
+        return dti;
+    }
 
-        TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
-        //ProductTypeDetailsType120801C ptd=new ProductTypeDetailsType120801C();
-        //ptd.getFlightType().add("D");
-        //fi.setFlightDetail(ptd);
-        if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
-            setTransitPoint(searchParameters.getTransit(),fi,idt);
+    private FareMasterPricerTravelBoardSearch.Itinerary setItineraryLocationDetails(FareMasterPricerTravelBoardSearch.Itinerary itinerary,BigInteger referenceNumber,String origin,String destination){
+        OriginAndDestinationRequestType forwardOrdt=new OriginAndDestinationRequestType();
+        forwardOrdt.setSegRef(referenceNumber);
+        itinerary.setRequestedSegmentRef(forwardOrdt);
+        itinerary.setDepartureLocalization(setDepartureLocationType(origin));
+        itinerary.setArrivalLocalization(setArrivalLocalizationType(destination));
+        return itinerary;
+    }
+
+    private List<FareMasterPricerTravelBoardSearch.Itinerary> createItinerary(SearchParameters searchParameters){
+        List<FareMasterPricerTravelBoardSearch.Itinerary> itineraryList=new ArrayList<>();
+        int counter=1;
+        for(SearchJourney searchJourney:searchParameters.getJourneyList()){
+            FareMasterPricerTravelBoardSearch.Itinerary itinerary=new FareMasterPricerTravelBoardSearch.Itinerary();
+            setItineraryLocationDetails(itinerary,new BigInteger(Integer.toString(counter++)),searchJourney.getOrigin(),searchJourney.getDestination());
+            itinerary.setTimeDetails(setDateAndTimeInformationType(DateType.ARRIVAL,mapDate(searchJourney.getTravelDate())));
+            if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
+                TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
+                setTransitPoint(searchParameters.getTransit(),fi,itinerary);
+            }
+            itineraryList.add(itinerary);
         }
-
-        return idt;
+        return itineraryList;
     }
 
     private void setTransitPoint(String transitPoint,TravelFlightInformationType141002S fi,FareMasterPricerTravelBoardSearch.Itinerary idt){

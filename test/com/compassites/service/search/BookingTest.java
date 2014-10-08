@@ -7,7 +7,7 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.junit.Test;
-import services.AmadeusBookinServiceImpl;
+import services.AmadeusBookingServiceImpl;
 import services.BookingServiceWrapper;
 
 import java.text.SimpleDateFormat;
@@ -44,13 +44,11 @@ public class BookingTest {
         segmentInformation.setDepartureDate(dateFormat.parse("2014-09-03"));
         segmentInformation.setToTerminal("D");
         segmentInformation.setBookingClass("V");
-
         segmentInformation.setFromLocation(properties.getProperty("fromLocation"));
         segmentInformation.setToLocation(properties.getProperty("toLocation"));
         segmentInformation.setDepartureTime(properties.getProperty("departureTime"));
         segmentInformation.setFlightNumber(properties.getProperty("flightNumber"));
         segmentInformation.setCarrierCode(properties.getProperty("carrierCode"));
-        // Test case input from properties files
         journey.getAirSegmentList().add(segmentInformation);
 
         /*AirSegmentInformation segmentInformation1 = new AirSegmentInformation();
@@ -75,9 +73,9 @@ public class BookingTest {
         try {
            /* ServiceHandler serviceHandler = new ServiceHandler();
             serviceHandler.logIn();*/
-            AmadeusBookinServiceImpl amadeusBookinService = new AmadeusBookinServiceImpl();
+            AmadeusBookingServiceImpl amadeusBookinService = new AmadeusBookingServiceImpl();
             BookingServiceWrapper bookingService = new BookingServiceWrapper();
-            bookingService.setAmadeusBookinService(amadeusBookinService);
+            bookingService.setAmadeusBookingService(amadeusBookinService);
             bookingService.generatePNR(travellerMasterInfo);
            /* AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.sellFromRecommendation(fi1);
             PNRReply pnrReply = serviceHandler.addMultiElementsToPNR1(travellerMasterInfo);

@@ -16,12 +16,28 @@ import java.util.List;
  */
 public class FlightItinerary implements Serializable{
 
-    public FlightItinerary(){
+    public FlightItinerary() {
         journeyList = new ArrayList<Journey>();
         pricingInformation = new PricingInformation();
         seamanPricingInformation = new PricingInformation();
     }
+    
+    private long id;
+    
+    private boolean priceOnlyPTC;
+    
+    private String provider; //travelport or amadeus
+    
+    private String fareSourceCode; // for Mystifly
+    
     private PricingMessage pricingMessage;
+    
+    private PricingInformation pricingInformation;
+    
+    private PricingInformation seamanPricingInformation;
+    
+    @Property
+    private List<Journey> journeyList;
 
     public PricingMessage getPricingMessage() {
         return pricingMessage;
@@ -31,10 +47,6 @@ public class FlightItinerary implements Serializable{
         this.pricingMessage = pricingMessage;
     }
 
-    private boolean priceOnlyPTC;
-
-    private long id;
-
     public boolean isPriceOnlyPTC() {
         return priceOnlyPTC;
     }
@@ -43,11 +55,6 @@ public class FlightItinerary implements Serializable{
         this.priceOnlyPTC = priceOnlyPTC;
     }
 
-    private String provider; //travelport or amadeus
-    private PricingInformation pricingInformation;
-
-    private PricingInformation seamanPricingInformation;
-
     public List<Journey> getJourneyList() {
         return journeyList;
     }
@@ -55,8 +62,6 @@ public class FlightItinerary implements Serializable{
     public void setJourneyList(List<Journey> journeyList) {
         this.journeyList = journeyList;
     }
-    @Property
-    private List<Journey> journeyList;
 
     public String getProvider() {
         return provider;
@@ -65,7 +70,6 @@ public class FlightItinerary implements Serializable{
     public void setProvider(String provider) {
         this.provider = provider;
     }
-
 
     public PricingInformation getPricingInformation() {
         return pricingInformation;
@@ -96,8 +100,14 @@ public class FlightItinerary implements Serializable{
         this.id = id;
     }
 
+    public String getFareSourceCode() {
+		return fareSourceCode;
+	}
 
-
+	public void setFareSourceCode(String fareSourceCode) {
+		this.fareSourceCode = fareSourceCode;
+	}
+    
     /* @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof FlightItinerary)){
@@ -123,11 +133,10 @@ public class FlightItinerary implements Serializable{
 
     }*/
 
-    @Override
+	@Override
     public boolean equals(Object obj) {
         return Pojomatic.equals(this,obj);
     }
-
 
     @Override
     public int hashCode() {
@@ -138,7 +147,5 @@ public class FlightItinerary implements Serializable{
     public String toString() {
         return Pojomatic.toString(this);
     }
-
-
 
 }

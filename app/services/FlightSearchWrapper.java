@@ -42,42 +42,42 @@ public class FlightSearchWrapper {
         List<Future<SearchResponse>> futureSearchResponseList = new ArrayList<>();
         List<ErrorMessage> errorMessageList = new ArrayList<>();
         HashMap<Integer,FlightItinerary> hashMap =  new HashMap<>();
-        for (final FlightSearch flightSearch: flightSearchList){
-            final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
-
-            try {
-                System.out.println("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
-                //Call provider if response is not already present;
-
-                if (!checkOrSetStatus(providerStatusCacheKey)) {
-                    futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
-                        public SearchResponse call() throws Exception {
-                            SearchResponse response = flightSearch.search(searchParameters);
-                            Logger.info("[" + redisKey + "]Response from provider:" + flightSearch.provider());
-                            checkResponseAndSetStatus(response, providerStatusCacheKey);
-                            return response;
-                        }
-                    }));
-                }else {
-                    String cachedResponse = (String) redisTemplate.opsForValue().get(redisKey);
-                    JsonNode rs = null;
-                    if (cachedResponse != null)
-                        rs = Json.parse(cachedResponse);
-                    SearchResponse chachedRespons = null;
-                    if (rs != null){
-                        SearchResponse chachedResponse = Json.fromJson(rs, SearchResponse.class);
-                        for(FlightItinerary flightItinerary : chachedResponse.getAirSolution().getFlightItineraryList()){
-                            hashMap.put(flightItinerary.hashCode(),flightItinerary);
-                        }
-                    }
-
-                }
-
-            } catch (Exception e) {
-                checkResponseAndSetStatus(null, providerStatusCacheKey);
-                Logger.info("["+redisKey+"]Response from provider:" +flightSearch.provider());
-                e.printStackTrace();
-            }
+        for (final FlightSearch flightSearch: flightSearchList) {
+        	if( !(searchParameters.getBookingType() == BookingType.SEAMEN && flightSearch.provider().equals("Mystifly")) ) {
+	            final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
+	
+	            try {
+	                System.out.println("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
+	                
+	                //Call provider if response is not already present;
+	                if (!checkOrSetStatus(providerStatusCacheKey)) {
+	                    futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
+	                        public SearchResponse call() throws Exception {
+	                            SearchResponse response = flightSearch.search(searchParameters);
+	                            Logger.info("[" + redisKey + "]Response from provider:" + flightSearch.provider());
+	                            checkResponseAndSetStatus(response, providerStatusCacheKey);
+	                            return response;
+	                        }
+	                    }));
+	                } else {
+	                    String cachedResponse = (String) redisTemplate.opsForValue().get(redisKey);
+	                    JsonNode rs = null;
+	                    if (cachedResponse != null)
+	                        rs = Json.parse(cachedResponse);
+	                    SearchResponse chachedRespons = null;
+	                    if (rs != null){
+	                        SearchResponse chachedResponse = Json.fromJson(rs, SearchResponse.class);
+	                        for(FlightItinerary flightItinerary : chachedResponse.getAirSolution().getFlightItineraryList()){
+	                            hashMap.put(flightItinerary.hashCode(),flightItinerary);
+	                        }
+	                    }
+	                }
+	            } catch (Exception e) {
+	                checkResponseAndSetStatus(null, providerStatusCacheKey);
+	                Logger.info("["+redisKey+"]Response from provider:" +flightSearch.provider());
+	                e.printStackTrace();
+	            }
+        	}
         }
 
         Logger.info("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
@@ -228,7 +228,6 @@ public class FlightSearchWrapper {
     private void setCacheValue(String key, String value){
         redisTemplate.opsForValue().set( key, value );
         redisTemplate.expire( key,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS );
-
     }
 
 }

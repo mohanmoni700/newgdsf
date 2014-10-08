@@ -5,7 +5,6 @@ import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -15,14 +14,21 @@ import java.util.List;
  * Time: 4:35 PM
  * To change this template use File | Settings | File Templates.
  */
-public class SearchParameters implements Serializable {
+public class SearchParameters implements Serializable,Cloneable{
     @Property
-    private String origin;
-    @Property
-    private String destination;
+    private List<SearchJourney> journeyList;
+
+    public List<SearchJourney> getJourneyList() {
+        return journeyList;
+    }
+
+    public void setJourneyList(List<SearchJourney> journeyList) {
+        this.journeyList = journeyList;
+    }
+
     private String stopOver;
     private String currency;
-    private List<Passenger> passengers;
+    private List <Passenger> passengers;
     private Boolean withReturnJourney;
     private Integer noOfStops;
     @Property
@@ -40,15 +46,12 @@ public class SearchParameters implements Serializable {
     private String searchBookingType;
     @Property
     private BookingType bookingType;
+
     @Property
     private CabinClass cabinClass;
-
     private String preferredAirlines;
     private String preferredFood;
-    @Property
-    private Date fromDate;
-    @Property
-    private Date returnDate;
+
     private String transit;
     private String nationality;
 
@@ -68,22 +71,7 @@ public class SearchParameters implements Serializable {
         directFlights = false;
         dateType = DateType.DEPARTURE; //Arrival = arrival, Departure = departure
         bookingType = BookingType.SEAMEN;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
+        journeyList=new ArrayList<>();
     }
 
     public String getStopOver() {
@@ -222,21 +210,6 @@ public class SearchParameters implements Serializable {
         this.preferredFood = preferredFood;
     }
 
-    public Date getFromDate() {
-        return fromDate;
-    }
-
-    public void setFromDate(Date fromDate) {
-        this.fromDate = fromDate;
-    }
-
-    public Date getReturnDate() {
-        return returnDate;
-    }
-
-    public void setReturnDate(Date returnDate) {
-        this.returnDate = returnDate;
-    }
 
     public String getTransit() {
         return transit;
@@ -247,16 +220,22 @@ public class SearchParameters implements Serializable {
     }
 
     public String redisKey(){
-        Date journeyDate = this.fromDate;
         String key = "";
-        key = key+ this.origin+ this.destination +"ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+
-                journeyDate.getDate()+journeyDate.getMonth()+journeyDate.getYear()+ this.cabinClass;
+        for(SearchJourney journey:journeyList){
+            key+="O:"+journey.getOrigin()+",D:"+journey.getDestination()+",DD:"+journey.getTravelDate().getDay()+",DM:"+journey.getTravelDate().getMonth();
+        }
+        key += "ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+ this.cabinClass;
         key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + this.preferredAirlines;
-        key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType;
+        key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType+"JT"+this.journeyType;
         return key;
     }
 
-    /*public String redisKey(){
-        return Integer.toString(Pojomatic.hashCode(this));
-    }*/
+    public SearchParameters clone(){
+        try {
+            return (SearchParameters)super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

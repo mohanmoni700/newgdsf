@@ -27,7 +27,12 @@ libraryDependencies ++= Seq(
   "org.pojomatic" % "pojomatic" % "1.0",
   "joda-time" % "joda-time" % "2.3",
   "mysql" % "mysql-connector-java" % "5.1.18",
-  "org.apache.commons" % "commons-pool2" % "2.0"
+  "org.apache.commons" % "commons-pool2" % "2.0",
+  "org.apache.axis2" % "axis2" % "1.6.2",
+  "org.apache.axis2" % "axis2-kernel" % "1.6.2",
+  "org.apache.axis2" % "axis2-transport-http" % "1.6.2",
+  "org.apache.axis2" % "axis2-transport-local" % "1.6.2",
+  "org.apache.axis2" % "axis2-xmlbeans" % "1.6.2"
 )
 
 play.Project.playJavaSettings
