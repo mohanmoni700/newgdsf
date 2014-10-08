@@ -32,7 +32,7 @@ public class BookingTest {
         fi1.AddBlankJourney();
         Journey journey = fi1.getJourneyList().get(0);
         AirSegmentInformation segmentInformation = new AirSegmentInformation();
-<<<<<<< HEAD
+
         segmentInformation.setFromLocation("BLR");
         segmentInformation.setToLocation("MAA");
         segmentInformation.setArrivalTime("2014-09-03T23:30:00.000+05:30");
@@ -44,13 +44,13 @@ public class BookingTest {
         segmentInformation.setDepartureDate(dateFormat.parse("2014-09-03"));
         segmentInformation.setToTerminal("D");
         segmentInformation.setBookingClass("V");
-=======
+
         segmentInformation.setFromLocation(properties.getProperty("fromLocation"));
         segmentInformation.setToLocation(properties.getProperty("toLocation"));
         segmentInformation.setDepartureTime(properties.getProperty("departureTime"));
         segmentInformation.setFlightNumber(properties.getProperty("flightNumber"));
         segmentInformation.setCarrierCode(properties.getProperty("carrierCode"));
->>>>>>> Test case input from properties files
+        // Test case input from properties files
         journey.getAirSegmentList().add(segmentInformation);
 
         /*AirSegmentInformation segmentInformation1 = new AirSegmentInformation();
