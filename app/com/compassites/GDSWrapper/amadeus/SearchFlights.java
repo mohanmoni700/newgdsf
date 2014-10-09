@@ -152,12 +152,12 @@ public class SearchFlights {
         List<TravellerReferenceInformationType> passengers = new ArrayList<TravellerReferenceInformationType>();
         Stack<BigInteger> adultReferenceNumbers = new Stack<>();
         int reference = 1;
+        adultReferenceNumbers.push(BigInteger.ONE);
 
         for (Passenger passenger : searchParameters.getPassengers()) {
             if ((passenger.getPassengerType().equals("INF")||passenger.getPassengerType().equals("IN")) && (searchParameters.getBookingType() == BookingType.SEAMEN)) {
                 continue;
             }
-            adultReferenceNumbers.push(BigInteger.ONE);
             TravellerReferenceInformationType traveller = new TravellerReferenceInformationType();
             TravellerDetailsType tdt = new TravellerDetailsType();
             tdt.setRef(new BigInteger(Integer.toString(reference++)));
