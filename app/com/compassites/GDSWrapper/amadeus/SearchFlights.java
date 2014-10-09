@@ -154,7 +154,7 @@ public class SearchFlights {
         int reference = 1;
 
         for (Passenger passenger : searchParameters.getPassengers()) {
-            if ((passenger.getPassengerType().equals("INF")) && (searchParameters.getBookingType() == BookingType.SEAMEN)) {
+            if ((passenger.getPassengerType().equals("INF")||passenger.getPassengerType().equals("IN")) && (searchParameters.getBookingType() == BookingType.SEAMEN)) {
                 continue;
             }
             adultReferenceNumbers.push(BigInteger.ONE);
@@ -169,6 +169,7 @@ public class SearchFlights {
                         adultReferenceNumbers.push(new BigInteger(Integer.toString(reference)));
                         break;
                     case INF:
+                    case IN:
                         tdt.setInfantIndicator(BigInteger.valueOf(1));
                         tdt.setRef(adultReferenceNumbers.pop());
                         break;
