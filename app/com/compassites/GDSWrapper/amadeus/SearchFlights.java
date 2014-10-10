@@ -151,8 +151,8 @@ public class SearchFlights {
     private List<TravellerReferenceInformationType> createPassengers(SearchParameters searchParameters) {
         List<TravellerReferenceInformationType> passengers = new ArrayList<TravellerReferenceInformationType>();
         Stack<BigInteger> adultReferenceNumbers = new Stack<>();
-        int reference = 1;
-        adultReferenceNumbers.push(BigInteger.ONE);
+        int reference = 0;
+        //adultReferenceNumbers.push(BigInteger.ONE);
 
         for (Passenger passenger : searchParameters.getPassengers()) {
             if ((passenger.getPassengerType().equals("INF")||passenger.getPassengerType().equals("IN")) && (searchParameters.getBookingType() == BookingType.SEAMEN)) {
@@ -160,7 +160,7 @@ public class SearchFlights {
             }
             TravellerReferenceInformationType traveller = new TravellerReferenceInformationType();
             TravellerDetailsType tdt = new TravellerDetailsType();
-            tdt.setRef(new BigInteger(Integer.toString(reference++)));
+            tdt.setRef(new BigInteger(Integer.toString(++reference)));
 
             if (searchParameters.getBookingType() != BookingType.SEAMEN) {
 
