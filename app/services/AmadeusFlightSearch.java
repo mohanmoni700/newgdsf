@@ -301,10 +301,8 @@ public class AmadeusFlightSearch implements FlightSearch{
         //no of stops
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
         //set travel time
-        Iterator iterator=groupOfFlight.getPropFlightGrDetail().getFlightProposal().iterator();
-        if(iterator.hasNext()){
-            ProposedSegmentDetailsType proposedSegmentDetailsType=(ProposedSegmentDetailsType)iterator.next();
-            if(proposedSegmentDetailsType.getUnitQualifier()=="EFT"){
+        for(ProposedSegmentDetailsType proposedSegmentDetailsType:groupOfFlight.getPropFlightGrDetail().getFlightProposal()){
+            if(proposedSegmentDetailsType.getUnitQualifier()!=null&&proposedSegmentDetailsType.getUnitQualifier().equals("EFT")){
                 journey.setTravelTime(setTravelDuraion(proposedSegmentDetailsType.getRef()));
             }
         }
