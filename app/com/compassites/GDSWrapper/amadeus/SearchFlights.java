@@ -207,7 +207,7 @@ public class SearchFlights {
         if (dateType== DateType.ARRIVAL) {
             dtit.setTimeQualifier("TA");
             dtit.setTime("2359");
-        }else {
+        }else if (dateType== DateType.DEPARTURE){
             dtit.setTimeQualifier("TD");
             dtit.setTime("0000");
         }
@@ -231,7 +231,7 @@ public class SearchFlights {
         for(SearchJourney searchJourney:searchParameters.getJourneyList()){
             FareMasterPricerTravelBoardSearch.Itinerary itinerary=new FareMasterPricerTravelBoardSearch.Itinerary();
             setItineraryLocationDetails(itinerary,new BigInteger(Integer.toString(counter++)),searchJourney.getOrigin(),searchJourney.getDestination());
-            itinerary.setTimeDetails(setDateAndTimeInformationType(DateType.ARRIVAL,mapDate(searchJourney.getTravelDate())));
+            itinerary.setTimeDetails(setDateAndTimeInformationType(searchParameters.getDateType(),mapDate(searchJourney.getTravelDate())));
             if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
                 TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
                 setTransitPoint(searchParameters.getTransit(),fi,itinerary);
