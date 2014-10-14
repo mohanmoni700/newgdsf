@@ -2,6 +2,7 @@ package com.compassites.GDSWrapper.mystifly;
 
 import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
 import onepoint.mystifly.AirLowFareSearchDocument;
 import onepoint.mystifly.AirLowFareSearchDocument.AirLowFareSearch;
@@ -15,7 +16,6 @@ import java.util.Calendar;
 import java.util.List;
 
 /**
- * 
  * @author Santhosh
  */
 public class LowFareRequestClient {
@@ -36,22 +36,15 @@ public class LowFareRequestClient {
 
 		ArrayOfOriginDestinationInformation originDestinationInformations = airLowFareSearchRQ
 				.addNewOriginDestinationInformations();
-		OriginDestinationInformation onwardTrip = originDestinationInformations
-				.addNewOriginDestinationInformation();
 		Calendar calendar = Calendar.getInstance();
-		/*calendar.setTime(searchParams.getFromDate());
-		onwardTrip.setDepartureDateTime(calendar);
-		onwardTrip.setOriginLocationCode(searchParams.getOrigin());
-		onwardTrip.setDestinationLocationCode(searchParams.getDestination());
-
-		if (searchParams.getJourneyType().equals(JourneyType.ROUND_TRIP)) {
-			OriginDestinationInformation returnTrip = originDestinationInformations
+		for (SearchJourney searchJourney : searchParams.getJourneyList()) {
+			OriginDestinationInformation journey = originDestinationInformations
 					.addNewOriginDestinationInformation();
-			calendar.setTime(searchParams.getReturnDate());
-			returnTrip.setDepartureDateTime(calendar);
-			returnTrip.setOriginLocationCode(searchParams.getDestination());
-			returnTrip.setDestinationLocationCode(searchParams.getOrigin());
-		}*/
+			journey.setOriginLocationCode(searchJourney.getOrigin());
+			journey.setDestinationLocationCode(searchJourney.getDestination());
+			calendar.setTime(searchJourney.getTravelDate());
+			journey.setDepartureDateTime(calendar);
+		}
 
 		// Set passenger info
 		ArrayOfPassengerTypeQuantity passengers = airLowFareSearchRQ
@@ -63,10 +56,10 @@ public class LowFareRequestClient {
 		// Set Travel preferences
 		TravelPreferences prefs = airLowFareSearchRQ.addNewTravelPreferences();
 
-		prefs.setCabinPreference(CabinType.Enum.forString(Constants.CABIN_TYPE
-				.get(searchParams.getCabinClass())));
-		prefs.setAirTripType(AirTripType.Enum.forString(Constants.JOURNEY_TYPE
-				.get(searchParams.getJourneyType())));
+		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams
+				.getCabinClass()));
+		prefs.setAirTripType(Mystifly.JOURNEY_TYPE.get(searchParams
+				.getJourneyType()));
 
 		// TODO: Not working. fix
 		// ArrayOfstring preferredAirlines = preferences
@@ -74,11 +67,11 @@ public class LowFareRequestClient {
 		// preferredAirlines.addString(searchParams.getPreferredAirlines());
 		// preferences.setVendorPreferenceCodes(preferredAirlines);
 
-		prefs.setMaxStopsQuantity(Enum.forString(Constants.ALL));
+		prefs.setMaxStopsQuantity(MaxStopsQuantity.ALL);
 		if (searchParams.getDirectFlights() || searchParams.getNoOfStops() == 0) {
-			prefs.setMaxStopsQuantity(Enum.forString(Constants.DIRECT));
+			prefs.setMaxStopsQuantity(MaxStopsQuantity.DIRECT);
 		} else if (searchParams.getNoOfStops() == 1) {
-			prefs.setMaxStopsQuantity(Enum.forString(Constants.ONE_STOP));
+			prefs.setMaxStopsQuantity(MaxStopsQuantity.ONE_STOP);
 		}
 
 		// TODO: search params to be added
@@ -113,23 +106,18 @@ public class LowFareRequestClient {
 			int adultCount, int childCount, int infantCount) {
 		PassengerTypeQuantity adults = passengerTypeQuantities
 				.addNewPassengerTypeQuantity();
-		String passengerCode = PassengerTypeCode.ADT.name();
-		adults.setCode(PassengerType.Enum.forString(passengerCode));
+		adults.setCode(PassengerType.ADT);
 		adults.setQuantity(adultCount);
-
 		if (childCount != 0) {
 			PassengerTypeQuantity kids = passengerTypeQuantities
 					.addNewPassengerTypeQuantity();
-			passengerCode = PassengerTypeCode.CHD.name();
-			kids.setCode(PassengerType.Enum.forString(passengerCode));
+			kids.setCode(PassengerType.CHD);
 			kids.setQuantity(childCount);
 		}
-
 		if (infantCount != 0) {
 			PassengerTypeQuantity infants = passengerTypeQuantities
 					.addNewPassengerTypeQuantity();
-			passengerCode = PassengerTypeCode.INF.name();
-			infants.setCode(PassengerType.Enum.forString(passengerCode));
+			infants.setCode(PassengerType.INF);
 			infants.setQuantity(infantCount);
 		}
 	}

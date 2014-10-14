@@ -98,12 +98,12 @@ public class BookFlightClient {
 		String passengerType = getPassengerType(calendar.getTime());
 		airTraveler.setPassengerType(PassengerType.Enum
 				.forString(passengerType));
-		airTraveler.setGender(Constants.GENDER.get(personalDetails.getGender()
+		airTraveler.setGender(Mystifly.GENDER.get(personalDetails.getGender()
 				.toLowerCase()));
 		PassengerName passengerName = airTraveler.addNewPassengerName();
 		passengerName.setPassengerFirstName(personalDetails.getFirstName());
 		passengerName.setPassengerLastName(personalDetails.getLastName());
-		passengerName.setPassengerTitle(Constants.PASSENGER_TITLE
+		passengerName.setPassengerTitle(Mystifly.PASSENGER_TITLE
 				.get(personalDetails.getSalutation().toLowerCase()));
 		airTraveler.setPassengerName(passengerName);
 		airTraveler.setDateOfBirth(calendar);

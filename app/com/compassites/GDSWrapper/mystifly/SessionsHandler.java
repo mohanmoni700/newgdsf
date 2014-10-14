@@ -13,6 +13,9 @@ import org.apache.axis2.transport.http.HTTPConstants;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRQ;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
 
+/**
+ * @author Santhosh
+ */
 public class SessionsHandler {
 
 	public static final String ENDPOINT_ADDRESS = "http://apidemo.myfarebox.com/V2/OnePoint.svc?singleWsdl";
