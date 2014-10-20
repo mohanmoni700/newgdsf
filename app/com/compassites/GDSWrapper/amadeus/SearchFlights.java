@@ -64,6 +64,8 @@ public class SearchFlights {
             setRefundableFlights(se);
         }
 
+        setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
+
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
             FareMasterPricerTravelBoardSearch.FareOptions fe1 = new FareMasterPricerTravelBoardSearch.FareOptions();
             PricingTicketingDetailsType pdt1 = new PricingTicketingDetailsType();
@@ -247,5 +249,17 @@ public class SearchFlights {
         connectingPoint.setLocationId(transitPoint);
         fi.getInclusionDetail().add(connectingPoint);
         idt.setFlightInfo(fi);
+    }
+
+    private void setCabinClass(CabinClass cabinClass, TravelFlightInformationType148734S fi){
+        String cabinQualifier="";
+        switch (cabinClass){
+            case BUSINESS:cabinQualifier="C";
+            case FIRST:cabinQualifier="F";
+            default:cabinQualifier="Y";
+        }
+        CabinIdentificationType cit=new CabinIdentificationType();
+        cit.getCabin().add(cabinQualifier);
+        fi.setCabinId(cit);
     }
 }
