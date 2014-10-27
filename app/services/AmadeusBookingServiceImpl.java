@@ -4,6 +4,7 @@ import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.PNRResponse;
@@ -86,6 +87,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
 
+
+
     public boolean validateFlightAvailability(AirSellFromRecommendationReply sellFromRecommendation){
         boolean errors = true;
         for (AirSellFromRecommendationReply.ItineraryDetails itinerary : sellFromRecommendation.getItineraryDetails()){
@@ -163,4 +166,21 @@ public class AmadeusBookingServiceImpl implements BookingService {
         pnrResponse.setFlightAvailable(true);
         return pnrResponse;
     }
+
+    public PNRResponse issueTicket(String pnrNumber) {
+        ServiceHandler serviceHandler = null;
+        try {
+            serviceHandler = new ServiceHandler();
+            serviceHandler.logIn();
+            PNRReply gdsPNRReply = serviceHandler.retrivePNR(pnrNumber);
+
+            DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket();
+            System.out.println("");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+      return null;
+    }
+
 }

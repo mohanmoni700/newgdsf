@@ -45,7 +45,7 @@ public class BookFlights {
                 fareJourney = flightItinerary.getPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
             }
             if(journey.getAirSegmentList().size() > 0){
-                sfr.getItineraryDetails().add(createItineraryDetails(journey,fareJourney));
+                sfr.getItineraryDetails().add(createItineraryDetails(journey,fareJourney,travellerMasterInfo.getTravellersList().size()));
             }
         }
 
@@ -61,7 +61,7 @@ public class BookFlights {
         return mad;
     }
 
-    public ItineraryDetails createItineraryDetails(Journey journey, FareJourney  fareJourney){
+    public ItineraryDetails createItineraryDetails(Journey journey, FareJourney  fareJourney, Integer noOfTravellers){
 
         ItineraryDetails itineraryDetails = new ItineraryDetails();
         OriginDestinationDetails originDestinationDetails = new  OriginDestinationDetails();
@@ -78,14 +78,14 @@ public class BookFlights {
         itineraryDetails.setMessage(message);
         itineraryDetails.setOriginDestinationDetails(originDestinationDetails);
         for(int i=0;i < airSegmentList.size();i++){
-            itineraryDetails.getSegmentInformation().add(createSegmentInformation(airSegmentList.get(i),fareJourney.getFareSegmentList().get(i)));
+            itineraryDetails.getSegmentInformation().add(createSegmentInformation(airSegmentList.get(i),fareJourney.getFareSegmentList().get(i),noOfTravellers));
         }
 
         //id.getSegmentInformation().add(createSegmentInformation1());
         return itineraryDetails;
     }
 
-    public SegmentInformation createSegmentInformation(AirSegmentInformation airSegmentInformation, FareSegment fareSegment){
+    public SegmentInformation createSegmentInformation(AirSegmentInformation airSegmentInformation, FareSegment fareSegment, Integer noOfTravellers){
         SegmentInformation segmentInformation=new SegmentInformation();
         TravelProductInformation travelProductInformation=new TravelProductInformation();
 
@@ -111,7 +111,7 @@ public class BookFlights {
 
         RelatedproductInformation relatedproductInformation=new RelatedproductInformation();
         relatedproductInformation.getStatusCode().add("NN");
-        relatedproductInformation.setQuantity(new BigDecimal("1"));
+        relatedproductInformation.setQuantity(new BigDecimal(noOfTravellers));
 
         travelProductInformation.setBoardPointDetails(boardPointDetails);
         travelProductInformation.setCompanyDetails(companyDetails);

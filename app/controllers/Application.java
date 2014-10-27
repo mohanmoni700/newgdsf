@@ -17,6 +17,7 @@ import services.FlightSearchWrapper;
 import java.util.List;
 
 import static play.mvc.Controller.request;
+import static play.mvc.Results.ok;
 
 @org.springframework.stereotype.Controller
 public class Application {
@@ -59,4 +60,9 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
+
+    public Result issueTicket(String gdsPNR){
+        PNRResponse pnrResponse = bookingService.issueTicket(gdsPNR);
+        return ok();
+    }
 }

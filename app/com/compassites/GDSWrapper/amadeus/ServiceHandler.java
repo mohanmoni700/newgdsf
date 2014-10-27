@@ -7,9 +7,11 @@ import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements;
+import com.amadeus.xml.pnrret_10_1_1a.PNRRetrieve;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
@@ -119,11 +121,20 @@ public class ServiceHandler {
     
     public PNRReply retrivePNR(String num){
         mSession.incrementSequenceNumber();
-        return mPortType.pnrRetrieve(new PNRRetriev().retrieve(num),mSession.getSession());
+        PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);
+        JSONFileUtility.createJsonFile(pnrRetrieve,"pnrRetrieveReq.json");
+        PNRReply pnrReply = mPortType.pnrRetrieve(pnrRetrieve,mSession.getSession());
+        JSONFileUtility.createJsonFile(pnrReply,"pnrRetrieveRes.json");
+        return pnrReply;
+
     }
     
     public DocIssuanceIssueTicketReply issueTicket(){
         mSession.incrementSequenceNumber();
-        return mPortType.docIssuanceIssueTicket(new IssueTicket().issue(), mSession.getSession());
+        DocIssuanceIssueTicket docIssuanceIssueTicket = new IssueTicket().issue();
+        JSONFileUtility.createJsonFile(docIssuanceIssueTicket,"docIssuanceReq.json");
+        DocIssuanceIssueTicketReply docIssuanceIssueTicketReply = mPortType.docIssuanceIssueTicket(docIssuanceIssueTicket, mSession.getSession());
+        JSONFileUtility.createJsonFile(docIssuanceIssueTicketReply,"docIssuanceRes.json");
+        return docIssuanceIssueTicketReply;
     }
 }

@@ -188,6 +188,16 @@ public class AirReservationClient  extends TravelPortClient {
 
         } catch (com.travelport.service.universal_v26_0.AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            airFaultMessage.getFaultInfo().getDescription();
+            try {
+                writer = new FileWriter("AirReserveResponseException.json");
+                Gson gson = new GsonBuilder().create();
+                gson.toJson(airFaultMessage, writer);
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         } catch (AvailabilityFaultMessage availabilityFaultMessage) {
             availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
