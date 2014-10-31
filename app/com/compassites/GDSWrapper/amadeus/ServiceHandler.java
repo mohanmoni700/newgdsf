@@ -144,9 +144,9 @@ public class ServiceHandler {
     
     public FareInformativePricingWithoutPNRReply fareInfo(FlightItinerary fligtItinerary, SearchParameters searchParams) {
     	mSession.incrementSequenceNumber();
-		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, searchParams);
+		// FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, searchParams);
 		
-		JSONFileUtility.createJsonFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.json");
+		//JSONFileUtility.createJsonFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.json");
 //		FareInformativePricingWithoutPNR fareInformativePricingWithoutPNR = new FareInformativePricingWithoutPNR();
 		FareInformativePricingWithoutPNRReply reply = null;
 //		FareInformativePricingWithoutPNRReply reply = mPortType.fareInformativePricingWithoutPNR(fareInformativePricingWithoutPNR, mSession.getSession());
