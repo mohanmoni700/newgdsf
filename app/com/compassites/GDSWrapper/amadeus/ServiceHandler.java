@@ -9,6 +9,8 @@ import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_10_1_1a.PNRRetrieve;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
+import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
+import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket;
@@ -16,6 +18,7 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import utils.JSONFileUtility;
@@ -33,7 +36,8 @@ public class ServiceHandler {
     SessionHandler mSession;
 
     public ServiceHandler() throws Exception{
-        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_20140429_052541.wsdl");
+//        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_20140429_052541.wsdl");
+        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_20141017_122132.wsdl");
         AmadeusWebServices service = new AmadeusWebServices(wsdlUrl);
         mPortType = service.getAmadeusWebServicesPort();
 
@@ -136,5 +140,15 @@ public class ServiceHandler {
         DocIssuanceIssueTicketReply docIssuanceIssueTicketReply = mPortType.docIssuanceIssueTicket(docIssuanceIssueTicket, mSession.getSession());
         JSONFileUtility.createJsonFile(docIssuanceIssueTicketReply,"docIssuanceRes.json");
         return docIssuanceIssueTicketReply;
+    }
+    
+    public FareInformativePricingWithoutPNRReply fareInfo(FlightItinerary fligtItinerary, SearchParameters searchParams) {
+    	mSession.incrementSequenceNumber();
+		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, searchParams);
+		
+		JSONFileUtility.createJsonFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.json");
+		FareInformativePricingWithoutPNR fareInformativePricingWithoutPNR = new FareInformativePricingWithoutPNR();
+		FareInformativePricingWithoutPNRReply reply = mPortType.fareInformativePricingWithoutPNR(fareInformativePricingWithoutPNR, mSession.getSession());
+		return reply;
     }
 }
