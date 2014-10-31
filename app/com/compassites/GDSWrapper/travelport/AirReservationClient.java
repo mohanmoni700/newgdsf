@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.*;
 
@@ -75,22 +76,21 @@ public class AirReservationClient  extends TravelPortClient {
 
         //tell uapi where and for who the request is targeting
         request.setProviderCode(GDS);
-        request.setTargetBranch(BRANCH);
+        request.setTargetBranch("P7024203");
+        request.setRuleName("ONLINE");
 
-
-
-        //put traveller in request
-        request.getBookingTraveler().addAll(createBookingTravellers(travellerMasterInfo));
 
         //point of sale, YYY
         //PointOfSale pos=new PointOfSale();
         //pos.setPseudoCityCode("LON");
         //req.setPointOfSale(pos);
-
         BillingPointOfSaleInfo info = new BillingPointOfSaleInfo();
         //YYY
         info.setOriginApplication("UAPI");
         request.setBillingPointOfSaleInfo(info);
+
+        //put traveller in request
+        request.getBookingTraveler().addAll(createBookingTravellers(travellerMasterInfo));
 
         //provider
         request.setProviderCode("1G");
@@ -244,9 +244,9 @@ public class AirReservationClient  extends TravelPortClient {
             //seg.setEquipment("738");
             //seg.setParticipantLevel_0020("Secure Sell");
             seg.setGuaranteedPaymentCarrier("No");
-            seg.setAvailabilitySource(TypeAvailabilitySource.STATUS_OVERLAID);
-            seg.setLinkAvailability(Boolean.TRUE);
-            seg.setPolledAvailabilityOption("Polled avail exists");
+            seg.setAvailabilitySource(TypeAvailabilitySource.SEAMLESS);
+            //seg.setLinkAvailability(Boolean.TRUE);
+            //seg.setPolledAvailabilityOption("Polled avail exists");
         }
         airPricingSolution.getAirPricingInfo().clear();
         airPricingSolution.getFareNote().clear();
@@ -256,6 +256,7 @@ public class AirReservationClient  extends TravelPortClient {
 
     static public List<BookingTraveler> createBookingTravellers(TravellerMasterInfo travellerMasterInfo){
         List<BookingTraveler> bookingTravelerList =  new ArrayList<>();
+        int i=1;
         //make the traveller info
         for(Traveller traveller : travellerMasterInfo.getTravellersList()){
             BookingTraveler bookingTraveler = new BookingTraveler();
@@ -282,9 +283,20 @@ public class AirReservationClient  extends TravelPortClient {
             name.setLast(traveller.getPersonalDetails().getLastName());
             bookingTraveler.setBookingTravelerName(name);
 
+            //address
+            DeliveryInfo deliveryInfo=new DeliveryInfo();
+            DeliveryInfo.ShippingAddress shippingAddress=new DeliveryInfo.ShippingAddress();
+            shippingAddress.setAddressName("aaaa");
+            shippingAddress.setCity("delhi");
+            shippingAddress.setPostalCode("560078");
+            shippingAddress.setCountry("IN");
+            deliveryInfo.setShippingAddress(shippingAddress);
+            bookingTraveler.getDeliveryInfo().add(deliveryInfo);
+
+            bookingTraveler.setAge(new BigInteger("22"));
             //adult
             bookingTraveler.setTravelerType("SEA");
-
+            bookingTraveler.setKey(i++ + "");
             bookingTravelerList.add(bookingTraveler);
         }
         return bookingTravelerList;

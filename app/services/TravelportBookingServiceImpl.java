@@ -33,9 +33,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 
     @Override
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
-        LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
         PNRResponse pnrResponse = new PNRResponse();
-        LowFareSearchRsp responseTwo = null;
         try {
             //AirItinerary airItinerary = AirRequestClient.getItinerary(responseTwo, responseTwo.getAirPricingSolution().get(0));
             AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo);

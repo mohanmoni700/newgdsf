@@ -498,6 +498,7 @@ public class AirRequestClient extends TravelPortClient {
             searchPassenger.setPricePTCOnly(true);
             if (passenger.getAge() != null)
                 searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
+            searchPassenger.setBookingTravelerRef(i+"");
             request.getSearchPassenger().add(searchPassenger);
             i++;
         }
@@ -522,6 +523,7 @@ public class AirRequestClient extends TravelPortClient {
 
         BillingPointOfSaleInfo billingPointOfSaleInfo= new BillingPointOfSaleInfo();
         billingPointOfSaleInfo.setOriginApplication("Test-app");
+        //billingPointOfSaleInfo.setOriginApplication("UAPI");
         priceRequest.setBillingPointOfSaleInfo(billingPointOfSaleInfo);
         AirPricingModifiers airPricingModifiers = new AirPricingModifiers();
         airPricingModifiers.setCurrencyType(currency);
