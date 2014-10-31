@@ -147,8 +147,9 @@ public class ServiceHandler {
 		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, searchParams);
 		
 		JSONFileUtility.createJsonFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.json");
-		FareInformativePricingWithoutPNR fareInformativePricingWithoutPNR = new FareInformativePricingWithoutPNR();
-		FareInformativePricingWithoutPNRReply reply = mPortType.fareInformativePricingWithoutPNR(fareInformativePricingWithoutPNR, mSession.getSession());
+//		FareInformativePricingWithoutPNR fareInformativePricingWithoutPNR = new FareInformativePricingWithoutPNR();
+		FareInformativePricingWithoutPNRReply reply = null;
+//		FareInformativePricingWithoutPNRReply reply = mPortType.fareInformativePricingWithoutPNR(fareInformativePricingWithoutPNR, mSession.getSession());
 		return reply;
     }
 }
