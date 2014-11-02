@@ -1,6 +1,8 @@
 package models;
 
 import com.compassites.constants.CacheConstants;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import play.db.ebean.Model;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
@@ -13,6 +15,7 @@ import java.util.List;
  */
 @Entity
 @Table(name="airline_code")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AirlineCode {
     @Id
     @Column(name="id")

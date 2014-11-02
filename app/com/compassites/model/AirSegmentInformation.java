@@ -17,33 +17,27 @@ import java.util.Date;
  * To change this template use File | Settings | File Templates.
  */
 public class AirSegmentInformation implements Serializable{
-    public static final long serialVersionUID = 42L;
-    @Property
+    
+	public static final long serialVersionUID = 42L;
+    
+	@Property
     private String fromLocation;
-    @Property
+    
+	@Property
     private String toLocation;
+	
+    @Property
+    private String flightNumber;
+   
+    @Property
+    private String carrierCode;
 
     private String fromTerminal;
-
-    public String getFromTerminal() {
-        return fromTerminal;
-    }
-
-    public void setFromTerminal(String fromTerminal) {
-        this.fromTerminal = fromTerminal;
-    }
-
-    public String getToTerminal() {
-        return toTerminal;
-    }
-
-    public void setToTerminal(String toTerminal) {
-        this.toTerminal = toTerminal;
-    }
 
     private String toTerminal;
 
     private String fromDate;
+    
     private String toDate;
 
     private String arrivalTime;
@@ -51,17 +45,19 @@ public class AirSegmentInformation implements Serializable{
     private String departureTime;
 
     private String distanceTravelled;
+    
     private String distanceUnit;
+    
     private String travelTime;
+    
     private Integer connectionTime;
+    
     private String connectionTimeStr;
-    @Property
-    private String flightNumber;
-    @Property
-    private String carrierCode;
 
     private AirlineCode airline;
+    
     private Airport fromAirport;
+    
     private Airport toAirport;
 
     private Date departureDate;
@@ -71,6 +67,8 @@ public class AirSegmentInformation implements Serializable{
     private String airSegmentKey;
 
     private String flightDetailsKey;
+    
+    private BaggageInfo baggageInfo;
 
     public String getFromLocation() {
         return fromLocation;
@@ -86,6 +84,22 @@ public class AirSegmentInformation implements Serializable{
 
     public void setToLocation(String toLocation) {
         this.toLocation = toLocation;
+    }
+    
+    public String getFromTerminal() {
+        return fromTerminal;
+    }
+
+    public void setFromTerminal(String fromTerminal) {
+        this.fromTerminal = fromTerminal;
+    }
+
+    public String getToTerminal() {
+        return toTerminal;
+    }
+
+    public void setToTerminal(String toTerminal) {
+        this.toTerminal = toTerminal;
     }
 
     public String getFromDate() {
@@ -206,12 +220,10 @@ public class AirSegmentInformation implements Serializable{
         return true;
     }*/
 
-
     @Override
     public boolean equals(Object obj) {
         return Pojomatic.equals(this,obj);
     }
-
 
     @Override
     public int hashCode() {
@@ -298,4 +310,13 @@ public class AirSegmentInformation implements Serializable{
     public void setAirSegmentKey(String airSegmentKey) {
         this.airSegmentKey = airSegmentKey;
     }
+
+	public BaggageInfo getBaggageInfo() {
+		return baggageInfo;
+	}
+
+	public void setBaggageInfo(BaggageInfo baggageInfo) {
+		this.baggageInfo = baggageInfo;
+	}
+    
 }

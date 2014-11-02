@@ -1,10 +1,18 @@
 package com.compassites.model.traveller;
 
 import play.db.ebean.Model;
+import utils.DateUtility;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
+
+import com.compassites.model.PassengerTypeCode;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -32,6 +40,10 @@ public class PersonalDetails extends Model implements Serializable  {
     private String rank;
     @Column(name = "gender")
     private String gender;
+    
+    public PassengerTypeCode getPassengerType() {
+    	return DateUtility.getPassengerTypeFromDOB(dateOfBirth);
+	}
 
     public Integer getId() {
         return Id;

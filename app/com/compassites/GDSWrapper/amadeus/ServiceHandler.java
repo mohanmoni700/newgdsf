@@ -90,10 +90,8 @@ public class ServiceHandler {
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo);
 
-
         JSONFileUtility.createJsonFile(pnrAddMultiElements,"pnrAddMultiElementsReq.json");
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
-
 
         JSONFileUtility.createJsonFile(pnrReply,"pnrAddMultiElementsRes.json");
         return  pnrReply;
@@ -130,7 +128,6 @@ public class ServiceHandler {
         PNRReply pnrReply = mPortType.pnrRetrieve(pnrRetrieve,mSession.getSession());
         JSONFileUtility.createJsonFile(pnrReply,"pnrRetrieveRes.json");
         return pnrReply;
-
     }
     
     public DocIssuanceIssueTicketReply issueTicket(){
@@ -142,14 +139,10 @@ public class ServiceHandler {
         return docIssuanceIssueTicketReply;
     }
     
-    public FareInformativePricingWithoutPNRReply fareInfo(FlightItinerary fligtItinerary, SearchParameters searchParams) {
-    	mSession.incrementSequenceNumber();
-		// FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, searchParams);
-		
-		//JSONFileUtility.createJsonFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.json");
-//		FareInformativePricingWithoutPNR fareInformativePricingWithoutPNR = new FareInformativePricingWithoutPNR();
-		FareInformativePricingWithoutPNRReply reply = null;
-//		FareInformativePricingWithoutPNRReply reply = mPortType.fareInformativePricingWithoutPNR(fareInformativePricingWithoutPNR, mSession.getSession());
-		return reply;
-    }
+	public FareInformativePricingWithoutPNRReply getFareInfo(FlightItinerary fligtItinerary, SearchParameters searchParams) {
+		mSession.incrementSequenceNumber();
+		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, searchParams);
+		return mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
+	}
+	
 }
