@@ -16,6 +16,13 @@ import com.google.common.collect.ImmutableMap;
  * @author Santhosh
  */
 public class Mystifly {
+	
+	public static final String PROVIDER = "Mystifly";
+	public static final String ENDPOINT_ADDRESS = "http://apidemo.myfarebox.com/V2/OnePoint.svc?singleWsdl";
+	public static final String ACCOUNT_NUMBER = "MCN004030";
+	public static final String USERNAME = "FlyHiXML";
+	public static final String PASSWORD = "FH2014_xml";
+	public static final int TIMEOUT = 180000;
 
 	private static Map<CabinClass, CabinType.Enum> cabinType = new HashMap<>();
 	static {
@@ -27,7 +34,6 @@ public class Mystifly {
 		cabinType.put(CabinClass.PREMIUM_FIRST, CabinType.P);
 	}
 
-	public static final String PROVIDER = "Mystifly";
 	public static final Map<JourneyType, AirTripType.Enum> JOURNEY_TYPE = ImmutableMap
 			.of(JourneyType.ONE_WAY, AirTripType.ONE_WAY,
 					JourneyType.ROUND_TRIP, AirTripType.RETURN,

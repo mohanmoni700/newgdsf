@@ -18,21 +18,15 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
  */
 public class SessionsHandler {
 
-	public static final String ENDPOINT_ADDRESS = "http://apidemo.myfarebox.com/V2/OnePoint.svc?singleWsdl";
-	public static final String ACCOUNT_NUMBER = "MCN004030";
-	public static final String USERNAME = "FlyHiXML";
-	public static final String PASSWORD = "FH2014_xml";
-
 	private OnePointStub onePointStub = null;
 
 	public SessionsHandler() {
 		try {
-			onePointStub = new OnePointStub(ENDPOINT_ADDRESS);
+			onePointStub = new OnePointStub(Mystifly.ENDPOINT_ADDRESS);
 			Options options = onePointStub._getServiceClient().getOptions();
 			options.setProperty(HTTPConstants.HTTP_PROTOCOL_VERSION,
 					HTTPConstants.HEADER_PROTOCOL_10);
-			options.setTimeOutInMilliSeconds(180000);
-
+			options.setTimeOutInMilliSeconds(Mystifly.TIMEOUT);
 		} catch (AxisFault e) {
 			// TODO: Log Error
 			e.printStackTrace();
@@ -46,9 +40,9 @@ public class SessionsHandler {
 					.newInstance();
 			CreateSession createSession = sessionDoc.addNewCreateSession();
 			SessionCreateRQ sessionRQ = createSession.addNewRq();
-			sessionRQ.setAccountNumber(ACCOUNT_NUMBER);
-			sessionRQ.setUserName(USERNAME);
-			sessionRQ.setPassword(PASSWORD);
+			sessionRQ.setAccountNumber(Mystifly.ACCOUNT_NUMBER);
+			sessionRQ.setUserName(Mystifly.USERNAME);
+			sessionRQ.setPassword(Mystifly.PASSWORD);
 			CreateSessionResponseDocument createSessionResponseDocument = onePointStub
 					.createSession(sessionDoc);
 			sessionRS = createSessionResponseDocument

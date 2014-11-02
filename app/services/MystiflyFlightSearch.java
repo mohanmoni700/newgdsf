@@ -23,6 +23,7 @@ import play.Logger;
 import play.libs.Json;
 
 import com.compassites.GDSWrapper.mystifly.LowFareRequestClient;
+import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.AirSegmentInformation;
@@ -40,8 +41,6 @@ import com.compassites.model.SearchResponse;
 @Service
 public class MystiflyFlightSearch implements FlightSearch {
 
-	private static final String PROVIDER = "Mystifly";
-
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
 	public SearchResponse search(SearchParameters searchParameters)
 			throws IncompleteDetailsMessage, Exception {
@@ -57,7 +56,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 	}
 
 	public String provider() {
-		return PROVIDER;
+		return Mystifly.PROVIDER;
 	}
 
 	private AirSolution createAirSolution(AirLowFareSearchRS searchRS) {
@@ -76,7 +75,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		for (PricedItinerary pricedItinerary : pricedItineraries
 				.getPricedItineraryArray()) {
 			FlightItinerary flightItinerary = new FlightItinerary();
-			flightItinerary.setProvider(PROVIDER);
+			flightItinerary.setProvider(Mystifly.PROVIDER);
 
 			AirItineraryPricingInfo airlinePricingInfo = pricedItinerary
 					.getAirItineraryPricingInfo();

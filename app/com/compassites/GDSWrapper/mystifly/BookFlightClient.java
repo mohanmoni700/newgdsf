@@ -132,7 +132,7 @@ public class BookFlightClient {
 		if (age <= 2) {
 			passengerType = "INF";
 		} else if (age <= 12) {
-			passengerType = "CH";
+			passengerType = "CHD";
 		} else {
 			passengerType = "ADT";
 		}
