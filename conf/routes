@@ -2,12 +2,10 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-
-POST     /searchFlight               @controllers.Application.flightSearch
-
+POST     /searchFlight              @controllers.Application.flightSearch
 POST     /generatePNR               @controllers.Application.generatePNR
 POST     /priceChangePNR            @controllers.Application.priceChangePNR
+POST     /flightInfo                @controllers.Application.getFlightInfo
 GET      /issueTicket/:gdsPNR       @controllers.Application.issueTicket(gdsPNR:String)
 
 # Map static resources from the /public folder to the /assets URL path
