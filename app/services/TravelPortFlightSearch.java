@@ -19,6 +19,7 @@ import utils.ErrorMessageHelper;
 import utils.StringUtility;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -249,6 +250,14 @@ public class TravelPortFlightSearch implements FlightSearch{
             //System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");
             //System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
             List<com.travelport.schema.air_v26_0.Journey> journeyList = airPricingSolution.getJourney();
+            
+            Map<String, BaggageInfo> baggageInfoMap = new HashMap<>();
+            for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
+            	TypeWeight maxWeight = fareInfo.getBaggageAllowance().getMaxWeight();
+            	BaggageInfo baggageInfo = new BaggageInfo(maxWeight.getUnit().name(), maxWeight.getValue());
+            	baggageInfoMap.put(fareInfo.getKey(), baggageInfo);
+            }
+
             for (Iterator<com.travelport.schema.air_v26_0.Journey> journeyIterator = journeyList.iterator(); journeyIterator.hasNext();) {
 
                 com.travelport.schema.air_v26_0.Journey journey = journeyIterator.next();
@@ -272,6 +281,7 @@ public class TravelPortFlightSearch implements FlightSearch{
                     }
 
                     AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+                    airSegmentInformation.setBaggageInfo(baggageInfoMap.get(airSegment.getKey()));
                     airSegmentInformation.setCarrierCode(carrier);
                     airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(carrier));
                     airSegmentInformation.setFlightNumber(flightNum);
