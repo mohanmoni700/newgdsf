@@ -32,7 +32,7 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class TravelPortFlightSearch implements FlightSearch{
+public class TravelPortFlightSearch implements FlightSearch {
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException, IOException {
@@ -216,8 +216,14 @@ public class TravelPortFlightSearch implements FlightSearch{
                 travelportResponse.getFlightDetailsList().getFlightDetails());
         List<AirPricingSolution> airPricingSolutions =  travelportResponse.getAirPricingSolution();
 
-        flightIteratorLoop: for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
+        Map<String, BaggageInfo> baggageInfoMap = new HashMap<>();
+        for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
+        	TypeWeight maxWeight = fareInfo.getBaggageAllowance().getMaxWeight();
+        	BaggageInfo baggageInfo = new BaggageInfo(maxWeight.getUnit().name(), maxWeight.getValue());
+        	baggageInfoMap.put(fareInfo.getOrigin(), baggageInfo);
+        }
 
+        flightIteratorLoop: for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
 
             AirPricingSolution airPricingSolution = (AirPricingSolution)airPricingSolutionIterator.next();
             FlightItinerary flightItinerary=new FlightItinerary();
@@ -251,13 +257,6 @@ public class TravelPortFlightSearch implements FlightSearch{
             //System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
             List<com.travelport.schema.air_v26_0.Journey> journeyList = airPricingSolution.getJourney();
             
-            Map<String, BaggageInfo> baggageInfoMap = new HashMap<>();
-            for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
-            	TypeWeight maxWeight = fareInfo.getBaggageAllowance().getMaxWeight();
-            	BaggageInfo baggageInfo = new BaggageInfo(maxWeight.getUnit().name(), maxWeight.getValue());
-            	baggageInfoMap.put(fareInfo.getKey(), baggageInfo);
-            }
-
             for (Iterator<com.travelport.schema.air_v26_0.Journey> journeyIterator = journeyList.iterator(); journeyIterator.hasNext();) {
 
                 com.travelport.schema.air_v26_0.Journey journey = journeyIterator.next();
@@ -281,7 +280,6 @@ public class TravelPortFlightSearch implements FlightSearch{
                     }
 
                     AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
-                    airSegmentInformation.setBaggageInfo(baggageInfoMap.get(airSegment.getKey()));
                     airSegmentInformation.setCarrierCode(carrier);
                     airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(carrier));
                     airSegmentInformation.setFlightNumber(flightNum);
@@ -302,7 +300,7 @@ public class TravelPortFlightSearch implements FlightSearch{
                     airSegmentInformation.setToAirport(Airport.getAiport(d));
                     if (airSegment.getConnection() != null)
                         airSegmentInformation.setConnectionTime(airSegment.getConnection().getDuration());
-
+                    airSegmentInformation.setBaggageInfo(baggageInfoMap.get(o));
                     String dtime = "??:??";
                     String atime = "??:??";
                     FlightDetails flightDetails = allDetails.getByRef(airSegment.getFlightDetailsRef().get(0));
