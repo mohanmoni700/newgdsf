@@ -73,6 +73,6 @@ public class Application {
 
     public Result issueTicket(String gdsPNR){
         PNRResponse pnrResponse = bookingService.issueTicket(gdsPNR);
-        return ok();
+        return ok(Json.toJson(pnrResponse));
     }
 }

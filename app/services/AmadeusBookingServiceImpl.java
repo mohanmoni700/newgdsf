@@ -8,12 +8,16 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.PNRResponse;
+import com.compassites.model.TaxDetails;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.springframework.stereotype.Service;
 import utils.ErrorMessageHelper;
+import utils.JSONFileUtility;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +29,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     private final String totalFareIdentifier = "712";
 
+    private final String issuenceOkStatus = "O";
+
+    private final String cappingLimitString = "CT RJT";
 
     @Override
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
@@ -49,6 +56,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             if (flightAvailable) {
                 PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
                 pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo, gdsPNRReply);
+
                 pnrResponse = checkFare(pricePNRReply, travellerMasterInfo);
                 if (!pnrResponse.isPriceChanged()) {
                     TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST();
@@ -164,23 +172,52 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
         pnrResponse.setValidTillDate(lastTicketingDate.toString());
         pnrResponse.setFlightAvailable(true);
+        pnrResponse.setTaxDetailsList(getTaxDetails(pricePNRReply));
         return pnrResponse;
     }
 
     public PNRResponse issueTicket(String pnrNumber) {
         ServiceHandler serviceHandler = null;
+        PNRResponse pnrResponse = new PNRResponse();
+        pnrResponse.setPnrNumber(pnrNumber);
         try {
             serviceHandler = new ServiceHandler();
             serviceHandler.logIn();
             PNRReply gdsPNRReply = serviceHandler.retrivePNR(pnrNumber);
-
+            JSONFileUtility.createJsonFile(gdsPNRReply,"retrievePNRRes1.json");
             DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket();
+            if(issuenceOkStatus.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())){
+                gdsPNRReply = serviceHandler.retrivePNR(pnrNumber);
+            }else {
+                String errorDescription = issuanceIssueTicketReply.getErrorGroup().getErrorWarningDescription().getFreeText();
+                if(errorDescription.contains(cappingLimitString)){
+                    System.out.println("Send Email to operator saying capping limit is reached");
+                    pnrResponse.setCappingLimitReached(true);
+                }
+            }
+
+
             System.out.println("");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-      return null;
+      return pnrResponse;
     }
 
+
+    public List<TaxDetails> getTaxDetails(FarePricePNRWithBookingClassReply pricePNRReply){
+        List<TaxDetails> taxDetailsList = new ArrayList<>();
+        for(FarePricePNRWithBookingClassReply.FareList fareList : pricePNRReply.getFareList()){
+            for(FarePricePNRWithBookingClassReply.FareList.TaxInformation taxInformation :fareList.getTaxInformation()){
+                TaxDetails taxDetails = new TaxDetails();
+                taxDetails.setTaxCode(taxInformation.getTaxDetails().getTaxType().getIsoCountry());
+                taxDetails.setTaxAmount(new BigDecimal(taxInformation.getAmountDetails().getFareDataMainInformation().getFareAmount()));
+
+                taxDetailsList.add(taxDetails);
+            }
+        }
+
+        return taxDetailsList;
+    }
 }

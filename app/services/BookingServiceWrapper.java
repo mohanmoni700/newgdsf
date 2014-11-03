@@ -57,6 +57,6 @@ public class BookingServiceWrapper {
 
     public PNRResponse issueTicket(String gdsPNR){
       PNRResponse pnrResponse = amadeusBookingService.issueTicket(gdsPNR);
-      return null;
+      return pnrResponse;
     }
 }

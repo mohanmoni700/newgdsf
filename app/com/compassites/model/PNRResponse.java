@@ -1,5 +1,7 @@
 package com.compassites.model;
 
+import java.util.List;
+
 /**
  * Created by user on 18-08-2014.
  */
@@ -20,6 +22,10 @@ public class PNRResponse {
     private Long changedPrice;
 
     private String priceChangeKey;
+
+    private boolean isCappingLimitReached;
+
+    private List<TaxDetails> taxDetailsList;
 
     public String getPnrNumber() {
         return pnrNumber;
@@ -84,4 +90,21 @@ public class PNRResponse {
     public void setPriceChangeKey(String priceChangeKey) {
         this.priceChangeKey = priceChangeKey;
     }
+
+    public boolean isCappingLimitReached() {
+        return isCappingLimitReached;
+    }
+
+    public void setCappingLimitReached(boolean isCappingLimitReached) {
+        this.isCappingLimitReached = isCappingLimitReached;
+    }
+
+    public List<TaxDetails> getTaxDetailsList() {
+        return taxDetailsList;
+    }
+
+    public void setTaxDetailsList(List<TaxDetails> taxDetailsList) {
+        this.taxDetailsList = taxDetailsList;
+    }
 }
+

@@ -48,7 +48,7 @@ public class PNRAddMultiElementsh {
         dem.getDataElementsIndiv().add(addCreditCardData());
         dem.getDataElementsIndiv().add(addReceivedFrom());
         dem.getDataElementsIndiv().add(addTckArr());
-        dem.getDataElementsIndiv().add(addContactInfo());
+        dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo));
         //dem.getDataElementsIndiv().add(addEOTInfo());
 
         element.setDataElementsMaster(dem);
@@ -110,7 +110,7 @@ public class PNRAddMultiElementsh {
         if(age <= 2){
             passengerType = "INF";
         }else if (age <= 12){
-            passengerType = "CH";
+            passengerType = "CHD";
         }else{
             passengerType = "ADT";
         }
@@ -224,26 +224,48 @@ public class PNRAddMultiElementsh {
     }
 
     //contact information
-    public DataElementsIndiv addContactInfo() {
+    public List<DataElementsIndiv> addContactInfo(TravellerMasterInfo travellerMasterInfo) {
+        //email info
+        List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
         DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData emd = new ElementManagementData();
-        emd.setSegmentName("AP");
+        ElementManagementData elementManagementData = new ElementManagementData();
 
+        elementManagementData.setSegmentName("AP");
         Reference rf = new Reference();
         rf.setQualifier("OT");
         rf.setNumber("1");
-        emd.setReference(rf);
+        elementManagementData.setReference(rf);
+        de.setElementManagementData(elementManagementData);
 
         FreetextData ftd = new FreetextData();
         de.setFreetextData(ftd);
-
         FreetextDetail ftdt = new FreetextDetail();
         ftdt.setSubjectQualifier("3");
         ftdt.setType("P02");
         ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext("LCHILDRENS@AMADEUS.NET");
-        de.setElementManagementData(emd);
-        return de;
+        ftd.setLongFreetext(travellerMasterInfo.getAdditionalInfo().getEmail());
+        dataElementsDivList.add(de);
+
+        //home contact number
+        de = new DataElementsIndiv();
+        elementManagementData = new ElementManagementData();
+
+        elementManagementData.setSegmentName("AP");
+        rf = new Reference();
+        rf.setQualifier("OT");
+        rf.setNumber("4");
+        elementManagementData.setReference(rf);
+        de.setElementManagementData(elementManagementData);
+
+        ftd = new FreetextData();
+        de.setFreetextData(ftd);
+        ftdt = new FreetextDetail();
+        ftdt.setSubjectQualifier("3");
+        ftdt.setType("3");
+        ftd.setFreetextDetail(ftdt);
+        ftd.setLongFreetext(travellerMasterInfo.getAdditionalInfo().getPhoneNumber());
+        dataElementsDivList.add(de);
+        return dataElementsDivList;
     }
     //credit card info
     public DataElementsIndiv addCreditCardData() {
