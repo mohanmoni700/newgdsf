@@ -4,10 +4,8 @@ import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.AirPricingSolution;
-import com.travelport.schema.air_v26_0.TypeAvailabilitySource;
-import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
-import com.travelport.schema.air_v26_0.TypeEticketability;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.schema.universal_v26_0.AirCreateReservationReq;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
@@ -21,7 +19,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.BindingProvider;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -47,9 +44,16 @@ public class AirReservationClient  extends TravelPortClient {
 
     static void  init(){
         if (airService == null){
+            java.net.URL url = null;
             try {
-                String path = new File(".").getCanonicalPath();
+                /*String path = new File(".").getCanonicalPath();
                 airService = new AirService(new java.net.URL("http://localhost:9000/wsdl/galileo/universal_v26_0/UniversalRecord.wsdl"));
+                */
+                java.net.URL baseUrl;
+                baseUrl = AirService.class.getResource(".");
+                url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/universal_v26_0/UniversalRecord.wsdl");
+                //url = new java.net.URL(baseUrl, "Air.wsdl");
+                airService = new AirService(url);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -117,8 +121,11 @@ public class AirReservationClient  extends TravelPortClient {
         */
 
         //need to do avail/price workflow
-        request.setAirPricingSolution(stripNonXmitSections(airPricingSolution));
+        //===================================================
+        //request.setAirPricingSolution(stripNonXmitSections(airPricingSolution));
+        //===================================================
 
+        request.setAirPricingSolution(airPricingSolution);
         //connect amount of payment to price solution
         //payment.setAmount(airPricingSolution.getTotalPrice());
 
@@ -174,19 +181,27 @@ public class AirReservationClient  extends TravelPortClient {
 		 * the values passed here...null seems to me "I accept the defauls"
 		 */
         Writer writer = null;
+        XStream xStream = new XStream();
         try {
-            writer = new FileWriter("AirReserveRequest.json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(request, writer);
+
+            String xml=xStream.toXML(request);
+            writer = new FileWriter("AirReserveRequest.xml");
+            //Gson gson = new GsonBuilder().create();
+            //gson.toJson(request, writer);
+            writer.write(xml);
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         try {
             init();
+            AirCreateReservationReq manualRequest=new AirCreateReservationReq();
+
+            //manualRequest=(AirCreateReservationReq)xStream.fromXML(new File("ManualAirReservationRequest"));
             response = airCreateReservationPortType.service(request, null);
 
-        } catch (com.travelport.service.universal_v26_0.AirFaultMessage airFaultMessage) {
+        }
+        catch (com.travelport.service.universal_v26_0.AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             airFaultMessage.getFaultInfo().getDescription();
             try {
@@ -214,7 +229,12 @@ public class AirReservationClient  extends TravelPortClient {
 
     }
 
+    public static AirPricingSolution createAirPricing(AirPricingSolution airPricingSolution){
+        return null;
+    }
+
     public static AirPricingSolution stripNonXmitSections(AirPricingSolution airPricingSolution) {
+
 	    /*
         <air:AirSegment Key="0T" Group="0" Carrier="AA" FlightNumber="789" ProviderCode="1G"                                                       8
                 Origin="ORD" Destination="DEN" DepartureTime="2012-04-01T13:05:00.000-06:00"
@@ -234,7 +254,7 @@ public class AirReservationClient  extends TravelPortClient {
 	     TravelOrder="0"/>
 
 	     */
-        long travelOrder = 1;
+       /* long travelOrder = 1;
         for (Iterator<TypeBaseAirSegment> iterator = airPricingSolution.getAirSegment().iterator(); iterator.hasNext();) {
             TypeBaseAirSegment seg = (TypeBaseAirSegment) iterator.next();
             //seg.setTravelOrder(BigInteger.valueOf(travelOrder));
@@ -250,7 +270,7 @@ public class AirReservationClient  extends TravelPortClient {
         }
         airPricingSolution.getAirPricingInfo().clear();
         airPricingSolution.getFareNote().clear();
-        airPricingSolution.setOptionalServices(null);
+        airPricingSolution.setOptionalServices(null);*/
         return airPricingSolution;
     }
 

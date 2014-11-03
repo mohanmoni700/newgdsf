@@ -50,7 +50,7 @@ public class TravelportBookingServiceImpl implements BookingService {
             pnrResponse =  checkFare(priceRsp,travellerMasterInfo);
             if(!pnrResponse.isPriceChanged()){
                 AirPricingSolution airPriceSolution = AirReservationClient.stripNonXmitSections(AirRequestClient.getPriceSolution(priceRsp));
-                AirCreateReservationRsp reservationRsp = AirReservationClient.reserve(airPriceSolution, travellerMasterInfo);
+                AirCreateReservationRsp reservationRsp = AirReservationClient.reserve(AirRequestClient.getPriceSolution(priceRsp), travellerMasterInfo);
                 UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient.retrievePNR(reservationRsp);
                 pnrResponse = retrievePNR(universalRecordRetrieveRsp,pnrResponse);
             }
