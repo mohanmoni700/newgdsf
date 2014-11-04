@@ -1,19 +1,28 @@
 package com.compassites.GDSWrapper.mystifly;
 
-import com.compassites.model.Passenger;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.SearchJourney;
-import com.compassites.model.SearchParameters;
+import java.rmi.RemoteException;
+import java.util.Calendar;
+import java.util.List;
+
 import onepoint.mystifly.AirLowFareSearchDocument;
 import onepoint.mystifly.AirLowFareSearchDocument.AirLowFareSearch;
 import onepoint.mystifly.AirLowFareSearchResponseDocument;
 import onepoint.mystifly.OnePointStub;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.MaxStopsQuantity.Enum;
 
-import java.rmi.RemoteException;
-import java.util.Calendar;
-import java.util.List;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRQ;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationInformation;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPassengerTypeQuantity;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.MaxStopsQuantity;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationInformation;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerType;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantity;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelPreferences;
+
+import com.compassites.model.Passenger;
+import com.compassites.model.SearchJourney;
+import com.compassites.model.SearchParameters;
 
 /**
  * @author Santhosh
