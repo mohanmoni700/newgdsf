@@ -1,31 +1,36 @@
 package com.compassites.model.traveller;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import play.db.ebean.Model;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
 /**
  * Created by mahendra-singh on 25/7/14.
  */
-@Entity
-@Table(name = "traveller")
+/*@Entity
+@Table(name = "traveller")*/
 public class Traveller extends Model implements Serializable {
-    @Id
+    /*@Id
     @Column(name = "id")
     @GeneratedValue
+    */
+    @JsonIgnore
     private Integer id;
 
-    @OneToOne(cascade=CascadeType.PERSIST)
+    //@OneToOne(cascade=CascadeType.PERSIST)
     private PersonalDetails personalDetails;
-    @OneToOne(cascade=CascadeType.PERSIST)
+    //@OneToOne(cascade=CascadeType.PERSIST)
     private Preferences preferences;
-    @OneToOne(cascade=CascadeType.PERSIST)
+    //@OneToOne(cascade=CascadeType.PERSIST)
     private PassportDetails passportDetails;
-    @OneToOne(cascade=CascadeType.PERSIST)
+    //@OneToOne(cascade=CascadeType.PERSIST)
     private CdcDetails cdcDetails;
-    @OneToOne(cascade=CascadeType.PERSIST)
+    //@OneToOne(cascade=CascadeType.PERSIST)
     private VisaDetails visaDetails;
+
+    //@ManyToOne
+    private TravellerMasterInfo travellerMasterInfo;
 
     public Integer getId() {
         return id;
@@ -75,5 +80,5 @@ public class Traveller extends Model implements Serializable {
         this.visaDetails = visaDetails;
     }
 
-    //public static Finder<Integer,Traveller> find=new Finder<Integer, Traveller>(Integer.class,Traveller.class);
+    public static Finder<Integer,Traveller> find=new Finder<Integer, Traveller>(Integer.class,Traveller.class);
 }

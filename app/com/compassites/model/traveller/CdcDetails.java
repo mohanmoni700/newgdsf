@@ -1,5 +1,7 @@
 package com.compassites.model.traveller;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import play.db.ebean.Model;
 
 import javax.persistence.Column;
@@ -13,23 +15,30 @@ import java.util.Date;
  */
 @Table(name = "cdc_details")
 @Entity
-public class CdcDetails extends Model implements Serializable{
+public class CdcDetails extends Model implements Serializable {
+    @JsonIgnore
     @Column(name="id")
     @javax.persistence.Id
-    private Integer Id;
+    private Integer id;
     @Column(name="cdc_number")
     private String cdcNumber;
     @Column(name="place_of_issue")
     private String placeOfIssue;
+
+    @JsonProperty("cdcDateOfIssue")
+    @Column(name="date_of_issue")
+    private Date dateOfIssue;
+
+    @JsonProperty("cdcDateOfExpiry")
     @Column(name="date_of_expiry")
     private Date dateOfExpiry;
 
     public Integer getId() {
-        return Id;
+        return id;
     }
 
     public void setId(Integer id) {
-        Id = id;
+        this.id = id;
     }
 
     public String getCdcNumber() {
@@ -46,6 +55,14 @@ public class CdcDetails extends Model implements Serializable{
 
     public void setPlaceOfIssue(String placeOfIssue) {
         this.placeOfIssue = placeOfIssue;
+    }
+
+    public Date getDateOfIssue() {
+        return dateOfIssue;
+    }
+
+    public void setDateOfIssue(Date dateOfIssue) {
+        this.dateOfIssue = dateOfIssue;
     }
 
     public Date getDateOfExpiry() {

@@ -45,7 +45,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             serviceHandler.logIn();
             AirSellFromRecommendationReply sellFromRecommendation = serviceHandler.checkFlightAvailability(travellerMasterInfo);
 
-            if(sellFromRecommendation.getErrorAtMessageLevel() != null && sellFromRecommendation.getErrorAtMessageLevel().size() > 0){
+            if(sellFromRecommendation.getErrorAtMessageLevel() != null && sellFromRecommendation.getErrorAtMessageLevel().size() > 0 && (sellFromRecommendation.getItineraryDetails() == null)){
 
                 ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
                 pnrResponse.setErrorMessage(errorMessage);
@@ -54,6 +54,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             boolean flightAvailable = validateFlightAvailability(sellFromRecommendation);
 
             if (flightAvailable) {
+
                 PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
                 pricePNRReply = serviceHandler.pricePNR(travellerMasterInfo, gdsPNRReply);
 
