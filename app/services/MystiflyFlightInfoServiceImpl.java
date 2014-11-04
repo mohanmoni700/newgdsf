@@ -22,7 +22,7 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 	public FlightItinerary getFlightnfo(FlightItinerary flightItinerary,
 			SearchParameters searchParams) {
 		AirRulesClient airRulesClient = new AirRulesClient();
-		AirRulesRS airRulesRS = airRulesClient.getAirRules11(flightItinerary
+		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary
 				.getFareSourceCode());
 
 		BaggageInfo[] baggageInfos = airRulesRS.getBaggageInfos()
