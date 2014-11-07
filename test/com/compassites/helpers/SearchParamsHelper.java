@@ -12,10 +12,9 @@ import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
 
 public class SearchParamsHelper {
-	
+
 	public static SearchParameters getSearchParams() {
 		SearchParameters searchParams = new SearchParameters();
-		
 		searchParams.setAdultCount(1);
 		searchParams.setBookingType(BookingType.NON_MARINE);
 		searchParams.setCabinClass(CabinClass.ECONOMY);
@@ -29,7 +28,22 @@ public class SearchParamsHelper {
 		searchParams.setNoOfStops(0);
 		return searchParams;
 	}
-	
+
+	public static SearchParameters getMultiCitySearchParams() {
+		SearchParameters searchParams = getSearchParams();
+		searchParams.setJourneyType(JourneyType.MULTI_CITY);
+		List<SearchJourney> journies = searchParams.getJourneyList();
+		SearchJourney journey = new SearchJourney();
+		journey.setDestination("MAA");
+		journey.setOrigin("DEL");
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.MONTH, 2);
+		calendar.add(Calendar.DATE, 1);
+		journey.setTravelDate(calendar.getTime());
+		journies.add(journey);
+		return searchParams;
+	}
+
 	public static List<SearchJourney> getSearchJourneyList() {
 		List<SearchJourney> journies = new ArrayList<>();
 		SearchJourney journey = new SearchJourney();
@@ -39,7 +53,6 @@ public class SearchParamsHelper {
 		calendar.add(Calendar.MONTH, 2);
 		journey.setTravelDate(calendar.getTime());
 		journies.add(journey);
-		
 		return journies;
 	}
 

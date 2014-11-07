@@ -11,7 +11,7 @@ import com.compassites.helpers.MystiflyFlightItineraryHelper;
 public class AirRevalidateClientTest {
 
 	@Test
-	public void test() {
+	public void testRevvalidateFare() {
 		PricedItinerary itinerary = MystiflyFlightItineraryHelper.getFlightItinerary();
 		String fareSourceCode = itinerary.getAirItineraryPricingInfo().getFareSourceCode();
 		

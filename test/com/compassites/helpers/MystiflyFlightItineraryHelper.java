@@ -7,12 +7,19 @@ import com.compassites.GDSWrapper.mystifly.LowFareRequestClient;
 import com.compassites.model.SearchParameters;
 
 public class MystiflyFlightItineraryHelper {
-	
+
 	public static PricedItinerary getFlightItinerary() {
-		SearchParameters searchParams = SearchParamsHelper.getSearchParams();
+		return lowFareSearch(SearchParamsHelper.getSearchParams());
+	}
+
+	public static PricedItinerary getMultiCityFlightItinerary() {
+		return lowFareSearch(SearchParamsHelper.getMultiCitySearchParams());
+	}
+
+	private static PricedItinerary lowFareSearch(SearchParameters searchParams) {
 		LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
 		AirLowFareSearchRS searchRS = lowFareRequestClient.search(searchParams);
-		return searchRS.getPricedItineraries().getPricedItineraryArray()[0];
+		return searchRS.getPricedItineraries().getPricedItineraryArray()[1];
 	}
 
 }
