@@ -2,6 +2,8 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
+import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
+import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
@@ -139,10 +141,21 @@ public class ServiceHandler {
         return docIssuanceIssueTicketReply;
     }
     
-	public FareInformativePricingWithoutPNRReply getFareInfo(FlightItinerary fligtItinerary, SearchParameters searchParams) {
+	public FareInformativePricingWithoutPNRReply getFareInfo(FlightItinerary fligtItinerary, int adultCount, int childCount, int infantCount) {
 		mSession.incrementSequenceNumber();
-		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, searchParams);
-		return mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
+		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, adultCount, childCount, infantCount);
+        JSONFileUtility.createJsonFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.json");
+		FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
+        JSONFileUtility.createJsonFile(fareInformativePricingPNRReply, "farePricingWithoutPNRRes.json");
+        return  fareInformativePricingPNRReply;
 	}
-	
+
+    public FareCheckRulesReply getFareRules(){
+        mSession.incrementSequenceNumber();
+        FareCheckRules fareCheckRules = new FareRules().createFareRules();
+        JSONFileUtility.createJsonFile(fareCheckRules, "fareRulesReq.json");
+        FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, mSession.getSession());
+        JSONFileUtility.createJsonFile(fareCheckRulesReply, "fareRulesRes.json");
+        return fareCheckRulesReply;
+    }
 }

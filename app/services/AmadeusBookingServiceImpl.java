@@ -1,5 +1,6 @@
 package services;
 
+import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
@@ -8,9 +9,12 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.PNRResponse;
+import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.TaxDetails;
+import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.springframework.stereotype.Service;
+import utils.DateUtility;
 import utils.ErrorMessageHelper;
 import utils.JSONFileUtility;
 
@@ -74,6 +78,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
                     //pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
                     pnrResponse = createPNRResponse(gdsPNRReply, pricePNRReply);
+
+                    getCancellationFee(travellerMasterInfo, serviceHandler);
                 }
             } else {
 
@@ -220,5 +226,32 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
 
         return taxDetailsList;
+    }
+
+    public void getCancellationFee(TravellerMasterInfo travellerMasterInfo,ServiceHandler serviceHandler){
+        //ServiceHandler serviceHandler = null;
+        try {
+            //serviceHandler = new ServiceHandler();
+            //serviceHandler.logIn();
+            int adultCount  = 0,childCount  = 0,infantCount = 0;
+            for(Traveller traveller : travellerMasterInfo.getTravellersList()){
+                PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPersonalDetails().getDateOfBirth());
+                if(passengerType.equals(PassengerTypeCode.ADT)){
+                    adultCount++;
+                } else if(passengerType.equals(PassengerTypeCode.CHD)){
+                    childCount++;
+                } else {
+                    infantCount++;
+                }
+            }
+            //FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler.getFareInfo(travellerMasterInfo.getItinerary(), adultCount, childCount, infantCount);
+
+            FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
+
+            System.out.println("");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

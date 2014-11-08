@@ -1,21 +1,16 @@
 package services;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup.BaggageAllowance.BaggageDetails;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.BaggageInfo;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.SearchParameters;
+import com.compassites.model.*;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Santhosh
@@ -31,7 +26,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		try {
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
-			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(flightItinerary, searchParams);
+			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(flightItinerary, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup());
 			
 		} catch (ServerSOAPFaultException ssf) {

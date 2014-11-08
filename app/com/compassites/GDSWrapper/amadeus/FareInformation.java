@@ -1,9 +1,5 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.MessageDetails;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.MessageDetails.MessageFunctionDetails;
@@ -18,17 +14,16 @@ import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGrou
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.OriginDestination;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation;
-import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.BoardPointDetails;
-import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.CompanyDetails;
-import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.FlightDate;
-import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.FlightIdentification;
-import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.OffpointDetails;
+import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.*;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.Trigger;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.SearchParameters;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Santhosh
@@ -36,7 +31,7 @@ import com.compassites.model.SearchParameters;
 public class FareInformation {
 
 	public FareInformativePricingWithoutPNR getFareInfo(
-			FlightItinerary flightItinerary, SearchParameters searchParams) {
+			FlightItinerary flightItinerary, int adultCount, int childCount, int infantCount) {
 
 		FareInformativePricingWithoutPNR fareInfo = new FareInformativePricingWithoutPNR();
 
@@ -49,12 +44,14 @@ public class FareInformation {
 		fareInfo.setMessageDetails(messageDetails);
 
 		List<PassengersGroup> passengers = fareInfo.getPassengersGroup();
-		passengers.add(getPassengerGroup(PassengerTypeCode.ADT,
-				searchParams.getAdultCount()));
-		// passengers.add(getPassengerGroup(PassengerTypeCode.CHD,
-		// searchParams.getChildCount()));
-		// passengers.add(getPassengerGroup(PassengerTypeCode.INF,
-		// searchParams.getInfantCount()));
+		passengers.add(getPassengerGroup(PassengerTypeCode.ADT,adultCount));
+        if(childCount > 0){
+            passengers.add(getPassengerGroup(PassengerTypeCode.CHD,childCount));
+        }
+		if(infantCount > 0){
+            passengers.add(getPassengerGroup(PassengerTypeCode.INF,infantCount));
+        }
+
 
 		TripsGroup tripsGroup = new TripsGroup();
 		fareInfo.setTripsGroup(tripsGroup);

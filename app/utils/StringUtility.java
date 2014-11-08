@@ -15,4 +15,15 @@ public class StringUtility {
         String priceValue = price.substring(i);
         return priceValue;
     }
+
+
+    public static String getGenderCode(String gender){
+
+        if("male".equalsIgnoreCase(gender)){
+            return "M";
+        }else {
+            return "F";
+        }
+
+    }
 }

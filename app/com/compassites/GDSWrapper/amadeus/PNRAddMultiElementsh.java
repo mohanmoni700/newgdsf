@@ -20,12 +20,15 @@ import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.Passenge
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Passenger;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Traveller;
 import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
+import utils.StringUtility;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,11 +47,12 @@ public class PNRAddMultiElementsh {
         element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
         DataElementsMaster dem = new DataElementsMaster();
         dem.setMarker1(new Marker1());
-        
-        dem.getDataElementsIndiv().add(addCreditCardData());
-        dem.getDataElementsIndiv().add(addReceivedFrom());
-        dem.getDataElementsIndiv().add(addTckArr());
-        dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo));
+        int qualifierNumber = 0;
+        dem.getDataElementsIndiv().add(addCreditCardData(qualifierNumber));
+        dem.getDataElementsIndiv().add(addReceivedFrom(qualifierNumber));
+        dem.getDataElementsIndiv().add(addTckArr(qualifierNumber));
+        dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo, qualifierNumber));
+        dem.getDataElementsIndiv().addAll(addPassportDetails(travellerMasterInfo, qualifierNumber));
         //dem.getDataElementsIndiv().add(addEOTInfo());
 
         element.setDataElementsMaster(dem);
@@ -224,7 +228,7 @@ public class PNRAddMultiElementsh {
     }
 
     //contact information
-    public List<DataElementsIndiv> addContactInfo(TravellerMasterInfo travellerMasterInfo) {
+    public List<DataElementsIndiv> addContactInfo(TravellerMasterInfo travellerMasterInfo, int qualifierNumber) {
         //email info
         List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
         DataElementsIndiv de = new DataElementsIndiv();
@@ -233,7 +237,7 @@ public class PNRAddMultiElementsh {
         elementManagementData.setSegmentName("AP");
         Reference rf = new Reference();
         rf.setQualifier("OT");
-        rf.setNumber("1");
+        rf.setNumber((++qualifierNumber)+"");
         elementManagementData.setReference(rf);
         de.setElementManagementData(elementManagementData);
 
@@ -253,7 +257,7 @@ public class PNRAddMultiElementsh {
         elementManagementData.setSegmentName("AP");
         rf = new Reference();
         rf.setQualifier("OT");
-        rf.setNumber("4");
+        rf.setNumber(++qualifierNumber+"");
         elementManagementData.setReference(rf);
         de.setElementManagementData(elementManagementData);
 
@@ -265,16 +269,36 @@ public class PNRAddMultiElementsh {
         ftd.setFreetextDetail(ftdt);
         ftd.setLongFreetext(travellerMasterInfo.getAdditionalInfo().getPhoneNumber());
         dataElementsDivList.add(de);
+
+        //emergency contact number
+        de = new DataElementsIndiv();
+        elementManagementData = new ElementManagementData();
+
+        elementManagementData.setSegmentName("OS");
+        rf = new Reference();
+        rf.setQualifier("OT");
+        rf.setNumber((++qualifierNumber)+"");
+        elementManagementData.setReference(rf);
+        de.setElementManagementData(elementManagementData);
+
+        ftd = new FreetextData();
+        de.setFreetextData(ftd);
+        ftdt = new FreetextDetail();
+        ftdt.setSubjectQualifier("3");
+        ftdt.setType("3");
+        ftd.setFreetextDetail(ftdt);
+        ftd.setLongFreetext("Emergency Contact Name "+travellerMasterInfo.getAdditionalInfo().getEmergencyContact()+" and Number "+travellerMasterInfo.getAdditionalInfo().getEmergencyContactNumber());
+        dataElementsDivList.add(de);
         return dataElementsDivList;
     }
     //credit card info
-    public DataElementsIndiv addCreditCardData() {
+    public DataElementsIndiv addCreditCardData(int qualifierNumber) {
         DataElementsIndiv de = new DataElementsIndiv();
         ElementManagementData emd = new ElementManagementData();
         emd.setSegmentName("FP");
         Reference rf = new Reference();
         rf.setQualifier("OT");
-        rf.setNumber("2");
+        rf.setNumber((++qualifierNumber)+"");
         emd.setReference(rf);
 
         FormOfPayment fop = new FormOfPayment();
@@ -295,14 +319,14 @@ public class PNRAddMultiElementsh {
         return de;
     }
     //info for ticketing agent
-    public DataElementsIndiv addReceivedFrom() {
+    public DataElementsIndiv addReceivedFrom(int qualifierNumber) {
         DataElementsIndiv de = new DataElementsIndiv();
         ElementManagementData emd = new ElementManagementData();
         emd.setSegmentName("RF");
         
         Reference rf = new Reference();
         rf.setQualifier("OT");
-        rf.setNumber("3");
+        rf.setNumber((++qualifierNumber)+"");
         emd.setReference(rf);
         
         FreetextData ftd = new FreetextData();
@@ -318,14 +342,14 @@ public class PNRAddMultiElementsh {
     }
 
     //ticketing arrangement info
-    public DataElementsIndiv addTckArr() {
+    public DataElementsIndiv addTckArr(int qualifierNumber) {
         DataElementsIndiv de = new DataElementsIndiv();
         ElementManagementData emd = new ElementManagementData();
         emd.setSegmentName("TK");
 
         Reference rf = new Reference();
         rf.setQualifier("OT");
-        rf.setNumber("4");
+        rf.setNumber((++qualifierNumber)+"");
         emd.setReference(rf);
 
         TicketElement te = new TicketElement();
@@ -353,5 +377,53 @@ public class PNRAddMultiElementsh {
         ftd.setLongFreetext("RF ADDED VIA PNRADD");
         de.setElementManagementData(emd);
         return de;
+    }
+
+    public List<DataElementsIndiv> addPassportDetails(TravellerMasterInfo travellerMasterInfo, int qualifierNumber){
+        List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
+        int i = 1;
+        for(com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()){
+
+            if(traveller.getPassportDetails().getPassportNumber() != null && traveller.getPassportDetails().getPassportNumber() != "") {
+                PassportDetails passportDetails = traveller.getPassportDetails();
+                DataElementsIndiv de = new DataElementsIndiv();
+                ElementManagementData elementManagementData = new ElementManagementData();
+                Reference refrence = new Reference();
+                refrence.setQualifier("OT");
+                refrence.setNumber((++qualifierNumber)+"");
+                elementManagementData.setReference(refrence);
+                elementManagementData.setSegmentName("SSR");
+                de.setElementManagementData(elementManagementData);
+                DataElementsIndiv.ServiceRequest serviceRequest = new DataElementsIndiv.ServiceRequest();
+                DataElementsIndiv.ServiceRequest.Ssr ssr = new DataElementsIndiv.ServiceRequest.Ssr();
+                ssr.setType("DOCS");
+                ssr.setStatus("HK");
+                ssr.setQuantity(new BigDecimal(1));
+                ssr.setCompanyId("YY");
+                List<String> freeTextList = ssr.getFreetext();
+                SimpleDateFormat ddMMMyyFormat = new SimpleDateFormat("ddMMMyy");
+                // Sample text P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON
+
+                String freeText = "P-IND-" +passportDetails.getPassportNumber()+"-IND-"+ ddMMMyyFormat.format(passportDetails.getDateOfBirth())
+                        +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getGender())+"-"+ddMMMyyFormat.format(passportDetails.getDateOfExpiry())+"-"+
+                        traveller.getPersonalDetails().getFirstName()+"-"+traveller.getPersonalDetails().getLastName();
+                //String freeText = "P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON";
+                freeTextList.add(freeText);
+
+                serviceRequest.setSsr(ssr);
+                de.setServiceRequest(serviceRequest);
+
+                DataElementsIndiv.ReferenceForDataElement referenceForDataElement = new DataElementsIndiv.ReferenceForDataElement();
+                List<DataElementsIndiv.ReferenceForDataElement.Reference> referenceList = referenceForDataElement.getReference();
+                DataElementsIndiv.ReferenceForDataElement.Reference rf = new DataElementsIndiv.ReferenceForDataElement.Reference();
+                rf.setQualifier("PR");
+                rf.setNumber("" + (i++));
+                referenceList.add(rf);
+                de.setReferenceForDataElement(referenceForDataElement);
+                dataElementsDivList.add(de);
+            }
+        }
+
+            return dataElementsDivList;
     }
 }
