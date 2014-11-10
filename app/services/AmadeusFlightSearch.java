@@ -146,7 +146,9 @@ public class AmadeusFlightSearch implements FlightSearch {
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 AirSolution seamenSolution = new AirSolution();
                 seamenSolution = createAirSolutionFromRecommendation(seamenReply);
-                addSeamenFareToSolution(airSolution, seamenSolution);
+                seamenSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
+                seamenSolution.setNonSeamenHashMap(null);
+                //addSeamenFareToSolution(airSolution, seamenSolution);
             }
         }
         searchResponse.setAirSolution(airSolution);
@@ -259,15 +261,19 @@ public class AmadeusFlightSearch implements FlightSearch {
     //for round trip and refactored
     private AirSolution createAirSolutionFromRecommendation(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
         AirSolution airSolution = new AirSolution();
-        airSolution.setFlightItineraryList(createFlightItineraryList(airSolution, fareMasterPricerTravelBoardSearchReply));
+        //airSolution.setFlightItineraryList(createFlightItineraryList(airSolution, fareMasterPricerTravelBoardSearchReply));
+        airSolution.setNonSeamenHashMap(createFlightItineraryList(airSolution, fareMasterPricerTravelBoardSearchReply));
         return airSolution;
     }
 
     //list with all flight informaition
     private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
-    private List<FlightItinerary> createFlightItineraryList(AirSolution airSolution, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
+    private HashMap<Integer, FlightItinerary> createFlightItineraryList(AirSolution airSolution, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
         List<FlightItinerary> flightItineraryList = new ArrayList<>();
+
+        HashMap<Integer, FlightItinerary> flightItineraryHashMap = new HashMap<>();
+
         String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
         flightIndexList=fareMasterPricerTravelBoardSearchReply.getFlightIndex();
         for (FareMasterPricerTravelBoardSearchReply.Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
@@ -282,10 +288,11 @@ public class AmadeusFlightSearch implements FlightSearch {
                 //journey information
 
                 flightItinerary=createJourneyInformation(segmentRef,flightItinerary);
-                flightItineraryList.add(flightItinerary);
+                flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+                //flightItineraryList.add(flightItinerary);
             }
         }
-        return flightItineraryList;
+        return flightItineraryHashMap;
     }
 
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef,FlightItinerary flightItinerary){

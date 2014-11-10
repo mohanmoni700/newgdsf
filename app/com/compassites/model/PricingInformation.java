@@ -15,6 +15,8 @@ public class PricingInformation {
 
     private List<PAXFareDetails> paxFareDetailsList;
 
+    private String provider;
+
     public PricingInformation() {
         paxFareDetailsList= new ArrayList<>();
     }
@@ -65,5 +67,13 @@ public class PricingInformation {
 
     public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
         this.paxFareDetailsList = paxFareDetailsList;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 }

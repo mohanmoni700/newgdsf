@@ -71,17 +71,19 @@ public class TravelPortFlightSearch implements FlightSearch {
         if (searchParameters.getBookingType()==BookingType.SEAMEN){
             Logger.info("[Travelport] Starting seaman search.");
             seamanResponse = search(searchParameters, "seaman");
+            seamanResponse.getAirSolution().setSeamenHashMap(seamanResponse.getAirSolution().getNonSeamenHashMap());
+            seamanResponse.getAirSolution().setNonSeamenHashMap(null);
             Logger.info("[Travelport] End seaman search. Response size: "+ seamanResponse.getAirSolution().getFlightItineraryList().size());
         }
 
-        SearchResponse finalResponse = mergeResponse(nonSeamanResponse, seamanResponse);
+        //SearchResponse finalResponse = mergeResponse(nonSeamanResponse, seamanResponse);
 
-        finalResponse.setProvider("Travelport");
+       /* finalResponse.setProvider("Travelport");
         File file = new File("travelport-roundtrip.json");
         FileOutputStream os = new FileOutputStream(file);
         PrintStream out = new PrintStream(os);
-        out.print(Json.toJson(finalResponse));
-        return finalResponse;
+        out.print(Json.toJson(finalResponse));*/
+        return seamanResponse;
 
     }
 
@@ -230,7 +232,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
         AirSolution airSolution=new AirSolution();
         List<FlightItinerary> flightItineraries=new ArrayList<FlightItinerary>();
-
+        HashMap<Integer, FlightItinerary> flightItineraryHashMap = new HashMap<>();
 
         List<AirSegmentInformation> airSegmentInformationList=new ArrayList<AirSegmentInformation>();
         Helper.AirSegmentMap allSegments = Helper.createAirSegmentMap(
@@ -374,9 +376,10 @@ public class TravelPortFlightSearch implements FlightSearch {
             }
 
             //System.out.println("-----------");
-            airSolution.getFlightItineraryList().add(flightItinerary);
+            //airSolution.getFlightItineraryList().add(flightItinerary);
+            flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
         }
-
+        airSolution.setNonSeamenHashMap(flightItineraryHashMap);
         searchResponse.setAirSolution(airSolution);
 
         return searchResponse;

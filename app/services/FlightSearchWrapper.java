@@ -135,15 +135,28 @@ public class FlightSearchWrapper {
                             if(hashMap.containsKey(flightItinerary.hashCode())){
                                 //Logger.info("Common Flights"+Json.toJson(flightItinerary));
                                 FlightItinerary hashFlightItinerary = hashMap.get(flightItinerary.hashCode());
-                                if (hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
-                                        && flightItinerary.getPricingInformation() != null && flightItinerary.getPricingInformation().getTotalPrice() != null) {
-                                    Integer hashItinaryPrice = new Integer(hashFlightItinerary.getPricingInformation().getTotalPrice().substring(3));
-                                    Integer iteratorItinaryPrice = new Integer(flightItinerary.getPricingInformation().getTotalPrice().substring(3));
-                                    if (iteratorItinaryPrice < hashItinaryPrice) {
-                                        hashMap.remove(hashFlightItinerary.hashCode());
-                                        hashMap.put(flightItinerary.hashCode(), flightItinerary);
-                                    }
-                                }
+                                //if(searchParameters.getBookingType().equals(BookingType.NON_MARINE)){
+                                    if (hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
+                                            && flightItinerary.getPricingInformation() != null && flightItinerary.getPricingInformation().getTotalPrice() != null) {
+                                        Integer hashItineraryPrice = new Integer(hashFlightItinerary.getPricingInformation().getTotalPrice());
+                                        Integer iteratorItineraryPrice = new Integer(flightItinerary.getPricingInformation().getTotalPrice());
+                                        if (iteratorItineraryPrice < hashItineraryPrice) {
+                                            hashMap.remove(hashFlightItinerary.hashCode());
+                                            hashMap.put(flightItinerary.hashCode(), flightItinerary);
+                                        }
+                                    } /*else {
+                                        if (hashFlightItinerary.getSeamanPricingInformation() != null && hashFlightItinerary.getSeamanPricingInformation().getTotalPrice() != null
+                                                && flightItinerary.getSeamanPricingInformation() != null && flightItinerary.getSeamanPricingInformation().getTotalPrice() != null) {
+                                            Integer hashItineraryPrice = new Integer(hashFlightItinerary.getSeamanPricingInformation().getTotalPrice());
+                                            Integer iteratorItineraryPrice = new Integer(flightItinerary.getSeamanPricingInformation().getTotalPrice());
+                                            if (iteratorItineraryPrice < hashItineraryPrice) {
+                                                hashMap.remove(hashFlightItinerary.hashCode());
+                                                hashMap.put(flightItinerary.hashCode(), flightItinerary);
+                                            }
+                                        }
+                                    }*/
+                                //}
+
                             } else {
                                 hashMap.put(flightItinerary.hashCode(), flightItinerary);
                             }
@@ -230,4 +243,16 @@ public class FlightSearchWrapper {
         redisTemplate.expire( key,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS );
     }
 
+
+    public void mergeResults(HashMap<String, FlightItinerary> allFightItineraries, SearchResponse searchResponse){
+
+        if(allFightItineraries.isEmpty()){
+            mergeSeamenAndNonSeamenResults(allFightItineraries, searchResponse);
+        }
+    }
+
+
+    public void mergeSeamenAndNonSeamenResults(HashMap<String, FlightItinerary> allFightItineraries, SearchResponse searchResponse){
+        System.out.println();
+    }
 }

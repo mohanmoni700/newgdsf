@@ -23,6 +23,8 @@ public class Journey
     @JsonIgnore
     private Integer hashCode;
 
+    private String provider;
+
     public Integer getHashCode() {
         return hashCode;
     }
@@ -119,5 +121,13 @@ public class Journey
 
     public void setNoOfStops(Integer noOfStops) {
         this.noOfStops = noOfStops;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 }

@@ -39,6 +39,8 @@ public class FlightItinerary implements Serializable{
     @Property
     private List<Journey> journeyList;
 
+    private List<Journey> NonSeamenJourneyList;
+
     public PricingMessage getPricingMessage() {
         return pricingMessage;
     }
@@ -148,4 +150,11 @@ public class FlightItinerary implements Serializable{
         return Pojomatic.toString(this);
     }
 
+    public List<Journey> getNonSeamenJourneyList() {
+        return NonSeamenJourneyList;
+    }
+
+    public void setNonSeamenJourneyList(List<Journey> nonSeamenJourneyList) {
+        NonSeamenJourneyList = nonSeamenJourneyList;
+    }
 }

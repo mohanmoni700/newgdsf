@@ -1,6 +1,9 @@
 package com.compassites.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -17,11 +20,33 @@ public class AirSolution {
 
     private List<FlightItinerary> flightItineraryList;
 
+    @JsonIgnore
+    private HashMap<Integer, FlightItinerary> seamenHashMap;
+
+    @JsonIgnore
+    private HashMap<Integer, FlightItinerary> nonSeamenHashMap;
+
     public List<FlightItinerary> getFlightItineraryList() {
         return flightItineraryList;
     }
 
     public void setFlightItineraryList(List<FlightItinerary> flightItineraryList) {
         this.flightItineraryList = flightItineraryList;
+    }
+
+    public HashMap<Integer, FlightItinerary> getSeamenHashMap() {
+        return seamenHashMap;
+    }
+
+    public void setSeamenHashMap(HashMap<Integer, FlightItinerary> seamenHashMap) {
+        this.seamenHashMap = seamenHashMap;
+    }
+
+    public HashMap<Integer, FlightItinerary> getNonSeamenHashMap() {
+        return nonSeamenHashMap;
+    }
+
+    public void setNonSeamenHashMap(HashMap<Integer, FlightItinerary> nonSeamenHashMap) {
+        this.nonSeamenHashMap = nonSeamenHashMap;
     }
 }
