@@ -19,5 +19,10 @@ public class AirRevalidateClientTest {
 		AirRevalidateRS response = airClient.revalidate(fareSourceCode);
 		assertTrue(response.getSuccess());
 	}
+	
+	@Test
+	public void testRevalidateFare() {
+		assertTrue(true);
+	}
 
 }
