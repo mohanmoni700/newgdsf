@@ -34,6 +34,7 @@ public class AirRevalidateClient {
 					.newInstance();
 			AirRevalidateRQ airRevalidateRQ = airRevalidateDocument
 					.addNewAirRevalidate().addNewRq();
+			airRevalidateRQ.setTarget(Mystifly.TARGET);
 			airRevalidateRQ.setFareSourceCode(fareSourceCode);
 			airRevalidateRQ.setSessionId(sessionRS.getSessionId());
 			AirRevalidateResponseDocument airRevalidateRSDoc = onePointStub

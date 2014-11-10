@@ -7,11 +7,13 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripType;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.CabinType;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTitle;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Gender;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerType;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Target;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Target.Enum;
 
 import com.compassites.model.CabinClass;
 import com.compassites.model.JourneyType;
+import com.compassites.model.PassengerTypeCode;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -49,5 +51,9 @@ public class Mystifly {
 			.of("mr", PassengerTitle.MR, "mrs", PassengerTitle.MRS, "ms.",
 					PassengerTitle.MISS, "master", PassengerTitle.MR, "miss",
 					PassengerTitle.MISS);
+	public static final Map<PassengerTypeCode, PassengerType.Enum> PASSENGER_TYPE = ImmutableMap
+			.of(PassengerTypeCode.ADT, PassengerType.ADT,
+					PassengerTypeCode.CHD, PassengerType.CHD,
+					PassengerTypeCode.INF, PassengerType.INF);
 
 }

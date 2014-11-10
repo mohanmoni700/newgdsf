@@ -25,8 +25,8 @@ public class AirRulesClient {
 		FareRules11 fareRules = fareRulesDoc.addNewFareRules11();
 		AirRulesRQ airRulesRQ = fareRules.addNewRq();
 		airRulesRQ.setSessionId(sessionRS.getSessionId());
-		airRulesRQ.setFareSourceCode(fareSourceCode);
 		airRulesRQ.setTarget(Mystifly.TARGET);
+		airRulesRQ.setFareSourceCode(fareSourceCode);
 		FareRules11ResponseDocument fareRulesRSDoc = null;
 		try {
 			fareRulesRSDoc = onePointStub.fareRules1_1(fareRulesDoc);

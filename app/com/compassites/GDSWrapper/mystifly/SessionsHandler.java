@@ -40,6 +40,7 @@ public class SessionsHandler {
 					.newInstance();
 			CreateSession createSession = sessionDoc.addNewCreateSession();
 			SessionCreateRQ sessionRQ = createSession.addNewRq();
+			sessionRQ.setTarget(Mystifly.TARGET);
 			sessionRQ.setAccountNumber(Mystifly.ACCOUNT_NUMBER);
 			sessionRQ.setUserName(Mystifly.USERNAME);
 			sessionRQ.setPassword(Mystifly.PASSWORD);

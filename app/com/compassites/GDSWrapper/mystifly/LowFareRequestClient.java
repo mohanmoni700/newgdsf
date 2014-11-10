@@ -41,6 +41,7 @@ public class LowFareRequestClient {
 		AirLowFareSearchRQ airLowFareSearchRQ = airLowFareSearch.addNewRq();
 
 		airLowFareSearchRQ.setSessionId(sessionRS.getSessionId());
+		airLowFareSearchRQ.setTarget(Mystifly.TARGET);
 		airLowFareSearchRQ.setIsRefundable(searchParams.getRefundableFlights());
 
 		ArrayOfOriginDestinationInformation originDestinationInformations = airLowFareSearchRQ
