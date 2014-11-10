@@ -18,11 +18,11 @@ public class BookFlightClientTest {
     	assertTrue(bookRS.getSuccess());
 	}
 	
-	@Test
-	public void testMultiCityBookFlight() {
-		AirBookRS bookRS = bookFlight(MystiflyFlightItineraryHelper.getMultiCityFlightItinerary());
-    	assertTrue(bookRS.getSuccess());
-	}
+//	@Test
+//	public void testMultiCityBookFlight() {
+//		AirBookRS bookRS = bookFlight(MystiflyFlightItineraryHelper.getMultiCityFlightItinerary());
+//    	assertTrue(bookRS.getSuccess());
+//	}
 	
 	private AirBookRS bookFlight(PricedItinerary pricedItinerary) {
 		String fareSourceCode = pricedItinerary.getAirItineraryPricingInfo().getFareSourceCode();
