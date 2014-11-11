@@ -152,7 +152,7 @@ public class AirlineCode {
 
 	public static List<SqlRow> getAirlineList() {
 
-		String sqlQuery = "SELECT id,iata_code,airline,logo,logo_name FROM airline_code order by airline";
+		String sqlQuery = "SELECT id,iata_code,airline,logo FROM airline_code order by airline";
 
 		SqlQuery sqlQuery1 = Ebean.createSqlQuery(sqlQuery);
 
