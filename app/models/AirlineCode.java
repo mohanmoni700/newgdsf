@@ -1,180 +1,216 @@
 package models;
 
-import com.compassites.constants.CacheConstants;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import static com.avaje.ebean.Expr.like;
+import static com.avaje.ebean.Expr.or;
 
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.SqlQuery;
+import com.avaje.ebean.SqlRow;
+import com.compassites.constants.CacheConstants;
 
 import play.db.ebean.Model;
+import play.db.ebean.Model.Finder;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
 
 import javax.persistence.*;
+
 import java.util.List;
 
 /**
  * Created by Renu on 6/24/14.
  */
 @Entity
-@Table(name="airline_code")
-@JsonIgnoreProperties(ignoreUnknown = true)
-
+@Table(name = "airline_code")
 public class AirlineCode {
-    @Id
-    @Column(name="id")
-    public Long id;
-    @Column(name="icao_code")
-    public String ICAO_code;
-    @Column(name="iata_code")
-    public String IATA_code;
-    @Column(name="airline")
-    public String airline;
-    @Column(name="call_sign")
-    public String call_sign;
-    @Column(name="country_name")
-    public String country_name;
-    @Column(name="comments")
-    public String comments;
-    @Lob
-    @Column(name="logo")
-    public byte[] logo;
-    @Column(name="logo_name")
-    public String logo_name;
+	@Id
+	@Column(name = "id")
+	public Long id;
+	@Column(name = "icao_code")
+	public String ICAO_code;
+	@Column(name = "iata_code")
+	public String IATA_code;
+	@Column(name = "airline")
+	public String airline;
+	@Column(name = "call_sign")
+	public String call_sign;
+	@Column(name = "country_name")
+	public String country_name;
+	@Column(name = "comments")
+	public String comments;
+	@Lob
+	@Column(name = "logo")
+	public byte[] logo;
+	
+	@Column(name = "commission")
+	private long commission;
+	
+	public long getCommission() {
+		return commission;
+	}
+
+	public void setCommission(long commission) {
+		this.commission = commission;
+	}
+
+	
+
+	public AirlineCode(Long id, String iCAO_code, String iATA_code,
+			String airline, String call_sign, String country_name,
+			String comments, byte[] logo, long commission) {
+		super();
+		this.id = id;
+		ICAO_code = iCAO_code;
+		IATA_code = iATA_code;
+		this.airline = airline;
+		this.call_sign = call_sign;
+		this.country_name = country_name;
+		this.comments = comments;
+		this.logo = logo;
+		this.commission = commission;
+	}
 
 
 
+	private static Finder<Long, AirlineCode> find = new Finder<Long, AirlineCode>(
+			Long.class, AirlineCode.class);
 
+	public AirlineCode() {
+	}
 
-    public AirlineCode(Long id, String iCAO_code, String iATA_code,
-                       String airline, String call_sign, String country_name,
-                       String comments, byte[] logo, String logo_name) {
+	public Long getId() {
+		return id;
+	}
 
-        this.id = id;
-        ICAO_code = iCAO_code;
-        IATA_code = iATA_code;
-        this.airline = airline;
-        this.call_sign = call_sign;
-        this.country_name = country_name;
-        this.comments = comments;
-        this.logo = logo;
-        this.logo_name = logo_name;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getLogo_name() {
-        return logo_name;
-    }
+	public String getICAO_code() {
+		return ICAO_code;
+	}
 
-    public void setLogo_name(String logo_name) {
-        this.logo_name = logo_name;
-    }
+	public void setICAO_code(String iCAO_code) {
+		ICAO_code = iCAO_code;
+	}
 
+	public String getIATA_code() {
+		return IATA_code;
+	}
 
-    public static Model.Finder<Long, AirlineCode> find = new Model.Finder<Long, AirlineCode>(Long.class, AirlineCode.class);
+	public void setIATA_code(String iATA_code) {
+		IATA_code = iATA_code;
+	}
 
-    public AirlineCode(){}
+	public String getAirline() {
+		return airline;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public void setAirline(String airline) {
+		this.airline = airline;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public String getCall_sign() {
+		return call_sign;
+	}
 
-    public String getICAO_code() {
-        return ICAO_code;
-    }
+	public void setCall_sign(String call_sign) {
+		this.call_sign = call_sign;
+	}
 
-    public void setICAO_code(String iCAO_code) {
-        ICAO_code = iCAO_code;
-    }
+	public String getCountry_name() {
+		return country_name;
+	}
 
-    public String getIATA_code() {
-        return IATA_code;
-    }
+	public void setCountry_name(String country_name) {
+		this.country_name = country_name;
+	}
 
-    public void setIATA_code(String iATA_code) {
-        IATA_code = iATA_code;
-    }
+	public String getComments() {
+		return comments;
+	}
 
-    public String getAirline() {
-        return airline;
-    }
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
 
-    public void setAirline(String airline) {
-        this.airline = airline;
-    }
+	public byte[] getLogo() {
+		return logo;
+	}
 
-    public String getCall_sign() {
-        return call_sign;
-    }
+	public void setLogo(byte[] logo) {
+		this.logo = logo;
+	}
 
-    public void setCall_sign(String call_sign) {
-        this.call_sign = call_sign;
-    }
+	public static Finder<Long, AirlineCode> getFind() {
+		return find;
+	}
 
-    public String getCountry_name() {
-        return country_name;
-    }
+	public static void setFind(Finder<Long, AirlineCode> find) {
+		AirlineCode.find = find;
+	}
 
-    public void setCountry_name(String country_name) {
-        this.country_name = country_name;
-    }
+	public static List<SqlRow> getAirlineList() {
 
-    public String getComments() {
-        return comments;
-    }
+		String sqlQuery = "SELECT id,iata_code,airline,logo,logo_name FROM airline_code order by airline";
 
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
+		SqlQuery sqlQuery1 = Ebean.createSqlQuery(sqlQuery);
 
-    public byte[] getLogo() {
-        return logo;
-    }
+		return sqlQuery1.findList();
+	}
 
-    public void setLogo(byte[] logo) {
-        this.logo = logo;
-    }
+	public static AirlineCode findAirlineById(Long id) {
+		return Ebean.find(AirlineCode.class, id);
+	}
 
-    public static Model.Finder<Long, AirlineCode> getFind() {
-        return find;
-    }
+	public List<AirlineCode> findAirlineCode(String query) {
+		return find
+				.where()
+				.or(or(like("ICAO_code", "%" + query + "%"),
+						like("IATA_code", "%" + query + "%")),
+						or(like("airline", "%" + query + "%"),
+								like("country_name", "%" + query + "%")))
+				.findList();
+	}
 
-    public static void setFind(Model.Finder<Long, AirlineCode> find) {
-        AirlineCode.find = find;
-    }
+	public static int findRowCount() {
+		return find.findRowCount();
+	}
 
+	public AirlineCode(String airline, String call_sign, String comments,
+			String country_name, String IATA_code, String ICAO_code) {
+		this.comments = comments;
+		this.IATA_code = IATA_code;
+		this.ICAO_code = ICAO_code;
+		this.airline = airline;
+		this.call_sign = call_sign;
+		this.country_name = country_name;
+	}
 
-    public AirlineCode(String airline, String call_sign, String comments, String country_name, String IATA_code, String ICAO_code) {
-        this.comments = comments;
-        this.IATA_code = IATA_code;
-        this.ICAO_code = ICAO_code;
-        this.airline = airline;
-        this.call_sign = call_sign;
-        this.country_name = country_name;
-    }
+	public static AirlineCode getAirlineByCode(String airlineCode) {
+		String cacheKey = "Airline#" + airlineCode;
+		Jedis j = new Jedis("localhost", 6379);
+		j.connect();
+		String airlineJson = j.get(cacheKey);
+		AirlineCode airline = null;
+		if (airlineJson != null) {
+			airline = Json.fromJson(Json.parse(airlineJson), AirlineCode.class);
 
-    public static AirlineCode getAirlineByCode(String airlineCode){
-        String cacheKey = "Airline#"+airlineCode;
-        Jedis j = new Jedis("localhost", 6379);
-        j.connect();
-        String airlineJson = j.get(cacheKey);
-        AirlineCode airline = null;
-        if (airlineJson != null) {
-            airline  = Json.fromJson(Json.parse(airlineJson), AirlineCode.class);
+		} else {
+			List<AirlineCode> airlines = find.where()
+					.eq("iata_code", airlineCode).findList();
+			if (airlines.size() > 0)
+				airline = find.where().eq("iata_code", airlineCode).findList()
+						.get(0);
+			else
+				airline = new AirlineCode(airlineCode, "", "", "", airlineCode,
+						"");
+			j.setex(cacheKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, Json
+					.toJson(airline).toString());
 
-        } else {
-            List<AirlineCode> airlines = find.where().eq("iata_code",airlineCode).findList();
-            if (airlines.size() > 0)
-                airline = find.where().eq("iata_code",airlineCode).findList().get(0);
-            else
-                airline = new AirlineCode( airlineCode, "","", "", airlineCode,""  );
-            j.setex(cacheKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.toJson(airline).toString());
-
-        }
-        j.disconnect();
-        return airline;
-    }
+		}
+		j.disconnect();
+		return airline;
+	}
 
 }
-
