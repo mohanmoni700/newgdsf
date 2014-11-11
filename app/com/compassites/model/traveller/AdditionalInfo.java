@@ -21,6 +21,10 @@ public class AdditionalInfo {
 
     private String emergencyContactNumber;
 
+    private String countryCode;
+
+    private String   phoneCode;
+
     public Integer getId() {
         return Id;
     }
@@ -83,5 +87,21 @@ public class AdditionalInfo {
 
     public void setEmergencyContactNumber(String emergencyContactNumber) {
         this.emergencyContactNumber = emergencyContactNumber;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getPhoneCode() {
+        return phoneCode;
+    }
+
+    public void setPhoneCode(String phoneCode) {
+        this.phoneCode = phoneCode;
     }
 }
