@@ -18,6 +18,7 @@ public class FlightItinerary implements Serializable{
 
     public FlightItinerary() {
         journeyList = new ArrayList<Journey>();
+        nonSeamenJourneyList = new ArrayList<Journey>();
         pricingInformation = new PricingInformation();
         seamanPricingInformation = new PricingInformation();
     }
@@ -39,7 +40,7 @@ public class FlightItinerary implements Serializable{
     @Property
     private List<Journey> journeyList;
 
-    private List<Journey> NonSeamenJourneyList;
+    private List<Journey> nonSeamenJourneyList;
 
     public PricingMessage getPricingMessage() {
         return pricingMessage;
@@ -151,10 +152,10 @@ public class FlightItinerary implements Serializable{
     }
 
     public List<Journey> getNonSeamenJourneyList() {
-        return NonSeamenJourneyList;
+        return nonSeamenJourneyList;
     }
 
     public void setNonSeamenJourneyList(List<Journey> nonSeamenJourneyList) {
-        NonSeamenJourneyList = nonSeamenJourneyList;
+        this.nonSeamenJourneyList = nonSeamenJourneyList;
     }
 }

@@ -146,7 +146,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 AirSolution seamenSolution = new AirSolution();
                 seamenSolution = createAirSolutionFromRecommendation(seamenReply);
-                seamenSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
+                airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
                 seamenSolution.setNonSeamenHashMap(null);
                 //addSeamenFareToSolution(airSolution, seamenSolution);
             }

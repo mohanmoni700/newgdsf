@@ -15,7 +15,10 @@ import java.util.List;
  */
 public class AirSolution {
     public AirSolution(){
+
         flightItineraryList=new ArrayList<FlightItinerary>();
+        seamenHashMap = new HashMap<>();
+        nonSeamenHashMap = new HashMap<>();
     }
 
     private List<FlightItinerary> flightItineraryList;

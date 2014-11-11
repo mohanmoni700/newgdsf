@@ -64,15 +64,23 @@ public class TravelPortFlightSearch implements FlightSearch {
         SearchResponse seamanResponse = null;
         SearchResponse nonSeamanResponse = null;
 
+        SearchResponse searchResponse = new SearchResponse();
+
         Logger.info("[Travelport] Starting non-seaman search");
         nonSeamanResponse = search(searchParameters, "nonseaman");
+        if(nonSeamanResponse != null){
+            searchResponse.getAirSolution().setNonSeamenHashMap(nonSeamanResponse.getAirSolution().getNonSeamenHashMap());
+        }
+
         Logger.info("[Travelport] End non-seaman search. Response size: "+ nonSeamanResponse.getAirSolution().getFlightItineraryList().size() );
 
         if (searchParameters.getBookingType()==BookingType.SEAMEN){
             Logger.info("[Travelport] Starting seaman search.");
             seamanResponse = search(searchParameters, "seaman");
-            seamanResponse.getAirSolution().setSeamenHashMap(seamanResponse.getAirSolution().getNonSeamenHashMap());
-            seamanResponse.getAirSolution().setNonSeamenHashMap(null);
+            if(seamanResponse != null){
+                searchResponse.getAirSolution().setSeamenHashMap(seamanResponse.getAirSolution().getNonSeamenHashMap());
+            }
+
             Logger.info("[Travelport] End seaman search. Response size: "+ seamanResponse.getAirSolution().getFlightItineraryList().size());
         }
 
@@ -83,7 +91,9 @@ public class TravelPortFlightSearch implements FlightSearch {
         FileOutputStream os = new FileOutputStream(file);
         PrintStream out = new PrintStream(os);
         out.print(Json.toJson(finalResponse));*/
-        return seamanResponse;
+
+
+        return searchResponse;
 
     }
 
@@ -242,11 +252,11 @@ public class TravelPortFlightSearch implements FlightSearch {
         List<AirPricingSolution> airPricingSolutions =  travelportResponse.getAirPricingSolution();
 
         Map<String, BaggageInfo> baggageInfoMap = new HashMap<>();
-        for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
+        /*for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
         	TypeWeight maxWeight = fareInfo.getBaggageAllowance().getMaxWeight();
         	BaggageInfo baggageInfo = new BaggageInfo(maxWeight.getUnit().name(), maxWeight.getValue());
         	baggageInfoMap.put(fareInfo.getOrigin(), baggageInfo);
-        }
+        }*/
 
         flightIteratorLoop: for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
 
