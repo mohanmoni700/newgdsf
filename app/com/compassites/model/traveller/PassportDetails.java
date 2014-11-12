@@ -1,88 +1,92 @@
 package com.compassites.model.traveller;
 
-import play.db.ebean.Model;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.io.Serializable;
 import java.util.Date;
+
+import com.compassites.model.Nationality;
 
 /**
  * Created by mahendra-singh on 25/7/14.
  */
-@Table(name = "passport_details")
-@Entity
-public class PassportDetails extends Model implements Serializable{
-    @Column(name="id")
-    @javax.persistence.Id
-    private Integer Id;
-    @Column(name = "passport_number")
-    private String passportNumber;
-    @Column(name = "passport_country")
-    private String passportCountry;
-    @Column(name="place_of_issue")
-    private String placeOfIssue;
-    @Column(name="date_of_issue")
-    private Date dateOfIssue;
-    @Column(name="date_of_expiry")
-    private Date dateOfExpiry;
-    @Column(name = "date_of_birth")
-    private Date dateOfBirth;
+public class PassportDetails {
 
-    public Integer getId() {
-        return Id;
-    }
+	private Long id;
 
-    public void setId(Integer id) {
-        Id = id;
-    }
+	private String passportNumber;
 
-    public String getPassportCountry() {
-        return passportCountry;
-    }
+	private String passportCountry;
 
-    public void setPassportCountry(String passportCountry) {
-        this.passportCountry = passportCountry;
-    }
+	private String placeOfIssue;
 
-    public String getPlaceOfIssue() {
-        return placeOfIssue;
-    }
+	private Date dateOfIssue;
 
-    public void setPlaceOfIssue(String placeOfIssue) {
-        this.placeOfIssue = placeOfIssue;
-    }
+	private Date dateOfExpiry;
 
-    public Date getDateOfIssue() {
-        return dateOfIssue;
-    }
+	private Date dateOfBirth;
 
-    public void setDateOfIssue(Date dateOfIssue) {
-        this.dateOfIssue = dateOfIssue;
-    }
+	private Nationality country;
 
-    public Date getDateOfExpiry() {
-        return dateOfExpiry;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setDateOfExpiry(Date dateOfExpiry) {
-        this.dateOfExpiry = dateOfExpiry;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getPassportNumber() {
-        return passportNumber;
-    }
+	public String getPassportCountry() {
+		return passportCountry;
+	}
 
-    public void setPassportNumber(String passportNumber) {
-        this.passportNumber = passportNumber;
-    }
+	public void setPassportCountry(String passportCountry) {
+		this.passportCountry = passportCountry;
+	}
 
-    public Date getDateOfBirth() {
-        return dateOfBirth;
-    }
+	public String getPlaceOfIssue() {
+		return placeOfIssue;
+	}
 
-    public void setDateOfBirth(Date dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
+	public void setPlaceOfIssue(String placeOfIssue) {
+		this.placeOfIssue = placeOfIssue;
+	}
+
+	public Date getDateOfIssue() {
+		return dateOfIssue;
+	}
+
+	public void setDateOfIssue(Date dateOfIssue) {
+		this.dateOfIssue = dateOfIssue;
+	}
+
+	public Date getDateOfExpiry() {
+		return dateOfExpiry;
+	}
+
+	public void setDateOfExpiry(Date dateOfExpiry) {
+		this.dateOfExpiry = dateOfExpiry;
+	}
+
+	public String getPassportNumber() {
+		return passportNumber;
+	}
+
+	public void setPassportNumber(String passportNumber) {
+		this.passportNumber = passportNumber;
+	}
+
+	public Date getDateOfBirth() {
+		return dateOfBirth;
+	}
+
+	public void setDateOfBirth(Date dateOfBirth) {
+		this.dateOfBirth = dateOfBirth;
+	}
+
+	public Nationality getCountry() {
+		return country;
+	}
+
+	public void setCountry(Nationality country) {
+		this.country = country;
+	}
+
 }

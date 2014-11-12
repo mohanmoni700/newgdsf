@@ -1,84 +1,73 @@
 package com.compassites.model.traveller;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import play.db.ebean.Model;
-
-import java.io.Serializable;
 
 /**
  * Created by mahendra-singh on 25/7/14.
  */
-/*@Entity
-@Table(name = "traveller")*/
-public class Traveller extends Model implements Serializable {
-    /*@Id
-    @Column(name = "id")
-    @GeneratedValue
-    */
-    @JsonIgnore
-    private Integer id;
+public class Traveller {
 
-    //@OneToOne(cascade=CascadeType.PERSIST)
-    private PersonalDetails personalDetails;
-    //@OneToOne(cascade=CascadeType.PERSIST)
-    private Preferences preferences;
-    //@OneToOne(cascade=CascadeType.PERSIST)
-    private PassportDetails passportDetails;
-    //@OneToOne(cascade=CascadeType.PERSIST)
-    private CdcDetails cdcDetails;
-    //@OneToOne(cascade=CascadeType.PERSIST)
-    private VisaDetails visaDetails;
+	@JsonIgnore
+	private Long id;
 
-    //@ManyToOne
-    private TravellerMasterInfo travellerMasterInfo;
+	private PersonalDetails personalDetails;
 
-    public Integer getId() {
-        return id;
-    }
+	private Preferences preferences;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+	private PassportDetails passportDetails;
 
-    public PersonalDetails getPersonalDetails() {
-        return personalDetails;
-    }
+	private CdcDetails cdcDetails;
 
-    public void setPersonalDetails(PersonalDetails personalDetails) {
-        this.personalDetails = personalDetails;
-    }
+	private VisaDetails visaDetails;
 
-    public Preferences getPreferences() {
-        return preferences;
-    }
+	private TravellerMasterInfo travellerMasterInfo;
 
-    public void setPreferences(Preferences preferences) {
-        this.preferences = preferences;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public PassportDetails getPassportDetails() {
-        return passportDetails;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setPassportDetails(PassportDetails passportDetails) {
-        this.passportDetails = passportDetails;
-    }
+	public PersonalDetails getPersonalDetails() {
+		return personalDetails;
+	}
 
-    public CdcDetails getCdcDetails() {
-        return cdcDetails;
-    }
+	public void setPersonalDetails(PersonalDetails personalDetails) {
+		this.personalDetails = personalDetails;
+	}
 
-    public void setCdcDetails(CdcDetails cdcDetails) {
-        this.cdcDetails = cdcDetails;
-    }
+	public Preferences getPreferences() {
+		return preferences;
+	}
 
-    public VisaDetails getVisaDetails() {
-        return visaDetails;
-    }
+	public void setPreferences(Preferences preferences) {
+		this.preferences = preferences;
+	}
 
-    public void setVisaDetails(VisaDetails visaDetails) {
-        this.visaDetails = visaDetails;
-    }
+	public PassportDetails getPassportDetails() {
+		return passportDetails;
+	}
 
-    public static Finder<Integer,Traveller> find=new Finder<Integer, Traveller>(Integer.class,Traveller.class);
+	public void setPassportDetails(PassportDetails passportDetails) {
+		this.passportDetails = passportDetails;
+	}
+
+	public CdcDetails getCdcDetails() {
+		return cdcDetails;
+	}
+
+	public void setCdcDetails(CdcDetails cdcDetails) {
+		this.cdcDetails = cdcDetails;
+	}
+
+	public VisaDetails getVisaDetails() {
+		return visaDetails;
+	}
+
+	public void setVisaDetails(VisaDetails visaDetails) {
+		this.visaDetails = visaDetails;
+	}
+
 }

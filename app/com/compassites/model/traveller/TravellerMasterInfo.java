@@ -1,6 +1,5 @@
 package com.compassites.model.traveller;
 
-
 import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
 
