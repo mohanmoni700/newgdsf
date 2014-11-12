@@ -6,6 +6,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.AirPricingSolution;
+import com.travelport.schema.air_v26_0.TypeAvailabilitySource;
+import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
+import com.travelport.schema.air_v26_0.TypeEticketability;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.schema.universal_v26_0.AirCreateReservationReq;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
@@ -254,7 +257,7 @@ public class AirReservationClient  extends TravelPortClient {
 	     TravelOrder="0"/>
 
 	     */
-       /* long travelOrder = 1;
+        long travelOrder = 1;
         for (Iterator<TypeBaseAirSegment> iterator = airPricingSolution.getAirSegment().iterator(); iterator.hasNext();) {
             TypeBaseAirSegment seg = (TypeBaseAirSegment) iterator.next();
             //seg.setTravelOrder(BigInteger.valueOf(travelOrder));
@@ -270,7 +273,7 @@ public class AirReservationClient  extends TravelPortClient {
         }
         airPricingSolution.getAirPricingInfo().clear();
         airPricingSolution.getFareNote().clear();
-        airPricingSolution.setOptionalServices(null);*/
+        airPricingSolution.setOptionalServices(null);
         return airPricingSolution;
     }
 

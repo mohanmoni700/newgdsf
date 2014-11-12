@@ -5,7 +5,7 @@ package com.compassites.model.traveller;
  */
 public class AdditionalInfo {
 
-	private Integer id;
+	private Long id;
 
 	private String phoneNumber;
 
@@ -25,11 +25,11 @@ public class AdditionalInfo {
 
 	private String phoneCode;
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
