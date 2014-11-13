@@ -23,7 +23,7 @@ public class PassportDetails {
 
 	private Date dateOfBirth;
 
-	private Nationality country;
+	private Nationality nationality;
 
 	public Long getId() {
 		return id;
@@ -34,7 +34,7 @@ public class PassportDetails {
 	}
 
 	public String getPassportCountry() {
-		return passportCountry;
+		return nationality.getNationality();
 	}
 
 	public void setPassportCountry(String passportCountry) {
@@ -81,12 +81,12 @@ public class PassportDetails {
 		this.dateOfBirth = dateOfBirth;
 	}
 
-	public Nationality getCountry() {
-		return country;
+	public Nationality getNationality() {
+		return nationality;
 	}
 
-	public void setCountry(Nationality country) {
-		this.country = country;
+	public void setNationality(Nationality nationality) {
+		this.nationality = nationality;
 	}
 
 }

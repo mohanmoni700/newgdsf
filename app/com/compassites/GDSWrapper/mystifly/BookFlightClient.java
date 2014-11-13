@@ -94,9 +94,7 @@ public class BookFlightClient {
 			PassportDetails passportDetails) {
 		Passport passport = airTraveler.addNewPassport();
 
-		// TODO: Get Country code
-		// passport.setCountry(passportDetails.getPassportCountry());
-		passport.setCountry("IN");
+		passport.setCountry(passportDetails.getNationality().getTwoLetterCode());
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(passportDetails.getDateOfExpiry());
 		passport.setExpiryDate(calendar);
