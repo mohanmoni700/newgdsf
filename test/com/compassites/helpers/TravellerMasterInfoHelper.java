@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import com.compassites.model.FlightItinerary;
+import com.compassites.model.Nationality;
 import com.compassites.model.traveller.AdditionalInfo;
 import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.PersonalDetails;
@@ -29,7 +30,12 @@ public class TravellerMasterInfoHelper {
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(2020, 2, 20);
 		passportDetails.setDateOfExpiry(calendar.getTime());
-		passportDetails.setPassportCountry("IN");
+		Nationality nationality = new Nationality();
+		nationality.setNationality("India");
+		nationality.setPhoneCode("+91");
+		nationality.setTwoLetterCode("IN");
+		nationality.setThreeLetterCode("IND");
+		passportDetails.setNationality(nationality);
 		passportDetails.setPassportNumber("G8965777");
 		traveller.setPassportDetails(passportDetails);
 		PersonalDetails personalDetails = new PersonalDetails();

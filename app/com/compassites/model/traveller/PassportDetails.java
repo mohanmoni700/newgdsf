@@ -13,8 +13,6 @@ public class PassportDetails {
 
 	private String passportNumber;
 
-	private String passportCountry;
-
 	private String placeOfIssue;
 
 	private Date dateOfIssue;
@@ -31,14 +29,6 @@ public class PassportDetails {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getPassportCountry() {
-		return nationality.getNationality();
-	}
-
-	public void setPassportCountry(String passportCountry) {
-		this.passportCountry = passportCountry;
 	}
 
 	public String getPlaceOfIssue() {
