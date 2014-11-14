@@ -27,41 +27,58 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "id")
 	@Id
 	private Integer id;
-	@Column(name = "ident")
-	private String ident;
+	
+	/*@Column(name = "ident")
+	private String ident;*/
+	
 	@Column(name = "type")
 	private String type;
+	
 	@Column(name = "airport_name")
 	private String airportName;
+	
 	@Column(name = "latitude")
 	private String latitude;
+	
 	@Column(name = "longitude")
 	private String longitude;
-	@Column(name = "elevation_ft")
+	
+	/*@Column(name = "elevation_ft")
 	private String elevation_ft;
+	
 	@Column(name = "continent")
-	private String continent;
+	private String continent;*/
 
 	@Column(name = "iso_country")
 	private String iso_country;
-	@Column(name = "iso_region")
+	
+	/*@Column(name = "iso_region")
 	private String iso_region;
+	
 	@Column(name = "scheduled_service")
 	private String scheduled_service;
+	*/
 	@Column(name = "city_name")
 	private String cityName;
+	
 	@Column(name = "iata_code")
 	private String iata_code;
+	
 	@Column(name = "gps_code")
 	private String gps_code;
-	@Column(name = "local_code")
-	private String local_code;
+	
+	/*@Column(name = "local_code")
+	private String local_code;*/
+	
 	@Column(name = "time_zone")
 	private String time_zone;
+	
 	@Column(name = "dst")
 	private String dst;
+	
 	@Column(name = "country")
 	private String country;
+	
 	@Column(name = "gmtOffset")
 	private String gmtOffset;
 
@@ -94,13 +111,13 @@ public class Airport extends Model implements Serializable {
 		this.id = id;
 	}
 
-	public String getIdent() {
+	/*public String getIdent() {
 		return ident;
 	}
 
 	public void setIdent(String ident) {
 		this.ident = ident;
-	}
+	}*/
 
 	public String getType() {
 		return type;
@@ -134,7 +151,7 @@ public class Airport extends Model implements Serializable {
 		this.longitude = longitude;
 	}
 
-	public String getElevation_ft() {
+	/*public String getElevation_ft() {
 		return elevation_ft;
 	}
 
@@ -148,7 +165,7 @@ public class Airport extends Model implements Serializable {
 
 	public void setContinent(String continent) {
 		this.continent = continent;
-	}
+	}*/
 
 	public String getIso_country() {
 		return iso_country;
@@ -158,21 +175,21 @@ public class Airport extends Model implements Serializable {
 		this.iso_country = iso_country;
 	}
 
-	public String getIso_region() {
+	/*public String getIso_region() {
 		return iso_region;
 	}
 
 	public void setIso_region(String iso_region) {
 		this.iso_region = iso_region;
-	}
+	}*/
 
-	public String getScheduled_service() {
+	/*public String getScheduled_service() {
 		return scheduled_service;
 	}
 
 	public void setScheduled_service(String scheduled_service) {
 		this.scheduled_service = scheduled_service;
-	}
+	}*/
 
 	public String getCityName() {
 		return cityName;
@@ -198,13 +215,13 @@ public class Airport extends Model implements Serializable {
 		this.gps_code = gps_code;
 	}
 
-	public String getLocal_code() {
+	/*public String getLocal_code() {
 		return local_code;
 	}
 
 	public void setLocal_code(String local_code) {
 		this.local_code = local_code;
-	}
+	}*/
 
 	public String getTime_zone() {
 		return time_zone;
