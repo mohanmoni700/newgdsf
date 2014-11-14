@@ -67,8 +67,8 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "gps_code")
 	private String gps_code;
 	
-	/*@Column(name = "local_code")
-	private String local_code;*/
+	@Column(name = "local_code")
+	private String local_code;
 	
 	@Column(name = "time_zone")
 	private String time_zone;
@@ -215,13 +215,13 @@ public class Airport extends Model implements Serializable {
 		this.gps_code = gps_code;
 	}
 
-	/*public String getLocal_code() {
+	public String getLocal_code() {
 		return local_code;
 	}
 
 	public void setLocal_code(String local_code) {
 		this.local_code = local_code;
-	}*/
+	}
 
 	public String getTime_zone() {
 		return time_zone;
