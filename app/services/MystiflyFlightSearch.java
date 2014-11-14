@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -74,12 +75,18 @@ public class MystiflyFlightSearch implements FlightSearch {
 		ArrayOfPricedItinerary pricedItineraries = searchRS
 				.getPricedItineraries();
 
-		List<FlightItinerary> flightItineraryList = addFlightItineraryList(pricedItineraries);
-		airSolution.setFlightItineraryList(flightItineraryList);
+		List<FlightItinerary> itineraryList = createItineraryList(pricedItineraries);
+		// airSolution.setFlightItineraryList(itineraryList);
+		HashMap<Integer, FlightItinerary> itineraryHashMap = new HashMap<>();
+		for (FlightItinerary itinerary : itineraryList) {
+			itineraryHashMap.put(itinerary.hashCode(), itinerary);
+		}
+		airSolution.setNonSeamenHashMap(itineraryHashMap);
+		airSolution.setSeamenHashMap(null);
 		return airSolution;
 	}
 
-	private List<FlightItinerary> addFlightItineraryList(
+	private List<FlightItinerary> createItineraryList(
 			ArrayOfPricedItinerary pricedItineraries) {
 		List<FlightItinerary> flightItineraryList = new ArrayList<>();
 		for (PricedItinerary pricedItinerary : pricedItineraries
