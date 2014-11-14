@@ -6,8 +6,6 @@ import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.service.air_v26_0.AirAvailabilitySearchPortType;
@@ -19,11 +17,10 @@ import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.joda.time.Years;
+import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -496,8 +493,9 @@ public class AirRequestClient extends TravelPortClient {
             }
             searchPassenger.setKey("COMPASS"+i);
             searchPassenger.setPricePTCOnly(true);
-            if (passenger.getAge() != null)
+            if (passenger.getAge() != null)  {
                 searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
+            }
             searchPassenger.setBookingTravelerRef(i+"");
             request.getSearchPassenger().add(searchPassenger);
             i++;
@@ -529,26 +527,12 @@ public class AirRequestClient extends TravelPortClient {
         airPricingModifiers.setCurrencyType(currency);
         priceRequest.setAirPricingModifiers(airPricingModifiers);
 
-        Writer writer = null;
-        try {
-            writer = new FileWriter("AirpriceReq.json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(priceRequest, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
+        XMLFileUtility.createXMLFile(priceRequest,"AirpriceReq.xml" );
         initPricePort();
         AirPriceRsp airPriceRsp = airPricePortType.service(priceRequest);
-        try {
-            writer = new FileWriter("AirpriceRes.json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(airPriceRsp, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        XMLFileUtility.createXMLFile(airPriceRsp,"AirpriceRes.xml" );
         return airPriceRsp;
     }
 

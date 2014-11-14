@@ -7,8 +7,12 @@ import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
 import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveReq;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
-import com.travelport.service.universal_v26_0.*;
+import com.travelport.service.universal_v26_0.UniversalRecordArchivedFaultMessage;
+import com.travelport.service.universal_v26_0.UniversalRecordFaultMessage;
+import com.travelport.service.universal_v26_0.UniversalRecordRetrieveServicePortType;
+import com.travelport.service.universal_v26_0.UniversalRecordService;
 import org.apache.commons.logging.LogFactory;
+import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import java.io.File;
@@ -71,7 +75,10 @@ public class UniversalRecordClient extends TravelPortClient {
         UniversalRecordRetrieveRsp recordRetrieveRsp = null;
         try {
             init();
+            XMLFileUtility.createXMLFile(recordRetrieveReq, "UniversalRecordRetrieveReq.xml");
             recordRetrieveRsp = universalRecordRetrieveServicePortType.service(recordRetrieveReq, null);
+
+            XMLFileUtility.createXMLFile(recordRetrieveRsp, "UniversalRecordRetrieveRes.xml");
 
         } catch (UniversalRecordFaultMessage universalRecordFaultMessage) {
             universalRecordFaultMessage.printStackTrace();

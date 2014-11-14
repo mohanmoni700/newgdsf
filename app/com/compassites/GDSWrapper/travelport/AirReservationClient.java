@@ -1,10 +1,8 @@
 package com.compassites.GDSWrapper.travelport;
 
+import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.AirPricingSolution;
 import com.travelport.schema.air_v26_0.TypeAvailabilitySource;
 import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
@@ -17,16 +15,18 @@ import com.travelport.service.universal_v26_0.AirCreateReservationPortType;
 import com.travelport.service.universal_v26_0.AirService;
 import com.travelport.service.universal_v26_0.AvailabilityFaultMessage;
 import org.apache.commons.logging.LogFactory;
+import utils.DateUtility;
+import utils.StringUtility;
+import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.BindingProvider;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -183,19 +183,9 @@ public class AirReservationClient  extends TravelPortClient {
 		 * need to be a bit careful as the server is quite particular about
 		 * the values passed here...null seems to me "I accept the defauls"
 		 */
-        Writer writer = null;
-        XStream xStream = new XStream();
-        try {
 
-            String xml=xStream.toXML(request);
-            writer = new FileWriter("AirReserveRequest.xml");
-            //Gson gson = new GsonBuilder().create();
-            //gson.toJson(request, writer);
-            writer.write(xml);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        XMLFileUtility.createXMLFile(request, "AirReserveRequest.xml");
         try {
             init();
             AirCreateReservationReq manualRequest=new AirCreateReservationReq();
@@ -207,27 +197,12 @@ public class AirReservationClient  extends TravelPortClient {
         catch (com.travelport.service.universal_v26_0.AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             airFaultMessage.getFaultInfo().getDescription();
-            try {
-                writer = new FileWriter("AirReserveResponseException.json");
-                Gson gson = new GsonBuilder().create();
-                gson.toJson(airFaultMessage, writer);
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            XMLFileUtility.createXMLFile(request, "AirReserveResponseException.xml");
         } catch (AvailabilityFaultMessage availabilityFaultMessage) {
             availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        try {
-            writer = new FileWriter("AirReserveResponse.json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(response, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        XMLFileUtility.createXMLFile(request, "AirReserveResponse.xml");
         return response;
 
     }
@@ -292,34 +267,58 @@ public class AirReservationClient  extends TravelPortClient {
             bookingTraveler.getEmail().add(email);
 
             PhoneNumber phone = new PhoneNumber();
-            phone.setCountryCode("33");
+            phone.setCountryCode(travellerMasterInfo.getAdditionalInfo().getPhoneCode());
             //phone.setAreaCode("6");
             phone.setNumber(travellerMasterInfo.getAdditionalInfo().getPhoneNumber());
             phone.setType("Mobile");
+            bookingTraveler.getPhoneNumber().add(phone);
+
+            phone = new PhoneNumber();
+            phone.setCountryCode(travellerMasterInfo.getAdditionalInfo().getCountryCode());
+            //phone.setAreaCode("6");
+            phone.setNumber(travellerMasterInfo.getAdditionalInfo().getEmergencyContactNumber());
+            phone.setType("Home");
             bookingTraveler.getPhoneNumber().add(phone);
             //name
             BookingTravelerName name = new BookingTravelerName();
 
             name.setPrefix(traveller.getPersonalDetails().getGender());
             name.setFirst(traveller.getPersonalDetails().getFirstName());
-            name.setMiddle(traveller.getPersonalDetails().getMiddleName());
+            if(traveller.getPersonalDetails().getMiddleName() != null){
+                name.setMiddle(traveller.getPersonalDetails().getMiddleName());
+            }
+
             name.setLast(traveller.getPersonalDetails().getLastName());
             bookingTraveler.setBookingTravelerName(name);
 
             //address
-            DeliveryInfo deliveryInfo=new DeliveryInfo();
+           /* DeliveryInfo deliveryInfo=new DeliveryInfo();
             DeliveryInfo.ShippingAddress shippingAddress=new DeliveryInfo.ShippingAddress();
             shippingAddress.setAddressName("aaaa");
             shippingAddress.setCity("delhi");
             shippingAddress.setPostalCode("560078");
             shippingAddress.setCountry("IN");
             deliveryInfo.setShippingAddress(shippingAddress);
-            bookingTraveler.getDeliveryInfo().add(deliveryInfo);
+            bookingTraveler.getDeliveryInfo().add(deliveryInfo);*/
 
-            bookingTraveler.setAge(new BigInteger("22"));
+            bookingTraveler.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth())));
             //adult
-            bookingTraveler.setTravelerType("SEA");
+            bookingTraveler.setTravelerType(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString());
             bookingTraveler.setKey(i++ + "");
+
+            PassportDetails passportDetails = traveller.getPassportDetails();
+            SSR ssr = new SSR();
+            ssr.setStatus("HK");
+            ssr.setType("DOCS");
+            SimpleDateFormat ddMMMyyFormat = new SimpleDateFormat("ddMMMyy");
+
+
+            String freeText = "P/IN/" +passportDetails.getPassportNumber()+"/IN/"+ ddMMMyyFormat.format(passportDetails.getDateOfBirth())
+                    +"/"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getGender())+"/"+ddMMMyyFormat.format(passportDetails.getDateOfExpiry())+"/"+
+                    traveller.getPersonalDetails().getFirstName()+"/"+traveller.getPersonalDetails().getLastName();
+            //String freeText = "P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON";
+            ssr.setFreeText(freeText);
+            bookingTraveler.getSSR().add(ssr);
             bookingTravelerList.add(bookingTraveler);
         }
         return bookingTravelerList;

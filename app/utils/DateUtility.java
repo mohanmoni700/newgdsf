@@ -18,4 +18,13 @@ public class DateUtility {
 				: (age <= 12 ? PassengerTypeCode.CHD : PassengerTypeCode.ADT);
 	}
 
+
+    public static long  getAgeFromDOB(Date dob){
+        LocalDate birthDate = new LocalDate(dob);
+        LocalDate now = new LocalDate();
+        Period period = new Period(birthDate, now, PeriodType.yearMonthDay());
+        long age = period.getYears();
+        return age;
+    }
+
 }
