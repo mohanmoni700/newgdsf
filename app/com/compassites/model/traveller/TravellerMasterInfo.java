@@ -17,6 +17,8 @@ public class TravellerMasterInfo {
 
     private FlightItinerary itinerary;
 
+    private String accountId;
+
     private boolean seamen;
 
     private CabinClass cabinClass;
@@ -63,5 +65,13 @@ public class TravellerMasterInfo {
 
     public void setCabinClass(CabinClass cabinClass) {
         this.cabinClass = cabinClass;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 }

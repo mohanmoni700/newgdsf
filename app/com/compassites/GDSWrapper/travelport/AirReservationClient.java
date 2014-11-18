@@ -15,6 +15,7 @@ import com.travelport.service.universal_v26_0.AirCreateReservationPortType;
 import com.travelport.service.universal_v26_0.AirService;
 import com.travelport.service.universal_v26_0.AvailabilityFaultMessage;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.StringUtils;
 import utils.DateUtility;
 import utils.StringUtility;
 import utils.XMLFileUtility;
@@ -284,7 +285,7 @@ public class AirReservationClient  extends TravelPortClient {
 
             name.setPrefix(traveller.getPersonalDetails().getGender());
             name.setFirst(traveller.getPersonalDetails().getFirstName());
-            if(traveller.getPersonalDetails().getMiddleName() != null){
+            if(traveller.getPersonalDetails().getMiddleName() != null && StringUtils.hasText(traveller.getPersonalDetails().getMiddleName())){
                 name.setMiddle(traveller.getPersonalDetails().getMiddleName());
             }
 
