@@ -282,6 +282,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                 }
             }
             */
+            flightItinerary.getPricingInformation().setProvider("Travelport");
             flightItinerary.getPricingInformation().setBasePrice(StringUtility.getPriceFromString(airPricingSolution.getBasePrice()));
             flightItinerary.getPricingInformation().setTax(StringUtility.getPriceFromString(airPricingSolution.getTaxes()));
             flightItinerary.getPricingInformation().setTotalPrice(StringUtility.getPriceFromString(airPricingSolution.getTotalPrice()));
@@ -376,6 +377,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airSegmentInformation.setFlightDetailsKey(flightDetails.getKey());
                     airSegmentInformation.setAirSegmentKey(airSegment.getKey());
 
+                    flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setProvider("Provider");
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList().add(airSegmentInformation);
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().getAirlineName());
 

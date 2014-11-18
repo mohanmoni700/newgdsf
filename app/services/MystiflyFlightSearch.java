@@ -115,6 +115,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 			AirItineraryPricingInfo airlinePricingInfo) {
 		ItinTotalFare itinTotalFare = airlinePricingInfo.getItinTotalFare();
 		PricingInformation pricingInfo = new PricingInformation();
+		pricingInfo.setProvider(Mystifly.PROVIDER);
 		pricingInfo.setCurrency(itinTotalFare.getBaseFare().getCurrencyCode());
 
 		// TODO: Fix decimals.
@@ -186,6 +187,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 			journey.setAirSegmentList(airSegmentList);
 			journey.setTravelTime(getTravelTime(airSegmentList));
 			journey.setNoOfStops(airSegmentList.size() - 1);
+			journey.setProvider(Mystifly.PROVIDER);
 			journies.add(journey);
 		}
 		return journies;

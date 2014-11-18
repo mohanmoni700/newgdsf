@@ -339,6 +339,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         //set segments information
         for(FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails:groupOfFlight.getFlightDetails()){
             journey.getAirSegmentList().add(setSegmentInformation(flightDetails));
+            journey.setProvider("Amadeus");
         }
 
         return journey;
@@ -404,6 +405,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         pricingInformation.setTotalPrice(totalAmount.toString());
         pricingInformation.setTotalPriceValue(totalAmount.longValue());
         pricingInformation.setCurrency(currency);
+        pricingInformation.setProvider("Amadeus");
         return pricingInformation;
     }
 
