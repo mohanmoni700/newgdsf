@@ -32,41 +32,33 @@ import com.compassites.model.traveller.TravellerMasterInfo;
  */
 public class BookFlightClient {
 
-	public AirBookRS bookFlight(TravellerMasterInfo travellerMasterInfo) {
+	public AirBookRS bookFlight(TravellerMasterInfo travellerMasterInfo)
+			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
 		SessionCreateRS sessionRS = sessionsHandler.login();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
 		FlightItinerary itinerary = travellerMasterInfo.getItinerary();
 		String fareSourceCode = itinerary.getFareSourceCode();
-		AirBookRS airBookRS = null;
-		try {
-			BookFlightDocument bookFlightDocument = BookFlightDocument.Factory
-					.newInstance();
-			AirBookRQ airBookRQ = bookFlightDocument.addNewBookFlight()
-					.addNewRq();
-			airBookRQ.setSessionId(sessionRS.getSessionId());
-			airBookRQ.setTarget(Mystifly.TARGET);
-			airBookRQ.setFareSourceCode(fareSourceCode);
-			TravelerInfo travelerInfo = airBookRQ.addNewTravelerInfo();
-			ArrayOfAirTraveler arrayOfTravelers = travelerInfo
-					.addNewAirTravelers();
-			setTravelers(arrayOfTravelers,
-					travellerMasterInfo.getTravellersList());
-			AdditionalInfo addInfo = travellerMasterInfo.getAdditionalInfo();
-			travelerInfo.setPhoneNumber(addInfo.getPhoneNumber());
-			travelerInfo.setEmail(addInfo.getEmail());
+		BookFlightDocument bookFlightDocument = BookFlightDocument.Factory
+				.newInstance();
+		AirBookRQ airBookRQ = bookFlightDocument.addNewBookFlight().addNewRq();
+		airBookRQ.setSessionId(sessionRS.getSessionId());
+		airBookRQ.setTarget(Mystifly.TARGET);
+		airBookRQ.setFareSourceCode(fareSourceCode);
+		TravelerInfo travelerInfo = airBookRQ.addNewTravelerInfo();
+		ArrayOfAirTraveler arrayOfTravelers = travelerInfo.addNewAirTravelers();
+		setTravelers(arrayOfTravelers, travellerMasterInfo.getTravellersList());
+		AdditionalInfo addInfo = travellerMasterInfo.getAdditionalInfo();
+		travelerInfo.setPhoneNumber(addInfo.getPhoneNumber());
+		travelerInfo.setEmail(addInfo.getEmail());
 
-			// TODO: Set dynamic values
-			// travelerInfo.setAreaCode("809");
-			// travelerInfo.setCountryCode("91");
-			BookFlightResponseDocument rsDoc = onePointStub
-					.bookFlight(bookFlightDocument);
-			airBookRS = rsDoc.getBookFlightResponse().getBookFlightResult();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		return airBookRS;
+		// TODO: Set dynamic values
+		// travelerInfo.setAreaCode("809");
+		// travelerInfo.setCountryCode("91");
+		BookFlightResponseDocument rsDoc = onePointStub
+				.bookFlight(bookFlightDocument);
+		return rsDoc.getBookFlightResponse().getBookFlightResult();
 	}
 
 	private void setTravelers(ArrayOfAirTraveler arrayOfTravelers,
