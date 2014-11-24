@@ -58,7 +58,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
                 searchParameters.setBookingType(BookingType.SEAMEN);
-                File file = new File("roundtrip.json");
+                File file = new File("seamenAmadeusResponseCF.json");
                 FileOutputStream os = new FileOutputStream(file);
                 PrintStream out = new PrintStream(os);
                 out.print(Json.toJson(seamenReply));

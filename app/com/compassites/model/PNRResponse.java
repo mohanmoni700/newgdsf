@@ -25,6 +25,8 @@ public class PNRResponse {
 
     private boolean isCappingLimitReached;
 
+    private Long changedBasePrice;
+
     private List<TaxDetails> taxDetailsList;
 
     public String getPnrNumber() {
@@ -105,6 +107,14 @@ public class PNRResponse {
 
     public void setTaxDetailsList(List<TaxDetails> taxDetailsList) {
         this.taxDetailsList = taxDetailsList;
+    }
+
+    public Long getChangedBasePrice() {
+        return changedBasePrice;
+    }
+
+    public void setChangedBasePrice(Long changedBasePrice) {
+        this.changedBasePrice = changedBasePrice;
     }
 }
 

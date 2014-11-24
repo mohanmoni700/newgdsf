@@ -1,12 +1,18 @@
 package services;
 
-import com.compassites.GDSWrapper.travelport.*;
+import com.compassites.GDSWrapper.travelport.AirRequestClient;
+import com.compassites.GDSWrapper.travelport.AirReservationClient;
+import com.compassites.GDSWrapper.travelport.Helper;
+import com.compassites.GDSWrapper.travelport.UniversalRecordClient;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.travelport.schema.air_v26_0.*;
+import com.travelport.schema.air_v26_0.AirItinerary;
+import com.travelport.schema.air_v26_0.AirPriceRsp;
+import com.travelport.schema.air_v26_0.AirPricingSolution;
+import com.travelport.schema.air_v26_0.AirReservation;
 import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
 import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
@@ -85,6 +91,7 @@ public class TravelportBookingServiceImpl implements BookingService {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
         Long totalPrice = new Long(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getTotalPrice()));
+        Long changedBasePrice =   new Long(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getBasePrice()));
         if(totalPrice.equals(searchPrice)){
 
             pnrResponse.setPriceChanged(false);
@@ -92,6 +99,7 @@ public class TravelportBookingServiceImpl implements BookingService {
             return pnrResponse;
         }
         pnrResponse.setChangedPrice(totalPrice);
+        pnrResponse.setChangedBasePrice(changedBasePrice);
         pnrResponse.setOriginalPrice(searchPrice);
         pnrResponse.setFlightAvailable(true);
         pnrResponse.setPriceChanged(true);
