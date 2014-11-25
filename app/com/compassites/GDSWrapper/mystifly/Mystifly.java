@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.mystifly;
 
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,8 @@ public class Mystifly {
 	public static final String USERNAME = "FlyHiXML";
 	public static final String PASSWORD = "FH2014_xml";
 	public static final int TIMEOUT = 180000;
+	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
+			"yyyy-M-d'T'H:m:s");
 
 	private static Map<CabinClass, CabinType.Enum> cabinType = new HashMap<>();
 	static {

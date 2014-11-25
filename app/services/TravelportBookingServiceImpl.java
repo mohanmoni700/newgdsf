@@ -136,7 +136,7 @@ public class TravelportBookingServiceImpl implements BookingService {
             e.printStackTrace();
         }
 
-        pnrResponse.setValidTillDate(lastDate.toString());
+        pnrResponse.setValidTillDate(lastDate);
         return pnrResponse;
     }
 

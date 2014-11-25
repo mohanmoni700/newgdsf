@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -11,7 +12,7 @@ public class PNRResponse {
 
     private ErrorMessage errorMessage;
 
-    private String validTillDate;
+    private Date validTillDate;
 
     private boolean isPriceChanged;
 
@@ -45,11 +46,11 @@ public class PNRResponse {
         this.errorMessage = errorMessage;
     }
 
-    public String getValidTillDate() {
+    public Date getValidTillDate() {
         return validTillDate;
     }
 
-    public void setValidTillDate(String validTillDate) {
+    public void setValidTillDate(Date validTillDate) {
         this.validTillDate = validTillDate;
     }
 

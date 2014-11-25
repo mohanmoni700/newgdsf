@@ -1,7 +1,6 @@
 package services;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -50,8 +49,6 @@ import com.compassites.model.SearchResponse;
 public class MystiflyFlightSearch implements FlightSearch {
 
 	private SearchParameters searchParams;
-	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
-			"yyyy-M-d'T'H:m:s");
 
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
 	public SearchResponse search(SearchParameters searchParameters)
@@ -228,9 +225,9 @@ public class MystiflyFlightSearch implements FlightSearch {
 		try {
 			if (airSegments.size() > 1) {
 				for (int i = 1; i < airSegments.size(); i++) {
-					Long arrivalTime = DATE_FORMAT.parse(
+					Long arrivalTime = Mystifly.DATE_FORMAT.parse(
 							airSegments.get(i - 1).getArrivalTime()).getTime();
-					Long departureTime = DATE_FORMAT.parse(
+					Long departureTime = Mystifly.DATE_FORMAT.parse(
 							airSegments.get(i).getDepartureTime()).getTime();
 					durations.add(departureTime - arrivalTime);
 				}

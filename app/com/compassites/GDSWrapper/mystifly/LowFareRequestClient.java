@@ -2,7 +2,6 @@ package com.compassites.GDSWrapper.mystifly;
 
 import java.rmi.RemoteException;
 import java.util.Calendar;
-import java.util.List;
 
 import onepoint.mystifly.AirLowFareSearchDocument;
 import onepoint.mystifly.AirLowFareSearchDocument.AirLowFareSearch;
@@ -20,7 +19,6 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantit
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelPreferences;
 
-import com.compassites.model.Passenger;
 import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
 
@@ -34,9 +32,9 @@ public class LowFareRequestClient {
 		SessionCreateRS sessionRS = sessionsHandler.login();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
-		AirLowFareSearchDocument airLowFareSearchDocument = AirLowFareSearchDocument.Factory
+		AirLowFareSearchDocument lowFareSearchDoc = AirLowFareSearchDocument.Factory
 				.newInstance();
-		AirLowFareSearch airLowFareSearch = airLowFareSearchDocument
+		AirLowFareSearch airLowFareSearch = lowFareSearchDoc
 				.addNewAirLowFareSearch();
 		AirLowFareSearchRQ airLowFareSearchRQ = airLowFareSearch.addNewRq();
 
@@ -61,11 +59,8 @@ public class LowFareRequestClient {
 				.addNewPassengerTypeQuantities();
 		setPassengerTypeQuantities(passengers, searchParams.getAdultCount(),
 				searchParams.getChildCount(), searchParams.getInfantCount());
-		// setPassengerTypeQuantities(passengers, searchParams.getPassengers());
 
-		// Set Travel preferences
 		TravelPreferences prefs = airLowFareSearchRQ.addNewTravelPreferences();
-
 		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams
 				.getCabinClass()));
 		prefs.setAirTripType(Mystifly.JOURNEY_TYPE.get(searchParams
@@ -89,26 +84,13 @@ public class LowFareRequestClient {
 
 		AirLowFareSearchResponseDocument searchResDoc = null;
 		try {
-			searchResDoc = onePointStub
-					.airLowFareSearch(airLowFareSearchDocument);
+			searchResDoc = onePointStub.airLowFareSearch(lowFareSearchDoc);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 		AirLowFareSearchRS searchRS = searchResDoc
 				.getAirLowFareSearchResponse().getAirLowFareSearchResult();
 		return searchRS;
-	}
-
-	private void setPassengerTypeQuantities(
-			ArrayOfPassengerTypeQuantity passengerTypeQuantities,
-			List<Passenger> passengers) {
-		for (Passenger passenger : passengers) {
-			PassengerTypeQuantity passengerTypeQuantity = passengerTypeQuantities
-					.addNewPassengerTypeQuantity();
-			passengerTypeQuantity.setCode(PassengerType.Enum
-					.forString(passenger.getPassengerType().name()));
-			passengerTypeQuantity.setQuantity(1);
-		}
 	}
 
 	private void setPassengerTypeQuantities(

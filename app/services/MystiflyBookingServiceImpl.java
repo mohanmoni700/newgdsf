@@ -38,8 +38,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				if (airbookRS.getSuccess()) {
 					pnrRS.setPnrNumber(airbookRS.getUniqueID());
 					pnrRS.setFlightAvailable(airbookRS.getSuccess());
-					pnrRS.setValidTillDate(airbookRS.getTktTimeLimit()
-							.toString());
+					pnrRS.setValidTillDate(airbookRS.getTktTimeLimit().getTime());
 				} else {
 					ErrorMessage error = new ErrorMessage();
 					Error[] errors = airbookRS.getErrors().getErrorArray();

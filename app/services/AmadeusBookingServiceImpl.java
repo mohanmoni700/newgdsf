@@ -177,7 +177,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        pnrResponse.setValidTillDate(lastTicketingDate.toString());
+        pnrResponse.setValidTillDate(lastTicketingDate);
         pnrResponse.setFlightAvailable(true);
         pnrResponse.setTaxDetailsList(getTaxDetails(pricePNRReply));
         return pnrResponse;
