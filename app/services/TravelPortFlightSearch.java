@@ -389,6 +389,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
             //System.out.println("-----------");
             //airSolution.getFlightItineraryList().add(flightItinerary);
+            flightItinerary.setNonSeamenJourneyList(flightItinerary.getJourneyList());
             flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
         }
         airSolution.setNonSeamenHashMap(flightItineraryHashMap);

@@ -302,8 +302,10 @@ public class AmadeusFlightSearch implements FlightSearch {
         for(ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
             //0 is for forward journey and refQualifier should be S for segment
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
-                Journey journey=new Journey();
-                flightItinerary.getJourneyList().add(setJourney(journey,flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
+                Journey journey = new Journey();
+                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1));
+                flightItinerary.getJourneyList().add(journey);
+                flightItinerary.getNonSeamenJourneyList().add(journey);
                 //flightItinerary.getJourneyList().add(setJourney(flightIndexNumber == 0 ? forwardJourney : returnJourney, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
                 //flightIndexNumber = ++flightIndexNumber % 2;
                 ++flightIndexNumber;
