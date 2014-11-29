@@ -10,7 +10,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
-import models.AirlineCode;
+import models.Airline;
 import models.Airport;
 
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirItineraryPricingInfo;
@@ -207,7 +207,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 				.getArrivalAirportLocationCode()));
 		airSegment.setToDate(flightSegment.getArrivalDateTime().getTime()
 				.toString());
-		airSegment.setAirline(AirlineCode.getAirlineByCode(flightSegment
+		airSegment.setAirline(Airline.getAirlineByCode(flightSegment
 				.getMarketingAirlineCode()));
 		airSegment.setToLocation(flightSegment.getArrivalAirportLocationCode());
 		airSegment.setTravelTime("" + flightSegment.getJourneyDuration());

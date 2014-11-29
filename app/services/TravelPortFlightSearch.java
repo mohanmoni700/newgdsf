@@ -1,28 +1,51 @@
 package services;
 
-import com.compassites.GDSWrapper.travelport.Helper;
-import com.compassites.GDSWrapper.travelport.LowFareRequestClient;
-import com.compassites.exceptions.IncompleteDetailsMessage;
-import com.compassites.exceptions.RetryException;
-import com.compassites.model.*;
-import com.compassites.model.AirSolution;
-import com.sun.xml.ws.client.ClientTransportException;
-import com.travelport.schema.air_v26_0.*;
-import com.travelport.schema.common_v26_0.ResponseMessage;
-import com.travelport.service.air_v26_0.AirFaultMessage;
-import models.AirlineCode;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import models.Airline;
 import models.Airport;
+
 import org.springframework.stereotype.Service;
+
 import play.Logger;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.StringUtility;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.compassites.GDSWrapper.travelport.Helper;
+import com.compassites.GDSWrapper.travelport.LowFareRequestClient;
+import com.compassites.exceptions.IncompleteDetailsMessage;
+import com.compassites.exceptions.RetryException;
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.AirSolution;
+import com.compassites.model.BaggageInfo;
+import com.compassites.model.BookingType;
+import com.compassites.model.ErrorMessage;
+import com.compassites.model.FlightItinerary;
+import com.compassites.model.SearchParameters;
+import com.compassites.model.SearchResponse;
+import com.sun.xml.ws.client.ClientTransportException;
+import com.travelport.schema.air_v26_0.AirPricingSolution;
+import com.travelport.schema.air_v26_0.AirSegmentRef;
+import com.travelport.schema.air_v26_0.FareInfo;
+import com.travelport.schema.air_v26_0.FlightDetails;
+import com.travelport.schema.air_v26_0.LowFareSearchRsp;
+import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
+import com.travelport.schema.air_v26_0.TypeWeight;
+import com.travelport.schema.common_v26_0.ResponseMessage;
+import com.travelport.service.air_v26_0.AirFaultMessage;
 
 /**
  * Created with IntelliJ IDEA.
@@ -281,7 +304,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
                     AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
                     airSegmentInformation.setCarrierCode(carrier);
-                    airSegmentInformation.setAirline(AirlineCode.getAirlineByCode(carrier));
+                    airSegmentInformation.setAirline(Airline.getAirlineByCode(carrier));
                     airSegmentInformation.setFlightNumber(flightNum);
                     //System.out.print(carrier + "#" + flightNum);
                     String o = "???", d = "???";
@@ -339,7 +362,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airSegmentInformation.setAirSegmentKey(airSegment.getKey());
 
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList().add(airSegmentInformation);
-                    flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline);
+                    flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().getAirlineName());
 
                 }
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setTravelTime(journey.getTravelTime());

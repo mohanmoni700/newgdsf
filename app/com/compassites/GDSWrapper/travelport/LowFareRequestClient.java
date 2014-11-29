@@ -11,7 +11,9 @@ import com.travelport.schema.common_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirLowFareSearchPortType;
 import com.travelport.service.air_v26_0.AirService;
+
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.StringUtils;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -20,6 +22,7 @@ import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.ws.BindingProvider;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -401,7 +404,7 @@ public class LowFareRequestClient extends TravelPortClient {
         flightType.setNonStopDirects(directFlight);
         modifiers.setFlightType(flightType);
 
-        if (preferredAirlineCode != null) {
+        if (preferredAirlineCode != null && StringUtils.hasText(preferredAirlineCode)) {
             AirLegModifiers.PreferredCarriers preferredCarriers = new AirLegModifiers.PreferredCarriers();
             Carrier carrier = new Carrier();
             carrier.setCode(preferredAirlineCode);

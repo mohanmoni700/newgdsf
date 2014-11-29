@@ -8,6 +8,7 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.*;
+
 import play.libs.Json;
 
 import java.io.File;
@@ -16,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.*;
+
+import org.springframework.util.StringUtils;
 
 /**
  * @author mahendra-singh
@@ -50,7 +53,7 @@ public class SearchFlights {
 
         TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
 
-        if (searchParameters.getPreferredAirlines() != null) {
+        if (searchParameters.getPreferredAirlines() != null && StringUtils.hasText(searchParameters.getPreferredAirlines())) {
             setPreferredAirlines(travelFlightInfo,searchParameters.getPreferredAirlines());
         }
 

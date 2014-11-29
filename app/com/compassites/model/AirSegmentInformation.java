@@ -1,12 +1,13 @@
 package com.compassites.model;
 
-import models.AirlineCode;
-import models.Airport;
-import org.pojomatic.Pojomatic;
-import org.pojomatic.annotations.Property;
-
 import java.io.Serializable;
 import java.util.Date;
+
+import models.Airline;
+import models.Airport;
+
+import org.pojomatic.Pojomatic;
+import org.pojomatic.annotations.Property;
 
 
 /**
@@ -54,7 +55,7 @@ public class AirSegmentInformation implements Serializable{
     
     private String connectionTimeStr;
 
-    private AirlineCode airline;
+    private Airline airline;
     
     private Airport fromAirport;
     
@@ -235,11 +236,11 @@ public class AirSegmentInformation implements Serializable{
         return Pojomatic.toString(this);
     }
 
-    public AirlineCode getAirline() {
+    public Airline getAirline() {
         return airline;
     }
 
-    public void setAirline(AirlineCode airline) {
+    public void setAirline(Airline airline) {
         this.airline = airline;
     }
 
