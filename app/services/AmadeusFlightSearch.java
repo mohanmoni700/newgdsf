@@ -63,7 +63,7 @@ import com.sun.xml.ws.fault.ServerSOAPFaultException;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class AmadeusFlightSearch implements FlightSearch{
+public class AmadeusFlightSearch implements FlightSearch {
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
@@ -343,6 +343,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
         airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
+        airSegmentInformation.setEquipment(flightInformation.getProductDetail().getEquipmentType());
 
         //airSegmentInformation.setArrivalTime(flightInformation.getProductDateTime().getTimeOfArrival());
         //airSegmentInformation.setDepartureTime(flightInformation.getProductDateTime().getDateOfDeparture());

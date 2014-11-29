@@ -69,6 +69,8 @@ public class AirSegmentInformation implements Serializable{
 
     private String flightDetailsKey;
     
+    private String equipment;
+    
     private BaggageInfo baggageInfo;
 
     public String getFromLocation() {
@@ -318,6 +320,14 @@ public class AirSegmentInformation implements Serializable{
 
 	public void setBaggageInfo(BaggageInfo baggageInfo) {
 		this.baggageInfo = baggageInfo;
+	}
+
+	public String getEquipment() {
+		return equipment;
+	}
+
+	public void setEquipment(String equipment) {
+		this.equipment = equipment;
 	}
     
 }

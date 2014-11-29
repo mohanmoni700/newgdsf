@@ -293,7 +293,9 @@ public class TravelPortFlightSearch implements FlightSearch {
                     TypeBaseAirSegment airSegment = allSegments.getByRef(airSegmentRef);
                     String carrier = "??";
                     String flightNum = "???";
+                    String equipment = "";
                     if (airSegment != null) {
+                    	equipment = airSegment.getEquipment();
                         if (airSegment.getCarrier() != null) {
                             carrier = airSegment.getCarrier();
                         }
@@ -303,6 +305,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                     }
 
                     AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+                    airSegmentInformation.setEquipment(equipment);
                     airSegmentInformation.setCarrierCode(carrier);
                     airSegmentInformation.setAirline(Airline.getAirlineByCode(carrier));
                     airSegmentInformation.setFlightNumber(flightNum);
