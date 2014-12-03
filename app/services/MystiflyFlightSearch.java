@@ -1,46 +1,22 @@
 package services;
 
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
-import models.Airline;
-import models.Airport;
-
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirItineraryPricingInfo;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfFlightSegment;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationOption;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPricedItinerary;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.FlightSegment;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ItinTotalFare;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.OperatingAirline;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationOption;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
-import org.springframework.stereotype.Service;
-
-import play.Logger;
-
 import com.compassites.GDSWrapper.mystifly.LowFareRequestClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.AirSolution;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.JourneyType;
-import com.compassites.model.PricingInformation;
-import com.compassites.model.SearchJourney;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
+import com.compassites.model.*;
+import models.Airline;
+import models.Airport;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.springframework.stereotype.Service;
+import play.Logger;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.*;
 
 /**
  * 
@@ -125,8 +101,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		pricingInfo.setTax(tax.substring(0, tax.length() - 3));
 		String total = itinTotalFare.getTotalFare().getAmount();
 		pricingInfo.setTotalPrice(total.substring(0, total.length() - 3));
-		pricingInfo.setTotalPriceValue(Long.parseLong(pricingInfo
-				.getTotalPrice()));
+		pricingInfo.setTotalPriceValue(new BigDecimal(pricingInfo.getTotalPrice()));
 		return pricingInfo;
 	}
 

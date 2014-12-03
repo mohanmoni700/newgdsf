@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -18,15 +19,15 @@ public class PNRResponse {
 
     private boolean isFlightAvailable;
 
-    private Long originalPrice;
+    private BigDecimal originalPrice;
 
-    private Long changedPrice;
+    private BigDecimal changedPrice;
 
     private String priceChangeKey;
 
     private boolean isCappingLimitReached;
 
-    private Long changedBasePrice;
+    private BigDecimal changedBasePrice;
 
     private List<TaxDetails> taxDetailsList;
 
@@ -62,19 +63,19 @@ public class PNRResponse {
         this.isPriceChanged = isPriceChanged;
     }
 
-    public Long getOriginalPrice() {
+    public BigDecimal getOriginalPrice() {
         return originalPrice;
     }
 
-    public void setOriginalPrice(Long originalPrice) {
+    public void setOriginalPrice(BigDecimal originalPrice) {
         this.originalPrice = originalPrice;
     }
 
-    public Long getChangedPrice() {
+    public BigDecimal getChangedPrice() {
         return changedPrice;
     }
 
-    public void setChangedPrice(Long changedPrice) {
+    public void setChangedPrice(BigDecimal changedPrice) {
         this.changedPrice = changedPrice;
     }
 
@@ -110,11 +111,11 @@ public class PNRResponse {
         this.taxDetailsList = taxDetailsList;
     }
 
-    public Long getChangedBasePrice() {
+    public BigDecimal getChangedBasePrice() {
         return changedBasePrice;
     }
 
-    public void setChangedBasePrice(Long changedBasePrice) {
+    public void setChangedBasePrice(BigDecimal changedBasePrice) {
         this.changedBasePrice = changedBasePrice;
     }
 }

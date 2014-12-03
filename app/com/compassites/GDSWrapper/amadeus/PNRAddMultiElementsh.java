@@ -21,6 +21,7 @@ import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.Passenge
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Traveller;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.PassportDetails;
+import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
@@ -230,6 +231,7 @@ public class PNRAddMultiElementsh {
     //contact information
     public List<DataElementsIndiv> addContactInfo(TravellerMasterInfo travellerMasterInfo, int qualifierNumber) {
         //email info
+        PersonalDetails personalDetails = travellerMasterInfo.getTravellersList().get(0).getPersonalDetails();
         List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
         DataElementsIndiv de = new DataElementsIndiv();
         ElementManagementData elementManagementData = new ElementManagementData();
@@ -247,7 +249,7 @@ public class PNRAddMultiElementsh {
         ftdt.setSubjectQualifier("3");
         ftdt.setType("P02");
         ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext(travellerMasterInfo.getAdditionalInfo().getEmail());
+        ftd.setLongFreetext(personalDetails.getEmail());
         dataElementsDivList.add(de);
 
         //home contact number
@@ -267,7 +269,7 @@ public class PNRAddMultiElementsh {
         ftdt.setSubjectQualifier("3");
         ftdt.setType("3");
         ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext(travellerMasterInfo.getAdditionalInfo().getPhoneNumber());
+        ftd.setLongFreetext(personalDetails.getCountryCode()+personalDetails.getMobileNumber());
         dataElementsDivList.add(de);
 
         //emergency contact number
@@ -287,7 +289,7 @@ public class PNRAddMultiElementsh {
         ftdt.setSubjectQualifier("3");
         ftdt.setType("3");
         ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext("Emergency Contact Name "+travellerMasterInfo.getAdditionalInfo().getEmergencyContact()+" and Number "+travellerMasterInfo.getAdditionalInfo().getEmergencyContactNumber());
+        ftd.setLongFreetext("Emergency Contact Number "+personalDetails.getEmergencyContactCode()+personalDetails.getEmergencyContactNumber());
         dataElementsDivList.add(de);
         return dataElementsDivList;
     }

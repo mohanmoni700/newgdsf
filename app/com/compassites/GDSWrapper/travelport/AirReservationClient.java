@@ -1,6 +1,7 @@
 package com.compassites.GDSWrapper.travelport;
 
 import com.compassites.model.traveller.PassportDetails;
+import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.travelport.schema.air_v26_0.AirPricingSolution;
@@ -257,27 +258,28 @@ public class AirReservationClient  extends TravelPortClient {
         List<BookingTraveler> bookingTravelerList =  new ArrayList<>();
         int i=1;
         //make the traveller info
+        PersonalDetails personalDetails = travellerMasterInfo.getTravellersList().get(0).getPersonalDetails();
         for(Traveller traveller : travellerMasterInfo.getTravellersList()){
             BookingTraveler bookingTraveler = new BookingTraveler();
             //traveller.setGender("Male");
 
             //home email
             Email email = new Email();
-            email.setEmailID(travellerMasterInfo.getAdditionalInfo().getEmail());
+            email.setEmailID(personalDetails.getEmail());
             email.setType("Home");
             bookingTraveler.getEmail().add(email);
 
             PhoneNumber phone = new PhoneNumber();
-            phone.setCountryCode(travellerMasterInfo.getAdditionalInfo().getPhoneCode());
+            phone.setCountryCode(personalDetails.getCountryCode());
             //phone.setAreaCode("6");
-            phone.setNumber(travellerMasterInfo.getAdditionalInfo().getPhoneNumber());
+            phone.setNumber(personalDetails.getMobileNumber());
             phone.setType("Mobile");
             bookingTraveler.getPhoneNumber().add(phone);
 
             phone = new PhoneNumber();
-            phone.setCountryCode(travellerMasterInfo.getAdditionalInfo().getCountryCode());
+            phone.setCountryCode(personalDetails.getEmergencyContactCode());
             //phone.setAreaCode("6");
-            phone.setNumber(travellerMasterInfo.getAdditionalInfo().getEmergencyContactNumber());
+            phone.setNumber(personalDetails.getEmergencyContactNumber());
             phone.setType("Home");
             bookingTraveler.getPhoneNumber().add(phone);
             //name

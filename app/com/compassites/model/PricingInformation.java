@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class PricingInformation {
     private String tax;
     private String totalPrice;
     private String currency;
-    private Long totalPriceValue;
+    private BigDecimal totalPriceValue;
 
     private List<PAXFareDetails> paxFareDetailsList;
 
@@ -53,11 +54,11 @@ public class PricingInformation {
         this.currency = currency;
     }
 
-    public Long getTotalPriceValue() {
+    public BigDecimal getTotalPriceValue() {
         return totalPriceValue;
     }
 
-    public void setTotalPriceValue(Long totalPriceValue) {
+    public void setTotalPriceValue(BigDecimal totalPriceValue) {
         this.totalPriceValue = totalPriceValue;
     }
 

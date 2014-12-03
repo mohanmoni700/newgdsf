@@ -1,5 +1,28 @@
 package services;
 
+import com.amadeus.xml.fmptbr_12_4_1a.*;
+import com.compassites.GDSWrapper.amadeus.SearchFlights;
+import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.exceptions.IncompleteDetailsMessage;
+import com.compassites.exceptions.RetryException;
+import com.compassites.model.*;
+import com.sun.xml.ws.client.ClientTransportException;
+import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import models.Airline;
+import models.Airport;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Minutes;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.stereotype.Service;
+import play.Logger;
+import play.libs.Json;
+import utils.ErrorMessageHelper;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -10,49 +33,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
-import models.Airline;
-import models.Airport;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Minutes;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.stereotype.Service;
-
-import play.Logger;
-import play.libs.Json;
-import utils.ErrorMessageHelper;
-
-import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply;
-import com.amadeus.xml.fmptbr_12_4_1a.ProposedSegmentDetailsType;
-import com.amadeus.xml.fmptbr_12_4_1a.ReferenceInfoType;
-import com.amadeus.xml.fmptbr_12_4_1a.ReferencingDetailsType191583C;
-import com.amadeus.xml.fmptbr_12_4_1a.TravelProductType;
-import com.compassites.GDSWrapper.amadeus.SearchFlights;
-import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.exceptions.IncompleteDetailsMessage;
-import com.compassites.exceptions.RetryException;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.AirSolution;
-import com.compassites.model.BookingType;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FareJourney;
-import com.compassites.model.FareSegment;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.PAXFareDetails;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.PricingInformation;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
-import com.sun.xml.ws.client.ClientTransportException;
-import com.sun.xml.ws.fault.ServerSOAPFaultException;
 
 
 /**
@@ -405,7 +385,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         pricingInformation.setBasePrice(totalAmount.subtract(taxAmount).toString());
         pricingInformation.setTax(taxAmount.toString());
         pricingInformation.setTotalPrice(totalAmount.toString());
-        pricingInformation.setTotalPriceValue(totalAmount.longValue());
+        pricingInformation.setTotalPriceValue(BigDecimal.valueOf(totalAmount.longValue()));
         pricingInformation.setCurrency(currency);
         pricingInformation.setProvider("Amadeus");
         return pricingInformation;

@@ -120,18 +120,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
     public PNRResponse checkFare(FarePricePNRWithBookingClassReply pricePNRReply,TravellerMasterInfo travellerMasterInfo){
-        Long totalFare = 0L;
+        BigDecimal totalFare = new BigDecimal(0);
         PNRResponse pnrResponse = new PNRResponse();
         List<FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation> fareList = pricePNRReply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
         for (FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation fareData : fareList){
 
             if(totalFareIdentifier.equals(fareData.getFareDataQualifier())){
-                totalFare = new Long(fareData.getFareAmount());
+                totalFare = new BigDecimal(fareData.getFareAmount());
                 break;
             }
 
         }
-        Long searchPrice = 0L;
+        BigDecimal searchPrice = new BigDecimal(0);
         if(travellerMasterInfo.isSeamen()){
             searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
         }else {

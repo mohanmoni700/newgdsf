@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import utils.ErrorMessageHelper;
 import utils.StringUtility;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -84,14 +85,14 @@ public class TravelportBookingServiceImpl implements BookingService {
 
     public PNRResponse checkFare(AirPriceRsp priceRsp,TravellerMasterInfo travellerMasterInfo){
         PNRResponse pnrResponse = new PNRResponse();
-        Long searchPrice = 0L;
+        BigDecimal searchPrice = new BigDecimal(0);
         if(travellerMasterInfo.isSeamen()){
             searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
         }else {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
-        Long totalPrice = new Long(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getTotalPrice()));
-        Long changedBasePrice =   new Long(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getBasePrice()));
+        BigDecimal totalPrice = new BigDecimal(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getTotalPrice()));
+        BigDecimal changedBasePrice =   new BigDecimal(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getBasePrice()));
         if(totalPrice.equals(searchPrice)){
 
             pnrResponse.setPriceChanged(false);

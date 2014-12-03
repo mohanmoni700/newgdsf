@@ -1,34 +1,22 @@
 package services;
 
+import com.compassites.constants.CacheConstants;
+import com.compassites.exceptions.RetryException;
+import com.compassites.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+import play.Logger;
+import play.libs.Json;
+import utils.ErrorMessageHelper;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-
-import play.Logger;
-import play.libs.Json;
-import utils.ErrorMessageHelper;
-
-import com.compassites.constants.CacheConstants;
-import com.compassites.exceptions.RetryException;
-import com.compassites.model.AirSolution;
-import com.compassites.model.BookingType;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
-import com.fasterxml.jackson.databind.JsonNode;
+import java.util.concurrent.*;
 
 /**
  * Created by user on 17-06-2014.
@@ -269,11 +257,11 @@ public class FlightSearchWrapper {
             for(Integer hashKey : allFightItineraries.keySet()){
                 if(seamenFareHash.containsKey(hashKey) && nonSeamenFareHash.containsKey(hashKey)){
                     FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);
-                    if(mainFlightItinerary.getSeamanPricingInformation() == null || seamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue()){
+                    if(mainFlightItinerary.getSeamanPricingInformation() == null || seamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue()){
                         mainFlightItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
                         mainFlightItinerary.setJourneyList(seamenFareHash.get(hashKey).getJourneyList());
                     }
-                    if(mainFlightItinerary.getPricingInformation() == null || nonSeamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue() < mainFlightItinerary.getPricingInformation().getTotalPriceValue()){
+                    if(mainFlightItinerary.getPricingInformation() == null || nonSeamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getPricingInformation().getTotalPriceValue().longValue()){
                         mainFlightItinerary.setPricingInformation(nonSeamenFareHash.get(hashKey).getPricingInformation());
                         mainFlightItinerary.setNonSeamenJourneyList(nonSeamenFareHash.get(hashKey).getJourneyList());
                     }
@@ -284,7 +272,7 @@ public class FlightSearchWrapper {
                     FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);
                     if(mainFlightItinerary.getSeamanPricingInformation() == null ||
                     		mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() == null ||
-                    		seamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue()){
+                    		seamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue()){
                         mainFlightItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
                         mainFlightItinerary.setJourneyList(seamenFareHash.get(hashKey).getJourneyList());
                     }
@@ -294,7 +282,7 @@ public class FlightSearchWrapper {
                     FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);
                     if(mainFlightItinerary.getPricingInformation() == null ||
                     		mainFlightItinerary.getPricingInformation().getTotalPriceValue() == null ||
-                    		nonSeamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue() < mainFlightItinerary.getPricingInformation().getTotalPriceValue()){
+                    		nonSeamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getPricingInformation().getTotalPriceValue().longValue()){
                         mainFlightItinerary.setPricingInformation(nonSeamenFareHash.get(hashKey).getPricingInformation());
                         mainFlightItinerary.setNonSeamenJourneyList(nonSeamenFareHash.get(hashKey).getJourneyList());
                     }

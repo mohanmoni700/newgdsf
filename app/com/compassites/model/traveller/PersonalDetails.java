@@ -1,10 +1,9 @@
 package com.compassites.model.traveller;
 
-import java.util.Date;
-
+import com.compassites.model.PassengerTypeCode;
 import utils.DateUtility;
 
-import com.compassites.model.PassengerTypeCode;
+import java.util.Date;
 
 /**
  * Created by mahendra-singh on 25/7/14.
@@ -26,6 +25,20 @@ public class PersonalDetails {
 	private String rank;
 
 	private String gender;
+
+    private String mobileNumber;
+
+    private String email;
+
+    private String officeNumber;
+
+    private String emergencyContactNumber;
+
+    private String countryCode;
+
+    private String officeNoCode;
+
+    private String emergencyContactCode;
 
 	public PassengerTypeCode getPassengerType() {
 		return DateUtility.getPassengerTypeFromDOB(dateOfBirth);
@@ -94,4 +107,60 @@ public class PersonalDetails {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
+
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getOfficeNumber() {
+        return officeNumber;
+    }
+
+    public void setOfficeNumber(String officeNumber) {
+        this.officeNumber = officeNumber;
+    }
+
+    public String getEmergencyContactNumber() {
+        return emergencyContactNumber;
+    }
+
+    public void setEmergencyContactNumber(String emergencyContactNumber) {
+        this.emergencyContactNumber = emergencyContactNumber;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getOfficeNoCode() {
+        return officeNoCode;
+    }
+
+    public void setOfficeNoCode(String officeNoCode) {
+        this.officeNoCode = officeNoCode;
+    }
+
+    public String getEmergencyContactCode() {
+        return emergencyContactCode;
+    }
+
+    public void setEmergencyContactCode(String emergencyContactCode) {
+        this.emergencyContactCode = emergencyContactCode;
+    }
 }
