@@ -279,8 +279,8 @@ public class AmadeusFlightSearch implements FlightSearch {
         for (FareMasterPricerTravelBoardSearchReply.Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                 FlightItinerary flightItinerary = new FlightItinerary();
-                flightItinerary.setProvider("Amadeus");
-                //pricing information
+                // flightItinerary.setProvider("Amadeus");
+                // pricing information
                 List<FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares> groupOfFaresList = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getGroupOfFares();
                 FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct = recommendation.getPaxFareProduct().get(0);
                 flightItinerary.setPricingInformation(setPricingInformation(paxFareProduct.getPaxFareDetail().getTotalTaxAmount(), paxFareProduct.getPaxFareDetail().getTotalFareAmount(), currency));

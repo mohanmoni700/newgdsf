@@ -22,7 +22,8 @@ public class FlightInfoServiceWrapper {
 
 	public FlightItinerary getFlightInfo(FlightItinerary flightItinerary,
 			SearchParameters searchParams) {
-		String provider = flightItinerary.getProvider();
+		String provider = "";
+//		String provider = flightItinerary.getProvider();
 		FlightItinerary response = null;
 		if ("Travelport".equalsIgnoreCase(provider)) {
 			response = flightItinerary;

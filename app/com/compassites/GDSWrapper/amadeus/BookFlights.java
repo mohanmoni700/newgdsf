@@ -32,25 +32,28 @@ import java.util.List;
  */
 public class BookFlights {
 
-    public AirSellFromRecommendation sellFromRecommendation(TravellerMasterInfo travellerMasterInfo){
-        AirSellFromRecommendation sfr=new AirSellFromRecommendation();
-        sfr.setMessageActionDetails(createMessageActionDetails());
-        FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
-        for(int i=0;i < flightItinerary.getJourneyList().size();i++){
-            Journey journey = flightItinerary.getJourneyList().get(i);
-            FareJourney fareJourney = null;
-            if(travellerMasterInfo.isSeamen()){
-                fareJourney = flightItinerary.getSeamanPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
-            }else {
-                fareJourney = flightItinerary.getPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
-            }
-            if(journey.getAirSegmentList().size() > 0){
-                sfr.getItineraryDetails().add(createItineraryDetails(journey,fareJourney,travellerMasterInfo.getTravellersList().size()));
-            }
-        }
+	public AirSellFromRecommendation sellFromRecommendation(
+			TravellerMasterInfo travellerMasterInfo) {
+		AirSellFromRecommendation sfr = new AirSellFromRecommendation();
+		sfr.setMessageActionDetails(createMessageActionDetails());
+		FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+		List<Journey> journeyList = travellerMasterInfo.isSeamen() ? flightItinerary
+				.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 
-        return sfr;
-    }
+		for (int i = 0; i < journeyList.size(); i++) {
+			Journey journey = journeyList.get(i);
+			FareJourney fareJourney = null;
+			if (travellerMasterInfo.isSeamen()) {
+				fareJourney = flightItinerary.getSeamanPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
+			} else {
+				fareJourney = flightItinerary.getPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
+			}
+			if (journey.getAirSegmentList().size() > 0) {
+				sfr.getItineraryDetails().add(createItineraryDetails(journey, fareJourney, travellerMasterInfo.getTravellersList().size()));
+			}
+		}
+		return sfr;
+	}
 
     public MessageActionDetails createMessageActionDetails(){
         MessageActionDetails mad=new MessageActionDetails();

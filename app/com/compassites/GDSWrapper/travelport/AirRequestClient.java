@@ -589,11 +589,13 @@ public class AirRequestClient extends TravelPortClient {
 
     public static AirItinerary buildAirItinerary(TravellerMasterInfo travellerMasterInfo){
         AirItinerary airItinerary = new AirItinerary();
-
         FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
-
         List<TypeBaseAirSegment> typeBaseAirSegmentList = new ArrayList<>();
-        for(com.compassites.model.Journey journey : flightItinerary.getJourneyList()){
+		List<com.compassites.model.Journey> journyList = travellerMasterInfo
+				.isSeamen() ? flightItinerary.getJourneyList()
+				: flightItinerary.getNonSeamenJourneyList();
+
+        for(com.compassites.model.Journey journey : journyList){
             for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
                 TypeBaseAirSegment typeBaseAirSegment = new TypeBaseAirSegment();
                 typeBaseAirSegment.setOrigin(airSegmentInformation.getFromLocation());
@@ -620,15 +622,12 @@ public class AirRequestClient extends TravelPortClient {
         }
         airItinerary.getAirSegment().addAll(typeBaseAirSegmentList);
         return airItinerary;
-
     }
 
     public static List<Passenger> createPassengers(List<Traveller> travellerList,PassengerTypeCode passengerTypeCode){
-
         List<Passenger> passengerList = new ArrayList<>();
 
         for(Traveller traveller : travellerList){
-
             Passenger passenger = new Passenger();
             LocalDate birthDate = new LocalDate (traveller.getPassportDetails().getDateOfBirth());
             LocalDate now = new LocalDate();
@@ -658,10 +657,8 @@ public class AirRequestClient extends TravelPortClient {
             } else {
                 passengerType = "ADT";
             }
-
         }
-
         return passengerType;
-
     }
+    
 }

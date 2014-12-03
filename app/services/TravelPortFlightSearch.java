@@ -262,7 +262,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
             AirPricingSolution airPricingSolution = (AirPricingSolution)airPricingSolutionIterator.next();
             FlightItinerary flightItinerary=new FlightItinerary();
-            flightItinerary.setProvider("Travelport");
+//            flightItinerary.setProvider("Travelport");
 
             //Seaman Fares
             /*

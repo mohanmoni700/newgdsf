@@ -92,7 +92,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		for (PricedItinerary pricedItinerary : pricedItineraries
 				.getPricedItineraryArray()) {
 			FlightItinerary flightItinerary = new FlightItinerary();
-			flightItinerary.setProvider(Mystifly.PROVIDER);
+//			flightItinerary.setProvider(Mystifly.PROVIDER);
 
 			AirItineraryPricingInfo airlinePricingInfo = pricedItinerary
 					.getAirItineraryPricingInfo();
