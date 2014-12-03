@@ -257,7 +257,8 @@ public class FlightSearchWrapper {
             for(Integer hashKey : allFightItineraries.keySet()){
                 if(seamenFareHash.containsKey(hashKey) && nonSeamenFareHash.containsKey(hashKey)){
                     FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);
-                    if(mainFlightItinerary.getSeamanPricingInformation() == null || seamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue()){
+                    if(mainFlightItinerary.getSeamanPricingInformation() == null ||
+                            mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() == null || seamenFareHash.get(hashKey).getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue()){
                         mainFlightItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
                         mainFlightItinerary.setJourneyList(seamenFareHash.get(hashKey).getJourneyList());
                     }
