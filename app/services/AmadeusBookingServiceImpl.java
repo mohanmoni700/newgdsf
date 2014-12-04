@@ -139,7 +139,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
 
 
-        if(totalFare.equals(searchPrice)) {
+        if(totalFare.toBigIntegerExact().equals(searchPrice.toBigIntegerExact())) {
             return pnrResponse;
         }
         pnrResponse.setChangedPrice(totalFare);
