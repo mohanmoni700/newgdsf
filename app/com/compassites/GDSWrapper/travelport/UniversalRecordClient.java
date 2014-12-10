@@ -25,10 +25,8 @@ import java.net.MalformedURLException;
 public class UniversalRecordClient extends TravelPortClient {
 
     static final String ServiceName =  "/UniversalRecordService";
-
     static UniversalRecordService universalRecordService = null;
     static UniversalRecordRetrieveServicePortType universalRecordRetrieveServicePortType = null;
-
 
     static void  init(){
         if (universalRecordService == null){
@@ -47,19 +45,9 @@ public class UniversalRecordClient extends TravelPortClient {
             setRequestContext((BindingProvider) universalRecordRetrieveServicePortType, ServiceName);
             LogFactory.getLog(UniversalRecordClient.class).info("Initialized");
         }
-
     }
 
-    public static UniversalRecordRetrieveRsp retrievePNR(AirCreateReservationRsp reservationRsp){
-
-        UniversalRecordRetrieveReq recordRetrieveReq = new UniversalRecordRetrieveReq();
-        recordRetrieveReq.setAuthorizedBy("TEST");
-        recordRetrieveReq.setTargetBranch(BRANCH);
-
-        BillingPointOfSaleInfo billingPointOfSaleInfo = new BillingPointOfSaleInfo();
-        billingPointOfSaleInfo.setOriginApplication("UAPI");
-        recordRetrieveReq.setBillingPointOfSaleInfo(billingPointOfSaleInfo);
-        UniversalRecordRetrieveReq.ProviderReservationInfo reservationInfo = new UniversalRecordRetrieveReq.ProviderReservationInfo();
+    public static UniversalRecordRetrieveRsp retrievePNR(AirCreateReservationRsp reservationRsp) {
         String locatorCode = "";
         Helper.ReservationInfoMap reservationInfoMap = Helper.createReservationInfoMap(reservationRsp.getUniversalRecord().getProviderReservationInfo());
         for(AirReservation airReservation : reservationRsp.getUniversalRecord().getAirReservation()){
@@ -68,24 +56,36 @@ public class UniversalRecordClient extends TravelPortClient {
                 locatorCode = reservationInfo1.getLocatorCode();
             }
         }
-        reservationInfo.setProviderCode(GDS);
-        reservationInfo.setProviderLocatorCode(locatorCode);
-
-        recordRetrieveReq.setProviderReservationInfo(reservationInfo);
-        UniversalRecordRetrieveRsp recordRetrieveRsp = null;
-        try {
-            init();
-            XMLFileUtility.createXMLFile(recordRetrieveReq, "UniversalRecordRetrieveReq.xml");
-            recordRetrieveRsp = universalRecordRetrieveServicePortType.service(recordRetrieveReq, null);
-
-            XMLFileUtility.createXMLFile(recordRetrieveRsp, "UniversalRecordRetrieveRes.xml");
-
-        } catch (UniversalRecordFaultMessage universalRecordFaultMessage) {
-            universalRecordFaultMessage.printStackTrace();
-        } catch (UniversalRecordArchivedFaultMessage universalRecordArchivedFaultMessage) {
-            universalRecordArchivedFaultMessage.printStackTrace();
-        }
-
-        return recordRetrieveRsp;
+        return retrievePNR(locatorCode);
     }
+
+	public static UniversalRecordRetrieveRsp retrievePNR(String locatorCode) {
+		UniversalRecordRetrieveReq recordRetrieveReq = new UniversalRecordRetrieveReq();
+		recordRetrieveReq.setAuthorizedBy("TEST");
+		recordRetrieveReq.setTargetBranch(BRANCH);
+
+		BillingPointOfSaleInfo billingPointOfSaleInfo = new BillingPointOfSaleInfo();
+		billingPointOfSaleInfo.setOriginApplication("UAPI");
+		recordRetrieveReq.setBillingPointOfSaleInfo(billingPointOfSaleInfo);
+		UniversalRecordRetrieveRsp recordRetrieveRsp = null;
+		UniversalRecordRetrieveReq.ProviderReservationInfo reservationInfo = new UniversalRecordRetrieveReq.ProviderReservationInfo();
+		reservationInfo.setProviderCode(GDS);
+		reservationInfo.setProviderLocatorCode(locatorCode);
+		recordRetrieveReq.setProviderReservationInfo(reservationInfo);
+		try {
+			init();
+			XMLFileUtility.createXMLFile(recordRetrieveReq,
+					"UniversalRecordRetrieveReq.xml");
+			recordRetrieveRsp = universalRecordRetrieveServicePortType.service(
+					recordRetrieveReq, null);
+			XMLFileUtility.createXMLFile(recordRetrieveRsp,
+					"UniversalRecordRetrieveRes.xml");
+		} catch (UniversalRecordFaultMessage universalRecordFaultMessage) {
+			universalRecordFaultMessage.printStackTrace();
+		} catch (UniversalRecordArchivedFaultMessage universalRecordArchivedFaultMessage) {
+			universalRecordArchivedFaultMessage.printStackTrace();
+		}
+		return recordRetrieveRsp;
+	}
+	
 }

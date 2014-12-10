@@ -1,7 +1,84 @@
 package com.compassites.GDSWrapper.travelport;
 
+import java.net.MalformedURLException;
+
+import javax.xml.ws.BindingProvider;
+
+import play.Logger;
+import utils.XMLFileUtility;
+
+import com.travelport.schema.air_v26_0.AirReservationLocatorCode;
+import com.travelport.schema.air_v26_0.AirTicketingReq;
+import com.travelport.schema.air_v26_0.AirTicketingReq.AirPricingInfoRef;
+import com.travelport.schema.air_v26_0.AirTicketingRsp;
+import com.travelport.schema.common_v26_0.BillingPointOfSaleInfo;
+import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
+import com.travelport.service.air_v26_0.AirFaultMessage;
+import com.travelport.service.air_v26_0.AirService;
+import com.travelport.service.air_v26_0.AirTicketingPortType;
+
 /**
- * Created by user on 16-10-2014.
+ * @author Santhosh
  */
-public class AirTicketClient {
+public class AirTicketClient extends TravelPortClient {
+
+	public static final String SERVICE_NAME = "/AirService";
+	public static final String WSDL_URL = "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl";
+	static AirService airService = null;
+	static AirTicketingPortType airTicketingPortType = null;
+
+	static void init() {
+		if (airService == null) {
+			java.net.URL url = null;
+			try {
+				java.net.URL baseUrl;
+				baseUrl = AirService.class.getResource(".");
+				url = new java.net.URL(baseUrl, WSDL_URL);
+				airService = new AirService(url);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
+		if (airTicketingPortType == null) {
+			airTicketingPortType = airService.getAirTicketingPort();
+			Logger.info("Initializing AirTicketingPortType....");
+			setRequestContext((BindingProvider) airTicketingPortType,
+					SERVICE_NAME);
+			Logger.info("Initialized");
+		}
+	}
+
+	public static AirTicketingRsp issueTicket(String pnrNumber) {
+		UniversalRecordRetrieveRsp uniRsp = UniversalRecordClient.retrievePNR(pnrNumber);
+		String key = uniRsp.getUniversalRecord().getAirReservation().get(0).getAirPricingInfo().get(0).getKey();
+		
+		AirTicketingReq request = new AirTicketingReq();
+		AirTicketingRsp response = null;
+		request.setAuthorizedBy("TEST");
+		request.setTargetBranch(BRANCH);
+
+		BillingPointOfSaleInfo billInfo = new BillingPointOfSaleInfo();
+		billInfo.setOriginApplication("UAPI");
+		request.setBillingPointOfSaleInfo(billInfo);
+		
+		AirPricingInfoRef airPricingInfoRef = new AirPricingInfoRef();
+		airPricingInfoRef.setKey(key);
+		request.getAirPricingInfoRef().add(airPricingInfoRef);
+
+		AirReservationLocatorCode airResLocatorCode = new AirReservationLocatorCode();
+		airResLocatorCode.setValue(uniRsp.getUniversalRecord().getAirReservation().get(0).getLocatorCode());
+		request.setAirReservationLocatorCode(airResLocatorCode);
+
+		XMLFileUtility.createXMLFile(request, "AirTicketingReq");
+		try {
+			response = airTicketingPortType.service(request);
+		} catch (AirFaultMessage e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		XMLFileUtility.createXMLFile(response, "AirTicketingRsp");
+		return response;
+	}
+	
+	
 }

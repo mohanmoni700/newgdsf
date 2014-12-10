@@ -38,8 +38,10 @@ public class BookFlightClient {
 		TravelerInfo travelerInfo = airBookRQ.addNewTravelerInfo();
 		ArrayOfAirTraveler arrayOfTravelers = travelerInfo.addNewAirTravelers();
 		setTravelers(arrayOfTravelers, travellerMasterInfo.getTravellersList());
-		PersonalDetails personalDetails = travellerMasterInfo.getTravellersList().get(0).getPersonalDetails();
-		travelerInfo.setPhoneNumber(personalDetails.getCountryCode()+personalDetails.getMobileNumber());
+		PersonalDetails personalDetails = travellerMasterInfo
+				.getTravellersList().get(0).getPersonalDetails();
+		travelerInfo.setPhoneNumber(personalDetails.getCountryCode()
+				+ personalDetails.getMobileNumber());
 		travelerInfo.setEmail(personalDetails.getEmail());
 
 		// TODO: Set dynamic values
