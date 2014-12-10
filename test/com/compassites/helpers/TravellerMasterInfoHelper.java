@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Nationality;
-import com.compassites.model.traveller.AdditionalInfo;
 import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
@@ -16,13 +15,7 @@ public class TravellerMasterInfoHelper {
 	
 	public static TravellerMasterInfo getTravellerMasterInfo() {
 		TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
-		
 		travellerMasterInfo.setItinerary(new FlightItinerary());
-
-		AdditionalInfo additionalInfo = new AdditionalInfo();
-		additionalInfo.setEmail("bruce.wayne@email.com");
-		additionalInfo.setPhoneNumber("8098765432");
-		travellerMasterInfo.setAdditionalInfo(additionalInfo);
 		
 		List<Traveller> travelers = new ArrayList<>();
 		Traveller traveller = new Traveller();
@@ -37,14 +30,17 @@ public class TravellerMasterInfoHelper {
 		nationality.setThreeLetterCode("IND");
 		passportDetails.setNationality(nationality);
 		passportDetails.setPassportNumber("G8965777");
+		calendar.set(1990, 9, 19);
+		passportDetails.setDateOfBirth(calendar.getTime());
 		traveller.setPassportDetails(passportDetails);
 		PersonalDetails personalDetails = new PersonalDetails();
-		calendar.set(1990, 9, 19);
 		personalDetails.setDateOfBirth(calendar.getTime());
 		personalDetails.setFirstName("Bruce");
 		personalDetails.setLastName("Wayne");
 		personalDetails.setGender("Male");
-		personalDetails.setSalutation("Mr");
+		personalDetails.setSalutation("mr.");
+		personalDetails.setEmail("bruce.wayne@email.com");
+		personalDetails.setMobileNumber("9876543210");
 		traveller.setPersonalDetails(personalDetails);
 		travelers.add(traveller);
 		travellerMasterInfo.setTravellersList(travelers);

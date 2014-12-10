@@ -12,7 +12,7 @@ public class AirRulesClientTest {
 	
 	@Test
 	public void testGetAirRules() {
-		PricedItinerary itinerary = MystiflyFlightItineraryHelper.getFlightItinerary();
+		PricedItinerary itinerary = MystiflyFlightItineraryHelper.getFlightItinerary()[0];
 		String fareSourceCode = itinerary.getAirItineraryPricingInfo().getFareSourceCode();
 		
 		AirRulesClient airRulesClient = new AirRulesClient();

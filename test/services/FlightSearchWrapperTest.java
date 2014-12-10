@@ -1,5 +1,6 @@
 package services;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -136,7 +137,7 @@ public class FlightSearchWrapperTest {
 		for(Integer price : prices) {
 			FlightItinerary itinerary = new FlightItinerary();
 			PricingInformation pricingInformation = new PricingInformation();
-			pricingInformation.setTotalPriceValue((long) price);
+			pricingInformation.setTotalPriceValue(new BigDecimal(price));
 			itinerary.setPricingInformation(pricingInformation);
 			itineraries.add(itinerary);
 		}

@@ -25,7 +25,7 @@ public class BookingTest {
 
 
         FlightItinerary fi1 = new FlightItinerary();
-        fi1.setProvider(properties.getProperty("provider"));
+//        fi1.setProvider(properties.getProperty("provider"));
         fi1.getPricingInformation().setBasePrice(properties.getProperty("price"));
         fi1.getPricingInformation().setTax(properties.getProperty("price"));
         fi1.getPricingInformation().setTotalPrice(properties.getProperty("price"));
