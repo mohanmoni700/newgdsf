@@ -12,8 +12,6 @@ import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.InfantOrAdultAssoci
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.OptionGroup;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.OptionGroup.Switches;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.OptionGroup.Switches.StatusDetails;
-import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.PaxSelection;
-import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.PaxSelection.PassengerReference;
 
 /**
  *
@@ -21,21 +19,26 @@ import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.PaxSelection.Passen
  */
 public class IssueTicket {
     public DocIssuanceIssueTicket issue(){
-        DocIssuanceIssueTicket tck=new DocIssuanceIssueTicket();
-        OptionGroup op=new OptionGroup();
-        Switches sw=new Switches();
-        StatusDetails sd=new StatusDetails();
+        DocIssuanceIssueTicket tck = new DocIssuanceIssueTicket();
+        OptionGroup op = new OptionGroup();
+        Switches sw = new Switches();
+        StatusDetails sd = new StatusDetails();
         sd.setIndicator("ET");
         sw.setStatusDetails(sd);
         op.setSwitches(sw);
         tck.getOptionGroup().add(op);
-        
-        PaxSelection ps=new PaxSelection();
+
+        InfantOrAdultAssociation infantOrAdultAssociation = new InfantOrAdultAssociation();
+        PaxDetails paxDetails = new PaxDetails();
+        paxDetails.setType("A");
+
+        infantOrAdultAssociation.setPaxDetails(paxDetails);
+        /*PaxSelection ps=new PaxSelection();
         PassengerReference pr=new PassengerReference();
         pr.setType("PAX");
         pr.setValue("1");
-        ps.setPassengerReference(pr);        
-        tck.getPaxSelection().add(ps);
+        ps.setPassengerReference(pr);      */
+        tck.setInfantOrAdultAssociation(infantOrAdultAssociation);
         return tck;
     }
     

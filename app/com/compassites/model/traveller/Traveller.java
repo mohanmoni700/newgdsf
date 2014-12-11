@@ -2,6 +2,8 @@ package com.compassites.model.traveller;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Map;
+
 /**
  * Created by mahendra-singh on 25/7/14.
  */
@@ -21,6 +23,10 @@ public class Traveller {
 	private VisaDetails visaDetails;
 
 	private TravellerMasterInfo travellerMasterInfo;
+
+    private Long contactId;
+
+    private Map<String,String> ticketNumberMap;
 
 	public Long getId() {
 		return id;
@@ -70,4 +76,19 @@ public class Traveller {
 		this.visaDetails = visaDetails;
 	}
 
+    public Long getContactId() {
+        return contactId;
+    }
+
+    public void setContactId(Long contactId) {
+        this.contactId = contactId;
+    }
+
+    public Map<String,String> getTicketNumberMap() {
+        return ticketNumberMap;
+    }
+
+    public void setTicketNumberMap(Map<String, String> ticketNumberMap) {
+        this.ticketNumberMap = ticketNumberMap;
+    }
 }

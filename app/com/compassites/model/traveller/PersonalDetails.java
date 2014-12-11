@@ -1,6 +1,7 @@
 package com.compassites.model.traveller;
 
 import com.compassites.model.PassengerTypeCode;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import utils.DateUtility;
 
 import java.util.Date;
@@ -50,6 +51,7 @@ public class PersonalDetails {
 		this.designation = designation;
 	}
 
+    @JsonIgnore
 	public PassengerTypeCode getPassengerType() {
 		return DateUtility.getPassengerTypeFromDOB(dateOfBirth);
 	}

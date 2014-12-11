@@ -6,7 +6,7 @@ POST     /searchFlight              @controllers.Application.flightSearch
 POST     /generatePNR               @controllers.Application.generatePNR
 POST     /priceChangePNR            @controllers.Application.priceChangePNR
 POST     /flightInfo                @controllers.Application.getFlightInfo
-GET      /issueTicket/:gdsPNR       @controllers.Application.issueTicket(gdsPNR:String)
+POST     /issueTicket               @controllers.Application.issueTicket()
 POST     /checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
 
 # Map static resources from the /public folder to the /assets URL path

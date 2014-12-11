@@ -10,6 +10,7 @@ import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_10_1_1a.PNRRetrieve;
+import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
@@ -23,7 +24,7 @@ import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import utils.JSONFileUtility;
+import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
@@ -78,11 +79,11 @@ public class ServiceHandler {
         mSession.incrementSequenceNumber();
         AirSellFromRecommendation sellFromRecommendation = new BookFlights().sellFromRecommendation(travellerMasterInfo);
 
-        JSONFileUtility.createJsonFile(sellFromRecommendation,"sellFromRecommendationReq.json");
+        XMLFileUtility.createXMLFile(sellFromRecommendation, "sellFromRecommendationReq.xml");
 
         AirSellFromRecommendationReply sellFromRecommendationReply = mPortType.airSellFromRecommendation(sellFromRecommendation, mSession.getSession());
 
-        JSONFileUtility.createJsonFile(sellFromRecommendationReply,"sellFromRecommendationRes.json");
+        XMLFileUtility.createXMLFile(sellFromRecommendationReply, "sellFromRecommendationRes.xml");
 
         return   sellFromRecommendationReply;
     }
@@ -92,10 +93,10 @@ public class ServiceHandler {
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo);
 
-        JSONFileUtility.createJsonFile(pnrAddMultiElements,"pnrAddMultiElementsReq.json");
+        XMLFileUtility.createXMLFile(pnrAddMultiElements, "pnrAddMultiElementsReq.json");
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
 
-        JSONFileUtility.createJsonFile(pnrReply,"pnrAddMultiElementsRes.json");
+        XMLFileUtility.createXMLFile(pnrReply, "pnrAddMultiElementsRes.json");
         return  pnrReply;
     }
 
@@ -104,18 +105,22 @@ public class ServiceHandler {
         mSession.incrementSequenceNumber();
         FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(travellerMasterInfo, pnrReply);
 
-        JSONFileUtility.createJsonFile(pricePNRWithBookingClass,"pricePNRWithBookingClassReq.json");
+        XMLFileUtility.createXMLFile(pricePNRWithBookingClass, "pricePNRWithBookingClassReq.xml");
 
         FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply = mPortType.farePricePNRWithBookingClass(pricePNRWithBookingClass, mSession.getSession());
 
-        JSONFileUtility.createJsonFile(pricePNRWithBookingClassReply,"pricePNRWithBookingClassRes.json");
+        XMLFileUtility.createXMLFile(pricePNRWithBookingClassReply, "pricePNRWithBookingClassRes.xml");
 
         return pricePNRWithBookingClassReply;
     }
 
     public TicketCreateTSTFromPricingReply createTST() {
         mSession.incrementSequenceNumber();
-        return mPortType.ticketCreateTSTFromPricing(new CreateTST().createTSTReq(), mSession.getSession());
+        TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createTSTReq();
+        XMLFileUtility.createXMLFile(ticketCreateTSTFromPricing, "createTSTFromPricingReplyReq.xml");
+        TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, mSession.getSession());
+        XMLFileUtility.createXMLFile(createTSTFromPricingReply, "createTSTFromPricingReplyRes.xml");
+        return createTSTFromPricingReply;
     }
 
     public PNRReply savePNR() {
@@ -126,36 +131,36 @@ public class ServiceHandler {
     public PNRReply retrivePNR(String num){
         mSession.incrementSequenceNumber();
         PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);
-        JSONFileUtility.createJsonFile(pnrRetrieve,"pnrRetrieveReq.json");
+        XMLFileUtility.createXMLFile(pnrRetrieve, "pnrRetrieveReq.xml");
         PNRReply pnrReply = mPortType.pnrRetrieve(pnrRetrieve,mSession.getSession());
-        JSONFileUtility.createJsonFile(pnrReply,"pnrRetrieveRes.json");
+        XMLFileUtility.createXMLFile(pnrReply, "pnrRetrieveRes.xml");
         return pnrReply;
     }
     
     public DocIssuanceIssueTicketReply issueTicket(){
         mSession.incrementSequenceNumber();
         DocIssuanceIssueTicket docIssuanceIssueTicket = new IssueTicket().issue();
-        JSONFileUtility.createJsonFile(docIssuanceIssueTicket,"docIssuanceReq.json");
+        XMLFileUtility.createXMLFile(docIssuanceIssueTicket, "docIssuanceReq.xml");
         DocIssuanceIssueTicketReply docIssuanceIssueTicketReply = mPortType.docIssuanceIssueTicket(docIssuanceIssueTicket, mSession.getSession());
-        JSONFileUtility.createJsonFile(docIssuanceIssueTicketReply,"docIssuanceRes.json");
+        XMLFileUtility.createXMLFile(docIssuanceIssueTicketReply, "docIssuanceRes.xml");
         return docIssuanceIssueTicketReply;
     }
     
 	public FareInformativePricingWithoutPNRReply getFareInfo(FlightItinerary fligtItinerary, int adultCount, int childCount, int infantCount) {
 		mSession.incrementSequenceNumber();
 		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, adultCount, childCount, infantCount);
-        JSONFileUtility.createJsonFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.json");
+        XMLFileUtility.createXMLFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.xml");
 		FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
-        JSONFileUtility.createJsonFile(fareInformativePricingPNRReply, "farePricingWithoutPNRRes.json");
+        XMLFileUtility.createXMLFile(fareInformativePricingPNRReply, "farePricingWithoutPNRRes.xml");
         return  fareInformativePricingPNRReply;
 	}
 
     public FareCheckRulesReply getFareRules(){
         mSession.incrementSequenceNumber();
         FareCheckRules fareCheckRules = new FareRules().createFareRules();
-        JSONFileUtility.createJsonFile(fareCheckRules, "fareRulesReq.json");
+        XMLFileUtility.createXMLFile(fareCheckRules, "fareRulesReq.xml");
         FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, mSession.getSession());
-        JSONFileUtility.createJsonFile(fareCheckRulesReply, "fareRulesRes.json");
+        XMLFileUtility.createXMLFile(fareCheckRulesReply, "fareRulesRes.xml");
         return fareCheckRulesReply;
     }
 }

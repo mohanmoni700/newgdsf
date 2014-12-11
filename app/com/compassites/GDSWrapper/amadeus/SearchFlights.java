@@ -8,7 +8,7 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.*;
-
+import org.springframework.util.StringUtils;
 import play.libs.Json;
 
 import java.io.File;
@@ -17,8 +17,6 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.*;
-
-import org.springframework.util.StringUtils;
 
 /**
  * @author mahendra-singh
@@ -79,6 +77,13 @@ public class SearchFlights {
             se.setFareOptions(fe1);
         }
 
+        /*FareMasterPricerTravelBoardSearch.FareOptions fareOptions = new FareMasterPricerTravelBoardSearch.FareOptions();
+        PricingTicketingDetailsType pricingTicketingDetailsType = new PricingTicketingDetailsType();
+        PricingTicketingInformationType pricingTicketingInformationType = new PricingTicketingInformationType();
+        pricingTicketingInformationType.getPriceType().add("IAV");
+        pricingTicketingDetailsType.setPricingTicketing(pricingTicketingInformationType);
+        fareOptions.setPricingTickInfo(pricingTicketingDetailsType);
+        se.setFareOptions(fareOptions);*/
         File file=new File("seamenRequest");
         FileOutputStream os= null;
         try {

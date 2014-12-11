@@ -85,5 +85,17 @@ public class PricePNR {
         oi.getAttributeDetails().add(ad);
         pricepnr.setOverrideInformation(oi);
         pricepnr.setCurrencyOverride(co);  
-    }   
+    }
+
+    public FarePricePNRWithBookingClass lpf(){
+        FarePricePNRWithBookingClass pricepnr = new FarePricePNRWithBookingClass();
+        OverrideInformation overrideInformation = new OverrideInformation();
+        AttributeDetails attributeDetails = new AttributeDetails();
+        attributeDetails.setAttributeType("RLO");
+        overrideInformation.getAttributeDetails().add(attributeDetails);
+        pricepnr.setOverrideInformation(overrideInformation);
+
+        return  pricepnr;
+
+    }
 }

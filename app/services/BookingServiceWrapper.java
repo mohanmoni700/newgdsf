@@ -2,6 +2,8 @@ package services;
 
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.FlightItinerary;
+import com.compassites.model.IssuanceRequest;
+import com.compassites.model.IssuanceResponse;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +58,9 @@ public class BookingServiceWrapper {
         return pnrResponse;
     }
 
-    public PNRResponse issueTicket(String gdsPNR){
-      PNRResponse pnrResponse = amadeusBookingService.issueTicket(gdsPNR);
-      return pnrResponse;
+    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest){
+        IssuanceResponse issuanceResponse = amadeusBookingService.issueTicket(issuanceRequest);
+      return issuanceResponse;
     }
     
 	private String getProvider(TravellerMasterInfo travellerMasterInfo) {

@@ -4,26 +4,21 @@ import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
+import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.TaxDetails;
+import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.springframework.stereotype.Service;
-import utils.DateUtility;
 import utils.ErrorMessageHelper;
-import utils.JSONFileUtility;
+import utils.XMLFileUtility;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 @Service
@@ -79,7 +74,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     //pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
                     pnrResponse = createPNRResponse(gdsPNRReply, pricePNRReply);
 
-                    getCancellationFee(travellerMasterInfo, serviceHandler);
+                    //getCancellationFee(travellerMasterInfo, serviceHandler);
                 }
             } else {
 
@@ -183,33 +178,85 @@ public class AmadeusBookingServiceImpl implements BookingService {
         return pnrResponse;
     }
 
-    public PNRResponse issueTicket(String pnrNumber) {
+    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
         ServiceHandler serviceHandler = null;
-        PNRResponse pnrResponse = new PNRResponse();
-        pnrResponse.setPnrNumber(pnrNumber);
+        IssuanceResponse issuanceResponse = new IssuanceResponse();
+        issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
         try {
             serviceHandler = new ServiceHandler();
             serviceHandler.logIn();
-            PNRReply gdsPNRReply = serviceHandler.retrivePNR(pnrNumber);
-            JSONFileUtility.createJsonFile(gdsPNRReply,"retrievePNRRes1.json");
+            PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
+
+            XMLFileUtility.createXMLFile(gdsPNRReply, "retrievePNRRes1.json");
             DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket();
             if(issuenceOkStatus.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())){
-                gdsPNRReply = serviceHandler.retrivePNR(pnrNumber);
+                gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
+                Map<String,Object> airSegmentRefMap = new HashMap<>();
+                Map<String,Object> travellerMap = new HashMap<>();
+                for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
+                    for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
+                        String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                        airSegmentRefMap.put(segmentRef,itineraryInfo);
+                    }
+                }
+                for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+                    String key = travellerInfo.getElementManagementPassenger().getReference().getQualifier() + travellerInfo.getElementManagementPassenger().getReference().getNumber();
+                    travellerMap.put(key,travellerInfo);
+                }
+                for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv :gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()){
+                    if("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())){
+                        String passengerRef = "";
+                        List<String> segmentRefList = new ArrayList<>();
+                        String travellerKey = "";
+                        for(PNRReply.DataElementsMaster.DataElementsIndiv.ReferenceForDataElement.Reference reference :dataElementsDiv.getReferenceForDataElement().getReference()){
+                            travellerKey = reference.getQualifier()+ reference.getNumber();
+                            if(travellerMap.containsKey(travellerKey)){
+                                passengerRef = travellerKey;
+                            }else {
+                                segmentRefList.add(travellerKey);
+                            }
+                        }
+                        PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(travellerKey);
+                        String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
+                        String name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
+                        String[] nameArray = name.split(" ");
+                        String firstName = nameArray[0];
+                        String middleName = (nameArray.length > 1)? nameArray[1]: "";
+
+                        for(Traveller traveller1 : issuanceRequest.getTravellerList()){
+                            if(firstName.equalsIgnoreCase(traveller1.getPersonalDetails().getFirstName()) && middleName.equalsIgnoreCase(traveller1.getPersonalDetails().getMiddleName())
+                                    && lastName.equalsIgnoreCase(traveller1.getPersonalDetails().getLastName())){
+                                String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                                String[] freeTextArr = freeText.split("/");
+                                String ticketNumber = freeTextArr[0].substring(3);
+                                Map<String,String> ticketMap = new HashMap<>();
+                                for(String segmentRef : segmentRefList){
+                                    PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
+                                    String key = itineraryInfo.getTravelProduct().getProduct().getDepDate() + itineraryInfo.getTravelProduct().getProduct().getDepTime();
+                                    ticketMap.put(key,ticketNumber);
+                                }
+                                traveller1.setTicketNumberMap(ticketMap);
+                                issuanceResponse.setTravellerList(issuanceRequest.getTravellerList());
+                            }
+                        }
+                        issuanceResponse.setSuccess(true);
+                    }
+                }
             }else {
                 String errorDescription = issuanceIssueTicketReply.getErrorGroup().getErrorWarningDescription().getFreeText();
                 if(errorDescription.contains(cappingLimitString)){
                     System.out.println("Send Email to operator saying capping limit is reached");
-                    pnrResponse.setCappingLimitReached(true);
+                    issuanceResponse.setCappingLimitReached(true);
                 }
             }
-
+            getCancellationFee(issuanceRequest, serviceHandler);
 
             System.out.println("");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-      return pnrResponse;
+      return issuanceResponse;
     }
 
 
@@ -220,20 +267,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 TaxDetails taxDetails = new TaxDetails();
                 taxDetails.setTaxCode(taxInformation.getTaxDetails().getTaxType().getIsoCountry());
                 taxDetails.setTaxAmount(new BigDecimal(taxInformation.getAmountDetails().getFareDataMainInformation().getFareAmount()));
-
                 taxDetailsList.add(taxDetails);
             }
         }
-
         return taxDetailsList;
     }
 
-    public void getCancellationFee(TravellerMasterInfo travellerMasterInfo,ServiceHandler serviceHandler){
+    public void getCancellationFee(IssuanceRequest issuanceRequest,ServiceHandler serviceHandler){
         //ServiceHandler serviceHandler = null;
         try {
             //serviceHandler = new ServiceHandler();
             //serviceHandler.logIn();
-            int adultCount  = 0,childCount  = 0,infantCount = 0;
+            /*int adultCount  = 0,childCount  = 0,infantCount = 0;
             for(Traveller traveller : travellerMasterInfo.getTravellersList()){
                 PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPersonalDetails().getDateOfBirth());
                 if(passengerType.equals(PassengerTypeCode.ADT)){
@@ -243,12 +288,20 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 } else {
                     infantCount++;
                 }
-            }
-            //FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler.getFareInfo(travellerMasterInfo.getItinerary(), adultCount, childCount, infantCount);
+            }*/
+            FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler.getFareInfo(issuanceRequest.getFlightItinerary(), issuanceRequest.getAdultCount(), issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
 
             FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
 
-            System.out.println("");
+            StringBuilder fareRule = new StringBuilder();
+            for(FareCheckRulesReply.TariffInfo tariffInfo : fareCheckRulesReply.getTariffInfo()){
+                if("(16)".equals(tariffInfo.getFareRuleInfo().getRuleCategoryCode())){
+                    for(FareCheckRulesReply.TariffInfo.FareRuleText text : tariffInfo.getFareRuleText() ) {
+                        fareRule.append(text.getFreeText().get(0));
+                    }
+                }
+            }
+            System.out.println("---------------------------------------Fare Rules------------------------------------\n"+fareRule.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

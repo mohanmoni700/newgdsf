@@ -1,10 +1,7 @@
 package controllers;
 
 
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
+import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,9 +78,15 @@ public class Application {
     	FlightItinerary response = flightInfoService.getFlightInfo(flightItinerary, searchParams);
     	return Controller.ok(Json.toJson(response));
     }
-
-    public Result issueTicket(String gdsPNR){
-        PNRResponse pnrResponse = bookingService.issueTicket(gdsPNR);
-        return ok(Json.toJson(pnrResponse));
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result issueTicket(){
+        JsonNode json = request().body().asJson();
+      /*  String gdsPNR = json.findPath("gdsPNR").asText();
+        int adultCount = json.findPath("adultCount").asInt();
+        int childCount = json.findPath("childCount").asInt();
+        int infantCount = json.findPath("infantCount").asInt();*/
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        IssuanceResponse issuanceResponse = bookingService.issueTicket(issuanceRequest);
+        return ok(Json.toJson(issuanceResponse));
     }
 }
