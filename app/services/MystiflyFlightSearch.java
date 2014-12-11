@@ -214,7 +214,9 @@ public class MystiflyFlightSearch implements FlightSearch {
 							airSegments.get(i - 1).getArrivalTime()).getTime();
 					Long departureTime = Mystifly.DATE_FORMAT.parse(
 							airSegments.get(i).getDepartureTime()).getTime();
-					durations.add(departureTime - arrivalTime);
+					Long transit = departureTime - arrivalTime;
+					airSegments.get(i - 1).setConnectionTime(Integer.valueOf((int) (transit/60000)));
+					durations.add(transit);
 				}
 			}
 			for (Long dur : durations) {
