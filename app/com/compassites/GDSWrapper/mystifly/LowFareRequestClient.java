@@ -53,8 +53,6 @@ public class LowFareRequestClient {
 			calendar.setTime(searchJourney.getTravelDate());
 			journey.setDepartureDateTime(calendar);
 		}
-
-		// Set passenger info
 		ArrayOfPassengerTypeQuantity passengers = airLowFareSearchRQ
 				.addNewPassengerTypeQuantities();
 		setPassengerTypeQuantities(passengers, searchParams.getAdultCount(),
@@ -73,11 +71,8 @@ public class LowFareRequestClient {
 		// preferences.setVendorPreferenceCodes(preferredAirlines);
 
 		prefs.setMaxStopsQuantity(MaxStopsQuantity.ALL);
-		if (searchParams.getDirectFlights() || searchParams.getNoOfStops() == 0) {
+		if (searchParams.getDirectFlights())
 			prefs.setMaxStopsQuantity(MaxStopsQuantity.DIRECT);
-		} else if (searchParams.getNoOfStops() == 1) {
-			prefs.setMaxStopsQuantity(MaxStopsQuantity.ONE_STOP);
-		}
 
 		// TODO: search params to be added
 		// stopOver, currency, preferredFood
