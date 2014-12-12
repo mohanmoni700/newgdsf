@@ -23,6 +23,8 @@ public class TravellerMasterInfo {
 
     private CabinClass cabinClass;
 
+    private String approvers;
+
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
     }
@@ -73,5 +75,13 @@ public class TravellerMasterInfo {
 
     public void setAccountId(String accountId) {
         this.accountId = accountId;
+    }
+
+    public String getApprovers() {
+        return approvers;
+    }
+
+    public void setApprovers(String approvers) {
+        this.approvers = approvers;
     }
 }
