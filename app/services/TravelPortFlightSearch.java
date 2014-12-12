@@ -10,9 +10,12 @@ import com.sun.xml.ws.client.ClientTransportException;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
+
 import models.Airline;
 import models.Airport;
+
 import org.springframework.stereotype.Service;
+
 import play.Logger;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
@@ -359,8 +362,12 @@ public class TravelPortFlightSearch implements FlightSearch {
                     flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setAirlinesStrForFilter(" "+airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().getAirlineName());
 
                 }
+                
+                
+                  getConnectionTime(flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList());
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setTravelTime(journey.getTravelTime());
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setNoOfStops(journeyStopCounter);
+                
                 //System.out.println("total travel time"+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getHours()+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getMinutes() );
             }
 
@@ -368,10 +375,35 @@ public class TravelPortFlightSearch implements FlightSearch {
             //airSolution.getFlightItineraryList().add(flightItinerary);
             flightItinerary.setNonSeamenJourneyList(flightItinerary.getJourneyList());
             flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+           // getConnectionTimes(flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList());
         }
         airSolution.setNonSeamenHashMap(flightItineraryHashMap);
         searchResponse.setAirSolution(airSolution);
+        // flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getAirSegmentList();
+        
+        
 
         return searchResponse;
     }
+    private void getConnectionTime(List<AirSegmentInformation> airSegments) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ss.SSS"); 
+		if (airSegments.size() > 1) {
+			for (int i = 1; i < airSegments.size(); i++) {
+				Long arrivalTime;
+				try {
+					arrivalTime = dateFormat.parse(
+							airSegments.get(i - 1).getArrivalTime()).getTime();
+				
+				Long departureTime = dateFormat.parse(
+						airSegments.get(i).getDepartureTime()).getTime();
+				Long transit = departureTime - arrivalTime;
+				airSegments.get(i - 1).setConnectionTime(
+						Integer.valueOf((int) (transit / 60000)));
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }

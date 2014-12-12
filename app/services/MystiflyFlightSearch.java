@@ -23,7 +23,7 @@ import java.util.*;
  * @author Santhosh
  */
 @Service
-public class MystiflyFlightSearch implements FlightSearch {
+public class MystiflyFlightSearch  {
 
 	private SearchParameters searchParams;
 
