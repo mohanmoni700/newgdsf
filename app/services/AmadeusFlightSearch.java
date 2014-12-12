@@ -3,19 +3,23 @@ package services;
 import com.amadeus.xml.fmptbr_12_4_1a.*;
 import com.compassites.GDSWrapper.amadeus.SearchFlights;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
+
 import models.Airline;
 import models.Airport;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
+
 import play.Logger;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
@@ -23,11 +27,13 @@ import utils.ErrorMessageHelper;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -323,10 +329,32 @@ public class AmadeusFlightSearch implements FlightSearch {
             journey.getAirSegmentList().add(setSegmentInformation(flightDetails));
             journey.setProvider("Amadeus");
         }
-
+        getConnectionTime(journey.getAirSegmentList());
         return journey;
     }
 
+	private void getConnectionTime(List<AirSegmentInformation> airSegments) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ss.SSS"); 
+		if (airSegments.size() > 1) {
+			for (int i = 1; i < airSegments.size(); i++) {
+				Long arrivalTime;
+				try {
+					arrivalTime = dateFormat.parse(
+							airSegments.get(i - 1).getArrivalTime()).getTime();
+				
+				Long departureTime = dateFormat.parse(
+						airSegments.get(i).getDepartureTime()).getTime();
+				Long transit = departureTime - arrivalTime;
+				airSegments.get(i - 1).setConnectionTime(
+						Integer.valueOf((int) (transit / 60000)));
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+    
     private AirSegmentInformation setSegmentInformation(FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails){
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         TravelProductType flightInformation=flightDetails.getFlightInformation();
