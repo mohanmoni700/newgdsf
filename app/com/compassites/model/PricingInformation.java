@@ -8,6 +8,8 @@ import java.util.List;
  * Created by mahendra-singh on 23/5/14.
  */
 public class PricingInformation {
+	
+	private boolean isLCC;
     private String basePrice;
     private String tax;
     private String totalPrice;
@@ -22,7 +24,15 @@ public class PricingInformation {
         paxFareDetailsList= new ArrayList<>();
     }
 
-    public String getBasePrice() {
+	public boolean isLCC() {
+		return isLCC;
+	}
+
+	public void setLCC(boolean isLCC) {
+		this.isLCC = isLCC;
+	}
+
+	public String getBasePrice() {
         return basePrice;
     }
 
