@@ -39,6 +39,16 @@ public class PersonalDetails {
     private String officeNoCode;
 
     private String emergencyContactCode;
+    
+    private String designation;
+
+	public String getDesignation() {
+		return designation;
+	}
+
+	public void setDesignation(String designation) {
+		this.designation = designation;
+	}
 
 	public PassengerTypeCode getPassengerType() {
 		return DateUtility.getPassengerTypeFromDOB(dateOfBirth);
