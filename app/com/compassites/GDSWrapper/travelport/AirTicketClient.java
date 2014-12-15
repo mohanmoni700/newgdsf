@@ -12,7 +12,8 @@ import com.travelport.schema.air_v26_0.AirTicketingReq;
 import com.travelport.schema.air_v26_0.AirTicketingReq.AirPricingInfoRef;
 import com.travelport.schema.air_v26_0.AirTicketingRsp;
 import com.travelport.schema.common_v26_0.BillingPointOfSaleInfo;
-import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
+import com.travelport.schema.common_v26_0.BookingTravelerRef;
+import com.travelport.schema.universal_v26_0.UniversalRecord;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirService;
 import com.travelport.service.air_v26_0.AirTicketingPortType;
@@ -49,36 +50,41 @@ public class AirTicketClient extends TravelPortClient {
 	}
 
 	public static AirTicketingRsp issueTicket(String pnrNumber) {
-		UniversalRecordRetrieveRsp uniRsp = UniversalRecordClient.retrievePNR(pnrNumber);
-		String key = uniRsp.getUniversalRecord().getAirReservation().get(0).getAirPricingInfo().get(0).getKey();
-		
 		AirTicketingReq request = new AirTicketingReq();
 		AirTicketingRsp response = null;
 		request.setAuthorizedBy("TEST");
 		request.setTargetBranch(BRANCH);
-
 		BillingPointOfSaleInfo billInfo = new BillingPointOfSaleInfo();
-		billInfo.setOriginApplication("UAPI");
+		billInfo.setOriginApplication(UAPI);
 		request.setBillingPointOfSaleInfo(billInfo);
-		
+
+		UniversalRecord uniRcd = UniversalRecordClient.retrievePNR(pnrNumber)
+				.getUniversalRecord();
+		String pricingKey = uniRcd.getAirReservation().get(0)
+				.getAirPricingInfo().get(0).getKey();
+		String travellerKey = uniRcd.getAirReservation().get(0)
+				.getBookingTravelerRef().get(0).getKey();
+		String pnr = uniRcd.getAirReservation().get(0).getLocatorCode();
+
 		AirPricingInfoRef airPricingInfoRef = new AirPricingInfoRef();
-		airPricingInfoRef.setKey(key);
+		airPricingInfoRef.setKey(pricingKey);
+		BookingTravelerRef btr = new BookingTravelerRef();
+		btr.setKey(travellerKey);
+		airPricingInfoRef.getBookingTravelerRef().add(btr);
 		request.getAirPricingInfoRef().add(airPricingInfoRef);
 
 		AirReservationLocatorCode airResLocatorCode = new AirReservationLocatorCode();
-		airResLocatorCode.setValue(uniRsp.getUniversalRecord().getAirReservation().get(0).getLocatorCode());
+		airResLocatorCode.setValue(pnr);
 		request.setAirReservationLocatorCode(airResLocatorCode);
-
-		XMLFileUtility.createXMLFile(request, "AirTicketingReq");
+		XMLFileUtility.createXMLFile(request, "AirTicketingReq.xml");
 		try {
 			response = airTicketingPortType.service(request);
 		} catch (AirFaultMessage e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		XMLFileUtility.createXMLFile(response, "AirTicketingRsp");
+		XMLFileUtility.createXMLFile(response, "AirTicketingRsp.xml");
 		return response;
 	}
-	
-	
+
 }

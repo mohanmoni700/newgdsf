@@ -16,6 +16,7 @@ public class TravelPortClient {
     static final String PASSWORD = "9n-L=Zg87i";
     static final String BRANCH = "P7024203";
     static final String GDS ="1G";
+    static final String UAPI = "UAPI";
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 

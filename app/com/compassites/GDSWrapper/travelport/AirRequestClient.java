@@ -520,8 +520,8 @@ public class AirRequestClient extends TravelPortClient {
         setSeamanPassengerList(priceRequest, passengers, passengerType);
 
         BillingPointOfSaleInfo billingPointOfSaleInfo= new BillingPointOfSaleInfo();
-        billingPointOfSaleInfo.setOriginApplication("Test-app");
-        //billingPointOfSaleInfo.setOriginApplication("UAPI");
+//        billingPointOfSaleInfo.setOriginApplication("Test-app");
+        billingPointOfSaleInfo.setOriginApplication("UAPI");
         priceRequest.setBillingPointOfSaleInfo(billingPointOfSaleInfo);
         AirPricingModifiers airPricingModifiers = new AirPricingModifiers();
         airPricingModifiers.setCurrencyType(currency);
