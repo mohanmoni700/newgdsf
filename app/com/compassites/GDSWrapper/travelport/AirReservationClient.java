@@ -1,22 +1,21 @@
 package com.compassites.GDSWrapper.travelport;
 
-import com.compassites.model.traveller.PassportDetails;
-import com.compassites.model.traveller.PersonalDetails;
-import com.compassites.model.traveller.Traveller;
-import com.compassites.model.traveller.TravellerMasterInfo;
-import com.travelport.schema.air_v26_0.AirPricingSolution;
-import com.travelport.schema.air_v26_0.AirTicketingModifiers;
-import com.travelport.schema.air_v26_0.PassengerType;
-import com.travelport.schema.air_v26_0.TypeAvailabilitySource;
-import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
-import com.travelport.schema.air_v26_0.TypeEticketability;
-import com.travelport.schema.common_v26_0.*;
-import com.travelport.schema.universal_v26_0.AirCreateReservationReq;
-import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
-import com.travelport.schema.universal_v26_0.TypeRetainReservation;
-import com.travelport.service.universal_v26_0.AirCreateReservationPortType;
-import com.travelport.service.universal_v26_0.AirService;
-import com.travelport.service.universal_v26_0.AvailabilityFaultMessage;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.ws.BindingProvider;
+
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
 
@@ -24,15 +23,31 @@ import utils.DateUtility;
 import utils.StringUtility;
 import utils.XMLFileUtility;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.ws.BindingProvider;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.compassites.model.traveller.PassportDetails;
+import com.compassites.model.traveller.PersonalDetails;
+import com.compassites.model.traveller.Traveller;
+import com.compassites.model.traveller.TravellerMasterInfo;
+import com.travelport.schema.air_v26_0.AirPricingSolution;
+import com.travelport.schema.air_v26_0.PassengerType;
+import com.travelport.schema.air_v26_0.TypeAvailabilitySource;
+import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
+import com.travelport.schema.air_v26_0.TypeEticketability;
+import com.travelport.schema.common_v26_0.ActionStatus;
+import com.travelport.schema.common_v26_0.BillingPointOfSaleInfo;
+import com.travelport.schema.common_v26_0.BookingTraveler;
+import com.travelport.schema.common_v26_0.BookingTravelerName;
+import com.travelport.schema.common_v26_0.ContinuityCheckOverride;
+import com.travelport.schema.common_v26_0.Email;
+import com.travelport.schema.common_v26_0.FormOfPayment;
+import com.travelport.schema.common_v26_0.PhoneNumber;
+import com.travelport.schema.common_v26_0.Remark;
+import com.travelport.schema.common_v26_0.SSR;
+import com.travelport.schema.universal_v26_0.AirCreateReservationReq;
+import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
+import com.travelport.schema.universal_v26_0.TypeRetainReservation;
+import com.travelport.service.universal_v26_0.AirCreateReservationPortType;
+import com.travelport.service.universal_v26_0.AirService;
+import com.travelport.service.universal_v26_0.AvailabilityFaultMessage;
 
 /**
  * Created with IntelliJ IDEA.

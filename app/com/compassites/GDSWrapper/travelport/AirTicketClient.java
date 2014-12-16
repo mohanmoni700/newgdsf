@@ -28,7 +28,11 @@ public class AirTicketClient extends TravelPortClient {
 	static AirService airService = null;
 	static AirTicketingPortType airTicketingPortType = null;
 
-	static void init() {
+	public AirTicketClient() {
+		init();
+	}
+	
+	void init() {
 		if (airService == null) {
 			java.net.URL url = null;
 			try {
@@ -49,7 +53,7 @@ public class AirTicketClient extends TravelPortClient {
 		}
 	}
 
-	public static AirTicketingRsp issueTicket(String pnrNumber) {
+	public AirTicketingRsp issueTicket(String pnrNumber) {
 		AirTicketingReq request = new AirTicketingReq();
 		AirTicketingRsp response = null;
 		request.setAuthorizedBy("TEST");

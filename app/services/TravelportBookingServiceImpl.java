@@ -2,17 +2,25 @@ package services;
 
 import com.compassites.GDSWrapper.travelport.AirRequestClient;
 import com.compassites.GDSWrapper.travelport.AirReservationClient;
+import com.compassites.GDSWrapper.travelport.AirTicketClient;
 import com.compassites.GDSWrapper.travelport.Helper;
 import com.compassites.GDSWrapper.travelport.UniversalRecordClient;
 import com.compassites.model.ErrorMessage;
+import com.compassites.model.IssuanceRequest;
+import com.compassites.model.IssuanceResponse;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.travelport.schema.air_v26_0.AirItinerary;
 import com.travelport.schema.air_v26_0.AirPriceRsp;
 import com.travelport.schema.air_v26_0.AirPricingSolution;
 import com.travelport.schema.air_v26_0.AirReservation;
+import com.travelport.schema.air_v26_0.AirSolutionChangedInfo;
+import com.travelport.schema.air_v26_0.AirTicketingRsp;
+import com.travelport.schema.air_v26_0.ETR;
+import com.travelport.schema.air_v26_0.Ticket;
 import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
 import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
@@ -26,9 +34,12 @@ import utils.StringUtility;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /*
 *
@@ -78,10 +89,28 @@ public class TravelportBookingServiceImpl implements BookingService {
 
     @Override
     public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
-
         return generatePNR(travellerMasterInfo);
     }
+    
+    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
+    	IssuanceResponse issuanceResponse = new IssuanceResponse();
+    	AirTicketClient airTicketClient = new AirTicketClient();
+    	AirTicketingRsp airTicketingRsp = airTicketClient.issueTicket(issuanceRequest.getGdsPNR());
 
+    	issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
+    	List<Traveller> travellerList = new ArrayList<>();
+    	for(ETR etr : airTicketingRsp.getETR()) {
+    		Traveller traveller = new Traveller();
+    		Map<String, String> ticketMap = new HashMap<>();
+    		for(Ticket ticket : etr.getTicket()) {
+    			ticketMap.put(ticket.getCoupon().get(0).getDepartureTime(), ticket.getTicketNumber());
+    		}
+    		traveller.setTicketNumberMap(ticketMap);
+    	}
+    	issuanceResponse.setTravellerList(travellerList);
+    	
+    	return issuanceResponse;
+    }
 
     public PNRResponse checkFare(AirPriceRsp priceRsp,TravellerMasterInfo travellerMasterInfo){
         PNRResponse pnrResponse = new PNRResponse();

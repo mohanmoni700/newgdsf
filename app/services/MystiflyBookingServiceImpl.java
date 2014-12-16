@@ -13,6 +13,8 @@ import com.compassites.GDSWrapper.mystifly.AirRevalidateClient;
 import com.compassites.GDSWrapper.mystifly.BookFlightClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.ErrorMessage;
+import com.compassites.model.IssuanceRequest;
+import com.compassites.model.IssuanceResponse;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 
@@ -65,5 +67,11 @@ public class MystiflyBookingServiceImpl implements BookingService {
 	public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
 		return generatePNR(travellerMasterInfo);
 	}
+	
+	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
+    	IssuanceResponse issuanceResponse = null;
+    	
+    	return issuanceResponse;
+    }
 
 }

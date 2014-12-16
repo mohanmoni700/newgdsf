@@ -15,10 +15,12 @@ public class IssuanceRequest implements Serializable{
     private int childCount;
 
     private int infantCount;
+    
+    private String gdsPNR;
+    
+    private String provider;
 
     private FlightItinerary flightItinerary;
-
-    private String gdsPNR;
 
     private List<Traveller> travellerList;
 
@@ -62,7 +64,15 @@ public class IssuanceRequest implements Serializable{
         this.gdsPNR = gdsPNR;
     }
 
-    public List<Traveller> getTravellerList() {
+    public String getProvider() {
+		return provider;
+	}
+
+	public void setProvider(String provider) {
+		this.provider = provider;
+	}
+
+	public List<Traveller> getTravellerList() {
         return travellerList;
     }
 

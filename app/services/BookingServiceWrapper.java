@@ -58,9 +58,16 @@ public class BookingServiceWrapper {
         return pnrResponse;
     }
 
-    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest){
-        IssuanceResponse issuanceResponse = amadeusBookingService.issueTicket(issuanceRequest);
-      return issuanceResponse;
+    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
+    	IssuanceResponse issuanceResponse = null;
+    	if("Travelport".equalsIgnoreCase(issuanceRequest.getProvider())) {
+    		travelPortBookingService.issueTicket(issuanceRequest);
+        } else if ("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
+        	issuanceResponse = amadeusBookingService.issueTicket(issuanceRequest);
+		} else if (Mystifly.PROVIDER.equalsIgnoreCase(issuanceRequest.getProvider())) {
+			issuanceResponse = mystiflyBookingService.issueTicket(issuanceRequest);
+        }
+        return issuanceResponse;
     }
     
 	private String getProvider(TravellerMasterInfo travellerMasterInfo) {
