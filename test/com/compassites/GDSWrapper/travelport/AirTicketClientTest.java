@@ -10,9 +10,9 @@ public class AirTicketClientTest {
 
 	@Test
 	public void test() {
-		String pnr = "2FLN6Q";
-		AirTicketClient.init();
-		AirTicketingRsp response = AirTicketClient.issueTicket(pnr);
+		String pnr = "2HXT8A";
+		AirTicketClient airTicketClient = new AirTicketClient();
+		AirTicketingRsp response = airTicketClient.issueTicket(pnr);
 		assertNotNull(response);
 	}
 

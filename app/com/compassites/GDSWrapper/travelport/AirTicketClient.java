@@ -7,6 +7,7 @@ import javax.xml.ws.BindingProvider;
 import play.Logger;
 import utils.XMLFileUtility;
 
+import com.travelport.schema.air_v26_0.AirReservation;
 import com.travelport.schema.air_v26_0.AirReservationLocatorCode;
 import com.travelport.schema.air_v26_0.AirTicketingReq;
 import com.travelport.schema.air_v26_0.AirTicketingReq.AirPricingInfoRef;
@@ -31,7 +32,7 @@ public class AirTicketClient extends TravelPortClient {
 	public AirTicketClient() {
 		init();
 	}
-	
+
 	void init() {
 		if (airService == null) {
 			java.net.URL url = null;
@@ -64,21 +65,17 @@ public class AirTicketClient extends TravelPortClient {
 
 		UniversalRecord uniRcd = UniversalRecordClient.retrievePNR(pnrNumber)
 				.getUniversalRecord();
-		String pricingKey = uniRcd.getAirReservation().get(0)
-				.getAirPricingInfo().get(0).getKey();
-		String travellerKey = uniRcd.getAirReservation().get(0)
-				.getBookingTravelerRef().get(0).getKey();
-		String pnr = uniRcd.getAirReservation().get(0).getLocatorCode();
+		AirReservation airReservation = uniRcd.getAirReservation().get(0);
 
 		AirPricingInfoRef airPricingInfoRef = new AirPricingInfoRef();
-		airPricingInfoRef.setKey(pricingKey);
-		BookingTravelerRef btr = new BookingTravelerRef();
-		btr.setKey(travellerKey);
-		airPricingInfoRef.getBookingTravelerRef().add(btr);
+		airPricingInfoRef.setKey(airReservation.getAirPricingInfo().get(0)
+				.getKey());
+		for (BookingTravelerRef btr : airReservation.getBookingTravelerRef())
+			airPricingInfoRef.getBookingTravelerRef().add(btr);
 		request.getAirPricingInfoRef().add(airPricingInfoRef);
 
 		AirReservationLocatorCode airResLocatorCode = new AirReservationLocatorCode();
-		airResLocatorCode.setValue(pnr);
+		airResLocatorCode.setValue(airReservation.getLocatorCode());
 		request.setAirReservationLocatorCode(airResLocatorCode);
 		XMLFileUtility.createXMLFile(request, "AirTicketingReq.xml");
 		try {
