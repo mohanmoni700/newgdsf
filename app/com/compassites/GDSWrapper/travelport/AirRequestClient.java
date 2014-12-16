@@ -491,7 +491,7 @@ public class AirRequestClient extends TravelPortClient {
             else{
                 searchPassenger.setCode(passengerType);
             }
-            searchPassenger.setKey("COMPASS"+i);
+            searchPassenger.setKey(""+i);
             searchPassenger.setPricePTCOnly(true);
             if (passenger.getAge() != null)  {
                 searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));

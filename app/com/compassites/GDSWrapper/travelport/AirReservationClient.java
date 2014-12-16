@@ -5,6 +5,8 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.travelport.schema.air_v26_0.AirPricingSolution;
+import com.travelport.schema.air_v26_0.AirTicketingModifiers;
+import com.travelport.schema.air_v26_0.PassengerType;
 import com.travelport.schema.air_v26_0.TypeAvailabilitySource;
 import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
 import com.travelport.schema.air_v26_0.TypeEticketability;
@@ -17,6 +19,7 @@ import com.travelport.service.universal_v26_0.AirService;
 import com.travelport.service.universal_v26_0.AvailabilityFaultMessage;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
+
 import utils.DateUtility;
 import utils.StringUtility;
 import utils.XMLFileUtility;
@@ -88,6 +91,9 @@ public class AirReservationClient  extends TravelPortClient {
         request.setTargetBranch("P7024203");
         request.setRuleName("ONLINE");
 
+		FormOfPayment fop = new FormOfPayment();
+		fop.setType("Cash");
+		request.getFormOfPayment().add(fop);
 
         //point of sale, YYY
         //PointOfSale pos=new PointOfSale();
@@ -99,7 +105,13 @@ public class AirReservationClient  extends TravelPortClient {
         request.setBillingPointOfSaleInfo(info);
 
         //put traveller in request
-        request.getBookingTraveler().addAll(createBookingTravellers(travellerMasterInfo));
+        List<BookingTraveler> bookingTravelers = createBookingTravellers(travellerMasterInfo);
+        request.getBookingTraveler().addAll(bookingTravelers);
+        
+        List<PassengerType> PassengerTypes = airPricingSolution.getAirPricingInfo().get(0).getPassengerType();
+        for(int i=0; i<PassengerTypes.size(); i++) {
+        	PassengerTypes.get(i).setBookingTravelerRef((i + 1) + "");
+        }
 
         //provider
         request.setProviderCode("1G");
