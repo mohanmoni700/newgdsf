@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 
 import play.Logger;
 
-import com.compassites.GDSWrapper.mystifly.LowFareRequestClient;
+import com.compassites.GDSWrapper.mystifly.AirLowFareSearchClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
@@ -45,7 +45,6 @@ import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
 
 /**
- * 
  * @author Santhosh
  */
 @Service
@@ -60,7 +59,7 @@ public class MystiflyFlightSearch  {
 		searchParams = searchParameters;
 
 		SearchResponse searchResponse = new SearchResponse();
-		LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
+		AirLowFareSearchClient lowFareRequestClient = new AirLowFareSearchClient();
 		AirLowFareSearchRS searchRS = lowFareRequestClient
 				.search(searchParameters);
 		AirSolution airSolution = createAirSolution(searchRS);
@@ -76,9 +75,7 @@ public class MystiflyFlightSearch  {
 		AirSolution airSolution = new AirSolution();
 		ArrayOfPricedItinerary pricedItineraries = searchRS
 				.getPricedItineraries();
-
 		List<FlightItinerary> itineraryList = createItineraryList(pricedItineraries);
-		// airSolution.setFlightItineraryList(itineraryList);
 		HashMap<Integer, FlightItinerary> itineraryHashMap = new HashMap<>();
 		for (FlightItinerary itinerary : itineraryList) {
 			itineraryHashMap.put(itinerary.hashCode(), itinerary);
@@ -94,20 +91,16 @@ public class MystiflyFlightSearch  {
 		for (PricedItinerary pricedItinerary : pricedItineraries
 				.getPricedItineraryArray()) {
 			FlightItinerary flightItinerary = new FlightItinerary();
-//			flightItinerary.setProvider(Mystifly.PROVIDER);
-
 			AirItineraryPricingInfo airlinePricingInfo = pricedItinerary
 					.getAirItineraryPricingInfo();
-
 			PricingInformation pricingInfo = setPricingInformtions(airlinePricingInfo);
 			flightItinerary.setPricingInformation(pricingInfo);
-
 			ArrayOfOriginDestinationOption arrayOfOriginDestinationOptions = pricedItinerary
 					.getOriginDestinationOptions();
-			List<Journey> journies = getJournies(arrayOfOriginDestinationOptions);
+			List<Journey> journeys = getJourneys(arrayOfOriginDestinationOptions);
 			flightItinerary.setFareSourceCode(airlinePricingInfo
 					.getFareSourceCode());
-			flightItinerary.setJourneyList(journies);
+			flightItinerary.setJourneyList(journeys);
 			flightItineraryList.add(flightItinerary);
 		}
 		return flightItineraryList;
@@ -118,7 +111,8 @@ public class MystiflyFlightSearch  {
 		ItinTotalFare itinTotalFare = airlinePricingInfo.getItinTotalFare();
 		PricingInformation pricingInfo = new PricingInformation();
 		pricingInfo.setProvider(Mystifly.PROVIDER);
-    	pricingInfo.setLCC(airlinePricingInfo.getFareType() == FareType.WEB_FARE);
+		pricingInfo
+				.setLCC(airlinePricingInfo.getFareType() == FareType.WEB_FARE);
 		pricingInfo.setCurrency(itinTotalFare.getBaseFare().getCurrencyCode());
 
 		// TODO: Fix decimals.
@@ -128,17 +122,18 @@ public class MystiflyFlightSearch  {
 		pricingInfo.setTax(tax.substring(0, tax.length() - 3));
 		String total = itinTotalFare.getTotalFare().getAmount();
 		pricingInfo.setTotalPrice(total.substring(0, total.length() - 3));
-		pricingInfo.setTotalPriceValue(new BigDecimal(pricingInfo.getTotalPrice()));
+		pricingInfo.setTotalPriceValue(new BigDecimal(pricingInfo
+				.getTotalPrice()));
 		return pricingInfo;
 	}
 
-	private List<Journey> getJournies(
+	private List<Journey> getJourneys(
 			ArrayOfOriginDestinationOption originDestinationOptions) {
-		List<Journey> journies = new ArrayList<>();
+		List<Journey> journeys = new ArrayList<>();
 		if (searchParams.getJourneyType().equals(JourneyType.MULTI_CITY)) {
 			// Multi-city results are coming a list of flightsegments inside one
 			// OriginDestinationOption. WTF!!
-			journies = getMultiCityJournies(originDestinationOptions
+			journeys = getMultiCityjourneys(originDestinationOptions
 					.getOriginDestinationOptionArray(0).getFlightSegments());
 		} else {
 			for (OriginDestinationOption originDestinationOption : originDestinationOptions
@@ -150,10 +145,10 @@ public class MystiflyFlightSearch  {
 				journey.setAirSegmentList(airSegmentInformations);
 				journey.setNoOfStops(airSegmentInformations.size() - 1);
 				journey.setTravelTime(getTravelTime(airSegmentInformations));
-				journies.add(journey);
+				journeys.add(journey);
 			}
 		}
-		return journies;
+		return journeys;
 	}
 
 	private List<AirSegmentInformation> addAirSegmentInformations(
@@ -167,14 +162,13 @@ public class MystiflyFlightSearch  {
 		return airSegmentInformations;
 	}
 
-	private List<Journey> getMultiCityJournies(
+	private List<Journey> getMultiCityjourneys(
 			ArrayOfFlightSegment flightSegments) {
-		List<SearchJourney> searchJournies = searchParams.getJourneyList();
+		List<SearchJourney> searchjourneys = searchParams.getJourneyList();
 		FlightSegment[] segmentList = flightSegments.getFlightSegmentArray();
-		List<Journey> journies = new ArrayList<>();
+		List<Journey> journeys = new ArrayList<>();
 		int count = 0;
-
-		for (SearchJourney searchJourney : searchJournies) {
+		for (SearchJourney searchJourney : searchjourneys) {
 			Journey journey = new Journey();
 			List<AirSegmentInformation> airSegmentList = new ArrayList<>();
 			for (int i = count; i < segmentList.length; i++) {
@@ -182,17 +176,16 @@ public class MystiflyFlightSearch  {
 				airSegmentList.add(createAirSegment(segment));
 				count++;
 				if (searchJourney.getDestination().equalsIgnoreCase(
-						segment.getArrivalAirportLocationCode())) {
+						segment.getArrivalAirportLocationCode()))
 					break;
-				}
 			}
 			journey.setAirSegmentList(airSegmentList);
 			journey.setTravelTime(getTravelTime(airSegmentList));
 			journey.setNoOfStops(airSegmentList.size() - 1);
 			journey.setProvider(Mystifly.PROVIDER);
-			journies.add(journey);
+			journeys.add(journey);
 		}
-		return journies;
+		return journeys;
 	}
 
 	private AirSegmentInformation createAirSegment(FlightSegment flightSegment) {

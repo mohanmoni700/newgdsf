@@ -25,7 +25,7 @@ import com.compassites.model.SearchParameters;
 /**
  * @author Santhosh
  */
-public class LowFareRequestClient {
+public class AirLowFareSearchClient {
 
 	public AirLowFareSearchRS search(SearchParameters searchParams) {
 		SessionsHandler sessionsHandler = new SessionsHandler();
@@ -42,37 +42,12 @@ public class LowFareRequestClient {
 		airLowFareSearchRQ.setTarget(Mystifly.TARGET);
 		airLowFareSearchRQ.setIsRefundable(searchParams.getRefundableFlights());
 
-		ArrayOfOriginDestinationInformation originDestinationInformations = airLowFareSearchRQ
-				.addNewOriginDestinationInformations();
-		Calendar calendar = Calendar.getInstance();
-		for (SearchJourney searchJourney : searchParams.getJourneyList()) {
-			OriginDestinationInformation journey = originDestinationInformations
-					.addNewOriginDestinationInformation();
-			journey.setOriginLocationCode(searchJourney.getOrigin());
-			journey.setDestinationLocationCode(searchJourney.getDestination());
-			calendar.setTime(searchJourney.getTravelDate());
-			journey.setDepartureDateTime(calendar);
-		}
+		setJourneys(airLowFareSearchRQ, searchParams);
 		ArrayOfPassengerTypeQuantity passengers = airLowFareSearchRQ
 				.addNewPassengerTypeQuantities();
 		setPassengerTypeQuantities(passengers, searchParams.getAdultCount(),
 				searchParams.getChildCount(), searchParams.getInfantCount());
-
-		TravelPreferences prefs = airLowFareSearchRQ.addNewTravelPreferences();
-		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams
-				.getCabinClass()));
-		prefs.setAirTripType(Mystifly.JOURNEY_TYPE.get(searchParams
-				.getJourneyType()));
-
-		// TODO: Not working. fix
-		// ArrayOfstring preferredAirlines = preferences
-		// .addNewVendorPreferenceCodes();
-		// preferredAirlines.addString(searchParams.getPreferredAirlines());
-		// preferences.setVendorPreferenceCodes(preferredAirlines);
-
-		prefs.setMaxStopsQuantity(MaxStopsQuantity.ALL);
-		if (searchParams.getDirectFlights())
-			prefs.setMaxStopsQuantity(MaxStopsQuantity.DIRECT);
+		setPreferences(airLowFareSearchRQ, searchParams);
 
 		// TODO: search params to be added
 		// stopOver, currency, preferredFood
@@ -86,6 +61,36 @@ public class LowFareRequestClient {
 		AirLowFareSearchRS searchRS = searchResDoc
 				.getAirLowFareSearchResponse().getAirLowFareSearchResult();
 		return searchRS;
+	}
+
+	private void setJourneys(AirLowFareSearchRQ searchRQ,
+			SearchParameters searchParams) {
+		ArrayOfOriginDestinationInformation originDestinationInformations = searchRQ
+				.addNewOriginDestinationInformations();
+		Calendar calendar = Calendar.getInstance();
+		for (SearchJourney searchJourney : searchParams.getJourneyList()) {
+			OriginDestinationInformation journey = originDestinationInformations
+					.addNewOriginDestinationInformation();
+			journey.setOriginLocationCode(searchJourney.getOrigin());
+			journey.setDestinationLocationCode(searchJourney.getDestination());
+			calendar.setTime(searchJourney.getTravelDate());
+			journey.setDepartureDateTime(calendar);
+		}
+	}
+
+	private void setPreferences(AirLowFareSearchRQ searchRQ,
+			SearchParameters searchParams) {
+		TravelPreferences prefs = searchRQ.addNewTravelPreferences();
+		prefs.setMaxStopsQuantity(MaxStopsQuantity.ALL);
+		if (searchParams.getDirectFlights())
+			prefs.setMaxStopsQuantity(MaxStopsQuantity.DIRECT);
+		if (searchParams.getPreferredAirlines() != null)
+			prefs.addNewVendorPreferenceCodes().addString(
+					searchParams.getPreferredAirlines());
+		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams
+				.getCabinClass()));
+		prefs.setAirTripType(Mystifly.JOURNEY_TYPE.get(searchParams
+				.getJourneyType()));
 	}
 
 	private void setPassengerTypeQuantities(
