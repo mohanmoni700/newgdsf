@@ -13,7 +13,6 @@ import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.CurrencyOverr
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.OverrideInformation;
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.OverrideInformation.AttributeDetails;
 import com.compassites.model.Journey;
-import com.compassites.model.traveller.TravellerMasterInfo;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.List;
  * @author mahendra-singh
  */
 public class PricePNR {
-    public FarePricePNRWithBookingClass getPNRPricingOption(TravellerMasterInfo travellerMasterInfo, PNRReply pnrReply){
+    public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply){
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
         OverrideInformation oi=new OverrideInformation();
         FarePricePNRWithBookingClass.PaxSegReference paxSegReference = new FarePricePNRWithBookingClass.PaxSegReference();
@@ -59,12 +58,8 @@ public class PricePNR {
         FarePricePNRWithBookingClass.ValidatingCarrier validatingCarrier = new FarePricePNRWithBookingClass.ValidatingCarrier();
         FarePricePNRWithBookingClass.ValidatingCarrier.CarrierInformation carrierInformation = new FarePricePNRWithBookingClass.ValidatingCarrier.CarrierInformation();
         List<Journey> journeyList = null;
-        if(travellerMasterInfo.isSeamen()) {
-        	journeyList = travellerMasterInfo.getItinerary().getJourneyList();
-        } else {
-        	journeyList = travellerMasterInfo.getItinerary().getNonSeamenJourneyList();
-        }
-        carrierInformation.setCarrierCode(journeyList.get(0).getAirSegmentList().get(0).getCarrierCode());
+
+        carrierInformation.setCarrierCode(carrierCode);
         validatingCarrier.setCarrierInformation(carrierInformation);
         pricepnr.setValidatingCarrier(validatingCarrier);
         return pricepnr;

@@ -20,6 +20,8 @@ public class IssuanceRequest implements Serializable{
     
     private String provider;
 
+    private boolean isSeamen;
+
     private FlightItinerary flightItinerary;
 
     private List<Traveller> travellerList;
@@ -78,5 +80,13 @@ public class IssuanceRequest implements Serializable{
 
     public void setTravellerList(List<Traveller> travellerList) {
         this.travellerList = travellerList;
+    }
+
+    public boolean isSeamen() {
+        return isSeamen;
+    }
+
+    public void setSeamen(boolean isSeamen) {
+        this.isSeamen = isSeamen;
     }
 }

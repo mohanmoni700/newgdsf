@@ -93,17 +93,17 @@ public class ServiceHandler {
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo);
 
-        XMLFileUtility.createXMLFile(pnrAddMultiElements, "pnrAddMultiElementsReq.json");
+        XMLFileUtility.createXMLFile(pnrAddMultiElements, "pnrAddMultiElementsReq.xml");
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
 
-        XMLFileUtility.createXMLFile(pnrReply, "pnrAddMultiElementsRes.json");
+        XMLFileUtility.createXMLFile(pnrReply, "pnrAddMultiElementsRes.xml");
         return  pnrReply;
     }
 
     //pricing transaction
-    public FarePricePNRWithBookingClassReply pricePNR(TravellerMasterInfo travellerMasterInfo, PNRReply pnrReply) {
+    public FarePricePNRWithBookingClassReply pricePNR(String carrrierCode, PNRReply pnrReply) {
         mSession.incrementSequenceNumber();
-        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(travellerMasterInfo, pnrReply);
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply);
 
         XMLFileUtility.createXMLFile(pricePNRWithBookingClass, "pricePNRWithBookingClassReq.xml");
 

@@ -44,7 +44,7 @@ public class FlightSearchWrapper {
         List<ErrorMessage> errorMessageList = new ArrayList<>();
         HashMap<Integer,FlightItinerary> hashMap =  new HashMap<>();
         for (final FlightSearch flightSearch: flightSearchList) {
-        	if( !(searchParameters.getBookingType() == BookingType.SEAMEN && flightSearch.provider().equals("Mystifly")) ) {
+        	//if( !(searchParameters.getBookingType() == BookingType.SEAMEN && flightSearch.provider().equals("Mystifly")) ) {
 	            final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
 	
 	            try {
@@ -78,7 +78,7 @@ public class FlightSearchWrapper {
 	                Logger.info("["+redisKey+"]Response from provider:" +flightSearch.provider());
 	                e.printStackTrace();
 	            }
-        	}
+        	//}
         }
 
         Logger.info("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
