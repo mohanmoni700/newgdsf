@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import com.compassites.helpers.MystiflyFlightItineraryHelper;
 
-public class AirRulesClientTest {
+public class AirRulesTest {
 	
 	@Test
 	public void testGetAirRules() {

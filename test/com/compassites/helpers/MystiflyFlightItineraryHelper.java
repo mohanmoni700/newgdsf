@@ -3,7 +3,7 @@ package com.compassites.helpers;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
 
-import com.compassites.GDSWrapper.mystifly.LowFareRequestClient;
+import com.compassites.GDSWrapper.mystifly.AirLowFareSearchClient;
 import com.compassites.model.SearchParameters;
 
 public class MystiflyFlightItineraryHelper {
@@ -17,7 +17,7 @@ public class MystiflyFlightItineraryHelper {
 	}
 
 	private static PricedItinerary[] lowFareSearch(SearchParameters searchParams) {
-		LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
+		AirLowFareSearchClient lowFareRequestClient = new AirLowFareSearchClient();
 		AirLowFareSearchRS searchRS = lowFareRequestClient.search(searchParams);
 		return searchRS.getPricedItineraries().getPricedItineraryArray();
 	}

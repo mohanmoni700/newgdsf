@@ -10,21 +10,16 @@ import java.util.Date;
 public class DateUtility {
 
 	public static PassengerTypeCode getPassengerTypeFromDOB(Date dob) {
-		LocalDate birthDate = new LocalDate(dob);
-		LocalDate now = new LocalDate();
-		Period period = new Period(birthDate, now, PeriodType.yearMonthDay());
-		int age = period.getYears();
+		long age = getAgeFromDOB(dob);
 		return age <= 2 ? PassengerTypeCode.INF
 				: (age <= 12 ? PassengerTypeCode.CHD : PassengerTypeCode.ADT);
 	}
 
-
-    public static long  getAgeFromDOB(Date dob){
+    public static long  getAgeFromDOB(Date dob) {
         LocalDate birthDate = new LocalDate(dob);
         LocalDate now = new LocalDate();
         Period period = new Period(birthDate, now, PeriodType.yearMonthDay());
-        long age = period.getYears();
-        return age;
+        return period.getYears();
     }
 
 }

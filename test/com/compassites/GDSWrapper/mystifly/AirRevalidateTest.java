@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import com.compassites.helpers.MystiflyFlightItineraryHelper;
 
-public class AirRevalidateClientTest {
+public class AirRevalidateTest {
 
 	@Test
 	public void testReValidateFare() {

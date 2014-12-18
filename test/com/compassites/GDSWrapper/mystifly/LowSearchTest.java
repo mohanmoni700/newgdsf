@@ -9,13 +9,13 @@ import org.junit.Test;
 import com.compassites.helpers.SearchParamsHelper;
 import com.compassites.model.SearchParameters;
 
-public class LowFareRequestClientTest {
+public class LowSearchTest {
 
 	@Test
 	public void testLowFareSearch() {
 		SearchParameters searchParams = SearchParamsHelper.getSearchParams();
 		
-		LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
+		AirLowFareSearchClient lowFareRequestClient = new AirLowFareSearchClient();
 		AirLowFareSearchRS searchRS = lowFareRequestClient.search(searchParams);
 		assertNotNull(searchRS);
 		assertTrue(searchRS.getSuccess());
@@ -25,7 +25,7 @@ public class LowFareRequestClientTest {
 	public void testMultiCitySearch() {
 		SearchParameters searchParams = SearchParamsHelper.getMultiCitySearchParams();
 		
-		LowFareRequestClient lowFareRequestClient = new LowFareRequestClient();
+		AirLowFareSearchClient lowFareRequestClient = new AirLowFareSearchClient();
 		AirLowFareSearchRS searchRS = lowFareRequestClient.search(searchParams);
 		assertNotNull(searchRS);
 		assertTrue(searchRS.getSuccess());

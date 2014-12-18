@@ -23,6 +23,7 @@ import utils.DateUtility;
 import utils.StringUtility;
 import utils.XMLFileUtility;
 
+import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
@@ -333,7 +334,8 @@ public class AirReservationClient  extends TravelPortClient {
 
             bookingTraveler.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth())));
             //adult
-            bookingTraveler.setTravelerType(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString());
+            String travelerType = travellerMasterInfo.isSeamen() ? PassengerTypeCode.SEA.name() : DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).name();
+            bookingTraveler.setTravelerType(travelerType);
             bookingTraveler.setKey(i++ + "");
 
             PassportDetails passportDetails = traveller.getPassportDetails();
