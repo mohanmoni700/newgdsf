@@ -52,6 +52,17 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
+    public Result checkFareChangeAndAvailability(){
+        JsonNode json = request().body().asJson();
+
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        PNRResponse pnrResponse = new PNRResponse();//bookingService.generatePNR(travellerMasterInfo);
+        pnrResponse.setFlightAvailable(true);
+        pnrResponse.setPriceChanged(false);
+        System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        return Controller.ok(Json.toJson(pnrResponse));
+    }
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result priceChangePNR(){
         JsonNode json = request().body().asJson();

@@ -93,7 +93,7 @@ public class TravelportBookingServiceImpl implements BookingService {
         }
         BigDecimal totalPrice = new BigDecimal(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getTotalPrice()));
         BigDecimal changedBasePrice =   new BigDecimal(StringUtility.getPriceFromString(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getBasePrice()));
-        if(totalPrice.equals(searchPrice)){
+        if(totalPrice.toBigIntegerExact().equals(searchPrice.toBigIntegerExact())){
 
             pnrResponse.setPriceChanged(false);
             pnrResponse.setFlightAvailable(true);
