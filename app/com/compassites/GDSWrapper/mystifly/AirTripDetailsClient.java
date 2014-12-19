@@ -31,7 +31,7 @@ public class AirTripDetailsClient {
 		airRQ.setSessionId(sessionRS.getSessionId());
 		airRQ.setTarget(Target.TEST);
 		airRQ.setUniqueID(pnr);
-		airRQ.setSendOnlyTicketed(true);
+//		airRQ.setSendOnlyTicketed(true);
 
 		TripDetailsResponseDocument tripDetailsRSDoc = onePointStub
 				.tripDetails(tripDetailsDoc);

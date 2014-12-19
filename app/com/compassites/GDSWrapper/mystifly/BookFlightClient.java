@@ -66,8 +66,8 @@ public class BookFlightClient {
 
 	private void setTravelers(ArrayOfAirTraveler arrayOfTravelers,
 			List<Traveller> travellers) {
-		AirTraveler airTraveler = arrayOfTravelers.addNewAirTraveler();
 		for (Traveller traveler : travellers) {
+			AirTraveler airTraveler = arrayOfTravelers.addNewAirTraveler();
 			setPersonalDetails(airTraveler, traveler.getPersonalDetails());
 			setPassportDetails(airTraveler, traveler.getPassportDetails());
 		}
