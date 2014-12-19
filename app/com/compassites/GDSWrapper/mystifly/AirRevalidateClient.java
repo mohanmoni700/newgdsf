@@ -12,6 +12,8 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.AirRevalidateRQ;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirRevalidateRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
 
+import utils.XMLFileUtility;
+
 /**
  * @author Santhosh
  */
@@ -29,17 +31,23 @@ public class AirRevalidateClient {
 		SessionsHandler sessionsHandler = new SessionsHandler();
 		SessionCreateRS sessionRS = sessionsHandler.login();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
-		AirRevalidateDocument airRevalidateDocument = AirRevalidateDocument.Factory
+
+		AirRevalidateDocument airRevalidateDoc = AirRevalidateDocument.Factory
 				.newInstance();
-		AirRevalidateRQ airRevalidateRQ = airRevalidateDocument
+		AirRevalidateRQ airRevalidateRQ = airRevalidateDoc
 				.addNewAirRevalidate().addNewRq();
 		airRevalidateRQ.setTarget(Mystifly.TARGET);
 		airRevalidateRQ.setFareSourceCode(fareSourceCode);
 		airRevalidateRQ.setSessionId(sessionRS.getSessionId());
+
 		AirRevalidateResponseDocument airRevalidateRSDoc = onePointStub
-				.airRevalidate(airRevalidateDocument);
+				.airRevalidate(airRevalidateDoc);
 		AirRevalidateResponse airRevalidateResponse = airRevalidateRSDoc
 				.getAirRevalidateResponse();
+
+		XMLFileUtility.createFile(airRevalidateResponse
+				.getAirRevalidateResult().xmlText(), "AirRevalidateRS.xml");
+
 		return airRevalidateResponse.getAirRevalidateResult();
 	}
 

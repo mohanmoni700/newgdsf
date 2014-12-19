@@ -13,6 +13,7 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.CustomerInfo;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ETicket;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ItineraryInfo;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ReservationItem;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,13 @@ public class MystiflyBookingServiceImpl implements BookingService {
 			revalidateRS = revalidateClient.revalidate(fareSourceCode);
 			if (revalidateRS.getSuccess()) {
 				if (revalidateRS.getIsValid()) {
+					PricedItinerary itinerary = revalidateRS
+							.getPricedItineraries().getPricedItineraryArray(0);
+					String newFareSourceCode = itinerary
+							.getAirItineraryPricingInfo().getFareSourceCode();
+					travellerMasterInfo.getItinerary().setFareSourceCode(
+							newFareSourceCode);
+					
 					BookFlightClient bookFlightClient = new BookFlightClient();
 					AirBookRS airbookRS = bookFlightClient
 							.bookFlight(travellerMasterInfo);

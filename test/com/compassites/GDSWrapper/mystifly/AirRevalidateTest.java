@@ -29,10 +29,5 @@ public class AirRevalidateTest {
 		}
 		assertTrue(response.getSuccess());
 	}
-	
-	@Test
-	public void testRevalidateFare() {
-		assertTrue(true);
-	}
 
 }

@@ -1,20 +1,31 @@
 package com.compassites.GDSWrapper.mystifly;
 
+import java.rmi.RemoteException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import onepoint.mystifly.BookFlightDocument;
+import onepoint.mystifly.BookFlightResponseDocument;
+import onepoint.mystifly.OnePointStub;
+
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirBookRQ;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirBookRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTraveler;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfAirTraveler;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerName;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.Passport;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelerInfo;
+
+import utils.DateUtility;
+import utils.XMLFileUtility;
+
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import onepoint.mystifly.BookFlightDocument;
-import onepoint.mystifly.BookFlightResponseDocument;
-import onepoint.mystifly.OnePointStub;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
-import utils.DateUtility;
-
-import java.rmi.RemoteException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Santhosh
@@ -49,6 +60,7 @@ public class BookFlightClient {
 		// travelerInfo.setCountryCode("91");
 		BookFlightResponseDocument rsDoc = onePointStub
 				.bookFlight(bookFlightDocument);
+		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
 		return rsDoc.getBookFlightResponse().getBookFlightResult();
 	}
 
