@@ -114,9 +114,9 @@ public class ServiceHandler {
         return pricePNRWithBookingClassReply;
     }
 
-    public TicketCreateTSTFromPricingReply createTST() {
+    public TicketCreateTSTFromPricingReply createTST(int numberOfTST) {
         mSession.incrementSequenceNumber();
-        TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createTSTReq();
+        TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createTSTReq(numberOfTST);
         XMLFileUtility.createXMLFile(ticketCreateTSTFromPricing, "createTSTFromPricingReplyReq.xml");
         TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, mSession.getSession());
         XMLFileUtility.createXMLFile(createTSTFromPricingReply, "createTSTFromPricingReplyRes.xml");
@@ -125,7 +125,12 @@ public class ServiceHandler {
 
     public PNRReply savePNR() {
         mSession.incrementSequenceNumber();
-        return mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
+        PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().savePnr();
+        XMLFileUtility.createXMLFile(pnrAddMultiElements, "savePNRReq.xml");
+        PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
+        XMLFileUtility.createXMLFile(pnrReply, "savePNRRes.xml");
+
+        return pnrReply;
     }
     
     public PNRReply retrivePNR(String num){

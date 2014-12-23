@@ -32,8 +32,7 @@ import java.util.List;
  */
 public class BookFlights {
 
-	public AirSellFromRecommendation sellFromRecommendation(
-			TravellerMasterInfo travellerMasterInfo) {
+	public AirSellFromRecommendation sellFromRecommendation(TravellerMasterInfo travellerMasterInfo) {
 		AirSellFromRecommendation sfr = new AirSellFromRecommendation();
 		sfr.setMessageActionDetails(createMessageActionDetails());
 		FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
