@@ -16,10 +16,13 @@ import java.math.BigDecimal;
  */
 public class CreateTST {
 
-    public TicketCreateTSTFromPricing createTSTReq() {
+    public TicketCreateTSTFromPricing createTSTReq(int numberOfTST) {
         TicketCreateTSTFromPricing tst = new TicketCreateTSTFromPricing();
-        tst.getPsaList().add(getpsa("1"));
-        //tst.getPsaList().add(getpsa("2"));
+        for(int i = 1; i <= numberOfTST ; i++){
+            tst.getPsaList().add(getpsa(""+i));
+        }
+
+//        tst.getPsaList().add(getpsa("2"));
         //tst.getPsaList().add(getpsa("3"));
         //tst.getPsaList().add(getpsa("4"));
 

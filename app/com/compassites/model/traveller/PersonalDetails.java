@@ -43,6 +43,10 @@ public class PersonalDetails {
     
     private String designation;
 
+    private Long rankId;
+
+    private Long designationId;
+
 	public String getDesignation() {
 		return designation;
 	}
@@ -174,5 +178,21 @@ public class PersonalDetails {
 
     public void setEmergencyContactCode(String emergencyContactCode) {
         this.emergencyContactCode = emergencyContactCode;
+    }
+
+    public Long getRankId() {
+        return rankId;
+    }
+
+    public void setRankId(Long rankId) {
+        this.rankId = rankId;
+    }
+
+    public Long getDesignationId() {
+        return designationId;
+    }
+
+    public void setDesignationId(Long designationId) {
+        this.designationId = designationId;
     }
 }

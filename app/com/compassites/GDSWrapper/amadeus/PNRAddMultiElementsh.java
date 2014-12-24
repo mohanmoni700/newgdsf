@@ -215,6 +215,29 @@ public class PNRAddMultiElementsh {
         PnrActions pnrActions = new PnrActions();
         pnrActions.getOptionCode().add(new BigDecimal("10"));
         element.setPnrActions(pnrActions);
+
+        DataElementsMaster dataElementsMaster =  new DataElementsMaster();
+        DataElementsIndiv dataElementsIndiv = new DataElementsIndiv();
+
+        ElementManagementData elementManagementData = new ElementManagementData();
+        Reference reference =  new Reference();
+        reference.setNumber("15");
+        reference.setQualifier("OT");
+        elementManagementData.setSegmentName("RF");
+        elementManagementData.setReference(reference);
+        dataElementsIndiv.setElementManagementData(elementManagementData);
+
+        FreetextData freetextData = new FreetextData();
+        FreetextDetail freetextDetail = new FreetextDetail();
+        freetextDetail.setSubjectQualifier("3");
+        freetextDetail.setType("P22");
+        freetextData.setFreetextDetail(freetextDetail);
+        freetextData.setLongFreetext("Internet");
+        dataElementsIndiv.setFreetextData(freetextData);
+        dataElementsMaster.getDataElementsIndiv().add(dataElementsIndiv);
+        dataElementsMaster.setMarker1(new Marker1());
+        element.setDataElementsMaster(dataElementsMaster);
+
         return element;
     }
    
