@@ -1,18 +1,11 @@
 package models;
 
 import play.db.ebean.Model;
-import play.db.ebean.Model.Finder;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
+import javax.persistence.*;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Created by mahendra-singh on 25/6/14.
@@ -63,6 +56,10 @@ public class Airport extends Model implements Serializable{
     private String country;
     @Column(name = "gmtOffset")
     private String gmtOffset;
+
+    @Transient
+    private String distance;
+
     public static Finder<Integer, Airport> find=new Finder<Integer, Airport>(Integer.class, Airport.class);
 
     public Integer getId() {
@@ -175,6 +172,14 @@ public class Airport extends Model implements Serializable{
 
     public void setGmtOffset(String gmtOffset) {
         this.gmtOffset = gmtOffset;
+    }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
     }
 
     public static Airport getAiport(String iataCode){
