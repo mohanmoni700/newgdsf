@@ -10,6 +10,8 @@ import onepoint.mystifly.OnePointStub;
 
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRQ;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripType.Enum;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripType;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationInformation;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPassengerTypeQuantity;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.MaxStopsQuantity;
@@ -27,37 +29,33 @@ import com.compassites.model.SearchParameters;
  */
 public class AirLowFareSearchClient {
 
-	public AirLowFareSearchRS search(SearchParameters searchParams) {
+	public AirLowFareSearchRS search(SearchParameters searchParams)
+			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
 		SessionCreateRS sessionRS = sessionsHandler.login();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
-		AirLowFareSearchDocument lowFareSearchDoc = AirLowFareSearchDocument.Factory
+		AirLowFareSearchDocument searchRQDoc = AirLowFareSearchDocument.Factory
 				.newInstance();
-		AirLowFareSearch airLowFareSearch = lowFareSearchDoc
-				.addNewAirLowFareSearch();
-		AirLowFareSearchRQ airLowFareSearchRQ = airLowFareSearch.addNewRq();
+		AirLowFareSearch lowFareSearch = searchRQDoc.addNewAirLowFareSearch();
+		AirLowFareSearchRQ searchRQ = lowFareSearch.addNewRq();
 
-		airLowFareSearchRQ.setSessionId(sessionRS.getSessionId());
-		airLowFareSearchRQ.setTarget(Mystifly.TARGET);
-		airLowFareSearchRQ.setIsRefundable(searchParams.getRefundableFlights());
+		searchRQ.setSessionId(sessionRS.getSessionId());
+		searchRQ.setTarget(Mystifly.TARGET);
+		searchRQ.setIsRefundable(searchParams.getRefundableFlights());
 
-		setJourneys(airLowFareSearchRQ, searchParams);
-		ArrayOfPassengerTypeQuantity passengers = airLowFareSearchRQ
+		setJourneys(searchRQ, searchParams);
+		ArrayOfPassengerTypeQuantity passengers = searchRQ
 				.addNewPassengerTypeQuantities();
 		setPassengerTypeQuantities(passengers, searchParams.getAdultCount(),
 				searchParams.getChildCount(), searchParams.getInfantCount());
-		setPreferences(airLowFareSearchRQ, searchParams);
+		setPreferences(searchRQ, searchParams);
 
 		// TODO: search params to be added
 		// stopOver, currency, preferredFood
 
-		AirLowFareSearchResponseDocument searchResDoc = null;
-		try {
-			searchResDoc = onePointStub.airLowFareSearch(lowFareSearchDoc);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
+		AirLowFareSearchResponseDocument searchResDoc = onePointStub
+				.airLowFareSearch(searchRQDoc);
 		AirLowFareSearchRS searchRS = searchResDoc
 				.getAirLowFareSearchResponse().getAirLowFareSearchResult();
 		return searchRS;
@@ -68,13 +66,32 @@ public class AirLowFareSearchClient {
 		ArrayOfOriginDestinationInformation originDestinationInformations = searchRQ
 				.addNewOriginDestinationInformations();
 		Calendar calendar = Calendar.getInstance();
-		for (SearchJourney searchJourney : searchParams.getJourneyList()) {
-			OriginDestinationInformation journey = originDestinationInformations
-					.addNewOriginDestinationInformation();
-			journey.setOriginLocationCode(searchJourney.getOrigin());
-			journey.setDestinationLocationCode(searchJourney.getDestination());
-			calendar.setTime(searchJourney.getTravelDate());
-			journey.setDepartureDateTime(calendar);
+		if (searchParams.getTransit() == null) {
+			for (SearchJourney searchJourney : searchParams.getJourneyList()) {
+				OriginDestinationInformation journey = originDestinationInformations
+						.addNewOriginDestinationInformation();
+				journey.setOriginLocationCode(searchJourney.getOrigin());
+				journey.setDestinationLocationCode(searchJourney
+						.getDestination());
+				calendar.setTime(searchJourney.getTravelDate());
+				journey.setDepartureDateTime(calendar);
+			}
+		} else {
+			for (SearchJourney searchJourney : searchParams.getJourneyList()) {
+				OriginDestinationInformation firstLeg = originDestinationInformations
+						.addNewOriginDestinationInformation();
+				calendar.setTime(searchJourney.getTravelDate());
+				firstLeg.setDepartureDateTime(calendar);
+				firstLeg.setOriginLocationCode(searchJourney.getOrigin());
+				firstLeg.setDestinationLocationCode(searchParams.getTransit());
+
+				OriginDestinationInformation secondLeg = originDestinationInformations
+						.addNewOriginDestinationInformation();
+				secondLeg.setDepartureDateTime(calendar);
+				secondLeg.setOriginLocationCode(searchParams.getTransit());
+				secondLeg.setDestinationLocationCode(searchJourney
+						.getDestination());
+			}
 		}
 	}
 
@@ -89,8 +106,10 @@ public class AirLowFareSearchClient {
 					searchParams.getPreferredAirlines());
 		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams
 				.getCabinClass()));
-		prefs.setAirTripType(Mystifly.JOURNEY_TYPE.get(searchParams
-				.getJourneyType()));
+
+		Enum journeyType = searchParams.getTransit() == null ? Mystifly.JOURNEY_TYPE
+				.get(searchParams.getJourneyType()) : AirTripType.OPEN_JAW;
+		prefs.setAirTripType(journeyType);
 	}
 
 	private void setPassengerTypeQuantities(
