@@ -44,8 +44,8 @@ public class Airport extends Model implements Serializable{
     private String cityName;
     @Column(name = "iata_code")
     private String iata_code;
-    @Column(name = "gps_code")
-    private String gps_code;
+   /* @Column(name = "gps_code")
+    private String gps_code;*/
     @Column(name = "local_code")
     private String local_code;
     @Column(name = "time_zone")
@@ -126,13 +126,13 @@ public class Airport extends Model implements Serializable{
         this.iata_code = iata_code;
     }
 
-    public String getGps_code() {
+    /*public String getGps_code() {
         return gps_code;
     }
 
     public void setGps_code(String gps_code) {
         this.gps_code = gps_code;
-    }
+    }*/
 
     public String getLocal_code() {
         return local_code;
