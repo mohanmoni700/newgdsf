@@ -43,3 +43,11 @@ libraryDependencies ++= Seq(
 )
 
 play.Project.playJavaSettings
+
+TaskKey[Unit]("stop") := {
+  val pidFile = "RUNNING_PID"
+  if (!pidFile.exists) throw new Exception("App not started!")
+  val pid = IO.read(pidFile)
+  s"kill $pid".!
+  println(s"Stopped application with process ID $pid")
+}
