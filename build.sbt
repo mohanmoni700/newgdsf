@@ -45,7 +45,7 @@ libraryDependencies ++= Seq(
 play.Project.playJavaSettings
 
 TaskKey[Unit]("stop") := {
-  val pidFile = "RUNNING_PID"
+  val pidFile = target.value / "RUNNING_PID"
   if (!pidFile.exists) throw new Exception("App not started!")
   val pid = IO.read(pidFile)
   s"kill $pid".!
