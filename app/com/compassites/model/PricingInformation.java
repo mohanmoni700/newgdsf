@@ -3,26 +3,36 @@ package com.compassites.model;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by mahendra-singh on 23/5/14.
  */
 public class PricingInformation {
-	
+
 	private boolean isLCC;
-    private String basePrice;
-    private String tax;
-    private String totalPrice;
-    private String currency;
-    private BigDecimal totalPriceValue;
+	
+	private BigDecimal basePrice;
+	
+	private BigDecimal tax;
+	
+	private BigDecimal totalPrice;
+	
+	private String currency;
+	
+	private BigDecimal totalPriceValue;
+	
+	private List<PassengerTax> passengerTaxes;
 
-    private List<PAXFareDetails> paxFareDetailsList;
+	private List<PAXFareDetails> paxFareDetailsList;
+	
+	private Map<String, BigDecimal> taxMap;
 
-    private String provider;
+	private String provider;
 
-    public PricingInformation() {
-        paxFareDetailsList= new ArrayList<>();
-    }
+	public PricingInformation() {
+		paxFareDetailsList = new ArrayList<>();
+	}
 
 	public boolean isLCC() {
 		return isLCC;
@@ -32,59 +42,76 @@ public class PricingInformation {
 		this.isLCC = isLCC;
 	}
 
-	public String getBasePrice() {
-        return basePrice;
-    }
+	public BigDecimal getBasePrice() {
+		return basePrice;
+	}
 
-    public void setBasePrice(String basePrice) {
-        this.basePrice = basePrice;
-    }
+	public void setBasePrice(BigDecimal basePrice) {
+		this.basePrice = basePrice;
+	}
 
-    public String getTax() {
-        return tax;
-    }
+	public BigDecimal getTax() {
+		return tax;
+	}
 
-    public void setTax(String tax) {
-        this.tax = tax;
-    }
+	public void setTax(BigDecimal tax) {
+		this.tax = tax;
+	}
 
-    public String getTotalPrice() {
-        return totalPrice;
-    }
+	public BigDecimal getTotalPrice() {
+		return totalPrice;
+	}
 
-    public void setTotalPrice(String totalPrice) {
-        this.totalPrice = totalPrice;
-    }
+	public void setTotalPrice(BigDecimal totalPrice) {
+		this.totalPrice = totalPrice;
+	}
 
-    public String getCurrency() {
-        return currency;
-    }
+	public String getCurrency() {
+		return currency;
+	}
 
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
 
-    public BigDecimal getTotalPriceValue() {
-        return totalPriceValue;
-    }
+	public BigDecimal getTotalPriceValue() {
+		return totalPriceValue;
+	}
 
-    public void setTotalPriceValue(BigDecimal totalPriceValue) {
-        this.totalPriceValue = totalPriceValue;
-    }
+	public void setTotalPriceValue(BigDecimal totalPriceValue) {
+		this.totalPriceValue = totalPriceValue;
+	}
 
-    public List<PAXFareDetails> getPaxFareDetailsList() {
-        return paxFareDetailsList;
-    }
+	public List<PassengerTax> getPassengerTaxes() {
+		return passengerTaxes;
+	}
 
-    public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
-        this.paxFareDetailsList = paxFareDetailsList;
-    }
+	public void setPassengerTaxes(List<PassengerTax> passengerTaxes) {
+		this.passengerTaxes = passengerTaxes;
+	}
 
-    public String getProvider() {
-        return provider;
-    }
+	public List<PAXFareDetails> getPaxFareDetailsList() {
+		return paxFareDetailsList;
+	}
 
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
+	public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
+		this.paxFareDetailsList = paxFareDetailsList;
+	}
+
+	public String getProvider() {
+		return provider;
+	}
+
+	public void setProvider(String provider) {
+		this.provider = provider;
+	}
+
+	public Map<String, BigDecimal> getTaxMap() {
+		return taxMap;
+	}
+
+	public void setTaxMap(Map<String, BigDecimal> taxMap) {
+		this.taxMap = taxMap;
+	}
+	
 }

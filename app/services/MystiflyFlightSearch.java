@@ -1,12 +1,14 @@
 package services;
 
 import java.math.BigDecimal;
+import java.rmi.RemoteException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -20,15 +22,20 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfFlightSegment;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationOption;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPricedItinerary;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.Fare;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.FareType;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.FlightSegment;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.ItinTotalFare;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.OperatingAirline;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationOption;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PTCFareBreakdown;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantity;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.Tax;
 import org.springframework.stereotype.Service;
 
 import play.Logger;
+import utils.ErrorMessageHelper;
 
 import com.compassites.GDSWrapper.mystifly.AirLowFareSearchClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
@@ -36,9 +43,11 @@ import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.AirSolution;
+import com.compassites.model.ErrorMessage;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.JourneyType;
+import com.compassites.model.PassengerTax;
 import com.compassites.model.PricingInformation;
 import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
@@ -48,22 +57,33 @@ import com.compassites.model.SearchResponse;
  * @author Santhosh
  */
 @Service
-public class MystiflyFlightSearch  {
+public class MystiflyFlightSearch implements FlightSearch {
 
 	private SearchParameters searchParams;
 
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
 	public SearchResponse search(SearchParameters searchParameters)
-			throws IncompleteDetailsMessage, Exception {
+			throws IncompleteDetailsMessage {
 		Logger.info("[Mystifly] search called at " + new Date());
 		searchParams = searchParameters;
 
 		SearchResponse searchResponse = new SearchResponse();
 		AirLowFareSearchClient lowFareRequestClient = new AirLowFareSearchClient();
-		AirLowFareSearchRS searchRS = lowFareRequestClient
-				.search(searchParameters);
-		AirSolution airSolution = createAirSolution(searchRS);
-		searchResponse.setAirSolution(airSolution);
+		AirLowFareSearchRS searchRS = null;
+		try {
+			searchRS = lowFareRequestClient.search(searchParameters);
+		} catch (RemoteException remoteException) {
+			throw new IncompleteDetailsMessage(remoteException.getMessage(),
+					remoteException.getCause());
+		}
+		if (searchRS.getSuccess()) {
+			AirSolution airSolution = createAirSolution(searchRS);
+			searchResponse.setAirSolution(airSolution);
+		} else {
+			ErrorMessage errorMsg = ErrorMessageHelper.createErrorMessage(
+					"partialResults", ErrorMessage.ErrorType.ERROR, provider());
+			searchResponse.getErrorMessageList().add(errorMsg);
+		}
 		return searchResponse;
 	}
 
@@ -114,17 +134,40 @@ public class MystiflyFlightSearch  {
 		pricingInfo
 				.setLCC(airlinePricingInfo.getFareType() == FareType.WEB_FARE);
 		pricingInfo.setCurrency(itinTotalFare.getBaseFare().getCurrencyCode());
-
-		// TODO: Fix decimals.
 		String baseFare = itinTotalFare.getBaseFare().getAmount();
-		pricingInfo.setBasePrice(baseFare.substring(0, baseFare.length() - 3));
-		String tax = itinTotalFare.getTotalTax().getAmount();
-		pricingInfo.setTax(tax.substring(0, tax.length() - 3));
+		pricingInfo.setBasePrice(new BigDecimal(baseFare));
+		String totalTax = itinTotalFare.getTotalTax().getAmount();
+		pricingInfo.setTax(new BigDecimal(totalTax));
 		String total = itinTotalFare.getTotalFare().getAmount();
-		pricingInfo.setTotalPrice(total.substring(0, total.length() - 3));
-		pricingInfo.setTotalPriceValue(new BigDecimal(pricingInfo
-				.getTotalPrice()));
+		pricingInfo.setTotalPrice(new BigDecimal(total));
+		pricingInfo.setTotalPriceValue(pricingInfo.getTotalPrice());
+		pricingInfo.setPassengerTaxes(getTaxBeakup(airlinePricingInfo));
 		return pricingInfo;
+	}
+
+	private List<PassengerTax> getTaxBeakup(
+			AirItineraryPricingInfo airlinePricingInfo) {
+		List<PassengerTax> passengerTaxes = new ArrayList<>();
+		for (PTCFareBreakdown ptcFareBreakdown : airlinePricingInfo
+				.getPTCFareBreakdowns().getPTCFareBreakdownArray()) {
+
+			PassengerTax passengerTax = new PassengerTax();
+			Fare baseFare = ptcFareBreakdown.getPassengerFare().getBaseFare();
+			passengerTax.setBaseFare(new BigDecimal(baseFare.getAmount()));
+			PassengerTypeQuantity passenger = ptcFareBreakdown
+					.getPassengerTypeQuantity();
+			passengerTax.setPassengerCount(passenger.getQuantity());
+			passengerTax.setPassengerType(passenger.getCode().toString());
+
+			Map<String, BigDecimal> taxes = new HashMap<>();
+			for (Tax tax : ptcFareBreakdown.getPassengerFare().getTaxes()
+					.getTaxArray()) {
+				taxes.put(tax.getTaxCode(), new BigDecimal(tax.getAmount()));
+			}
+			passengerTax.setTaxes(taxes);
+			passengerTaxes.add(passengerTax);
+		}
+		return passengerTaxes;
 	}
 
 	private List<Journey> getJourneys(
@@ -235,7 +278,8 @@ public class MystiflyFlightSearch  {
 					Long departureTime = Mystifly.DATE_FORMAT.parse(
 							airSegments.get(i).getDepartureTime()).getTime();
 					Long transit = departureTime - arrivalTime;
-					airSegments.get(i - 1).setConnectionTime(Integer.valueOf((int) (transit/60000)));
+					airSegments.get(i - 1).setConnectionTime(
+							Integer.valueOf((int) (transit / 60000)));
 					durations.add(transit);
 				}
 			}

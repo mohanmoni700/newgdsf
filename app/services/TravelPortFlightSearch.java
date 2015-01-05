@@ -263,11 +263,12 @@ public class TravelPortFlightSearch implements FlightSearch {
             }
             */
             flightItinerary.getPricingInformation().setProvider("Travelport");
-            flightItinerary.getPricingInformation().setBasePrice(StringUtility.getPriceFromString(airPricingSolution.getBasePrice()));
-            flightItinerary.getPricingInformation().setTax(StringUtility.getPriceFromString(airPricingSolution.getTaxes()));
-            flightItinerary.getPricingInformation().setTotalPrice(StringUtility.getPriceFromString(airPricingSolution.getTotalPrice()));
-            flightItinerary.getPricingInformation().setTotalPriceValue(new BigDecimal(airPricingSolution.getTotalPrice().substring(3)));
-
+            flightItinerary.getPricingInformation().setBasePrice(StringUtility.getDecimalFromString(airPricingSolution.getBasePrice()));
+            flightItinerary.getPricingInformation().setTax(StringUtility.getDecimalFromString(airPricingSolution.getTaxes()));
+            flightItinerary.getPricingInformation().setTotalPrice(StringUtility.getDecimalFromString(airPricingSolution.getTotalPrice()));
+            flightItinerary.getPricingInformation().setTotalPriceValue(StringUtility.getDecimalFromString(airPricingSolution.getTotalPrice()));
+            flightItinerary.getPricingInformation().setPassengerTaxes(getPassengerTaxes(airPricingSolution));
+            
             //System.out.print("Price:"+ airPricingSolution.getTotalPrice());
             //System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");
             //System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
@@ -385,6 +386,24 @@ public class TravelPortFlightSearch implements FlightSearch {
 
         return searchResponse;
     }
+    
+	private List<PassengerTax> getPassengerTaxes(AirPricingSolution airPricingSolution) {
+		List<PassengerTax> passengerTaxes = new ArrayList<>();
+		for (AirPricingInfo airPricingInfo : airPricingSolution	.getAirPricingInfo()) {
+			PassengerTax passengerTax = new PassengerTax();
+			passengerTax.setBaseFare(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+			passengerTax.setPassengerCount(airPricingInfo.getPassengerType().size());
+			passengerTax.setPassengerType(airPricingInfo.getPassengerType().get(0).getCode());
+			Map<String, BigDecimal> taxes = new HashMap<>();
+			for (TypeTaxInfo taxInfo : airPricingInfo.getTaxInfo()) {
+				taxes.put(taxInfo.getCategory(), StringUtility.getDecimalFromString(taxInfo.getAmount()));
+			}
+			passengerTax.setTaxes(taxes);
+			passengerTaxes.add(passengerTax);
+		}
+		return passengerTaxes;
+	}
+    
     private void getConnectionTime(List<AirSegmentInformation> airSegments) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ss.SSS"); 
 		if (airSegments.size() > 1) {

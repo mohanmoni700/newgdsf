@@ -61,7 +61,7 @@ public class BookingServiceWrapper {
     public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
     	IssuanceResponse issuanceResponse = null;
     	if("Travelport".equalsIgnoreCase(issuanceRequest.getProvider())) {
-    		travelPortBookingService.issueTicket(issuanceRequest);
+    		issuanceResponse = travelPortBookingService.issueTicket(issuanceRequest);
         } else if ("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
         	issuanceResponse = amadeusBookingService.issueTicket(issuanceRequest);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(issuanceRequest.getProvider())) {

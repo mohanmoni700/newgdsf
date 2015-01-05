@@ -1,5 +1,6 @@
 package utils;
 
+import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,22 +9,20 @@ import java.util.regex.Pattern;
  */
 public class StringUtility {
 
-    public static String getPriceFromString(String price){
-        Matcher matcher = Pattern.compile("\\d+").matcher(price);
-        matcher.find();
-        int i = Integer.valueOf(matcher.start());
-        String priceValue = price.substring(i);
-        return priceValue;
-    }
+	public static String getPriceFromString(String price) {
+		Matcher matcher = Pattern.compile("\\d+").matcher(price);
+		matcher.find();
+		int i = Integer.valueOf(matcher.start());
+		String priceValue = price.substring(i);
+		return priceValue;
+	}
 
+	public static BigDecimal getDecimalFromString(String str) {
+		return new BigDecimal(str.replaceAll("[^\\d\\.]", ""));
+	}
 
-    public static String getGenderCode(String gender){
+	public static String getGenderCode(String gender) {
+		return "male".equalsIgnoreCase(gender) ? "M" : "F";
+	}
 
-        if("male".equalsIgnoreCase(gender)){
-            return "M";
-        }else {
-            return "F";
-        }
-
-    }
 }
