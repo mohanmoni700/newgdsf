@@ -263,7 +263,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             }
             */
             flightItinerary.getPricingInformation().setProvider("Travelport");
-            flightItinerary.getPricingInformation().setBasePrice(StringUtility.getDecimalFromString(airPricingSolution.getBasePrice()));
+            flightItinerary.getPricingInformation().setBasePrice(StringUtility.getDecimalFromString(airPricingSolution.getApproximateBasePrice()));
             flightItinerary.getPricingInformation().setTax(StringUtility.getDecimalFromString(airPricingSolution.getTaxes()));
             flightItinerary.getPricingInformation().setTotalPrice(StringUtility.getDecimalFromString(airPricingSolution.getTotalPrice()));
             flightItinerary.getPricingInformation().setTotalPriceValue(StringUtility.getDecimalFromString(airPricingSolution.getTotalPrice()));
