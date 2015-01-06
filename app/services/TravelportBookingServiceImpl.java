@@ -1,26 +1,10 @@
 package services;
 
-import com.compassites.GDSWrapper.travelport.AirRequestClient;
-import com.compassites.GDSWrapper.travelport.AirReservationClient;
-import com.compassites.GDSWrapper.travelport.AirTicketClient;
-import com.compassites.GDSWrapper.travelport.Helper;
-import com.compassites.GDSWrapper.travelport.UniversalRecordClient;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.Passenger;
-import com.compassites.model.PassengerTypeCode;
+import com.compassites.GDSWrapper.travelport.*;
+import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.travelport.schema.air_v26_0.AirItinerary;
-import com.travelport.schema.air_v26_0.AirPriceRsp;
-import com.travelport.schema.air_v26_0.AirPricingSolution;
-import com.travelport.schema.air_v26_0.AirReservation;
-import com.travelport.schema.air_v26_0.AirSolutionChangedInfo;
-import com.travelport.schema.air_v26_0.AirTicketingRsp;
-import com.travelport.schema.air_v26_0.ETR;
-import com.travelport.schema.air_v26_0.Ticket;
+import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
 import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
@@ -34,12 +18,7 @@ import utils.StringUtility;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /*
 *
@@ -170,4 +149,34 @@ public class TravelportBookingServiceImpl implements BookingService {
         return pnrResponse;
     }
 
+
+    public PNRResponse checkFareChangeAndAvailability(TravellerMasterInfo travellerMasterInfo){
+        PNRResponse pnrResponse = new PNRResponse();
+        try {
+            //AirItinerary airItinerary = AirRequestClient.getItinerary(responseTwo, responseTwo.getAirPricingSolution().get(0));
+            AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo);
+            PassengerTypeCode passengerType = null;
+            if(travellerMasterInfo.isSeamen()){
+                passengerType = PassengerTypeCode.SEA;
+            }else {
+                passengerType = PassengerTypeCode.ADT;
+            }
+            TypeCabinClass typeCabinClass = TypeCabinClass.valueOf(travellerMasterInfo.getCabinClass().upperValue());
+            List<Passenger> passengerList = AirRequestClient.createPassengers(travellerMasterInfo.getTravellersList(),passengerType);
+
+            AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, passengerType.toString(), "INR", typeCabinClass, passengerList);
+            pnrResponse =  checkFare(priceRsp,travellerMasterInfo);
+
+        } catch (AirFaultMessage airFaultMessage) {
+            airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR,"TravelPort");
+            pnrResponse.setErrorMessage(errorMessage);
+        }catch (Exception e){
+            e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR,"TravelPort");
+            pnrResponse.setErrorMessage(errorMessage);
+        }
+
+        return pnrResponse;
+    }
 }

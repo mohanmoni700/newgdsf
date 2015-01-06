@@ -28,6 +28,12 @@ public class PricingInformation {
 	
 	private Map<String, BigDecimal> taxMap;
 
+    private BigDecimal totalBasePrice;
+
+    private BigDecimal discount;
+
+    private BigDecimal totalCalculatedValue;
+
 	private String provider;
 
 	public PricingInformation() {
@@ -113,5 +119,30 @@ public class PricingInformation {
 	public void setTaxMap(Map<String, BigDecimal> taxMap) {
 		this.taxMap = taxMap;
 	}
-	
+
+    public BigDecimal getTotalBasePrice() {
+        return totalBasePrice;
+    }
+
+    public void setTotalBasePrice(BigDecimal totalBasePrice) {
+        this.totalBasePrice = totalBasePrice;
+    }
+
+    public BigDecimal getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(BigDecimal discount) {
+        this.discount = discount;
+    }
+
+    public BigDecimal getTotalCalculatedValue() {
+        return totalCalculatedValue;
+    }
+
+    public void setTotalCalculatedValue(BigDecimal totalCalculatedValue) {
+        this.totalCalculatedValue = totalCalculatedValue;
+    }
+
+
 }

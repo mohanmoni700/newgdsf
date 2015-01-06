@@ -53,9 +53,8 @@ public class Application {
         JsonNode json = request().body().asJson();
 
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
-        PNRResponse pnrResponse = new PNRResponse();//bookingService.generatePNR(travellerMasterInfo);
-        pnrResponse.setFlightAvailable(true);
-        pnrResponse.setPriceChanged(false);
+        PNRResponse pnrResponse = bookingService.checkFareChangeAndAvailability(travellerMasterInfo);
+
         System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }

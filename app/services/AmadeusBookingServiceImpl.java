@@ -270,5 +270,36 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     }
 
+    public PNRResponse checkFareChangeAndAvailability(TravellerMasterInfo travellerMasterInfo){
+        ServiceHandler serviceHandler = null;
+        PNRResponse pnrResponse = new PNRResponse();
+        FarePricePNRWithBookingClassReply pricePNRReply = null;
+        try {
+            serviceHandler = new ServiceHandler();
 
+            serviceHandler.logIn();
+
+            checkFlightAvailibility(travellerMasterInfo, serviceHandler, pnrResponse);
+
+            if (pnrResponse.isFlightAvailable()) {
+
+                PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
+
+                pricePNRReply = checkPNRPricing(travellerMasterInfo, serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
+
+               return  pnrResponse;
+            } else {
+
+                pnrResponse.setFlightAvailable(false);
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
+            pnrResponse.setErrorMessage(errorMessage);
+        }
+
+        return pnrResponse;
+    }
 }

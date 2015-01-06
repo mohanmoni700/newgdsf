@@ -77,4 +77,17 @@ public class BookingServiceWrapper {
 				.getPricingInformation().getProvider();
 	}
 
+    public PNRResponse checkFareChangeAndAvailability(TravellerMasterInfo travellerMasterInfo){
+        String provider = getProvider(travellerMasterInfo);
+        PNRResponse pnrResponse = null;
+        if("Travelport".equalsIgnoreCase(provider)) {
+            pnrResponse = travelPortBookingService.checkFareChangeAndAvailability(travellerMasterInfo);
+        } else if ("Amadeus".equalsIgnoreCase(provider)) {
+            pnrResponse = amadeusBookingService.checkFareChangeAndAvailability(travellerMasterInfo);
+        } else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
+            pnrResponse = mystiflyBookingService.checkFareChangeAndAvailability(travellerMasterInfo);
+        }
+        return pnrResponse;
+    }
+
 }
