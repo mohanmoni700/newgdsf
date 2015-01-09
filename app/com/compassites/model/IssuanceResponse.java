@@ -27,6 +27,8 @@ public class IssuanceResponse implements Serializable{
 
     private List<Traveller> travellerList;
 
+    private String cancellationFeeText;
+
     public boolean isCappingLimitReached() {
         return isCappingLimitReached;
     }
@@ -89,5 +91,13 @@ public class IssuanceResponse implements Serializable{
 
     public void setTravellerList(List<Traveller> travellerList) {
         this.travellerList = travellerList;
+    }
+
+    public String getCancellationFeeText() {
+        return cancellationFeeText;
+    }
+
+    public void setCancellationFeeText(String cancellationFeeText) {
+        this.cancellationFeeText = cancellationFeeText;
     }
 }

@@ -88,6 +88,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     gdsPNRReply = serviceHandler.savePNR();
                     String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
                     gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
+
                     //pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
                     pnrResponse = createPNRResponse(gdsPNRReply, pricePNRReply);
 
@@ -214,6 +215,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket();
             if(issuenceOkStatus.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())){
                 gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
+//                getCancellationFee(issuanceRequest, issuanceResponse, serviceHandler);
                 AmadeusBookingHelper.createTickets(issuanceResponse, issuanceRequest, gdsPNRReply);
             }else {
                 String errorDescription = issuanceIssueTicketReply.getErrorGroup().getErrorWarningDescription().getFreeText();
@@ -223,7 +225,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 }
             }
 
-
+            getCancellationFee(issuanceRequest, issuanceResponse, serviceHandler);
             System.out.println("");
         } catch (Exception e) {
             e.printStackTrace();
@@ -235,7 +237,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
 
-    public void getCancellationFee(IssuanceRequest issuanceRequest,ServiceHandler serviceHandler){
+    public void getCancellationFee(IssuanceRequest issuanceRequest, IssuanceResponse issuanceResponse, ServiceHandler serviceHandler){
         //ServiceHandler serviceHandler = null;
         try {
             //serviceHandler = new ServiceHandler();
@@ -264,6 +266,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 }
             }
             System.out.println("---------------------------------------Fare Rules------------------------------------\n"+fareRule.toString());
+            issuanceResponse.setCancellationFeeText(fareRule.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
