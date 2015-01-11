@@ -2,11 +2,12 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-POST     /searchFlight              @controllers.Application.flightSearch
-POST     /generatePNR               @controllers.Application.generatePNR
-POST     /priceChangePNR            @controllers.Application.priceChangePNR
-POST     /flightInfo                @controllers.Application.getFlightInfo
-POST     /issueTicket               @controllers.Application.issueTicket()
+POST     /searchFlight                              @controllers.Application.flightSearch
+POST     /generatePNR                               @controllers.Application.generatePNR
+POST     /priceChangePNR                            @controllers.Application.priceChangePNR
+POST     /baggageInfo                               @controllers.Application.getBaggageInfo
+POST     /flightDetails                             @controllers.Application.getFlightDetails
+POST     /issueTicket                               @controllers.Application.issueTicket()
 POST     /checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
 
 # Map static resources from the /public folder to the /assets URL path

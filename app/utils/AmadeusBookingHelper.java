@@ -111,9 +111,9 @@ public class AmadeusBookingHelper {
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";
 
                 for(Traveller traveller1 : issuanceRequest.getTravellerList()){
-                    if(firstName.equalsIgnoreCase(traveller1.getPersonalDetails().getFirstName()) && middleName.equalsIgnoreCase(traveller1.getPersonalDetails().getMiddleName())
+                    if(firstName.equalsIgnoreCase(traveller1.getPersonalDetails().getFirstName())
                             && lastName.equalsIgnoreCase(traveller1.getPersonalDetails().getLastName())){
-                        String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                    	String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         String[] freeTextArr = freeText.split("/");
                         String ticketNumber = freeTextArr[0].substring(3);
                         Map<String,String> ticketMap = new HashMap<>();
@@ -123,9 +123,9 @@ public class AmadeusBookingHelper {
                             ticketMap.put(key,ticketNumber);
                         }
                         traveller1.setTicketNumberMap(ticketMap);
-                        issuanceResponse.setTravellerList(issuanceRequest.getTravellerList());
                     }
                 }
+                issuanceResponse.setTravellerList(issuanceRequest.getTravellerList());
                 issuanceResponse.setSuccess(true);
             }
         }

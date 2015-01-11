@@ -253,7 +253,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     infantCount++;
                 }
             }*/
-            FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler.getFareInfo(issuanceRequest.getFlightItinerary(), issuanceRequest.getAdultCount(), issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
+        	
+        	// TODO: get right journey list for non seamen
+            FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler.getFareInfo(issuanceRequest.getFlightItinerary().getJourneyList(), issuanceRequest.getAdultCount(), issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
 
             FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
 

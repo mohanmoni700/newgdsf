@@ -1,16 +1,21 @@
 package services;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup.BaggageAllowance.BaggageDetails;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.*;
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.FlightInfo;
+import com.compassites.model.FlightItinerary;
+import com.compassites.model.Journey;
+import com.compassites.model.SearchParameters;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Santhosh
@@ -20,14 +25,17 @@ import java.util.List;
 public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 	@Override
-	public FlightItinerary getFlightnfo(FlightItinerary flightItinerary, SearchParameters searchParams) {
+	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
 		ServiceHandler serviceHandler = null;
 		
 		try {
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
-			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(flightItinerary, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
-			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup());
+			
+			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
+
+			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 			
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
@@ -37,24 +45,30 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		return flightItinerary;
 	}
 	
-	private void addBaggageInfo(FlightItinerary flightItinerary, List<PricingGroupLevelGroup> pricingLevelGroup) {
+	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
+		return null;
+	}
+	
+	private void addBaggageInfo(FlightItinerary itinerary, List<PricingGroupLevelGroup> pricingLevelGroup, boolean seamen) {
 		List<SegmentLevelGroup> segmentGrpList = new ArrayList<>();
 		for(PricingGroupLevelGroup pricingLevelGrp : pricingLevelGroup) {
 			for(SegmentLevelGroup segment : pricingLevelGrp.getFareInfoGroup().getSegmentLevelGroup()) {
 				segmentGrpList.add(segment);
 			}
 		}
-		for (Journey journey : flightItinerary.getJourneyList()) {
+		for (Journey journey : seamen ? itinerary.getJourneyList() : itinerary.getNonSeamenJourneyList()) {
 			for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
 				for (SegmentLevelGroup segmentGrp : segmentGrpList) {
 					String from  = segmentGrp.getSegmentInformation().getBoardPointDetails().getTrueLocationId();
 					String to = segmentGrp.getSegmentInformation().getOffpointDetails().getTrueLocationId();
 					if(airSegment.getFromLocation().equalsIgnoreCase(from) && airSegment.getToLocation().equalsIgnoreCase(to)) {
-						BaggageInfo baggageInfo = new BaggageInfo();
+						FlightInfo baggageInfo = new FlightInfo();
 						BaggageDetails baggageDetails = segmentGrp.getBaggageAllowance().getBaggageDetails();
-						baggageInfo.setValue(baggageDetails.getFreeAllowance().toBigInteger());
-						baggageInfo.setUnit(baggageDetails.getUnitQualifier());
-						airSegment.setBaggageInfo(baggageInfo);
+						baggageInfo.setBaggageAllowance(baggageDetails.getFreeAllowance().toBigInteger());
+						
+						// TODO: Get corresponding units
+						baggageInfo.setBaggageUnit("Kg"); //(baggageDetails.getQuantityCode());
+						airSegment.setFlightInfo(baggageInfo);
 					}
 				}
 			}

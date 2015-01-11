@@ -6,6 +6,7 @@ import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.compassites.model.AirSolution;
+import com.compassites.model.FlightInfo;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
@@ -231,12 +232,14 @@ public class TravelPortFlightSearch implements FlightSearch {
                 travelportResponse.getFlightDetailsList().getFlightDetails());
         List<AirPricingSolution> airPricingSolutions =  travelportResponse.getAirPricingSolution();
 
-        Map<String, BaggageInfo> baggageInfoMap = new HashMap<>();
-        /*for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
+        Map<String, FlightInfo> baggageInfoMap = new HashMap<>();
+        for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
         	TypeWeight maxWeight = fareInfo.getBaggageAllowance().getMaxWeight();
-        	BaggageInfo baggageInfo = new BaggageInfo(maxWeight.getUnit().name(), maxWeight.getValue());
-        	baggageInfoMap.put(fareInfo.getOrigin(), baggageInfo);
-        }*/
+        	FlightInfo flightInfo = new FlightInfo();
+        	flightInfo.setBaggageAllowance(maxWeight.getValue());
+        	flightInfo.setBaggageUnit(maxWeight.getUnit().name());
+        	baggageInfoMap.put(fareInfo.getOrigin(), flightInfo);
+        }
 
         flightIteratorLoop: for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
 
@@ -320,7 +323,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                     airSegmentInformation.setToAirport(Airport.getAiport(d));
                     if (airSegment.getConnection() != null)
                         airSegmentInformation.setConnectionTime(airSegment.getConnection().getDuration());
-                    airSegmentInformation.setBaggageInfo(baggageInfoMap.get(o));
+                    airSegmentInformation.setFlightInfo(baggageInfoMap.get(o));
                     String dtime = "??:??";
                     String atime = "??:??";
                     FlightDetails flightDetails = allDetails.getByRef(airSegment.getFlightDetailsRef().get(0));

@@ -22,6 +22,7 @@ import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
 import com.compassites.model.FlightItinerary;
+import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import utils.XMLFileUtility;
@@ -31,6 +32,7 @@ import javax.xml.ws.handler.MessageContext;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ServiceHandler {
@@ -151,13 +153,17 @@ public class ServiceHandler {
         return docIssuanceIssueTicketReply;
     }
     
-	public FareInformativePricingWithoutPNRReply getFareInfo(FlightItinerary fligtItinerary, int adultCount, int childCount, int infantCount) {
+	public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, int adultCount, int childCount, int infantCount) {
 		mSession.incrementSequenceNumber();
-		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(fligtItinerary, adultCount, childCount, infantCount);
+		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys, adultCount, childCount, infantCount);
         XMLFileUtility.createXMLFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.xml");
 		FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
         XMLFileUtility.createXMLFile(fareInformativePricingPNRReply, "farePricingWithoutPNRRes.xml");
         return  fareInformativePricingPNRReply;
+	}
+	
+	public void getFlightInfo(FlightItinerary fligtItinerary) {
+		
 	}
 
     public FareCheckRulesReply getFareRules(){

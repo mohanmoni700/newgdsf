@@ -70,22 +70,33 @@ public class Application {
     }
     
     @BodyParser.Of(BodyParser.Json.class)
-    public Result getFlightInfo() {
+    public Result getBaggageInfo() {
     	JsonNode json = request().body().asJson();
     	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-    	FlightItinerary response = flightInfoService.getFlightInfo(flightItinerary, searchParams);
+    	String provider = Json.fromJson(json.findPath("provider"), String.class);
+    	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+    	
+    	FlightItinerary response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen);
     	return Controller.ok(Json.toJson(response));
     }
+    
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getFlightDetails() {
+    	JsonNode json = request().body().asJson();
+    	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+    	String provider = Json.fromJson(json.findPath("provider"), String.class);
+    	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+    	FlightItinerary response = flightInfoService.getInFlightDetails(flightItinerary, provider, seamen);
+    	return Controller.ok(Json.toJson(response));
+    }
+    
     @BodyParser.Of(BodyParser.Json.class)
     public Result issueTicket(){
         JsonNode json = request().body().asJson();
-      /*  String gdsPNR = json.findPath("gdsPNR").asText();
-        int adultCount = json.findPath("adultCount").asInt();
-        int childCount = json.findPath("childCount").asInt();
-        int infantCount = json.findPath("infantCount").asInt();*/
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         IssuanceResponse issuanceResponse = bookingService.issueTicket(issuanceRequest);
         return ok(Json.toJson(issuanceResponse));
     }
+    
 }

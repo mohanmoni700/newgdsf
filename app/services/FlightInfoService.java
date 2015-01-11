@@ -8,6 +8,8 @@ import com.compassites.model.SearchParameters;
  */
 public interface FlightInfoService {
 	
-	public FlightItinerary getFlightnfo(FlightItinerary flightItinerary, SearchParameters searchParams);
+	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen);
+	
+	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen);
 
 }

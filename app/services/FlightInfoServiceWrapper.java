@@ -19,21 +19,34 @@ public class FlightInfoServiceWrapper {
 
 	@Autowired
 	private MystiflyFlightInfoServiceImpl mystiflyFlightInfoService;
+	
+	@Autowired
+	private TravelportFlightInfoServiceImpl travelportFlightInfoServiceImpl;
 
-	public FlightItinerary getFlightInfo(FlightItinerary flightItinerary,
-			SearchParameters searchParams) {
-		String provider = "";
-//		String provider = flightItinerary.getProvider();
+	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary,
+			SearchParameters searchParams, String provider, boolean seamen) {
 		FlightItinerary response = null;
 		if ("Travelport".equalsIgnoreCase(provider)) {
 			response = flightItinerary;
 			// Travelport baggage info is available in search response
 		} else if ("Amadeus".equalsIgnoreCase(provider)) {
-			response = amadeusFlightInfoService.getFlightnfo(
-					flightItinerary, searchParams);
+			response = amadeusFlightInfoService.getBaggageInfo(
+					flightItinerary, searchParams, seamen);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
-			response = mystiflyFlightInfoService.getFlightnfo(
-					flightItinerary, searchParams);
+			response = mystiflyFlightInfoService.getBaggageInfo(
+					flightItinerary, searchParams, seamen);
+		}
+		return response;
+	}
+	
+	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, String provider, boolean seamen) {
+		FlightItinerary response = flightItinerary;
+		if ("Travelport".equalsIgnoreCase(provider)) {
+			response = travelportFlightInfoServiceImpl.getInFlightDetails(flightItinerary, seamen);
+		} else if ("Amadeus".equalsIgnoreCase(provider)) { 
+			
+		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
+			
 		}
 		return response;
 	}
