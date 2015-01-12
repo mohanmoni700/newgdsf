@@ -233,8 +233,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 	private AirSegmentInformation createAirSegment(FlightSegment flightSegment) {
 		AirSegmentInformation airSegment = new AirSegmentInformation();
-		airSegment
-				.setArrivalTime(flightSegment.getArrivalDateTime().toString());
+		airSegment.setArrivalTime(flightSegment.getArrivalDateTime().toString());
 		airSegment.setBookingClass(flightSegment.getCabinClassCode());
 		airSegment.setConnectionTime(flightSegment.getJourneyDuration());
 		airSegment.setConnectionTimeStr();

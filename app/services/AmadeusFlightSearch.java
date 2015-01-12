@@ -334,7 +334,7 @@ public class AmadeusFlightSearch implements FlightSearch {
     }
 
 	private void getConnectionTime(List<AirSegmentInformation> airSegments) {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ss.SSS"); 
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"); 
 		if (airSegments.size() > 1) {
 			for (int i = 1; i < airSegments.size(); i++) {
 				Long arrivalTime;
