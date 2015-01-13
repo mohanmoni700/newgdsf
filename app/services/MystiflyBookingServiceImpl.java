@@ -12,6 +12,7 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
 import org.springframework.stereotype.Service;
 import utils.ErrorMessageHelper;
 
+import java.math.BigDecimal;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +41,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 							.getAirItineraryPricingInfo().getFareSourceCode();
 					travellerMasterInfo.getItinerary().setFareSourceCode(
 							newFareSourceCode);
-					
+
 					BookFlightClient bookFlightClient = new BookFlightClient();
 					AirBookRS airbookRS = bookFlightClient
 							.bookFlight(travellerMasterInfo);
@@ -138,39 +139,48 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		return null;
 	}
 
+	public PNRResponse checkFareChangeAndAvailability(
+			TravellerMasterInfo travellerMasterInfo) {
+		String fareSourceCode = travellerMasterInfo.getItinerary()
+				.getFareSourceCode();
+		AirRevalidateClient revalidateClient = new AirRevalidateClient();
+		PNRResponse pnrRS = new PNRResponse();
+		AirRevalidateRS revalidateRS;
+		try {
+			revalidateRS = revalidateClient.revalidate(fareSourceCode);
+			if (revalidateRS.getSuccess()) {
+				if (revalidateRS.getIsValid()) {
+					PricedItinerary itinerary = revalidateRS
+							.getPricedItineraries().getPricedItineraryArray(0);
+					String newFareSourceCode = itinerary
+							.getAirItineraryPricingInfo().getFareSourceCode();
+					travellerMasterInfo.getItinerary().setFareSourceCode(
+							newFareSourceCode);
 
-    public PNRResponse checkFareChangeAndAvailability(TravellerMasterInfo travellerMasterInfo){
-        String fareSourceCode = travellerMasterInfo.getItinerary()
-                .getFareSourceCode();
-        AirRevalidateClient revalidateClient = new AirRevalidateClient();
-        PNRResponse pnrRS = new PNRResponse();
-        AirRevalidateRS revalidateRS;
-        try {
-            revalidateRS = revalidateClient.revalidate(fareSourceCode);
-            if (revalidateRS.getSuccess()) {
-                if (revalidateRS.getIsValid()) {
-                    PricedItinerary itinerary = revalidateRS
-                            .getPricedItineraries().getPricedItineraryArray(0);
-                    String newFareSourceCode = itinerary
-                            .getAirItineraryPricingInfo().getFareSourceCode();
-                    travellerMasterInfo.getItinerary().setFareSourceCode(
-                            newFareSourceCode);
-
-                    pnrRS.setFlightAvailable(true);
-                } else {
-                    pnrRS.setFlightAvailable(false);
-                }
-            } else {
-                pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
-                        "error", ErrorMessage.ErrorType.ERROR,
-                        Mystifly.PROVIDER));
-            }
-        } catch (RemoteException e) {
-            pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
-                    "error", ErrorMessage.ErrorType.ERROR, Mystifly.PROVIDER));
-        }
-        return pnrRS;
-    }
-
+					pnrRS.setFlightAvailable(true);
+				} else {
+					AirItineraryPricingInfo pricingInfo = revalidateRS
+							.getPricedItineraries().getPricedItineraryArray(0)
+							.getAirItineraryPricingInfo();
+					pnrRS.setChangedPrice(new BigDecimal(pricingInfo
+							.getItinTotalFare().getTotalFare().getAmount()));
+					pnrRS.setChangedBasePrice(new BigDecimal(pricingInfo
+							.getItinTotalFare().getBaseFare().getAmount()));
+					pnrRS.setOriginalPrice(travellerMasterInfo.getItinerary()
+							.getPricingInformation().getTotalPrice());
+					pnrRS.setFlightAvailable(true);
+					pnrRS.setPriceChanged(true);
+				}
+			} else {
+				pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
+						"error", ErrorMessage.ErrorType.ERROR,
+						Mystifly.PROVIDER));
+			}
+		} catch (RemoteException e) {
+			pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
+					"error", ErrorMessage.ErrorType.ERROR, Mystifly.PROVIDER));
+		}
+		return pnrRS;
+	}
 
 }
