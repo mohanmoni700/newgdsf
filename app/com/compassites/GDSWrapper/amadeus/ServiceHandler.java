@@ -4,6 +4,8 @@ import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
+import com.amadeus.xml.flireq_07_1_1a.AirFlightInfo;
+import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply;
 import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
@@ -21,6 +23,7 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
+import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
@@ -30,6 +33,7 @@ import utils.XMLFileUtility;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -131,7 +135,6 @@ public class ServiceHandler {
         XMLFileUtility.createXMLFile(pnrAddMultiElements, "savePNRReq.xml");
         PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
         XMLFileUtility.createXMLFile(pnrReply, "savePNRRes.xml");
-
         return pnrReply;
     }
     
@@ -162,8 +165,19 @@ public class ServiceHandler {
         return  fareInformativePricingPNRReply;
 	}
 	
-	public void getFlightInfo(FlightItinerary fligtItinerary) {
-		
+	public List<AirFlightInfoReply> getFlightInfo(List<Journey> journeys) {
+		mSession.incrementSequenceNumber();
+		List<AirFlightInfoReply> airFlightInfoReplyList = new ArrayList<>();
+		for(Journey journey : journeys) {
+			for(AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+				AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
+				XMLFileUtility.createXMLFile(airFlightInfo, "AirFlightInfoReq.xml");
+				AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, mSession.getSession());
+				airFlightInfoReplyList.add(airFlightInfoReply);
+				XMLFileUtility.createXMLFile(airFlightInfoReply, "AirFlightInfoReply.xml");
+			}
+		}
+		return airFlightInfoReplyList;
 	}
 
     public FareCheckRulesReply getFareRules(){
@@ -174,4 +188,5 @@ public class ServiceHandler {
         XMLFileUtility.createXMLFile(fareCheckRulesReply, "fareRulesRes.xml");
         return fareCheckRulesReply;
     }
+    
 }

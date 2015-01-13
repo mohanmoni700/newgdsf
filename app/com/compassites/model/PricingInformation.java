@@ -11,28 +11,30 @@ import java.util.Map;
 public class PricingInformation {
 
 	private boolean isLCC;
-	
+
 	private BigDecimal basePrice;
-	
+
 	private BigDecimal tax;
-	
+
 	private BigDecimal totalPrice;
-	
+
 	private String currency;
-	
+
 	private BigDecimal totalPriceValue;
-	
+
 	private List<PassengerTax> passengerTaxes;
 
 	private List<PAXFareDetails> paxFareDetailsList;
-	
+
 	private Map<String, BigDecimal> taxMap;
 
-    private BigDecimal totalBasePrice;
+	private BigDecimal totalBasePrice;
 
-    private BigDecimal discount;
+	private BigDecimal discount;
 
-    private BigDecimal totalCalculatedValue;
+	private BigDecimal totalCalculatedValue;
+
+	private String fareRules;
 
 	private String provider;
 
@@ -120,29 +122,36 @@ public class PricingInformation {
 		this.taxMap = taxMap;
 	}
 
-    public BigDecimal getTotalBasePrice() {
-        return totalBasePrice;
-    }
+	public BigDecimal getTotalBasePrice() {
+		return totalBasePrice;
+	}
 
-    public void setTotalBasePrice(BigDecimal totalBasePrice) {
-        this.totalBasePrice = totalBasePrice;
-    }
+	public void setTotalBasePrice(BigDecimal totalBasePrice) {
+		this.totalBasePrice = totalBasePrice;
+	}
 
-    public BigDecimal getDiscount() {
-        return discount;
-    }
+	public BigDecimal getDiscount() {
+		return discount;
+	}
 
-    public void setDiscount(BigDecimal discount) {
-        this.discount = discount;
-    }
+	public void setDiscount(BigDecimal discount) {
+		this.discount = discount;
+	}
 
-    public BigDecimal getTotalCalculatedValue() {
-        return totalCalculatedValue;
-    }
+	public BigDecimal getTotalCalculatedValue() {
+		return totalCalculatedValue;
+	}
 
-    public void setTotalCalculatedValue(BigDecimal totalCalculatedValue) {
-        this.totalCalculatedValue = totalCalculatedValue;
-    }
+	public void setTotalCalculatedValue(BigDecimal totalCalculatedValue) {
+		this.totalCalculatedValue = totalCalculatedValue;
+	}
 
+	public String getFareRules() {
+		return fareRules;
+	}
+
+	public void setFareRules(String fareRules) {
+		this.fareRules = fareRules;
+	}
 
 }

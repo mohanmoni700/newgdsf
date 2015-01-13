@@ -270,6 +270,8 @@ public class TravelPortFlightSearch implements FlightSearch {
             flightItinerary.getPricingInformation().setTax(StringUtility.getDecimalFromString(airPricingSolution.getTaxes()));
             flightItinerary.getPricingInformation().setTotalPrice(StringUtility.getDecimalFromString(airPricingSolution.getTotalPrice()));
             flightItinerary.getPricingInformation().setTotalPriceValue(StringUtility.getDecimalFromString(airPricingSolution.getTotalPrice()));
+            if(airPricingSolution.getAirPricingInfo().get(0).getCancelPenalty() != null)
+            	flightItinerary.getPricingInformation().setFareRules(airPricingSolution.getAirPricingInfo().get(0).getCancelPenalty().getAmount());
             flightItinerary.getPricingInformation().setPassengerTaxes(getPassengerTaxes(airPricingSolution));
             
             //System.out.print("Price:"+ airPricingSolution.getTotalPrice());

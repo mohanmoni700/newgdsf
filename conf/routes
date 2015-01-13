@@ -7,6 +7,7 @@ POST     /generatePNR                               @controllers.Application.gen
 POST     /priceChangePNR                            @controllers.Application.priceChangePNR
 POST     /baggageInfo                               @controllers.Application.getBaggageInfo
 POST     /flightDetails                             @controllers.Application.getFlightDetails
+POST     /getCancelFee                              @controllers.Application.getCancellationFee()
 POST     /issueTicket                               @controllers.Application.issueTicket()
 POST     /checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
 
