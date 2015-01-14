@@ -3,12 +3,15 @@ package services;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.ErrorMessage;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.IssuanceRequest;
 import com.compassites.model.IssuanceResponse;
 import com.compassites.model.PNRResponse;
@@ -388,6 +391,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 	public IssuanceResponse allPNRDetails(String gdsPNR) {
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
+		FlightItinerary itinerary = new FlightItinerary();
 		try{
 			ServiceHandler serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
@@ -397,14 +401,37 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				issuanceResponse.setPnrNumber(pnrHeader.getReservationInfo().getReservation()
 						.getControlNumber());
 			}
-			for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
-	            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-	                String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-	                /*airSegmentRefMap.put(segmentRef,itineraryInfo);*/
-	            }
-	        }
+			
+			for (PNRReply.OriginDestinationDetails details : gdsPNRReply
+					.getOriginDestinationDetails()) {
+				/*System.out.println(" ==========deatials========== \n "
+						+ Json.toJson(details));*/
+				
+				for (ItineraryInfo itineraryInfo : details.getItineraryInfo()) {
+					AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+
+					StringBuffer depdateStr = new StringBuffer(itineraryInfo.getTravelProduct().getProduct().getDepDate().concat(itineraryInfo.getTravelProduct().getProduct().getDepTime()));
+					SimpleDateFormat format = new SimpleDateFormat("ddMMyyHHmm");
+					Date depdate=format.parse(depdateStr.toString());
+					airSegmentInformation.setDepartureDate(depdate);
+					StringBuffer arrdateStr = new StringBuffer(itineraryInfo.getTravelProduct().getProduct().getArrDate().concat(itineraryInfo.getTravelProduct().getProduct().getArrTime()));
+					SimpleDateFormat format1 = new SimpleDateFormat("ddMMyyHHmm");
+					Date arrdate=format1.parse(arrdateStr.toString());
+					airSegmentInformation.setArrivalDate(arrdate);
+					airSegmentInformation.setToTerminal(itineraryInfo.getFlightDetail().getDepartureInformation().getDepartTerminal());
+					airSegmentInformation.setFromTerminal(itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal());
+					airSegmentInformation.setFromLocation(itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode());
+					airSegmentInformation.setToLocation(itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode());
+					System.out.println("=============itenary info==========\n"+Json.toJson(itineraryInfo));
+				}
+			}
+				/*airSegmentInformation.setArrivalTime(gdsPNRReply);
+				airSegmentInformation.setBookingClass(bookingClass);
+				
+			}*/
+			/*
 			System.out.println("=========================AMADEUS RESPONSE"
-					+ "================================================\n"+Json.toJson(gdsPNRReply));
+					+ "================================================\n"+Json.toJson(gdsPNRReply));*/
 			System.out.println("my issuence object is===========================>\n "+Json.toJson(issuanceResponse));
 		}catch(Exception e){
 			e.printStackTrace();
