@@ -28,7 +28,7 @@ public class FlightInfoServiceWrapper {
 		FlightItinerary response = null;
 		if ("Travelport".equalsIgnoreCase(provider)) {
 			response = flightItinerary;
-			// Travelport baggage info is available in search response
+			// Baggage info is available in search response
 		} else if ("Amadeus".equalsIgnoreCase(provider)) {
 			response = amadeusFlightInfoService.getBaggageInfo(
 					flightItinerary, searchParams, seamen);
@@ -44,11 +44,25 @@ public class FlightInfoServiceWrapper {
 		if ("Travelport".equalsIgnoreCase(provider)) {
 			response = travelportFlightInfoServiceImpl.getInFlightDetails(flightItinerary, seamen);
 		} else if ("Amadeus".equalsIgnoreCase(provider)) { 
-			
+			response = amadeusFlightInfoService.getInFlightDetails(flightItinerary, seamen);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
-			
+			// No Flight Amenities
 		}
 		return response;
+	}
+	
+	public String getCancellationFee(FlightItinerary flightItinerary,
+			SearchParameters searchParams, String provider, boolean seamen) {
+		String fareRules = "";
+		if ("Travelport".equalsIgnoreCase(provider)) {
+			// Cancellation fee is available in search response
+		} else if ("Amadeus".equalsIgnoreCase(provider)) {
+			fareRules = amadeusFlightInfoService.getCancellationFee(
+					flightItinerary, searchParams, seamen);
+		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
+			// No Cancellation fees
+		}
+		return fareRules;
 	}
 
 }

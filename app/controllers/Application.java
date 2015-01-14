@@ -82,6 +82,18 @@ public class Application {
     }
     
     @BodyParser.Of(BodyParser.Json.class)
+    public Result getCancellationFee() {
+    	JsonNode json = request().body().asJson();
+    	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
+    	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+    	String provider = Json.fromJson(json.findPath("provider"), String.class);
+    	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+    	
+    	String fareRules = flightInfoService.getCancellationFee(flightItinerary, searchParams, provider, seamen);
+    	return Controller.ok(Json.toJson(fareRules));
+    }
+    
+    @BodyParser.Of(BodyParser.Json.class)
     public Result getFlightDetails() {
     	JsonNode json = request().body().asJson();
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);

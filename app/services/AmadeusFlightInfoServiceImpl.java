@@ -5,6 +5,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import utils.XMLFileUtility;
+
+import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
+import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
@@ -26,17 +30,12 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 	@Override
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
-		ServiceHandler serviceHandler = null;
-		
 		try {
-			serviceHandler = new ServiceHandler();
+			ServiceHandler serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
-			
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
-
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
-			
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
 		} catch (Exception e) {
@@ -46,8 +45,47 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	}
 	
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
+		try {
+			ServiceHandler serviceHandler = new ServiceHandler();
+			serviceHandler.logIn();
+			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+			List<AirFlightInfoReply> airFlightInfoReplies = serviceHandler.getFlightInfo(journeyList);
+			
+//			for(AirFlightInfoReply airFlightInfoReply : airFlightInfoReplies) {
+//				airFlightInfoReply.g
+//			}
+			
+		} catch (ServerSOAPFaultException ssf) {
+			ssf.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
+	
+	public String getCancellationFee(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
+        String fareRules = "";
+        try {
+        	ServiceHandler serviceHandler = new ServiceHandler();
+            serviceHandler.logIn();
+			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
+            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
+			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
+            StringBuilder fareRule = new StringBuilder();
+            for(FareCheckRulesReply.TariffInfo tariffInfo : fareCheckRulesReply.getTariffInfo()){
+                if("(16)".equals(tariffInfo.getFareRuleInfo().getRuleCategoryCode())){
+                    for(FareCheckRulesReply.TariffInfo.FareRuleText text : tariffInfo.getFareRuleText() ) {
+                        fareRule.append(text.getFreeText().get(0));
+                    }
+                }
+            }
+            fareRules = fareRule.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fareRules;
+    }
 	
 	private void addBaggageInfo(FlightItinerary itinerary, List<PricingGroupLevelGroup> pricingLevelGroup, boolean seamen) {
 		List<SegmentLevelGroup> segmentGrpList = new ArrayList<>();
