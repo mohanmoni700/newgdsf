@@ -99,4 +99,16 @@ public class Application {
         return ok(Json.toJson(issuanceResponse));
     }
     
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getPnrDetails(){
+    	JsonNode json = request().body().asJson();
+    	IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+    	String gdsPNR = issuanceRequest.getGdsPNR();
+    	String provider = issuanceRequest.getProvider();
+    	IssuanceResponse issuanceResponse=bookingService.getPnrDetails(gdsPNR, provider);
+    	System.out.println("this is Json Object=====>"+json);
+		return ok(Json.toJson(issuanceResponse));
+    	
+    }
+    
 }

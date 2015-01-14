@@ -7,9 +7,11 @@ import com.compassites.model.IssuanceResponse;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
 import org.springframework.stereotype.Service;
+
 import utils.ErrorMessageHelper;
 
 import java.rmi.RemoteException;
@@ -171,6 +173,11 @@ public class MystiflyBookingServiceImpl implements BookingService {
         }
         return pnrRS;
     }
+
+	public IssuanceResponse allPNRDetails(String gdsPNR) {
+		IssuanceResponse issuanceResponse =  new IssuanceResponse();
+		return issuanceResponse;
+	}
 
 
 }

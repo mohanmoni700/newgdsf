@@ -9,6 +9,7 @@ POST     /baggageInfo                               @controllers.Application.get
 POST     /flightDetails                             @controllers.Application.getFlightDetails
 POST     /issueTicket                               @controllers.Application.issueTicket()
 POST     /checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
+POST	 /getPnrDetails								@controllers.Application.getPnrDetails()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
