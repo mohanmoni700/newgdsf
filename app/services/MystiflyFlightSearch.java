@@ -134,7 +134,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		pricingInfo
 				.setLCC(airlinePricingInfo.getFareType() == FareType.WEB_FARE);
 		pricingInfo.setCurrency(itinTotalFare.getBaseFare().getCurrencyCode());
-		String baseFare = itinTotalFare.getBaseFare().getAmount();
+		String baseFare = itinTotalFare.getEquivFare().getAmount();
 		pricingInfo.setBasePrice(new BigDecimal(baseFare));
 		String totalTax = itinTotalFare.getTotalTax().getAmount();
 		pricingInfo.setTax(new BigDecimal(totalTax));
