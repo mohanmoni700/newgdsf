@@ -62,6 +62,8 @@ public class AirSegmentInformation implements Serializable{
     private Airport toAirport;
 
     private Date departureDate;
+    
+    private Date arrivalDate;
 
     private String bookingClass;
 
@@ -223,7 +225,15 @@ public class AirSegmentInformation implements Serializable{
         return true;
     }*/
 
-    @Override
+    public Date getArrivalDate() {
+		return arrivalDate;
+	}
+
+	public void setArrivalDate(Date arrivalDate) {
+		this.arrivalDate = arrivalDate;
+	}
+
+	@Override
     public boolean equals(Object obj) {
         return Pojomatic.equals(this,obj);
     }

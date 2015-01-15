@@ -117,8 +117,7 @@ public class Application {
     	IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
     	String gdsPNR = issuanceRequest.getGdsPNR();
     	String provider = issuanceRequest.getProvider();
-    	IssuanceResponse issuanceResponse=bookingService.getPnrDetails(gdsPNR, provider);
-    	System.out.println("this is Json Object=====>"+json);
+    	IssuanceResponse issuanceResponse=bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
 		return ok(Json.toJson(issuanceResponse));
     	
     }

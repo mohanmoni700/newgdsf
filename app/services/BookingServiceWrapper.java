@@ -107,12 +107,12 @@ public class BookingServiceWrapper {
 		return pnrResponse;
 	}
 
-	public IssuanceResponse getPnrDetails(String gdsPNR, String provider){
+	public IssuanceResponse getPnrDetails(IssuanceRequest issuanceRequest, String gdsPNR, String provider){
     	IssuanceResponse issuanceResponse = null;
     	if(provider.equalsIgnoreCase("Travelport")){
-    		issuanceResponse = travelPortBookingService.allPNRDetails(gdsPNR);
+    		issuanceResponse = travelPortBookingService.allPNRDetails(issuanceRequest, gdsPNR);
     	}else if(provider.equalsIgnoreCase("Amadeus")){
-    		issuanceResponse = amadeusBookingService.allPNRDetails(gdsPNR);
+    		issuanceResponse = amadeusBookingService.allPNRDetails(issuanceRequest,gdsPNR);
     	}else if(provider.equalsIgnoreCase(Mystifly.PROVIDER)){
     		issuanceResponse = mystiflyBookingService.allPNRDetails(gdsPNR);
     	}

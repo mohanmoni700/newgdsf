@@ -229,7 +229,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		return pnrResponse;
 	}
 
-	public IssuanceResponse allPNRDetails(String gdsPNR) {
+	public IssuanceResponse allPNRDetails(IssuanceRequest issuanceRequest, String gdsPNR) {
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		try {
 			UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
