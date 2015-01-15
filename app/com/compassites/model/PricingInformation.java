@@ -20,6 +20,8 @@ public class PricingInformation {
 
 	private String currency;
 
+    private String gdsCurrency;
+	
 	private BigDecimal totalPriceValue;
 
 	private List<PassengerTax> passengerTaxes;
@@ -30,7 +32,9 @@ public class PricingInformation {
 
 	private BigDecimal totalBasePrice;
 
-	private BigDecimal discount;
+    private BigDecimal totalTax;
+
+    private BigDecimal discount;
 
 	private BigDecimal totalCalculatedValue;
 
@@ -153,5 +157,19 @@ public class PricingInformation {
 	public void setFareRules(String fareRules) {
 		this.fareRules = fareRules;
 	}
+    public String getGdsCurrency() {
+        return gdsCurrency;
+    }
 
+    public void setGdsCurrency(String gdsCurrency) {
+        this.gdsCurrency = gdsCurrency;
+    }
+
+    public BigDecimal getTotalTax() {
+        return totalTax;
+    }
+
+    public void setTotalTax(BigDecimal totalTax) {
+        this.totalTax = totalTax;
+    }
 }

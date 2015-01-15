@@ -234,11 +234,17 @@ public class TravelPortFlightSearch implements FlightSearch {
 
         Map<String, FlightInfo> baggageInfoMap = new HashMap<>();
         for(FareInfo fareInfo : travelportResponse.getFareInfoList().getFareInfo()) {
-        	TypeWeight maxWeight = fareInfo.getBaggageAllowance().getMaxWeight();
-        	FlightInfo flightInfo = new FlightInfo();
-        	flightInfo.setBaggageAllowance(maxWeight.getValue());
-        	flightInfo.setBaggageUnit(maxWeight.getUnit().name());
-        	baggageInfoMap.put(fareInfo.getOrigin(), flightInfo);
+            if(fareInfo.getBaggageAllowance() != null){
+                TypeWeight maxWeight = fareInfo.getBaggageAllowance().getMaxWeight();
+                if(maxWeight != null && maxWeight.getUnit() != null) {
+                    FlightInfo flightInfo = new FlightInfo();
+                    flightInfo.setBaggageAllowance(maxWeight.getValue());
+                    flightInfo.setBaggageUnit(maxWeight.getUnit().name());
+                    baggageInfoMap.put(fareInfo.getOrigin(), flightInfo);
+                }
+            }
+
+
         }
 
         flightIteratorLoop: for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
@@ -265,6 +271,8 @@ public class TravelPortFlightSearch implements FlightSearch {
                 }
             }
             */
+
+            flightItinerary.getPricingInformation().setGdsCurrency(travelportResponse.getCurrencyType());
             flightItinerary.getPricingInformation().setProvider("Travelport");
             flightItinerary.getPricingInformation().setBasePrice(StringUtility.getDecimalFromString(airPricingSolution.getApproximateBasePrice()));
             flightItinerary.getPricingInformation().setTax(StringUtility.getDecimalFromString(airPricingSolution.getTaxes()));

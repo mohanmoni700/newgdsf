@@ -255,6 +255,9 @@ public class FlightSearchWrapper {
             HashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
 
             for(Integer hashKey : allFightItineraries.keySet()){
+                if(seamenFareHash == null || nonSeamenFareHash == null){
+                    System.out.println("==================================NULL POINTER EXECEPTION============"+ searchResponse.getProvider()+Json.toJson(searchResponse));
+                }
                 if(seamenFareHash.containsKey(hashKey) && nonSeamenFareHash.containsKey(hashKey)){
                     FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);
                     if(mainFlightItinerary.getSeamanPricingInformation() == null ||

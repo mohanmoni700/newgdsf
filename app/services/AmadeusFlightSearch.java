@@ -3,23 +3,19 @@ package services;
 import com.amadeus.xml.fmptbr_12_4_1a.*;
 import com.compassites.GDSWrapper.amadeus.SearchFlights;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
-
 import models.Airline;
 import models.Airport;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
-
 import play.Logger;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
@@ -27,7 +23,6 @@ import utils.ErrorMessageHelper;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -414,7 +409,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         pricingInformation.setTax(taxAmount);
         pricingInformation.setTotalPrice(totalAmount);
         pricingInformation.setTotalPriceValue(BigDecimal.valueOf(totalAmount.longValue()));
-        pricingInformation.setCurrency(currency);
+        pricingInformation.setGdsCurrency(currency);
         pricingInformation.setProvider("Amadeus");
         return pricingInformation;
     }
