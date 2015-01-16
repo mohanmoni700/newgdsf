@@ -135,7 +135,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				for(Ticket ticket : tickets) {
 					for (Coupon coupon : ticket.getCoupon()) {
 						String key = coupon.getOrigin()	+ coupon.getDestination() + traveller.getContactId();
-						ticketMap.put(key, ticket.getTicketNumber());
+						ticketMap.put(key.toLowerCase(), ticket.getTicketNumber());
 					}
 				}
 				traveller.setTicketNumberMap(ticketMap);
