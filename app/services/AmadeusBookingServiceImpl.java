@@ -449,6 +449,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 			AmadeusBookingHelper.createTickets(issuanceResponse,
 					issuanceRequest, gdsPNRReply);
+			System.out.println(Json.toJson(issuanceResponse)+"<<<<<<<========== Issuence response\n");
 			for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
 				issuanceResponse.setPnrNumber(pnrHeader.getReservationInfo()
 						.getReservation().getControlNumber());
@@ -495,6 +496,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					/* From & To Location */
 					airSegmentInformation.setFromLocation(itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode());
 					airSegmentInformation.setToLocation(itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode());
+					/*For  flight Number*/
+					airSegmentInformation.setFlightNumber(itineraryInfo.getTravelProduct().getProductDetails().getIdentification());
+					
 					airsegmentationList.add(airSegmentInformation);
 
 				}
@@ -525,6 +529,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	
 		return issuanceResponse;
 	}
 }
