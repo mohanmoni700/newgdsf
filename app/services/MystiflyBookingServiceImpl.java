@@ -107,17 +107,19 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				.getItineraryInfo();
 		for (CustomerInfo customerInfo : itinerary.getCustomerInfos()
 				.getCustomerInfoArray()) {
+			Traveller traveller = findTravellerWithPassportNum(travellerList,
+					customerInfo.getCustomer().getPassportNumber());
 			Map<String, String> ticketMap = new HashMap<>();
 			for (ETicket eTicket : customerInfo.getETickets().getETicketArray()) {
 				ReservationItem[] reservationItems = itinerary
 						.getReservationItems().getReservationItemArray();
 				ReservationItem reservationItem = findReservationItemFromRPH(
 						reservationItems, eTicket.getItemRPH());
-				String key = reservationItem.getDepartureDateTime().toString();
-				ticketMap.put(key, eTicket.getETicketNumber());
+				String key = reservationItem.getDepartureAirportLocationCode()
+						+ reservationItem.getArrivalAirportLocationCode()
+						+ traveller.getContactId();
+				ticketMap.put(key.toLowerCase(), eTicket.getETicketNumber());
 			}
-			Traveller traveller = findTravellerWithPassportNum(travellerList,
-					customerInfo.getCustomer().getPassportNumber());
 			traveller.setTicketNumberMap(ticketMap);
 		}
 	}
