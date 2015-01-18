@@ -11,6 +11,8 @@ import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import play.libs.Json;
+
 /**
  * Created by user on 07-08-2014.
  */
@@ -107,15 +109,15 @@ public class BookingServiceWrapper {
 		return pnrResponse;
 	}
 
-	public IssuanceResponse getPnrDetails(IssuanceRequest issuanceRequest, String gdsPNR, String provider){
-    	IssuanceResponse issuanceResponse = null;
+	public TravellerMasterInfo getPnrDetails(IssuanceRequest issuanceRequest, String gdsPNR, String provider){
+    	TravellerMasterInfo masterInfo = null;
     	if(provider.equalsIgnoreCase("Travelport")){
-    		issuanceResponse = travelPortBookingService.allPNRDetails(issuanceRequest, gdsPNR);
+    		masterInfo = travelPortBookingService.allPNRDetails(issuanceRequest, gdsPNR);
     	}else if(provider.equalsIgnoreCase("Amadeus")){
-    		issuanceResponse = amadeusBookingService.allPNRDetails(issuanceRequest,gdsPNR);
+    		masterInfo = amadeusBookingService.allPNRDetails(issuanceRequest,gdsPNR);
     	}else if(provider.equalsIgnoreCase(Mystifly.PROVIDER)){
-    		issuanceResponse = mystiflyBookingService.allPNRDetails(gdsPNR);
+    		masterInfo = mystiflyBookingService.allPNRDetails(gdsPNR);
     	}
-    	return issuanceResponse;
+    	return masterInfo;
     }
 }

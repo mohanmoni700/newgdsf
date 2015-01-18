@@ -4,7 +4,9 @@ package controllers;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import org.springframework.beans.factory.annotation.Autowired;
+
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -117,8 +119,9 @@ public class Application {
     	IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
     	String gdsPNR = issuanceRequest.getGdsPNR();
     	String provider = issuanceRequest.getProvider();
-    	IssuanceResponse issuanceResponse=bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
-		return ok(Json.toJson(issuanceResponse));
+    	TravellerMasterInfo masterInfo=bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
+    	System.out.println("==== in Application INFO ==== >>>>>>"+Json.toJson(masterInfo));
+		return ok(Json.toJson(masterInfo));
     	
     }
     

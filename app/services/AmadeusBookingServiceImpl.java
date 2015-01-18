@@ -400,11 +400,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return pnrResponse;
 	}
 
-	public IssuanceResponse allPNRDetails(IssuanceRequest issuanceRequest,
+	public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest,
 			String gdsPNR) {
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
-
-		List<FlightItinerary> flightItineraryList = new ArrayList<>();
+		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
+		//List<FlightItinerary> flightItineraryList = new ArrayList<>();
 		List<Journey> journeyList = new ArrayList<>();
 		List<AirSegmentInformation> airsegmentationList = new ArrayList<>();
 		List<Traveller> travellersList = new ArrayList<>();
@@ -413,7 +413,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		///System.out.println(isSeamen + "my issuance obj is =========>>>>\n"+ Json.toJson(issuanceRequest));
 
 		try {
-			TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 			FlightItinerary flightItinerary = new FlightItinerary();
 
 			ServiceHandler serviceHandler = new ServiceHandler();
@@ -530,6 +529,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			e.printStackTrace();
 		}
 	
-		return issuanceResponse;
+		return masterInfo;
 	}
 }

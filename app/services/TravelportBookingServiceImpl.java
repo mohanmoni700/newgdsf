@@ -1,8 +1,10 @@
 package services;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,26 +22,38 @@ import com.compassites.GDSWrapper.travelport.AirReservationClient;
 import com.compassites.GDSWrapper.travelport.AirTicketClient;
 import com.compassites.GDSWrapper.travelport.Helper;
 import com.compassites.GDSWrapper.travelport.UniversalRecordClient;
+import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.ErrorMessage;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.IssuanceRequest;
 import com.compassites.model.IssuanceResponse;
+import com.compassites.model.Journey;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.travelport.schema.air_v26_0.AirItinerary;
 import com.travelport.schema.air_v26_0.AirPriceRsp;
 import com.travelport.schema.air_v26_0.AirReservation;
+import com.travelport.schema.air_v26_0.AirSegmentDetails;
+import com.travelport.schema.air_v26_0.AirSegmentList;
 import com.travelport.schema.air_v26_0.AirTicketingRsp;
 import com.travelport.schema.air_v26_0.Coupon;
+import com.travelport.schema.air_v26_0.DocumentInfo;
 import com.travelport.schema.air_v26_0.ETR;
+import com.travelport.schema.air_v26_0.FlightDetails;
 import com.travelport.schema.air_v26_0.Ticket;
+import com.travelport.schema.air_v26_0.TicketInfo;
+import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
+import com.travelport.schema.common_v26_0.BookingTraveler;
 import com.travelport.schema.common_v26_0.BookingTravelerName;
 import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
 import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
 import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
+import com.travelport.schema.universal_v26_0.UniversalRecord;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 
@@ -114,7 +128,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		AirTicketClient airTicketClient = new AirTicketClient();
 		AirTicketingRsp airTicketingRsp = airTicketClient
 				.issueTicket(issuanceRequest.getGdsPNR());
-		if(airTicketingRsp.getETR().size() > 0) {
+		if (airTicketingRsp.getETR().size() > 0) {
 			issuanceResponse.setSuccess(true);
 			issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
 			List<Traveller> travellerList = issuanceRequest.getTravellerList();
@@ -132,10 +146,13 @@ public class TravelportBookingServiceImpl implements BookingService {
 					}
 				}
 				Map<String, String> ticketMap = new HashMap<>();
-				for(Ticket ticket : tickets) {
+				for (Ticket ticket : tickets) {
 					for (Coupon coupon : ticket.getCoupon()) {
-						String key = coupon.getOrigin()	+ coupon.getDestination() + traveller.getContactId();
-						ticketMap.put(key.toLowerCase(), ticket.getTicketNumber());
+						String key = coupon.getOrigin()
+								+ coupon.getDestination()
+								+ traveller.getContactId();
+						ticketMap.put(key.toLowerCase(),
+								ticket.getTicketNumber());
 					}
 				}
 				traveller.setTicketNumberMap(ticketMap);
@@ -257,22 +274,119 @@ public class TravelportBookingServiceImpl implements BookingService {
 			e.printStackTrace();
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "TravelPort");
+
 			pnrResponse.setErrorMessage(errorMessage);
 		}
 
 		return pnrResponse;
 	}
 
-	public IssuanceResponse allPNRDetails(IssuanceRequest issuanceRequest, String gdsPNR) {
-		IssuanceResponse issuanceResponse = new IssuanceResponse();
+	public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest,
+			String gdsPNR) {
+		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
+		boolean isSeamen = issuanceRequest.isSeamen();
+		masterInfo.setSeamen(isSeamen);
+
 		try {
 			UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
 					.retrievePNR(gdsPNR);
-			System.out.println("=========================TRAVELPORT RESPONSE"
-					+ "================================================\n"+Json.toJson(universalRecordRetrieveRsp));
+
+			// traveller deatials
+			List<Traveller> travellerList = new ArrayList<>();
+			for (Traveller traveller1 : issuanceRequest.getTravellerList()) {
+				Traveller traveller = new Traveller();
+				traveller.setCdcDetails(traveller1.getCdcDetails());
+				traveller.setContactId(traveller1.getContactId());
+				traveller.setVisaDetails(traveller1.getVisaDetails());
+				traveller.setPreferences(traveller1.getPreferences());
+				traveller.setPassportDetails(traveller1.getPassportDetails());
+				for (BookingTraveler travelerName : universalRecordRetrieveRsp
+						.getUniversalRecord().getBookingTraveler()) {
+					PersonalDetails personalDetails = new PersonalDetails();
+					personalDetails.setFirstName(travelerName
+							.getBookingTravelerName().getFirst());
+					personalDetails.setMiddleName(travelerName
+							.getBookingTravelerName().getMiddle());
+					personalDetails.setLastName(travelerName
+							.getBookingTravelerName().getLast());
+					personalDetails.setGender(travelerName
+							.getBookingTravelerName().getPrefix());
+
+					traveller.setPersonalDetails(personalDetails);
+				}
+
+				for (AirReservation airReservation : universalRecordRetrieveRsp
+						.getUniversalRecord().getAirReservation()) {
+					for (TicketInfo ticketInfo : airReservation
+							.getDocumentInfo().getTicketInfo()) {
+						Map<String, String> ticketNumberMap = new HashMap<String, String>();
+						ticketNumberMap.put("TicketNumber",
+								ticketInfo.getNumber());
+						ticketNumberMap.put("airPricingInfoRef",
+								ticketInfo.getAirPricingInfoRef());
+						ticketNumberMap.put("bookingTravelerRef",
+								ticketInfo.getBookingTravelerRef());
+						traveller.setTicketNumberMap(ticketNumberMap);
+					}
+				}
+
+				// flight Ititinrary Deatails
+				List<Journey> journeyList = new ArrayList<>();
+				List<AirSegmentInformation> airSegmentList = new ArrayList<>();
+				FlightItinerary flightItinerary = new FlightItinerary();
+				Journey journey = new Journey();
+				for (AirReservation airReservation : universalRecordRetrieveRsp
+						.getUniversalRecord().getAirReservation()) {
+					SimpleDateFormat format = new SimpleDateFormat("yyMMddHHmm");
+					for (TypeBaseAirSegment airSegment : airReservation
+							.getAirSegment()) {
+						AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+						airSegmentInformation.setCarrierCode(airSegment
+								.getCarrier());
+						airSegmentInformation.setFlightNumber(airSegment
+								.getFlightNumber());
+						Date arrvalDate = format.parse(airSegment
+								.getArrivalTime());
+						airSegmentInformation.setArrivalDate(arrvalDate);
+
+						Date depDate = format.parse(airSegment
+								.getDepartureTime());
+						airSegmentInformation.setDepartureDate(depDate);
+
+						airSegmentInformation.setFromLocation(airSegment
+								.getOrigin());
+						airSegmentInformation.setToLocation(airSegment
+								.getDestination());
+						airSegmentInformation.setTravelTime(airSegment
+								.getTravelTime().toString());
+						airSegmentInformation.setDistanceTravelled(airSegment
+								.getDistance().toString());
+						for (FlightDetails flightDetails : airSegment
+								.getFlightDetails()) {
+
+						}
+
+						airSegmentList.add(airSegmentInformation);
+					}
+					travellerList.add(traveller);
+					masterInfo.setTravellersList(travellerList); // traveller is
+					journey.setAirSegmentList(airSegmentList);
+					journeyList.add(journey);
+				}
+				if (isSeamen) {
+					flightItinerary.setJourneyList(journeyList);
+				} else {
+					flightItinerary.setNonSeamenJourneyList(journeyList);
+				}
+				masterInfo.setItinerary(flightItinerary);
+				// System.out.println("==========>>>>>>\n"+Json.toJson(masterInfo));
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return issuanceResponse;
+
+		return masterInfo;
 	}
+
 }

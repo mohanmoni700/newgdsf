@@ -186,9 +186,10 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		return pnrRS;
 	}
 
-	public IssuanceResponse allPNRDetails(String gdsPNR) {
+	public TravellerMasterInfo allPNRDetails(String gdsPNR) {
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
-		return issuanceResponse;
+		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
+		return masterInfo;
 	}
 
 }
