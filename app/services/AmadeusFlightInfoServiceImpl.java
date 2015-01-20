@@ -9,6 +9,7 @@ import utils.XMLFileUtility;
 
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply;
+import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply.FlightScheduleDetails.InteractiveFreeText;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
@@ -49,18 +50,28 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			ServiceHandler serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
-			List<AirFlightInfoReply> airFlightInfoReplies = serviceHandler.getFlightInfo(journeyList);
-			
-//			for(AirFlightInfoReply airFlightInfoReply : airFlightInfoReplies) {
-//				airFlightInfoReply.g
-//			}
-			
+			for(Journey journey : journeyList) {
+				for(AirSegmentInformation segment : journey.getAirSegmentList()) {
+					AirFlightInfoReply flightInfoReply = serviceHandler.getFlightInfo(segment);
+					List<String> amneties = new ArrayList<>();
+					for(InteractiveFreeText freeText : flightInfoReply.getFlightScheduleDetails().getInteractiveFreeText()) {
+						amneties.add(freeText.getFreeText());
+					}
+					if (segment.getFlightInfo() != null) {
+						segment.getFlightInfo().setAmneties(amneties);
+					} else {
+						FlightInfo flightInfo = new FlightInfo();
+						flightInfo.setAmneties(amneties);
+						segment.setFlightInfo(flightInfo);
+					}
+				}
+			}
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return flightItinerary;
 	}
 	
 	public String getCancellationFee(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {

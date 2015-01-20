@@ -165,19 +165,25 @@ public class ServiceHandler {
         return  fareInformativePricingPNRReply;
 	}
 	
-	public List<AirFlightInfoReply> getFlightInfo(List<Journey> journeys) {
+//	public List<AirFlightInfoReply> getFlightInfo(List<Journey> journeys) {
+//		mSession.incrementSequenceNumber();
+//		List<AirFlightInfoReply> airFlightInfoReplyList = new ArrayList<>();
+//		for(Journey journey : journeys) {
+//			for(AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+//				AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
+//				XMLFileUtility.createXMLFile(airFlightInfo, "AirFlightInfoReq.xml");
+//				AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, mSession.getSession());
+//				airFlightInfoReplyList.add(airFlightInfoReply);
+//				XMLFileUtility.createXMLFile(airFlightInfoReply, "AirFlightInfoReply.xml");
+//			}
+//		}
+//		return airFlightInfoReplyList;
+//	}
+	
+	public AirFlightInfoReply getFlightInfo(AirSegmentInformation airSegment) {
 		mSession.incrementSequenceNumber();
-		List<AirFlightInfoReply> airFlightInfoReplyList = new ArrayList<>();
-		for(Journey journey : journeys) {
-			for(AirSegmentInformation airSegment : journey.getAirSegmentList()) {
-				AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
-				XMLFileUtility.createXMLFile(airFlightInfo, "AirFlightInfoReq.xml");
-				AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, mSession.getSession());
-				airFlightInfoReplyList.add(airFlightInfoReply);
-				XMLFileUtility.createXMLFile(airFlightInfoReply, "AirFlightInfoReply.xml");
-			}
-		}
-		return airFlightInfoReplyList;
+		AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
+		return mPortType.airFlightInfo(airFlightInfo, mSession.getSession());
 	}
 
     public FareCheckRulesReply getFareRules(){

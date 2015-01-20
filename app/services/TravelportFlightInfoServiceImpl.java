@@ -43,7 +43,7 @@ public class TravelportFlightInfoServiceImpl implements FlightInfoService {
 						.getFlightDetails().get(0).getInFlightServices()) {
 					amneties.add(inFlightService.name());
 				}
-				if (segment.getFlightInfo() == null) {
+				if (segment.getFlightInfo() != null) {
 					segment.getFlightInfo().setAmneties(amneties);
 				} else {
 					FlightInfo flightInfo = new FlightInfo();
