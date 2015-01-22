@@ -29,7 +29,9 @@ public class PNRResponse {
 
     private BigDecimal changedBasePrice;
 
-    private List<TaxDetails> taxDetailsList;
+//    private List<TaxDetails> taxDetailsList;
+    
+//    private List<PassengerTax> passengerTaxes;
 
     public String getPnrNumber() {
         return pnrNumber;
@@ -103,19 +105,27 @@ public class PNRResponse {
         this.isCappingLimitReached = isCappingLimitReached;
     }
 
-    public List<TaxDetails> getTaxDetailsList() {
-        return taxDetailsList;
-    }
-
-    public void setTaxDetailsList(List<TaxDetails> taxDetailsList) {
-        this.taxDetailsList = taxDetailsList;
-    }
-
-    public BigDecimal getChangedBasePrice() {
+//    public List<TaxDetails> getTaxDetailsList() {
+//        return taxDetailsList;
+//    }
+//
+//    public void setTaxDetailsList(List<TaxDetails> taxDetailsList) {
+//        this.taxDetailsList = taxDetailsList;
+//    }
+//
+//    public List<PassengerTax> getPassengerTaxes() {
+//		return passengerTaxes;
+//	}
+//
+//	public void setPassengerTaxes(List<PassengerTax> passengerTaxes) {
+//		this.passengerTaxes = passengerTaxes;
+//	}
+	
+	public BigDecimal getChangedBasePrice() {
         return changedBasePrice;
     }
 
-    public void setChangedBasePrice(BigDecimal changedBasePrice) {
+	public void setChangedBasePrice(BigDecimal changedBasePrice) {
         this.changedBasePrice = changedBasePrice;
     }
 }

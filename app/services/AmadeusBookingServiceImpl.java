@@ -233,8 +233,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		pnrResponse.setValidTillDate(lastTicketingDate);
 		pnrResponse.setFlightAvailable(true);
-		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
-				.getTaxDetails(pricePNRReply));
+		
+//		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
+//				.getTaxDetails(pricePNRReply));
 		return pnrResponse;
 	}
 
