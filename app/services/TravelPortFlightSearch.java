@@ -280,7 +280,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             flightItinerary.getPricingInformation().setTotalPriceValue(StringUtility.getDecimalFromString(airPricingSolution.getTotalPrice()));
             if(airPricingSolution.getAirPricingInfo().get(0).getCancelPenalty() != null)
             	flightItinerary.getPricingInformation().setFareRules(airPricingSolution.getAirPricingInfo().get(0).getCancelPenalty().getAmount());
-            flightItinerary.getPricingInformation().setPassengerTaxes(getPassengerTaxes(airPricingSolution));
+            getPassengerTaxes(flightItinerary.getPricingInformation(), airPricingSolution);
             
             //System.out.print("Price:"+ airPricingSolution.getTotalPrice());
             //System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");
@@ -400,13 +400,21 @@ public class TravelPortFlightSearch implements FlightSearch {
         return searchResponse;
     }
     
-	private List<PassengerTax> getPassengerTaxes(AirPricingSolution airPricingSolution) {
+	private void getPassengerTaxes(PricingInformation pricingInfo, AirPricingSolution airPricingSolution) {
 		List<PassengerTax> passengerTaxes = new ArrayList<>();
 		for (AirPricingInfo airPricingInfo : airPricingSolution	.getAirPricingInfo()) {
 			PassengerTax passengerTax = new PassengerTax();
 			passengerTax.setBaseFare(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
 			passengerTax.setPassengerCount(airPricingInfo.getPassengerType().size());
-			passengerTax.setPassengerType(airPricingInfo.getPassengerType().get(0).getCode());
+			PassengerType paxType = airPricingInfo.getPassengerType().get(0);
+			if(paxType.getCode().equalsIgnoreCase("ADT")) {
+				pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+			} else if(paxType.getCode().equalsIgnoreCase("CHD") || paxType.getCode().equalsIgnoreCase("CNN")) {
+				pricingInfo.setChdBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+			} else if(paxType.getCode().equalsIgnoreCase("INF")) {
+				pricingInfo.setInfBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+			}
+			passengerTax.setPassengerType(paxType.getCode());
 			Map<String, BigDecimal> taxes = new HashMap<>();
 			for (TypeTaxInfo taxInfo : airPricingInfo.getTaxInfo()) {
 				taxes.put(taxInfo.getCategory(), StringUtility.getDecimalFromString(taxInfo.getAmount()));
@@ -414,7 +422,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 			passengerTax.setTaxes(taxes);
 			passengerTaxes.add(passengerTax);
 		}
-		return passengerTaxes;
+		pricingInfo.setPassengerTaxes(passengerTaxes);
 	}
     
     private void getConnectionTime(List<AirSegmentInformation> airSegments) {

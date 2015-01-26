@@ -1,24 +1,57 @@
 package services;
 
-import com.compassites.GDSWrapper.mystifly.AirLowFareSearchClient;
-import com.compassites.GDSWrapper.mystifly.Mystifly;
-import com.compassites.exceptions.IncompleteDetailsMessage;
-import com.compassites.exceptions.RetryException;
-import com.compassites.model.*;
-import models.Airline;
-import models.Airport;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
-import org.springframework.stereotype.Service;
-import play.Logger;
-import utils.ErrorMessageHelper;
+import java.math.BigDecimal;
+import java.rmi.RemoteException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
-import java.math.BigDecimal;
-import java.rmi.RemoteException;
-import java.text.ParseException;
-import java.util.*;
+
+import models.Airline;
+import models.Airport;
+
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirItineraryPricingInfo;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfFlightSegment;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationOption;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPricedItinerary;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.FareType;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.FlightSegment;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ItinTotalFare;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.OperatingAirline;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationOption;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PTCFareBreakdown;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerFare;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantity;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.Tax;
+import org.springframework.stereotype.Service;
+
+import play.Logger;
+import utils.ErrorMessageHelper;
+
+import com.compassites.GDSWrapper.mystifly.AirLowFareSearchClient;
+import com.compassites.GDSWrapper.mystifly.Mystifly;
+import com.compassites.exceptions.IncompleteDetailsMessage;
+import com.compassites.exceptions.RetryException;
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.AirSolution;
+import com.compassites.model.ErrorMessage;
+import com.compassites.model.FlightItinerary;
+import com.compassites.model.Journey;
+import com.compassites.model.JourneyType;
+import com.compassites.model.PassengerTax;
+import com.compassites.model.PricingInformation;
+import com.compassites.model.SearchJourney;
+import com.compassites.model.SearchParameters;
+import com.compassites.model.SearchResponse;
 
 /**
  * @author Santhosh
@@ -107,21 +140,22 @@ public class MystiflyFlightSearch implements FlightSearch {
 		pricingInfo.setTax(new BigDecimal(totalTax));
 		String total = itinTotalFare.getTotalFare().getAmount();
 		pricingInfo.setTotalPrice(new BigDecimal(total));
-        pricingInfo.setGdsCurrency("INR");
+		pricingInfo.setGdsCurrency("INR");
 		pricingInfo.setTotalPriceValue(pricingInfo.getTotalPrice());
-		pricingInfo.setPassengerTaxes(getTaxBeakup(airlinePricingInfo));
+		setFareBeakup(pricingInfo, airlinePricingInfo);
 		return pricingInfo;
 	}
 
-	private List<PassengerTax> getTaxBeakup(
+	private void setFareBeakup(PricingInformation pricingInfo,
 			AirItineraryPricingInfo airlinePricingInfo) {
 		List<PassengerTax> passengerTaxes = new ArrayList<>();
 		for (PTCFareBreakdown ptcFareBreakdown : airlinePricingInfo
 				.getPTCFareBreakdowns().getPTCFareBreakdownArray()) {
 
 			PassengerTax passengerTax = new PassengerTax();
-			Fare baseFare = ptcFareBreakdown.getPassengerFare().getBaseFare();
-			passengerTax.setBaseFare(new BigDecimal(baseFare.getAmount()));
+			PassengerFare paxFare = ptcFareBreakdown.getPassengerFare();
+			passengerTax.setBaseFare(new BigDecimal(paxFare.getBaseFare()
+					.getAmount()));
 			PassengerTypeQuantity passenger = ptcFareBreakdown
 					.getPassengerTypeQuantity();
 			passengerTax.setPassengerCount(passenger.getQuantity());
@@ -134,8 +168,19 @@ public class MystiflyFlightSearch implements FlightSearch {
 			}
 			passengerTax.setTaxes(taxes);
 			passengerTaxes.add(passengerTax);
+			String paxCode = ptcFareBreakdown.getPassengerTypeQuantity()
+					.getCode().toString();
+			BigDecimal amount = new BigDecimal(paxFare.getBaseFare()
+					.getAmount());
+			if (paxCode.equalsIgnoreCase("ADT")) {
+				pricingInfo.setAdtBasePrice(amount);
+			} else if (paxCode.equalsIgnoreCase("CHD")) {
+				pricingInfo.setChdBasePrice(amount);
+			} else if (paxCode.equalsIgnoreCase("INF")) {
+				pricingInfo.setInfBasePrice(amount);
+			}
 		}
-		return passengerTaxes;
+		pricingInfo.setPassengerTaxes(passengerTaxes);
 	}
 
 	private List<Journey> getJourneys(
@@ -201,7 +246,8 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 	private AirSegmentInformation createAirSegment(FlightSegment flightSegment) {
 		AirSegmentInformation airSegment = new AirSegmentInformation();
-		airSegment.setArrivalTime(flightSegment.getArrivalDateTime().toString());
+		airSegment
+				.setArrivalTime(flightSegment.getArrivalDateTime().toString());
 		airSegment.setBookingClass(flightSegment.getCabinClassCode());
 		airSegment.setConnectionTime(flightSegment.getJourneyDuration());
 		airSegment.setConnectionTimeStr();

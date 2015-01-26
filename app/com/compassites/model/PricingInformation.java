@@ -13,6 +13,12 @@ public class PricingInformation {
 	private boolean isLCC;
 
 	private BigDecimal basePrice;
+	
+	private BigDecimal adtBasePrice;
+
+    private BigDecimal chdBasePrice;
+	
+    private BigDecimal infBasePrice;
 
 	private BigDecimal tax;
 
@@ -60,6 +66,30 @@ public class PricingInformation {
 
 	public void setBasePrice(BigDecimal basePrice) {
 		this.basePrice = basePrice;
+	}
+
+	public BigDecimal getAdtBasePrice() {
+		return adtBasePrice;
+	}
+
+	public void setAdtBasePrice(BigDecimal adtBasePrice) {
+		this.adtBasePrice = adtBasePrice;
+	}
+
+	public BigDecimal getChdBasePrice() {
+		return chdBasePrice;
+	}
+
+	public void setChdBasePrice(BigDecimal chdBasePrice) {
+		this.chdBasePrice = chdBasePrice;
+	}
+
+	public BigDecimal getInfBasePrice() {
+		return infBasePrice;
+	}
+
+	public void setInfBasePrice(BigDecimal infBasePrice) {
+		this.infBasePrice = infBasePrice;
 	}
 
 	public BigDecimal getTax() {

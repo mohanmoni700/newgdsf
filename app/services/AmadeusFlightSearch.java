@@ -411,6 +411,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         pricingInformation.setTotalPriceValue(BigDecimal.valueOf(totalAmount.longValue()));
         pricingInformation.setGdsCurrency(currency);
         pricingInformation.setProvider("Amadeus");
+        pricingInformation.setPassengerTaxes(new ArrayList<PassengerTax>());
         return pricingInformation;
     }
 

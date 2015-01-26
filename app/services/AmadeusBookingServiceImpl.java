@@ -11,6 +11,7 @@ import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.Passenge
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.AirSegmentInformation;
@@ -186,6 +187,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
 
+		for(FareList fare : pricePNRReply.getFareList()) {
+			
+		}
 		pnrResponse = AmadeusBookingHelper.checkFare(pricePNRReply,
 				travellerMasterInfo, totalFareIdentifier);
 

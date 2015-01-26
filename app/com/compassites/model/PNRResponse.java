@@ -128,5 +128,14 @@ public class PNRResponse {
 	public void setChangedBasePrice(BigDecimal changedBasePrice) {
         this.changedBasePrice = changedBasePrice;
     }
+
+	public PriceDetails getPriceDetails() {
+		return priceDetails;
+	}
+
+	public void setPriceDetails(PriceDetails priceDetails) {
+		this.priceDetails = priceDetails;
+	}
+	
 }
 

@@ -51,8 +51,8 @@ public class Mystifly {
 	public static final Map<String, Gender.Enum> GENDER = ImmutableMap.of(
 			"male", Gender.M, "female", Gender.F);
 	public static final Map<String, PassengerTitle.Enum> PASSENGER_TITLE = ImmutableMap
-			.of("mr.", PassengerTitle.MR, "mrs", PassengerTitle.MRS, "ms.",
-					PassengerTitle.MS, "master", PassengerTitle.MSTR, "miss",
+			.of("mr.", PassengerTitle.MR, "mrs.", PassengerTitle.MRS, "ms.",
+					PassengerTitle.MS, "master.", PassengerTitle.MSTR, "miss.",
 					PassengerTitle.MISS);
 	public static final Map<PassengerTypeCode, PassengerType.Enum> PASSENGER_TYPE = ImmutableMap
 			.of(PassengerTypeCode.ADT, PassengerType.ADT,
