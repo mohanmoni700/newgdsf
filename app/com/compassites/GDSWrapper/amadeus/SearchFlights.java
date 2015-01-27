@@ -10,6 +10,7 @@ import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.*;
 import org.springframework.util.StringUtils;
 import play.libs.Json;
+import utils.XMLFileUtility;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -84,15 +85,7 @@ public class SearchFlights {
         pricingTicketingDetailsType.setPricingTicketing(pricingTicketingInformationType);
         fareOptions.setPricingTickInfo(pricingTicketingDetailsType);
         se.setFareOptions(fareOptions);*/
-        File file=new File("seamenRequest");
-        FileOutputStream os= null;
-        try {
-            os = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        PrintStream out = new PrintStream(os);
-        out.print(Json.toJson(se));
+        XMLFileUtility.createXMLFile(se, "AmadeusSearchReq.xml");
         return se;
     }
 

@@ -18,6 +18,7 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.MaxStopsQuantity;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationInformation;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerType;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantity;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.RequestOptions;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelPreferences;
 
@@ -42,6 +43,7 @@ public class AirLowFareSearchClient {
 
 		searchRQ.setSessionId(sessionRS.getSessionId());
 		searchRQ.setTarget(Mystifly.TARGET);
+		searchRQ.setRequestOptions(RequestOptions.HUNDRED);
 		searchRQ.setIsRefundable(searchParams.getRefundableFlights());
 
 		setJourneys(searchRQ, searchParams);
