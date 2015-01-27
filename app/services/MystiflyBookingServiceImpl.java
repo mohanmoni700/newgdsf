@@ -16,6 +16,7 @@ import utils.ErrorMessageHelper;
 
 import java.math.BigDecimal;
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 						pnrRS.setFlightAvailable(airbookRS.getSuccess());
 						pnrRS.setValidTillDate(airbookRS.getTktTimeLimit()
 								.getTime());
+						setAirlinePNR(pnrRS);
 					} else {
 						ErrorMessage error = new ErrorMessage();
 						Error[] errors = airbookRS.getErrors().getErrorArray();
@@ -98,11 +100,32 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		return issuanceResponse;
 	}
 
+	private void setAirlinePNR(PNRResponse pnrResponse) throws RemoteException {
+		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
+		AirTripDetailsRS tripDetailsRS = tripDetailsClient
+				.getAirTripDetails(pnrResponse.getPnrNumber());
+
+		TravelItinerary itinerary = tripDetailsRS.getTravelItinerary();
+		String airlinePNR = itinerary.getItineraryInfo().getReservationItems().getReservationItemArray(0).getAirlinePNR();
+		pnrResponse.setAirlinePNR(airlinePNR);
+//		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
+//		Map<String, String> airlinePNRMap = new HashMap<>();
+//		for (ReservationItem resItem : itinerary.getItineraryInfo()
+//				.getReservationItems().getReservationItemArray()) {
+//			String key = resItem.getDepartureAirportLocationCode()
+//					+ resItem.getArrivalAirportLocationCode()
+//					+ sdf.format(resItem.getDepartureDateTime().getTime());
+//			airlinePNRMap.put(key, resItem.getAirlinePNR());
+//		}
+//		pnrResponse.setAirlinePNRMap(airlinePNRMap);
+	}
+
 	private void setTravellerTickets(List<Traveller> travellerList, String pnr)
 			throws RemoteException {
 		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
 		AirTripDetailsRS tripDetailsRS = tripDetailsClient
 				.getAirTripDetails(pnr);
+
 		ItineraryInfo itinerary = tripDetailsRS.getTravelItinerary()
 				.getItineraryInfo();
 		for (CustomerInfo customerInfo : itinerary.getCustomerInfos()

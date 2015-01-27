@@ -101,7 +101,6 @@ public class MystiflyFlightSearch implements FlightSearch {
 			itineraryHashMap.put(itinerary.hashCode(), itinerary);
 		}
 		airSolution.setNonSeamenHashMap(itineraryHashMap);
-//		airSolution.setSeamenHashMap(null);
 		return airSolution;
 	}
 
@@ -120,6 +119,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 			List<Journey> journeys = getJourneys(arrayOfOriginDestinationOptions);
 			flightItinerary.setFareSourceCode(airlinePricingInfo
 					.getFareSourceCode());
+			flightItinerary.setNonSeamenJourneyList(journeys);
 			flightItinerary.setJourneyList(journeys);
 			flightItineraryList.add(flightItinerary);
 		}

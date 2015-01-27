@@ -2,7 +2,6 @@ package com.compassites.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by user on 18-08-2014.
@@ -29,9 +28,7 @@ public class PNRResponse {
 
     private BigDecimal changedBasePrice;
 
-//    private List<TaxDetails> taxDetailsList;
-    
-//    private List<PassengerTax> passengerTaxes;
+    private String airlinePNR;
 
     public String getPnrNumber() {
         return pnrNumber;
@@ -104,22 +101,6 @@ public class PNRResponse {
     public void setCappingLimitReached(boolean isCappingLimitReached) {
         this.isCappingLimitReached = isCappingLimitReached;
     }
-
-//    public List<TaxDetails> getTaxDetailsList() {
-//        return taxDetailsList;
-//    }
-//
-//    public void setTaxDetailsList(List<TaxDetails> taxDetailsList) {
-//        this.taxDetailsList = taxDetailsList;
-//    }
-//
-//    public List<PassengerTax> getPassengerTaxes() {
-//		return passengerTaxes;
-//	}
-//
-//	public void setPassengerTaxes(List<PassengerTax> passengerTaxes) {
-//		this.passengerTaxes = passengerTaxes;
-//	}
 	
 	public BigDecimal getChangedBasePrice() {
         return changedBasePrice;
@@ -128,6 +109,14 @@ public class PNRResponse {
 	public void setChangedBasePrice(BigDecimal changedBasePrice) {
         this.changedBasePrice = changedBasePrice;
     }
+
+	public String getAirlinePNR() {
+		return airlinePNR;
+	}
+
+	public void setAirlinePNR(String airlinePNR) {
+		this.airlinePNR = airlinePNR;
+	}
 	
 }
 
