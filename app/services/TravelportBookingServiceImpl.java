@@ -296,25 +296,22 @@ public class TravelportBookingServiceImpl implements BookingService {
 		try {
 			UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
 					.retrievePNR(gdsPNR);
-			System.out.println("Response======>>>>>\n"
-					+ Json.toJson(universalRecordRetrieveRsp));
+			//System.out.println("Response======>>>>>\n"+ Json.toJson(universalRecordRetrieveRsp));
 			// traveller deatials
-			List<Traveller> travellerList = new ArrayList<>();
-			Traveller traveller = new Traveller();
-
-			for (AirReservation airReservation : universalRecordRetrieveRsp
-					.getUniversalRecord().getAirReservation()) {
-				for (TicketInfo ticketInfo : airReservation.getDocumentInfo()
-						.getTicketInfo()) {
-					Map<String, String> ticketNumberMap = new HashMap<String, String>();
-					ticketNumberMap.put("TicketNumber", ticketInfo.getNumber());
-					ticketNumberMap.put("airPricingInfoRef",
-							ticketInfo.getAirPricingInfoRef());
-					ticketNumberMap.put("bookingTravelerRef",
-							ticketInfo.getBookingTravelerRef());
-					traveller.setTicketNumberMap(ticketNumberMap);
+			List<Traveller> travellerList = issuanceRequest.getTravellerList();
+			
+			
+			for (Traveller traveller : travellerList) {
+				Map<String, String> ticketMap = new HashMap<>();
+				for (AirReservation airReservation : universalRecordRetrieveRsp.getUniversalRecord().getAirReservation()) {
+					for (TypeBaseAirSegment airSegment : airReservation.getAirSegment()) {
+						String key = airSegment.getOrigin()+airSegment.getDestination()+traveller.getContactId();
+						ticketMap.put(key.toLowerCase(), airReservation.getDocumentInfo().getTicketInfo().get(0).getNumber());
+					}
 				}
+				traveller.setTicketNumberMap(ticketMap);
 			}
+			
 
 			List<Journey> journeyList = new ArrayList<>();
 			List<AirSegmentInformation> airSegmentList = new ArrayList<>();
@@ -384,8 +381,6 @@ public class TravelportBookingServiceImpl implements BookingService {
 						airSegmentInformation.setFlightInfo(flightInfo);
 					}
 				}
-
-				travellerList.add(traveller);
 				masterInfo.setTravellersList(travellerList); // traveller is
 				journey.setAirSegmentList(airSegmentList);
 				journeyList.add(journey);
@@ -396,6 +391,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
 			}
 			masterInfo.setItinerary(flightItinerary);
+			System.out.println("\n<<<<<<<<===================masterInfo======>>>>>\n"+ Json.toJson(masterInfo));
 
 		} catch (Exception e) {
 			e.printStackTrace();
