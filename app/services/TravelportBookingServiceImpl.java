@@ -205,7 +205,10 @@ public class TravelportBookingServiceImpl implements BookingService {
 	public PNRResponse retrievePNR(
 			UniversalRecordRetrieveRsp universalRecordRetrieveRsp,
 			PNRResponse pnrResponse) {
-		// PNRResponse pnrResponse = new PNRResponse();
+		AirReservation airResInfo = universalRecordRetrieveRsp.getUniversalRecord().getAirReservation().get(0);
+		String airlinePNR = airResInfo.getSupplierLocator().get(0).getSupplierLocatorCode();
+		pnrResponse.setAirlinePNR(airlinePNR);
+		
 		Helper.ReservationInfoMap reservationInfoMap = Helper
 				.createReservationInfoMap(universalRecordRetrieveRsp
 						.getUniversalRecord().getProviderReservationInfo());

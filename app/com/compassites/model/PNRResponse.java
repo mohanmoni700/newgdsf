@@ -2,8 +2,6 @@ package com.compassites.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by user on 18-08-2014.
@@ -30,7 +28,7 @@ public class PNRResponse {
 
     private BigDecimal changedBasePrice;
 
-    private Map<String, String> airlinePNRMap;
+    private String airlinePNR;
 
     public String getPnrNumber() {
         return pnrNumber;
@@ -112,12 +110,12 @@ public class PNRResponse {
         this.changedBasePrice = changedBasePrice;
     }
 
-	public Map<String, String> getAirlinePNRMap() {
-		return airlinePNRMap;
+	public String getAirlinePNR() {
+		return airlinePNR;
 	}
 
-	public void setAirlinePNRMap(Map<String, String> airlinePNRMap) {
-		this.airlinePNRMap = airlinePNRMap;
+	public void setAirlinePNR(String airlinePNR) {
+		this.airlinePNR = airlinePNR;
 	}
 	
 }

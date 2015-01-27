@@ -106,16 +106,18 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				.getAirTripDetails(pnrResponse.getPnrNumber());
 
 		TravelItinerary itinerary = tripDetailsRS.getTravelItinerary();
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
-		Map<String, String> airlinePNRMap = new HashMap<>();
-		for (ReservationItem resItem : itinerary.getItineraryInfo()
-				.getReservationItems().getReservationItemArray()) {
-			String key = resItem.getDepartureAirportLocationCode()
-					+ resItem.getArrivalAirportLocationCode()
-					+ sdf.format(resItem.getDepartureDateTime().getTime());
-			airlinePNRMap.put(key, resItem.getAirlinePNR());
-		}
-		pnrResponse.setAirlinePNRMap(airlinePNRMap);
+		String airlinePNR = itinerary.getItineraryInfo().getReservationItems().getReservationItemArray(0).getAirlinePNR();
+		pnrResponse.setAirlinePNR(airlinePNR);
+//		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
+//		Map<String, String> airlinePNRMap = new HashMap<>();
+//		for (ReservationItem resItem : itinerary.getItineraryInfo()
+//				.getReservationItems().getReservationItemArray()) {
+//			String key = resItem.getDepartureAirportLocationCode()
+//					+ resItem.getArrivalAirportLocationCode()
+//					+ sdf.format(resItem.getDepartureDateTime().getTime());
+//			airlinePNRMap.put(key, resItem.getAirlinePNR());
+//		}
+//		pnrResponse.setAirlinePNRMap(airlinePNRMap);
 	}
 
 	private void setTravellerTickets(List<Traveller> travellerList, String pnr)

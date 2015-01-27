@@ -236,7 +236,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		pnrResponse.setValidTillDate(lastTicketingDate);
 		pnrResponse.setFlightAvailable(true);
-		pnrResponse.setAirlinePNRMap(new HashMap<String, String>());
+		pnrResponse.setAirlinePNR("");
 		
 //		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
 //				.getTaxDetails(pricePNRReply));
