@@ -25,9 +25,14 @@ import org.springframework.stereotype.Service;
 
 import play.Logger;
 import utils.ErrorMessageHelper;
+import utils.StringUtility;
 import utils.XMLFileUtility;
 
 import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply;
+import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
+import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails;
+import com.amadeus.xml.fmptbr_12_4_1a.MonetaryInformationDetailsType;
+import com.amadeus.xml.fmptbr_12_4_1a.PricingTicketingSubsequentType144401S;
 import com.amadeus.xml.fmptbr_12_4_1a.ProposedSegmentDetailsType;
 import com.amadeus.xml.fmptbr_12_4_1a.ReferenceInfoType;
 import com.amadeus.xml.fmptbr_12_4_1a.ReferencingDetailsType191583C;
@@ -270,17 +275,11 @@ public class AmadeusFlightSearch implements FlightSearch {
         for (FareMasterPricerTravelBoardSearchReply.Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                 FlightItinerary flightItinerary = new FlightItinerary();
-                // flightItinerary.setProvider("Amadeus");
-                // pricing information
-                List<FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares> groupOfFaresList = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getGroupOfFares();
-                FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct = recommendation.getPaxFareProduct().get(0);
-                flightItinerary.setPricingInformation(setPricingInformation(paxFareProduct.getPaxFareDetail().getTotalTaxAmount(), paxFareProduct.getPaxFareDetail().getTotalFareAmount(), currency));
+                flightItinerary.setPricingInformation(getPricingInformation(recommendation));
                 flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation));
-                //journey information
-
-                flightItinerary=createJourneyInformation(segmentRef,flightItinerary);
+                flightItinerary.getPricingInformation().setGdsCurrency(currency);
+                flightItinerary = createJourneyInformation(segmentRef,flightItinerary);
                 flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
-                //flightItineraryList.add(flightItinerary);
             }
         }
         return flightItineraryHashMap;
@@ -413,15 +412,27 @@ public class AmadeusFlightSearch implements FlightSearch {
         return airSegmentInformation;
     }
 
-    private PricingInformation setPricingInformation(BigDecimal taxAmount, BigDecimal totalAmount, String currency) {
+    private PricingInformation getPricingInformation(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation) {
         PricingInformation pricingInformation = new PricingInformation();
-        pricingInformation.setBasePrice(totalAmount.subtract(taxAmount));
-        pricingInformation.setTax(taxAmount);
-        pricingInformation.setTotalPrice(totalAmount);
-        pricingInformation.setTotalPriceValue(BigDecimal.valueOf(totalAmount.longValue()));
-        pricingInformation.setGdsCurrency(currency);
         pricingInformation.setProvider("Amadeus");
+        List<MonetaryInformationDetailsType> monetaryDetails = recommendation.getRecPriceInfo().getMonetaryDetail();
+        pricingInformation.setBasePrice(monetaryDetails.get(0).getAmount());
+        pricingInformation.setTax(monetaryDetails.get(1).getAmount());
+        pricingInformation.setTotalPrice(monetaryDetails.get(0).getAmount().add(monetaryDetails.get(1).getAmount()));
+        pricingInformation.setTotalPriceValue(pricingInformation.getTotalPrice());
         pricingInformation.setPassengerTaxes(new ArrayList<PassengerTax>());
+        for(PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
+        	int paxCount = paxFareProduct.getPaxReference().get(0).getTraveller().size();
+        	String paxType = paxFareProduct.getPaxReference().get(0).getPtc().get(0);
+        	PricingTicketingSubsequentType144401S fareDetails = paxFareProduct.getPaxFareDetail();
+        	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA")) {
+        		pricingInformation.setAdtBasePrice(fareDetails.getTotalFareAmount().multiply(new BigDecimal(paxCount)));
+			} else if(paxType.equalsIgnoreCase("CHD")) {
+				pricingInformation.setChdBasePrice(fareDetails.getTotalFareAmount().multiply(new BigDecimal(paxCount)));
+			} else if(paxType.equalsIgnoreCase("INF")) {
+				pricingInformation.setInfBasePrice(fareDetails.getTotalFareAmount().multiply(new BigDecimal(paxCount)));
+			}
+        }
         return pricingInformation;
     }
 
