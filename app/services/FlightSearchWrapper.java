@@ -30,16 +30,19 @@ public class FlightSearchWrapper {
     @Autowired
     private RedisTemplate redisTemplate;
 
-    public List<SearchResponse> search(final SearchParameters searchParameters) {
+    public void search(final SearchParameters searchParameters) {
         final String redisKey = searchParameters.redisKey();
         Logger.info("***********SEARCH STARTED key: ["+ redisKey +"]***********");
+
+
         SearchResponse searchResponseList = new SearchResponse();
-        int maxThreads = 5;
-        int queueSize = 100;
+        int maxThreads = flightSearchList.size();
+        int queueSize = 10;
 
         redisTemplate.opsForValue().set(redisKey + ":status", "started");
         redisTemplate.expire(redisKey,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
-        ExecutorService newExecutor = new ThreadPoolExecutor(maxThreads, maxThreads, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
+        ThreadPoolExecutor newExecutor = new ThreadPoolExecutor(maxThreads, maxThreads, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
+//        ExecutorService newExecutor = Executors.newCachedThreadPool();
         List<Future<SearchResponse>> futureSearchResponseList = new ArrayList<>();
         List<ErrorMessage> errorMessageList = new ArrayList<>();
         HashMap<Integer,FlightItinerary> hashMap =  new HashMap<>();
@@ -90,9 +93,22 @@ public class FlightSearchWrapper {
         while(loop){
             ListIterator<Future<SearchResponse>> listIterator = futureSearchResponseList.listIterator();
             while (listIterator.hasNext()) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 Future<SearchResponse> future = listIterator.next();
                 SearchResponse searchResponse = null;
-
+                /*System.out.println("=================================>" +
+                        String.format("[monitor] [%d/%d] Active: %d, Completed: %d, Task: %d, isShutdown: %s, isTerminated: %s",
+                                newExecutor.getPoolSize(),
+                                newExecutor.getCorePoolSize(),
+                                newExecutor.getActiveCount(),
+                                newExecutor.getCompletedTaskCount(),
+                                newExecutor.getTaskCount(),
+                                newExecutor.isShutdown(),
+                                newExecutor.isTerminated()));*/
                 if(future.isDone()){
                     try {
                         searchResponse = future.get();
@@ -188,6 +204,8 @@ public class FlightSearchWrapper {
 
                 }
             }
+
+            newExecutor.shutdown();
             if(counter == searchResponseListSize){
 
                 loop = false;
@@ -202,6 +220,17 @@ public class FlightSearchWrapper {
                 Logger.info("***********SEARCH END key: ["+ redisKey +"]***********");
             }
         }
+
+        System.out.println("=================================>\n"+
+                "=================================>\n"+
+                String.format("[monitor] [%d/%d] Active: %d, Completed: %d, Task: %d, isShutdown: %s, isTerminated: %s",
+                        newExecutor.getPoolSize(),
+                        newExecutor.getCorePoolSize(),
+                        newExecutor.getActiveCount(),
+                        newExecutor.getCompletedTaskCount(),
+                        newExecutor.getTaskCount(),
+                        newExecutor.isShutdown(),
+                        newExecutor.isTerminated()));
         /*
         Logger.info("HashMap Size: "+hashMap.size());
         SearchResponse searchResponse=new SearchResponse();
@@ -212,7 +241,7 @@ public class FlightSearchWrapper {
         searchResponseList.add(searchResponse);
         Logger.info("***********SEARCH END***********");
         */
-        return null;
+        return ;
     }
 
     private boolean validResponse(SearchResponse response){

@@ -38,7 +38,7 @@ public class Application {
 
         SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         System.out.println("SearchParamerters: " + json.toString());
-        List<SearchResponse> responseList =  flightSearchWrapper.search(searchParameters);
+        flightSearchWrapper.search(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 
