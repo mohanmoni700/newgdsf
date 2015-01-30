@@ -15,6 +15,7 @@ import models.Airline;
 import models.Airport;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import play.libs.Json;
 import utils.ErrorMessageHelper;
@@ -207,15 +208,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 	public PNRResponse retrievePNR(
 			UniversalRecordRetrieveRsp universalRecordRetrieveRsp,
 			PNRResponse pnrResponse) {
-		List<AirReservation> airResList = universalRecordRetrieveRsp.getUniversalRecord().getAirReservation();
-		if(airResList.size() > 0) {
-			AirReservation airResInfo = airResList.get(0);
-			List<SupplierLocator> supplierLocators = airResInfo.getSupplierLocator();
-			if(supplierLocators.size() > 0) {		
-				String airlinePNR = supplierLocators.get(0).getSupplierLocatorCode();
-				pnrResponse.setAirlinePNR(airlinePNR);
-			}
-		}
+		
 		Helper.ReservationInfoMap reservationInfoMap = Helper
 				.createReservationInfoMap(universalRecordRetrieveRsp
 						.getUniversalRecord().getProviderReservationInfo());
@@ -227,7 +220,22 @@ public class TravelportBookingServiceImpl implements BookingService {
 					.getProviderReservationInfoRef()) {
 				ProviderReservationInfo reservationInfo = reservationInfoMap
 						.getByRef(reservationInfoRef);
+				if(StringUtils.hasText(reservationInfo.getLocatorCode())) {
+					ErrorMessage error = ErrorMessageHelper.createErrorMessage(
+							"Booking failed", ErrorMessage.ErrorType.ERROR, "Travelport");
+					pnrResponse.setErrorMessage(error);
+					return pnrResponse;
+				}
 				pnrResponse.setPnrNumber(reservationInfo.getLocatorCode());
+			}
+		}
+		List<AirReservation> airResList = universalRecordRetrieveRsp.getUniversalRecord().getAirReservation();
+		if(airResList.size() > 0) {
+			AirReservation airResInfo = airResList.get(0);
+			List<SupplierLocator> supplierLocators = airResInfo.getSupplierLocator();
+			if(supplierLocators.size() > 0) {		
+				String airlinePNR = supplierLocators.get(0).getSupplierLocatorCode();
+				pnrResponse.setAirlinePNR(airlinePNR);
 			}
 		}
 		try {
@@ -255,7 +263,6 @@ public class TravelportBookingServiceImpl implements BookingService {
 			calendar.add(Calendar.HOUR_OF_DAY, 6);
 			lastDate = calendar.getTime();
 		}
-
 		pnrResponse.setValidTillDate(lastDate);
 		return pnrResponse;
 	}
