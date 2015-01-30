@@ -6,6 +6,7 @@ import redis.clients.jedis.Jedis;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by mahendra-singh on 25/6/14.
@@ -187,13 +188,17 @@ public class Airport extends Model implements Serializable {
 		Jedis j = new Jedis("localhost", 6379);
 		j.connect();
 		String airportJson = j.get(iataCode);
-		Airport airport = null;
+		Airport airport = new Airport();
 		if (airportJson != null) {
 			airport = Json.fromJson(Json.parse(airportJson), Airport.class);
 
 		} else {
-			airport = find.where().eq("iata_code", iataCode).findList().get(0);
-			j.set(iataCode, Json.toJson(airport).toString());
+			List<Airport> airportList = find.where().eq("iata_code", iataCode).findList();
+			if(airportList != null && airportList.size() > 0){
+				airport = airportList.get(0);
+				j.set(iataCode, Json.toJson(airport).toString());
+			}
+
 
 		}
 		j.disconnect();
