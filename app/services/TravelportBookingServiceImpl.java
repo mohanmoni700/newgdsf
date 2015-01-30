@@ -55,7 +55,9 @@ import com.travelport.schema.air_v26_0.TicketInfo;
 import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
 import com.travelport.schema.common_v26_0.BookingTraveler;
 import com.travelport.schema.common_v26_0.BookingTravelerName;
+import com.travelport.schema.common_v26_0.GeneralRemark;
 import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
+import com.travelport.schema.common_v26_0.SupplierLocator;
 import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
 import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
@@ -205,14 +207,20 @@ public class TravelportBookingServiceImpl implements BookingService {
 	public PNRResponse retrievePNR(
 			UniversalRecordRetrieveRsp universalRecordRetrieveRsp,
 			PNRResponse pnrResponse) {
-		AirReservation airResInfo = universalRecordRetrieveRsp.getUniversalRecord().getAirReservation().get(0);
-		String airlinePNR = airResInfo.getSupplierLocator().get(0).getSupplierLocatorCode();
-		pnrResponse.setAirlinePNR(airlinePNR);
-		
+		List<AirReservation> airResList = universalRecordRetrieveRsp.getUniversalRecord().getAirReservation();
+		if(airResList.size() > 0) {
+			AirReservation airResInfo = airResList.get(0);
+			List<SupplierLocator> supplierLocators = airResInfo.getSupplierLocator();
+			if(supplierLocators.size() > 0) {		
+				String airlinePNR = supplierLocators.get(0).getSupplierLocatorCode();
+				pnrResponse.setAirlinePNR(airlinePNR);
+			}
+		}
 		Helper.ReservationInfoMap reservationInfoMap = Helper
 				.createReservationInfoMap(universalRecordRetrieveRsp
 						.getUniversalRecord().getProviderReservationInfo());
 		Date lastDate = null;
+		Calendar calendar = Calendar.getInstance();
 		for (AirReservation airReservation : universalRecordRetrieveRsp
 				.getUniversalRecord().getAirReservation()) {
 			for (ProviderReservationInfoRef reservationInfoRef : airReservation
@@ -223,24 +231,29 @@ public class TravelportBookingServiceImpl implements BookingService {
 			}
 		}
 		try {
-			String remarkData = universalRecordRetrieveRsp.getUniversalRecord()
-					.getGeneralRemark().get(0).getRemarkData();
-			int i = remarkData.lastIndexOf("BY");
-			String subString = remarkData.substring(i + 2);
+			List<GeneralRemark> generalRemarks = universalRecordRetrieveRsp.getUniversalRecord().getGeneralRemark();
+			if(generalRemarks != null && generalRemarks.size() > 0) {
+				String remarkData = generalRemarks.get(0).getRemarkData();
+				int i = remarkData.lastIndexOf("BY");
+				String subString = remarkData.substring(i + 2);
 
-			subString = subString.trim();
-			String[] args1 = subString.split("/");
-			String dateString = args1[0] + "/" + args1[1];
-			dateString = dateString + Calendar.getInstance().get(Calendar.YEAR);
-			SimpleDateFormat sdf = new SimpleDateFormat("HHmm/ddMMMyyyy");
+				subString = subString.trim();
+				String[] args1 = subString.split("/");
+				String dateString = args1[0] + "/" + args1[1];
+				dateString = dateString + calendar.get(Calendar.YEAR);
+				SimpleDateFormat sdf = new SimpleDateFormat("HHmm/ddMMMyyyy");
 
-			lastDate = sdf.parse(dateString);
-		} catch (NullPointerException e) {
+				lastDate = sdf.parse(dateString);
+			} else {
+				calendar.setTime(new Date());
+				calendar.add(Calendar.HOUR_OF_DAY, 6);
+				lastDate = calendar.getTime();
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
-			pnrResponse.setFlightAvailable(false);
-
-		} catch (ParseException e) {
-			e.printStackTrace();
+			calendar.setTime(new Date());
+			calendar.add(Calendar.HOUR_OF_DAY, 6);
+			lastDate = calendar.getTime();
 		}
 
 		pnrResponse.setValidTillDate(lastDate);

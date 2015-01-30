@@ -33,7 +33,6 @@ public class XMLFileUtility {
 
 	public static void createFile(String content, String filename) {
 		filename =  "xmls/" + filename.split("\\.")[0] + dateFormat.format(new Date()) + ".xml";
-		System.out.println(filename);
 		try {
 			FileWriter fileWriter = new FileWriter(new File(filename));
 			BufferedWriter writer = new BufferedWriter(fileWriter);
