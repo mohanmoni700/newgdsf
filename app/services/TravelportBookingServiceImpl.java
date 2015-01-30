@@ -220,7 +220,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 					.getProviderReservationInfoRef()) {
 				ProviderReservationInfo reservationInfo = reservationInfoMap
 						.getByRef(reservationInfoRef);
-				if(StringUtils.hasText(reservationInfo.getLocatorCode())) {
+				if(!StringUtils.hasText(reservationInfo.getLocatorCode())) {
 					ErrorMessage error = ErrorMessageHelper.createErrorMessage(
 							"Booking failed", ErrorMessage.ErrorType.ERROR, "Travelport");
 					pnrResponse.setErrorMessage(error);
