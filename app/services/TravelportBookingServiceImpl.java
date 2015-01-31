@@ -1,7 +1,6 @@
 package services;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,25 +35,19 @@ import com.compassites.model.Journey;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.travelport.schema.air_v26_0.AirItinerary;
 import com.travelport.schema.air_v26_0.AirPriceRsp;
 import com.travelport.schema.air_v26_0.AirPricingInfo;
 import com.travelport.schema.air_v26_0.AirReservation;
-import com.travelport.schema.air_v26_0.AirSegmentDetails;
-import com.travelport.schema.air_v26_0.AirSegmentList;
 import com.travelport.schema.air_v26_0.AirTicketingRsp;
 import com.travelport.schema.air_v26_0.Coupon;
-import com.travelport.schema.air_v26_0.DocumentInfo;
 import com.travelport.schema.air_v26_0.ETR;
 import com.travelport.schema.air_v26_0.FareInfo;
 import com.travelport.schema.air_v26_0.FlightDetails;
 import com.travelport.schema.air_v26_0.Ticket;
-import com.travelport.schema.air_v26_0.TicketInfo;
 import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
-import com.travelport.schema.common_v26_0.BookingTraveler;
 import com.travelport.schema.common_v26_0.BookingTravelerName;
 import com.travelport.schema.common_v26_0.GeneralRemark;
 import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
@@ -62,7 +55,6 @@ import com.travelport.schema.common_v26_0.SupplierLocator;
 import com.travelport.schema.common_v26_0.TypeCabinClass;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
 import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
-import com.travelport.schema.universal_v26_0.UniversalRecord;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 
@@ -341,17 +333,14 @@ public class TravelportBookingServiceImpl implements BookingService {
 			FlightItinerary flightItinerary = new FlightItinerary();
 
 			Journey journey = new Journey();
-			for (AirReservation airReservation : universalRecordRetrieveRsp
-					.getUniversalRecord().getAirReservation()) {
-				SimpleDateFormat format = new SimpleDateFormat("yyMMddHHmm");
+			for (AirReservation airReservation : universalRecordRetrieveRsp.getUniversalRecord().getAirReservation()) {
+				
 
-				for (TypeBaseAirSegment airSegment : airReservation
-						.getAirSegment()) {
+				for (TypeBaseAirSegment airSegment : airReservation.getAirSegment()) {
 					AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
 					String carrierCode = airSegment.getCarrier();
 					airSegmentInformation.setCarrierCode(carrierCode);
-					airSegmentInformation.setFlightNumber(airSegment
-							.getFlightNumber());
+					airSegmentInformation.setFlightNumber(airSegment.getFlightNumber());
 					/*Date arrvalDate = format.parse(airSegment.getArrivalTime());
 					airSegmentInformation.setArrivalDate(arrvalDate);
 
@@ -361,12 +350,9 @@ public class TravelportBookingServiceImpl implements BookingService {
 					String fromLoc = airSegment.getOrigin();
 					String toLoc = airSegment.getDestination();
 					airSegmentInformation.setFromLocation(fromLoc);
-					airSegmentInformation.setToLocation(airSegment
-							.getDestination());
-					airSegmentInformation.setTravelTime(airSegment
-							.getTravelTime().toString());
-					airSegmentInformation.setDistanceTravelled(airSegment
-							.getDistance().toString());
+					airSegmentInformation.setToLocation(airSegment.getDestination());
+					airSegmentInformation.setTravelTime(airSegment.getTravelTime().toString());
+					airSegmentInformation.setDistanceTravelled(airSegment.getDistance().toString());
 					airSegmentInformation.setFromDate(airSegment.getArrivalTime());
 					airSegmentInformation.setToDate(airSegment.getDepartureTime());
 					
@@ -376,33 +362,25 @@ public class TravelportBookingServiceImpl implements BookingService {
 					airSegmentInformation.setToAirport(Airport.getAiport(toLoc));
 					airSegmentInformation.setBookingClass(airSegment.getCabinClass().toString());
 					
-					for (FlightDetails flightDetails : airSegment
-							.getFlightDetails()) {
+					for (FlightDetails flightDetails : airSegment.getFlightDetails()) {
 						if (flightDetails.getOriginTerminal() != null) {
-							airSegmentInformation.setFromTerminal(flightDetails
-									.getOriginTerminal());
+							airSegmentInformation.setFromTerminal(flightDetails.getOriginTerminal());
 						}
 						if (flightDetails.getDestinationTerminal() != null) {
-							airSegmentInformation.setToTerminal(flightDetails
-									.getDestinationTerminal());
+							airSegmentInformation.setToTerminal(flightDetails.getDestinationTerminal());
 						}
-						airSegmentInformation.setEquipment(flightDetails
-								.getEquipment());
+						airSegmentInformation.setEquipment(flightDetails.getEquipment());
 					}
-					airSegmentList.add(airSegmentInformation);
-					for (AirPricingInfo airPricingInfo : airReservation
-							.getAirPricingInfo()) {
+					//airSegmentList.add(airSegmentInformation);
+					for (AirPricingInfo airPricingInfo : airReservation.getAirPricingInfo()) {
 						FlightInfo flightInfo = new FlightInfo();
 						for (FareInfo fareInfo : airPricingInfo.getFareInfo()) {
-							flightInfo.setBaggageUnit(fareInfo
-									.getBaggageAllowance().getMaxWeight()
-									.getUnit().toString());
-							flightInfo.setBaggageAllowance(fareInfo
-									.getBaggageAllowance().getMaxWeight()
-									.getValue());
+							flightInfo.setBaggageUnit(fareInfo.getBaggageAllowance().getMaxWeight().getUnit().toString());
+							flightInfo.setBaggageAllowance(fareInfo.getBaggageAllowance().getMaxWeight().getValue());
 						}
 						airSegmentInformation.setFlightInfo(flightInfo);
 					}
+					airSegmentList.add(airSegmentInformation);
 				}
 				masterInfo.setTravellersList(travellerList); // traveller is
 				journey.setAirSegmentList(airSegmentList);
