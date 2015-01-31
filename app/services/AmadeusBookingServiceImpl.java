@@ -13,6 +13,8 @@ import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.SegmentInformation;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.AirSegmentInformation;
@@ -23,6 +25,9 @@ import com.compassites.model.IssuanceRequest;
 import com.compassites.model.IssuanceResponse;
 import com.compassites.model.Journey;
 import com.compassites.model.PNRResponse;
+import com.compassites.model.PassengerTax;
+import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.PricingInformation;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -36,7 +41,9 @@ import play.libs.Json;
 import utils.AmadeusBookingHelper;
 import utils.ErrorMessageHelper;
 import utils.XMLFileUtility;
+import utils.DateUtility;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,7 +66,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 	@Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
-
 		ServiceHandler serviceHandler = null;
 		PNRResponse pnrResponse = new PNRResponse();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
@@ -137,7 +143,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
 
 					// pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
-					pnrResponse = createPNRResponse(gdsPNRReply, pricePNRReply);
+					createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse);
 
 					// getCancellationFee(travellerMasterInfo, serviceHandler);
 				}
@@ -192,15 +198,66 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					.get(0).getCarrierCode();
 		}
 		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
-
-		for(FareList fare : pricePNRReply.getFareList()) {
-			
-		}
-		pnrResponse = AmadeusBookingHelper.checkFare(pricePNRReply,
+		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,
 				travellerMasterInfo, totalFareIdentifier);
-
+		PricingInformation pi = setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
+		pnrResponse.setPricingInfo(pi);
 		return pricePNRReply;
-
+	}
+	
+	private PricingInformation setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo,
+			FarePricePNRWithBookingClassReply pricePNRReply) {
+		int adultCount = 0, childCount = 0, infantCount = 0;
+		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
+			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+			if (passengerType.equals(PassengerTypeCode.ADT)) {
+				adultCount++;
+			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
+				childCount++;
+			} else {
+				infantCount++;
+			}
+		}
+		PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
+				.getItinerary().getPricingInformation() : travellerMasterInfo
+				.getItinerary().getSeamanPricingInformation();
+		List<PassengerTax> passengerTaxes = new ArrayList<>();
+		for (FareList fare : pricePNRReply.getFareList()) {
+			SegmentInformation segmentInfo = fare.getSegmentInformation().get(0);
+			List<TaxInformation> taxInfos = fare.getTaxInformation();
+			if (segmentInfo != null && taxInfos.size() > 0) {
+				PassengerTax passengerTax = new PassengerTax();
+				String paxType = segmentInfo.getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
+				Map<String, BigDecimal> taxes = new HashMap<>();
+				if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA")) {
+					passengerTax.setPassengerType("ADT");
+					passengerTax.setPassengerCount(adultCount);
+					for(TaxInformation taxInfo : taxInfos) {
+						String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+						taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
+					}
+				} else if(paxType.equalsIgnoreCase("CH") || paxType.equalsIgnoreCase("CHD")) {
+					passengerTax.setPassengerType("CHD");
+					passengerTax.setPassengerCount(childCount);
+					for(TaxInformation taxInfo : taxInfos) {
+						String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+						taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
+					}
+				} else if(paxType.equalsIgnoreCase("IN") || paxType.equalsIgnoreCase("INF")) {
+					passengerTax.setPassengerType("INF");
+					passengerTax.setPassengerCount(infantCount);
+					for(TaxInformation taxInfo : taxInfos) {
+						String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+						taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
+					}
+				}
+				passengerTax.setTaxes(taxes);
+				passengerTaxes.add(passengerTax);
+			}
+		}
+		pricingInfo.setPassengerTaxes(passengerTaxes);
+		pnrResponse.setPricingInfo(pricingInfo);
+		return pricingInfo;
 	}
 
 	@Override
@@ -219,8 +276,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	}
 
 	public PNRResponse createPNRResponse(PNRReply gdsPNRReply,
-			FarePricePNRWithBookingClassReply pricePNRReply) {
-		PNRResponse pnrResponse = new PNRResponse();
+			FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse) {
+//		PNRResponse pnrResponse = new PNRResponse();
 		for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
 			pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
 					.getReservation().getControlNumber());
@@ -242,6 +299,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		pnrResponse.setValidTillDate(lastTicketingDate);
 		pnrResponse.setFlightAvailable(true);
+		
+		// TODO: there is a delay in airline PNR generation.
 		pnrResponse.setAirlinePNR("");
 		
 //		pnrResponse.setTaxDetailsList(AmadeusBookingHelper

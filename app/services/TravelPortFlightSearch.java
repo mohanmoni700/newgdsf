@@ -404,7 +404,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 		List<PassengerTax> passengerTaxes = new ArrayList<>();
 		for (AirPricingInfo airPricingInfo : airPricingSolution	.getAirPricingInfo()) {
 			PassengerTax passengerTax = new PassengerTax();
-			passengerTax.setBaseFare(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+//			passengerTax.setBaseFare(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
 			passengerTax.setPassengerCount(airPricingInfo.getPassengerType().size());
 			PassengerType paxType = airPricingInfo.getPassengerType().get(0);
 			if(paxType.getCode().equalsIgnoreCase("ADT") || paxType.getCode().equalsIgnoreCase("SEA")) {

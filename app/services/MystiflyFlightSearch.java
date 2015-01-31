@@ -154,8 +154,8 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 			PassengerTax passengerTax = new PassengerTax();
 			PassengerFare paxFare = ptcFareBreakdown.getPassengerFare();
-			passengerTax.setBaseFare(new BigDecimal(paxFare.getBaseFare()
-					.getAmount()));
+//			passengerTax.setBaseFare(new BigDecimal(paxFare.getBaseFare()
+//					.getAmount()));
 			PassengerTypeQuantity passenger = ptcFareBreakdown
 					.getPassengerTypeQuantity();
 			passengerTax.setPassengerCount(passenger.getQuantity());

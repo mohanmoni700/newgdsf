@@ -416,23 +416,43 @@ public class AmadeusFlightSearch implements FlightSearch {
         PricingInformation pricingInformation = new PricingInformation();
         pricingInformation.setProvider("Amadeus");
         List<MonetaryInformationDetailsType> monetaryDetails = recommendation.getRecPriceInfo().getMonetaryDetail();
-        pricingInformation.setBasePrice(monetaryDetails.get(0).getAmount());
-        pricingInformation.setTax(monetaryDetails.get(1).getAmount());
-        pricingInformation.setTotalPrice(monetaryDetails.get(0).getAmount().add(monetaryDetails.get(1).getAmount()));
-        pricingInformation.setTotalPriceValue(pricingInformation.getTotalPrice());
-        pricingInformation.setPassengerTaxes(new ArrayList<PassengerTax>());
+        BigDecimal totalFare = monetaryDetails.get(0).getAmount();
+        BigDecimal totalTax = monetaryDetails.get(1).getAmount();
+        pricingInformation.setBasePrice(totalFare.subtract(totalTax));
+        pricingInformation.setTax(totalTax);
+        pricingInformation.setTotalPrice(totalFare);
+        pricingInformation.setTotalPriceValue(totalFare);
+        List<PassengerTax> passengerTaxes= new ArrayList<>();
         for(PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
+        	PassengerTax passengerTax = new PassengerTax();
         	int paxCount = paxFareProduct.getPaxReference().get(0).getTraveller().size();
         	String paxType = paxFareProduct.getPaxReference().get(0).getPtc().get(0);
         	PricingTicketingSubsequentType144401S fareDetails = paxFareProduct.getPaxFareDetail();
+        	BigDecimal amount = fareDetails.getTotalFareAmount();
+        	BigDecimal tax = fareDetails.getTotalTaxAmount();
+        	BigDecimal baseFare = amount.subtract(tax);
         	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA")) {
-        		pricingInformation.setAdtBasePrice(fareDetails.getTotalFareAmount().multiply(new BigDecimal(paxCount)));
-			} else if(paxType.equalsIgnoreCase("CHD")) {
-				pricingInformation.setChdBasePrice(fareDetails.getTotalFareAmount().multiply(new BigDecimal(paxCount)));
+//        		pricingInformation.setAdtBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
+        		pricingInformation.setAdtBasePrice(baseFare);
+        		passengerTax.setPassengerType("ADT");
+        		passengerTax.setTotalTax(tax);
+        		passengerTax.setPassengerCount(paxCount);
+ 			} else if(paxType.equalsIgnoreCase("CHD")) {
+//				pricingInformation.setChdBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
+				pricingInformation.setChdBasePrice(baseFare);
+        		passengerTax.setPassengerType("CHD");
+        		passengerTax.setTotalTax(tax);
+        		passengerTax.setPassengerCount(paxCount);
 			} else if(paxType.equalsIgnoreCase("INF")) {
-				pricingInformation.setInfBasePrice(fareDetails.getTotalFareAmount().multiply(new BigDecimal(paxCount)));
+//				pricingInformation.setInfBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
+				pricingInformation.setInfBasePrice(baseFare);
+        		passengerTax.setPassengerType("INF");
+        		passengerTax.setTotalTax(tax);
+        		passengerTax.setPassengerCount(paxCount);
 			}
+        	passengerTaxes.add(passengerTax);
         }
+        pricingInformation.setPassengerTaxes(passengerTaxes);
         return pricingInformation;
     }
 

@@ -3,6 +3,8 @@ package utils;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -12,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import play.libs.Json;
 
 /**
  * Created by Yaseen on 18-12-2014.
@@ -45,35 +49,64 @@ public class AmadeusBookingHelper {
         return errors;
     }
 
-    public static PNRResponse checkFare(FarePricePNRWithBookingClassReply pricePNRReply,TravellerMasterInfo travellerMasterInfo,String totalFareIdentifier){
-        BigDecimal totalFare = new BigDecimal(0);
-        PNRResponse pnrResponse = new PNRResponse();
-        List<FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation> fareList = pricePNRReply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
-        for (FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation fareData : fareList){
-
-            if(totalFareIdentifier.equals(fareData.getFareDataQualifier())){
-                totalFare = new BigDecimal(fareData.getFareAmount());
-                break;
-            }
-
+    public static void checkFare(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo,String totalFareIdentifier){
+    	
+    	// TODO: re-factor
+    	int adultCount = 0, childCount = 0, infantCount = 0;
+		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
+			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+			if (passengerType.equals(PassengerTypeCode.ADT) || passengerType.equals(PassengerTypeCode.SEA)) {
+				adultCount++;
+			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
+				childCount++;
+			} else {
+				infantCount++;
+			}
+		}
+		BigDecimal totalFare = new BigDecimal(0);
+        List<FareList> fareList = pricePNRReply.getFareList();
+        for(FareList fare : fareList) {
+        	int paxCount = 0;
+        	String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
+        	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
+        		paxCount = adultCount;
+        	} else if(paxType.equalsIgnoreCase("CHD") || paxType.equalsIgnoreCase("CH")) {
+        		paxCount = childCount;
+        	} else if(paxType.equalsIgnoreCase("INF") || paxType.equalsIgnoreCase("IN")) {
+        		paxCount = infantCount;
+        	}
+        	for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+        		if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
+        			BigDecimal amount = new BigDecimal(fareData.getFareAmount());
+        			totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
+        		}
+        	}
         }
+//        PNRResponse pnrResponse = new PNRResponse();
+//        List<FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation> fareList = pricePNRReply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
+//        for (FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation fareData : fareList){
+//
+//            if(totalFareIdentifier.equals(fareData.getFareDataQualifier())){
+//                totalFare = new BigDecimal(fareData.getFareAmount());
+//                break;
+//            }
+//
+//        }
         BigDecimal searchPrice = new BigDecimal(0);
-        if(travellerMasterInfo.isSeamen()){
+        if(travellerMasterInfo.isSeamen()) {
             searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
-        }else {
+        } else {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
 
-
         if(totalFare.equals(searchPrice)) {
-            return pnrResponse;
+        	pnrResponse.setPriceChanged(false);
+            return;
         }
         pnrResponse.setChangedPrice(totalFare);
         pnrResponse.setOriginalPrice(searchPrice);
         pnrResponse.setPriceChanged(true);
         pnrResponse.setFlightAvailable(true);
-        return pnrResponse;
-
     }
 
 

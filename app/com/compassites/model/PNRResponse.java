@@ -29,6 +29,8 @@ public class PNRResponse {
     private BigDecimal changedBasePrice;
 
     private String airlinePNR;
+    
+    private PricingInformation pricingInfo;
 
     public String getPnrNumber() {
         return pnrNumber;
@@ -116,6 +118,14 @@ public class PNRResponse {
 
 	public void setAirlinePNR(String airlinePNR) {
 		this.airlinePNR = airlinePNR;
+	}
+
+	public PricingInformation getPricingInfo() {
+		return pricingInfo;
+	}
+
+	public void setPricingInfo(PricingInformation pricingInfo) {
+		this.pricingInfo = pricingInfo;
 	}
 	
 }
