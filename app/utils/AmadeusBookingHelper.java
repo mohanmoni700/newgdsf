@@ -102,7 +102,7 @@ public class AmadeusBookingHelper {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
 
-        if(totalFare.equals(searchPrice)) {
+        if(totalFare.compareTo(searchPrice) == 0) {
         	pnrResponse.setPriceChanged(false);
             return;
         }
@@ -156,8 +156,9 @@ public class AmadeusBookingHelper {
                         Map<String,String> ticketMap = new HashMap<>();
                         for(String segmentRef : segmentRefList){
                             PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
-                            String key = itineraryInfo.getTravelProduct().getProduct().getDepDate() + itineraryInfo.getTravelProduct().getProduct().getDepTime();
-                            ticketMap.put(key,ticketNumber);
+                            String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
+                                    itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId();
+                            ticketMap.put(key.toLowerCase(),ticketNumber);
                         }
                         traveller1.setTicketNumberMap(ticketMap);
                     }

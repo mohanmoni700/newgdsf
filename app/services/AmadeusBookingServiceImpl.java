@@ -381,7 +381,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		System.out.println("Issuance Response ========>>"+Json.toJson(issuanceResponse));
 		return issuanceResponse;
 	}
 
@@ -423,9 +423,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					}
 				}
 			}
-			System.out
+			/*System.out
 					.println("---------------------------------------Fare Rules------------------------------------\n"
-							+ fareRule.toString());
+							+ fareRule.toString());*/
 			issuanceResponse.setCancellationFeeText(fareRule.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
