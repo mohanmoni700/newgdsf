@@ -486,28 +486,46 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
 			AmadeusBookingHelper.createTickets(issuanceResponse, issuanceRequest, gdsPNRReply);
 			
+			System.out.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
+					+ "\n"+Json.toJson(gdsPNRReply));
 			List<Journey> journeyList = new ArrayList<>();
 			List<AirSegmentInformation> airSegmentList = new ArrayList<>();
 			FlightItinerary flightItinerary = new FlightItinerary();
-
+			
 			Journey journey = new Journey();
 			for (OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()) {
 				for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
 					SimpleDateFormat format = new SimpleDateFormat("ddMMyy");
 					AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
 					
+					Date fromDate = format.parse(itineraryInfo.getTravelProduct().getProduct().getArrDate());
+					Date toDate = format.parse(itineraryInfo.getTravelProduct().getProduct().getDepDate());
+					
 					airSegmentInformation.setFlightNumber(itineraryInfo.getTravelProduct().getProductDetails().getIdentification());
 					
-					airSegmentInformation.setDepartureDate(format.parse(itineraryInfo.getTravelProduct().getProduct().getDepDate()));
+					airSegmentInformation.setDepartureDate(toDate);
 					airSegmentInformation.setDepartureTime(itineraryInfo.getTravelProduct().getProduct().getDepTime());
 					
-					airSegmentInformation.setArrivalDate(format.parse(itineraryInfo.getTravelProduct().getProduct().getArrDate()));
+					
+					airSegmentInformation.setArrivalDate(fromDate);
 					airSegmentInformation.setArrivalTime(itineraryInfo.getTravelProduct().getProduct().getArrTime());
+					
+					airSegmentInformation.setFromDate(itineraryInfo.getTravelProduct().getProduct().getArrDate());
+					airSegmentInformation.setToDate(itineraryInfo.getTravelProduct().getProduct().getDepDate());
 					
 					String fromLoc = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode();
 					String toLoc = itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
 					airSegmentInformation.setFromLocation(fromLoc);
 					airSegmentInformation.setToLocation(toLoc);
+					
+					//String arrivalTer = itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal();
+					if(itineraryInfo.getFlightDetail().getDepartureInformation() != null ){
+						airSegmentInformation.setFromTerminal(itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal());
+					}
+					if(itineraryInfo.getFlightDetail().getArrivalStationInfo() != null){
+						airSegmentInformation.setToTerminal(itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal());
+					}
+					
 					
 					airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification()));
 					airSegmentInformation.setFromAirport(Airport.getAiport(fromLoc));
