@@ -219,8 +219,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		}
 		PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
-				.getItinerary().getPricingInformation() : travellerMasterInfo
-				.getItinerary().getSeamanPricingInformation();
+				.getItinerary().getSeamanPricingInformation() : travellerMasterInfo
+				.getItinerary().getPricingInformation();
 		List<PassengerTax> passengerTaxes = new ArrayList<>();
 		for (FareList fare : pricePNRReply.getFareList()) {
 			SegmentInformation segmentInfo = fare.getSegmentInformation().get(0);
