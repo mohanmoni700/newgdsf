@@ -197,6 +197,9 @@ public class LowFareRequestClient extends TravelPortClient {
         }*/
 
         AirSearchModifiers modifiers = AirRequestClient.createModifiersWithProviders(GDS);
+
+        modifiers.setMaxSolutions(BigInteger.valueOf(10));
+
         request.setAirSearchModifiers(modifiers);
 
         AirSearchModifiers airSearchModifiers = new AirSearchModifiers();
