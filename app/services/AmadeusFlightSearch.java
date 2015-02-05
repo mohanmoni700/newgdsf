@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -66,11 +67,11 @@ import com.sun.xml.ws.fault.ServerSOAPFaultException;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class AmadeusFlightSearch implements FlightSearch {
+public class AmadeusFlightSearch  implements FlightSearch{
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
-        Logger.info("AmadeusFlightSearch called at : " + new Date());
+//        Logger.info("AmadeusFlightSearch called at : " + new Date());
         SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
         searchResponse.setProvider("Amadeus");
@@ -265,10 +266,10 @@ public class AmadeusFlightSearch implements FlightSearch {
     //list with all flight informaition
     private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
-    private HashMap<Integer, FlightItinerary> createFlightItineraryList(AirSolution airSolution, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
+    private ConcurrentHashMap<Integer, FlightItinerary> createFlightItineraryList(AirSolution airSolution, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
         List<FlightItinerary> flightItineraryList = new ArrayList<>();
 
-        HashMap<Integer, FlightItinerary> flightItineraryHashMap = new HashMap<>();
+        ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
 
         String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
         flightIndexList=fareMasterPricerTravelBoardSearchReply.getFlightIndex();
@@ -391,6 +392,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setDepartureDate(departureDate.toDate());
         airSegmentInformation.setDepartureTime(departureDate.toString());
         airSegmentInformation.setArrivalTime(arrivalDate.toString());
+        airSegmentInformation.setArrivalDate(arrivalDate.toDate());
         airSegmentInformation.setFromAirport(fromAirport);
         airSegmentInformation.setToAirport(toAirport);
         Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
@@ -488,6 +490,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setDepartureDate(departureDate.toDate());
         airSegmentInformation.setDepartureTime(departureDate.toString());
         airSegmentInformation.setArrivalTime(arrivalDate.toString());
+        airSegmentInformation.setArrivalDate(arrivalDate.toDate());
         airSegmentInformation.setFromAirport(fromAirport);
         airSegmentInformation.setToAirport(toAirport);
         Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
@@ -518,8 +521,8 @@ public class AmadeusFlightSearch implements FlightSearch {
         System.out.println("==============================================================================");
         System.out.println();
         SearchResponse searchResponse = new SearchResponse();
-        HashMap<Integer, FlightItinerary> allFaresHash = new HashMap<>();
-        HashMap<Integer, FlightItinerary> seamenFareHash = new HashMap<>();
+        ConcurrentHashMap<Integer, FlightItinerary> allFaresHash = new ConcurrentHashMap<>();
+        ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = new ConcurrentHashMap<>();
         for (FlightItinerary flightItinerary : seamenSolution.getFlightItineraryList()) {
             seamenFareHash.put(flightItinerary.hashCode(), flightItinerary);
         }

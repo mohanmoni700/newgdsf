@@ -14,6 +14,7 @@ import com.travelport.service.air_v26_0.AirService;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
+import utils.XMLFileUtility;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -228,10 +229,11 @@ public class LowFareRequestClient extends TravelPortClient {
             e.printStackTrace();
         }
 
+        XMLFileUtility.createXMLFile(request, "Request"+searchParameters.getSearchBookingType()+".xml");
 
         response = airLowFareSearchPortTypePort.service(request);
 
-
+        XMLFileUtility.createXMLFile(response, "Response"+searchParameters.getSearchBookingType()+".xml");
         try {
             Writer writer = new FileWriter("Response"+searchParameters.getSearchBookingType()+".json");
             Gson gson = new GsonBuilder().create();

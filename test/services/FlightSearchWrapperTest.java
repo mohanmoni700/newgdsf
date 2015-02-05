@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -63,8 +64,8 @@ public class FlightSearchWrapperTest {
 	private SearchResponse getSearchRS1() {
 		SearchResponse searchRS = new SearchResponse();
 		AirSolution airSolution = new AirSolution();
-		HashMap<Integer, FlightItinerary> seamenHashMap = new HashMap<>();
-		HashMap<Integer, FlightItinerary> nonSeamenHashMap = new HashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap = new ConcurrentHashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = new ConcurrentHashMap<>();
 		
 		List<FlightItinerary> seamenItineraries = getFlightItineraries(new int[] {1000, 2000});
 		seamenHashMap.put(1, seamenItineraries.get(0));
@@ -83,8 +84,8 @@ public class FlightSearchWrapperTest {
 	private SearchResponse getSearchRS2() {
 		SearchResponse searchRS = new SearchResponse();
 		AirSolution airSolution = new AirSolution();
-		HashMap<Integer, FlightItinerary> seamenHashMap = new HashMap<>();
-		HashMap<Integer, FlightItinerary> nonSeamenHashMap = new HashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap = new ConcurrentHashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = new ConcurrentHashMap<>();
 		
 		List<FlightItinerary> seamenItineraries = getFlightItineraries(new int[] {3000, 800});
 		seamenHashMap.put(2, seamenItineraries.get(0));
@@ -103,8 +104,8 @@ public class FlightSearchWrapperTest {
 	private SearchResponse getSearchRSWithNullNonSeamenHashMap() {
 		SearchResponse searchRS = new SearchResponse();
 		AirSolution airSolution = new AirSolution();
-		HashMap<Integer, FlightItinerary> seamenHashMap = new HashMap<>();
-		HashMap<Integer, FlightItinerary> nonSeamenHashMap = new HashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap = new ConcurrentHashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = new ConcurrentHashMap<>();
 		
 		List<FlightItinerary> seamenItineraries = getFlightItineraries(new int[] {1000, 2000});
 		seamenHashMap.put(1, seamenItineraries.get(0));
@@ -119,8 +120,8 @@ public class FlightSearchWrapperTest {
 	private SearchResponse getSearchRSWithNullSeamenHashMap() {
 		SearchResponse searchRS = new SearchResponse();
 		AirSolution airSolution = new AirSolution();
-		HashMap<Integer, FlightItinerary> seamenHashMap = new HashMap<>();
-		HashMap<Integer, FlightItinerary> nonSeamenHashMap = new HashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap = new ConcurrentHashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = new ConcurrentHashMap<>();
 	
 		List<FlightItinerary> NonSeamenItineraries = getFlightItineraries(new int[] {800, 600});
 		nonSeamenHashMap.put(2, NonSeamenItineraries.get(0));

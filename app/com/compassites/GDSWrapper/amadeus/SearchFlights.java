@@ -144,7 +144,7 @@ public class SearchFlights {
         nudt.setTypeOfUnit("PX");
 
         NumberOfUnitDetailsType191580C nudt1 = new NumberOfUnitDetailsType191580C();
-        nudt1.setNumberOfUnits(new BigInteger("30"));
+        nudt1.setNumberOfUnits(new BigInteger("10"));
         nudt1.setTypeOfUnit("RC");
         nu.getUnitNumberDetail().add(nudt);
         nu.getUnitNumberDetail().add(nudt1);

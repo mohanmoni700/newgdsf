@@ -45,7 +45,7 @@ public class FlightSearchWrapper {
 //        ExecutorService newExecutor = Executors.newCachedThreadPool();
         List<Future<SearchResponse>> futureSearchResponseList = new ArrayList<>();
         List<ErrorMessage> errorMessageList = new ArrayList<>();
-        HashMap<Integer,FlightItinerary> hashMap =  new HashMap<>();
+        ConcurrentHashMap<Integer,FlightItinerary> hashMap =  new ConcurrentHashMap<>();
         for (final FlightSearch flightSearch: flightSearchList) {
         	//if( !(searchParameters.getBookingType() == BookingType.SEAMEN && flightSearch.provider().equals("Mystifly")) ) {
 	            final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
@@ -275,13 +275,13 @@ public class FlightSearchWrapper {
         redisTemplate.expire( key,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS );
     }
 
-    public void mergeResults(HashMap<Integer, FlightItinerary> allFightItineraries, SearchResponse searchResponse) {
+    public void mergeResults(ConcurrentHashMap<Integer, FlightItinerary> allFightItineraries, SearchResponse searchResponse) {
     	AirSolution airSolution = searchResponse.getAirSolution();
         if(allFightItineraries.isEmpty()) {
             mergeSeamenAndNonSeamenResults(allFightItineraries, airSolution);
         } else {
-            HashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
-            HashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
+            ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
+            ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
 
             for(Integer hashKey : allFightItineraries.keySet()){
                 if(seamenFareHash == null || nonSeamenFareHash == null){
@@ -323,13 +323,13 @@ public class FlightSearchWrapper {
                     nonSeamenFareHash.remove(hashKey);
                 }
             }
-            HashMap<Integer, FlightItinerary> list = mergeSeamenAndNonSeamenResults(new HashMap<Integer, FlightItinerary>(), airSolution);
+            ConcurrentHashMap<Integer, FlightItinerary> list = mergeSeamenAndNonSeamenResults(new ConcurrentHashMap<Integer, FlightItinerary>(), airSolution);
             allFightItineraries.putAll(list);
         }
     }
 
 
-    public HashMap<Integer, FlightItinerary> mergeSeamenAndNonSeamenResults(HashMap<Integer, FlightItinerary> allFightItineraries, AirSolution airSolution) {
+    public ConcurrentHashMap<Integer, FlightItinerary> mergeSeamenAndNonSeamenResults(ConcurrentHashMap<Integer, FlightItinerary> allFightItineraries, AirSolution airSolution) {
         if(airSolution.getSeamenHashMap() == null || airSolution.getSeamenHashMap().isEmpty()){
             allFightItineraries.putAll(airSolution.getNonSeamenHashMap());
             return allFightItineraries;
@@ -341,8 +341,8 @@ public class FlightSearchWrapper {
             allFightItineraries.putAll(airSolution.getSeamenHashMap());
             return allFightItineraries;
         }
-        HashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
-        HashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
+        ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
+        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
         allFightItineraries.putAll(nonSeamenFareHash);
         
         for (Integer hashKey : seamenFareHash.keySet()) {

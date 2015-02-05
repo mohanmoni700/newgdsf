@@ -24,6 +24,7 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelPreferences;
 
 import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Santhosh
@@ -103,7 +104,7 @@ public class AirLowFareSearchClient {
 		prefs.setMaxStopsQuantity(MaxStopsQuantity.ALL);
 		if (searchParams.getDirectFlights())
 			prefs.setMaxStopsQuantity(MaxStopsQuantity.DIRECT);
-		if (searchParams.getPreferredAirlines() != null)
+		if (StringUtils.hasText(searchParams.getPreferredAirlines()))
 			prefs.addNewVendorPreferenceCodes().addString(
 					searchParams.getPreferredAirlines());
 		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams

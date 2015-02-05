@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -57,7 +58,7 @@ import com.compassites.model.SearchResponse;
  * @author Santhosh
  */
 @Service
-public class MystiflyFlightSearch implements FlightSearch {
+public class MystiflyFlightSearch implements FlightSearch{
 
 	private SearchParameters searchParams;
 
@@ -96,7 +97,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		ArrayOfPricedItinerary pricedItineraries = searchRS
 				.getPricedItineraries();
 		List<FlightItinerary> itineraryList = createItineraryList(pricedItineraries);
-		HashMap<Integer, FlightItinerary> itineraryHashMap = new HashMap<>();
+		ConcurrentHashMap<Integer, FlightItinerary> itineraryHashMap = new ConcurrentHashMap<>();
 		for (FlightItinerary itinerary : itineraryList) {
 			itineraryHashMap.put(itinerary.hashCode(), itinerary);
 		}
@@ -246,8 +247,8 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 	private AirSegmentInformation createAirSegment(FlightSegment flightSegment) {
 		AirSegmentInformation airSegment = new AirSegmentInformation();
-		airSegment
-				.setArrivalTime(flightSegment.getArrivalDateTime().toString());
+		airSegment.setArrivalTime(flightSegment.getArrivalDateTime().toString());
+		airSegment.setArrivalDate(flightSegment.getArrivalDateTime().getTime());
 		airSegment.setBookingClass(flightSegment.getCabinClassCode());
 		airSegment.setConnectionTime(flightSegment.getJourneyDuration());
 		airSegment.setConnectionTimeStr();

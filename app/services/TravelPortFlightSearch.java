@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -36,7 +37,7 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class TravelPortFlightSearch implements FlightSearch {
+public class TravelPortFlightSearch  implements FlightSearch{
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException, IOException {
@@ -53,7 +54,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             searchResponse.getAirSolution().setNonSeamenHashMap(nonSeamanResponse.getAirSolution().getNonSeamenHashMap());
         }
 
-        Logger.info("[Travelport] End non-seaman search. Response size: "+ nonSeamanResponse.getAirSolution().getFlightItineraryList().size() );
+        Logger.info("[Travelport] End non-seaman search. Response size: " + nonSeamanResponse.getAirSolution().getSeamenHashMap().size());
 
         if (searchParameters.getBookingType()==BookingType.SEAMEN){
             Logger.info("[Travelport] Starting seaman search.");
@@ -62,7 +63,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                 searchResponse.getAirSolution().setSeamenHashMap(seamanResponse.getAirSolution().getNonSeamenHashMap());
             }
 
-            Logger.info("[Travelport] End seaman search. Response size: "+ seamanResponse.getAirSolution().getFlightItineraryList().size());
+            Logger.info("[Travelport] End seaman search. Response size: "+ seamanResponse.getAirSolution().getSeamenHashMap().size());
         }
 
         //SearchResponse finalResponse = mergeResponse(nonSeamanResponse, seamanResponse);
@@ -223,7 +224,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
         AirSolution airSolution=new AirSolution();
         List<FlightItinerary> flightItineraries=new ArrayList<FlightItinerary>();
-        HashMap<Integer, FlightItinerary> flightItineraryHashMap = new HashMap<>();
+        ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
 
         List<AirSegmentInformation> airSegmentInformationList=new ArrayList<AirSegmentInformation>();
         Helper.AirSegmentMap allSegments = Helper.createAirSegmentMap(
@@ -356,11 +357,13 @@ public class TravelPortFlightSearch implements FlightSearch {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
                     try {
                         airSegmentInformation.setDepartureDate(sdf.parse(dtime));
+                        airSegmentInformation.setArrivalDate(sdf.parse(atime));
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
 
                     airSegmentInformation.setArrivalTime(atime);
+
 
                     if ((flightDetails != null) && (flightDetails.getFlightTime() != null)) {
                         //System.out.println(" (flight time " + flightDetails.getFlightTime() + " minutes)");

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,17 +18,17 @@ public class AirSolution {
     public AirSolution(){
 
         flightItineraryList=new ArrayList<FlightItinerary>();
-        seamenHashMap = new HashMap<>();
-        nonSeamenHashMap = new HashMap<>();
+        seamenHashMap = new ConcurrentHashMap<>();
+        nonSeamenHashMap = new ConcurrentHashMap<>();
     }
 
     private List<FlightItinerary> flightItineraryList;
 
     @JsonIgnore
-    private HashMap<Integer, FlightItinerary> seamenHashMap;
+    private ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap;
 
     @JsonIgnore
-    private HashMap<Integer, FlightItinerary> nonSeamenHashMap;
+    private ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap;
 
     public List<FlightItinerary> getFlightItineraryList() {
         return flightItineraryList;
@@ -37,19 +38,19 @@ public class AirSolution {
         this.flightItineraryList = flightItineraryList;
     }
 
-    public HashMap<Integer, FlightItinerary> getSeamenHashMap() {
+    public ConcurrentHashMap<Integer, FlightItinerary> getSeamenHashMap() {
         return seamenHashMap;
     }
 
-    public void setSeamenHashMap(HashMap<Integer, FlightItinerary> seamenHashMap) {
+    public void setSeamenHashMap(ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap) {
         this.seamenHashMap = seamenHashMap;
     }
 
-    public HashMap<Integer, FlightItinerary> getNonSeamenHashMap() {
+    public ConcurrentHashMap<Integer, FlightItinerary> getNonSeamenHashMap() {
         return nonSeamenHashMap;
     }
 
-    public void setNonSeamenHashMap(HashMap<Integer, FlightItinerary> nonSeamenHashMap) {
+    public void setNonSeamenHashMap(ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap) {
         this.nonSeamenHashMap = nonSeamenHashMap;
     }
 }

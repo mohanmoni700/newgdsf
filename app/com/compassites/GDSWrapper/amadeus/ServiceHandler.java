@@ -28,16 +28,13 @@ import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import play.Logger;
 import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ServiceHandler {
 
@@ -78,7 +75,10 @@ public class ServiceHandler {
     //search flights with 2 cities- faremastertravelboard service
     public FareMasterPricerTravelBoardSearchReply searchAirlines(SearchParameters searchParameters) {
         mSession.incrementSequenceNumber();
-        return mPortType.fareMasterPricerTravelBoardSearch(new SearchFlights().createSearchQuery(searchParameters), mSession.getSession());
+        Logger.info("AmadeusFlightSearch called at : " + new Date());
+        FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(new SearchFlights().createSearchQuery(searchParameters), mSession.getSession());
+        Logger.info("AmadeusFlightSearch response returned  at : " + new Date());
+        return  SearchReply;
     }
     
     public AirSellFromRecommendationReply checkFlightAvailability(TravellerMasterInfo travellerMasterInfo) {
