@@ -43,7 +43,7 @@ public class AirLowFareSearchClient {
 
 		searchRQ.setSessionId(sessionRS.getSessionId());
 		searchRQ.setTarget(Mystifly.TARGET);
-		searchRQ.setRequestOptions(RequestOptions.HUNDRED);
+		searchRQ.setRequestOptions(RequestOptions.FIFTY);
 		searchRQ.setIsRefundable(searchParams.getRefundableFlights());
 
 		setJourneys(searchRQ, searchParams);
