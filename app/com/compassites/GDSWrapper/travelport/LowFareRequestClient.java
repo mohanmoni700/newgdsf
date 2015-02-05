@@ -216,38 +216,13 @@ public class LowFareRequestClient extends TravelPortClient {
 
         return request;
     }
-
+    
     public static LowFareSearchRsp search(SearchParameters searchParameters) throws AirFaultMessage {
         LowFareSearchReq request = buildQuery(searchParameters);
-        LowFareSearchRsp response;
+        XMLFileUtility.createXMLFile(request, "Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchReq.xml");
         init();
-
-        try {
-            Writer writer = new FileWriter("Request"+searchParameters.getSearchBookingType()+".json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(request, writer);
-            writer.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        XMLFileUtility.createXMLFile(request, "Request"+searchParameters.getSearchBookingType()+".xml");
-
-        response = airLowFareSearchPortTypePort.service(request);
-
-        XMLFileUtility.createXMLFile(response, "Response"+searchParameters.getSearchBookingType()+".xml");
-        try {
-            Writer writer = new FileWriter("Response"+searchParameters.getSearchBookingType()+".json");
-            Gson gson = new GsonBuilder().create();
-            gson.toJson(response, writer);
-            writer.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
+        LowFareSearchRsp response = airLowFareSearchPortTypePort.service(request);
+        XMLFileUtility.createXMLFile(response, "Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchRes.xml");
         return response;
     }
 

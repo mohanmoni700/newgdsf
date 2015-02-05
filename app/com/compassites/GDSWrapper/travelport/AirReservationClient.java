@@ -282,10 +282,12 @@ public class AirReservationClient  extends TravelPortClient {
         return airPricingSolution;
     }
 
-    static public List<BookingTraveler> createBookingTravellers(TravellerMasterInfo travellerMasterInfo){
+    static public List<BookingTraveler> createBookingTravellers(TravellerMasterInfo travellerMasterInfo) throws DatatypeConfigurationException{
         List<BookingTraveler> bookingTravelerList =  new ArrayList<>();
         int i=1;
         //make the traveller info
+        DatatypeFactory factory = DatatypeFactory.newInstance();
+        XMLGregorianCalendar calendar = factory.newXMLGregorianCalendar();
         PersonalDetails personalDetails = travellerMasterInfo.getTravellersList().get(0).getPersonalDetails();
         for(Traveller traveller : travellerMasterInfo.getTravellersList()){
             BookingTraveler bookingTraveler = new BookingTraveler();
@@ -331,7 +333,12 @@ public class AirReservationClient  extends TravelPortClient {
             shippingAddress.setCountry("IN");
             deliveryInfo.setShippingAddress(shippingAddress);
             bookingTraveler.getDeliveryInfo().add(deliveryInfo);*/
-
+            Calendar jCalendar = Calendar.getInstance();
+            jCalendar.setTime(traveller.getPassportDetails().getDateOfBirth());
+            calendar.setDay(jCalendar.get(Calendar.DAY_OF_MONTH));
+            calendar.setMonth(jCalendar.get(Calendar.MONTH) + 1);
+            calendar.setYear(jCalendar.get(Calendar.YEAR));
+            bookingTraveler.setDOB(calendar);
             bookingTraveler.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth())));
             //adult
             String travelerType = travellerMasterInfo.isSeamen() ? PassengerTypeCode.SEA.name() : DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).name();

@@ -17,6 +17,8 @@ import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.joda.time.Years;
+
+import utils.DateUtility;
 import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
@@ -441,7 +443,7 @@ public class AirRequestClient extends TravelPortClient {
         return result;
     }
     public static void displayItineraryPrice(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass) throws AirFaultMessage {
-        AirPriceRsp priceRsp = priceItinerary(airItinerary, passengerType, currency, cabinClass, null);
+        AirPriceRsp priceRsp = priceItinerary(airItinerary, currency, cabinClass, null);
 
         //print price result
         List<AirPriceResult> prices = priceRsp.getAirPriceResult();
@@ -471,37 +473,23 @@ public class AirRequestClient extends TravelPortClient {
      * @return
      * @throws com.travelport.service.air_v26_0.AirFaultMessage
      */
-    private static void setSeamanPassengerList(AirPriceReq request, List<Passenger> passengers, String passengerType){
-
-        if (passengers == null){
-            SearchPassenger adult = new SearchPassenger();
-            adult.setCode(passengerType);
-            adult.setKey("COMPASS");
-            adult.setAge(new BigInteger(String.valueOf(30)));
-            request.getSearchPassenger().add(adult);
-            return;
-        }
-        int i = 1;
-        for (Iterator<Passenger> passengerIterator = passengers.iterator(); passengerIterator.hasNext();) {
-            Passenger passenger = passengerIterator.next();
-            SearchPassenger searchPassenger = new SearchPassenger();
-            if (passengerType == ""){
-                searchPassenger.setCode(passenger.getPassengerType().toString());
-            }
-            else{
-                searchPassenger.setCode(passengerType);
-            }
-            searchPassenger.setKey(""+i);
-            searchPassenger.setPricePTCOnly(true);
-            if (passenger.getAge() != null)  {
-                searchPassenger.setAge(new BigInteger(String.valueOf(passenger.getAge())));
-            }
-            searchPassenger.setBookingTravelerRef(i+"");
+    private static void setSeamanPassengerList(AirPriceReq request, TravellerMasterInfo travellerMasterInfo) {
+        for(int i = 1; i <= travellerMasterInfo.getTravellersList().size(); i++) {
+        	Traveller traveller = travellerMasterInfo.getTravellersList().get(i - 1);
+			SearchPassenger searchPassenger = new SearchPassenger();
+			Date dob = traveller.getPassportDetails().getDateOfBirth();
+			String paxType = travellerMasterInfo.isSeamen() ? "SEA"
+					: DateUtility.getPassengerTypeFromDOB(dob).name();
+			searchPassenger.setCode(paxType);
+			searchPassenger.setKey("" + i);
+			searchPassenger.setPricePTCOnly(true);
+			searchPassenger.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(dob)));
+			searchPassenger.setBookingTravelerRef("" + i);
             request.getSearchPassenger().add(searchPassenger);
-            i++;
-        }
+		}
     }
-    public static AirPriceRsp priceItinerary(AirItinerary airItinerary, String passengerType, String currency, TypeCabinClass cabinClass, List<Passenger> passengers ) throws AirFaultMessage{
+
+    public static AirPriceRsp priceItinerary(AirItinerary airItinerary, String currency, TypeCabinClass cabinClass, TravellerMasterInfo travellerMasterInfo) throws AirFaultMessage{
         //now lets try to price it
         AirPriceReq priceRequest = new AirPriceReq();
 
@@ -517,7 +505,7 @@ public class AirRequestClient extends TravelPortClient {
         priceRequest.setTargetBranch(BRANCH);
 
 
-        setSeamanPassengerList(priceRequest, passengers, passengerType);
+        setSeamanPassengerList(priceRequest, travellerMasterInfo);
 
         BillingPointOfSaleInfo billingPointOfSaleInfo= new BillingPointOfSaleInfo();
 //        billingPointOfSaleInfo.setOriginApplication("Test-app");
@@ -634,8 +622,8 @@ public class AirRequestClient extends TravelPortClient {
             Years age = Years.yearsBetween(birthDate, now);
             passenger.setAge(age.getYears());
             passenger.setName(traveller.getPersonalDetails().getFirstName());
-            passenger.setName(getPassengerType(traveller.getPassportDetails().getDateOfBirth(), passengerTypeCode));
-
+            //passenger.setName(getPassengerType(traveller.getPassportDetails().getDateOfBirth(), passengerTypeCode));
+            passenger.setPassengerType(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()));
             passengerList.add(passenger);
         }
         return passengerList;

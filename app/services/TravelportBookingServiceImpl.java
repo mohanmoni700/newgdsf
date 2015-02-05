@@ -75,20 +75,11 @@ public class TravelportBookingServiceImpl implements BookingService {
 			// responseTwo.getAirPricingSolution().get(0));
 			AirItinerary airItinerary = AirRequestClient
 					.buildAirItinerary(travellerMasterInfo);
-			PassengerTypeCode passengerType = null;
-			if (travellerMasterInfo.isSeamen()) {
-				passengerType = PassengerTypeCode.SEA;
-			} else {
-				passengerType = PassengerTypeCode.ADT;
-			}
 			TypeCabinClass typeCabinClass = TypeCabinClass
 					.valueOf(travellerMasterInfo.getCabinClass().upperValue());
-			List<Passenger> passengerList = AirRequestClient.createPassengers(
-					travellerMasterInfo.getTravellersList(), passengerType);
 
 			AirPriceRsp priceRsp = AirRequestClient.priceItinerary(
-					airItinerary, passengerType.toString(), "INR",
-					typeCabinClass, passengerList);
+					airItinerary, "INR", typeCabinClass, travellerMasterInfo);
 			pnrResponse = checkFare(priceRsp, travellerMasterInfo);
 			if (!pnrResponse.isPriceChanged()) {
 				// AirPricingSolution airPriceSolution =
@@ -182,18 +173,16 @@ public class TravelportBookingServiceImpl implements BookingService {
 		BigDecimal changedBasePrice = new BigDecimal(
 				StringUtility.getPriceFromString(priceRsp.getAirPriceResult()
 						.get(0).getAirPricingSolution().get(0).getBasePrice()));
-		if (totalPrice.toBigIntegerExact().equals(
-				searchPrice.toBigIntegerExact())) {
-
-			pnrResponse.setPriceChanged(false);
-			pnrResponse.setFlightAvailable(true);
-			return pnrResponse;
-		}
+		
 		pnrResponse.setChangedPrice(totalPrice);
 		pnrResponse.setChangedBasePrice(changedBasePrice);
 		pnrResponse.setOriginalPrice(searchPrice);
 		pnrResponse.setFlightAvailable(true);
-		pnrResponse.setPriceChanged(true);
+		if(totalPrice.toBigIntegerExact().equals(searchPrice.toBigIntegerExact())) {
+			pnrResponse.setPriceChanged(false);
+		} else {
+			pnrResponse.setPriceChanged(true);
+		}
 		return pnrResponse;
 	}
 
@@ -268,20 +257,12 @@ public class TravelportBookingServiceImpl implements BookingService {
 			// responseTwo.getAirPricingSolution().get(0));
 			AirItinerary airItinerary = AirRequestClient
 					.buildAirItinerary(travellerMasterInfo);
-			PassengerTypeCode passengerType = null;
-			if (travellerMasterInfo.isSeamen()) {
-				passengerType = PassengerTypeCode.SEA;
-			} else {
-				passengerType = PassengerTypeCode.ADT;
-			}
 			TypeCabinClass typeCabinClass = TypeCabinClass
 					.valueOf(travellerMasterInfo.getCabinClass().upperValue());
-			List<Passenger> passengerList = AirRequestClient.createPassengers(
-					travellerMasterInfo.getTravellersList(), passengerType);
 
 			AirPriceRsp priceRsp = AirRequestClient.priceItinerary(
-					airItinerary, passengerType.toString(), "INR",
-					typeCabinClass, passengerList);
+					airItinerary, "INR",
+					typeCabinClass, travellerMasterInfo);
 			pnrResponse = checkFare(priceRsp, travellerMasterInfo);
 
 		} catch (AirFaultMessage airFaultMessage) {
