@@ -1,19 +1,16 @@
-import play.Project._
-
-import com.github.play2war.plugin._
-
-name := "GDSService"
+name := """GDSService"""
 
 version := "1.0-SNAPSHOT"
 
-Play2WarPlugin.play2WarSettings
+lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
-Play2WarKeys.servletVersion := "3.0"
+scalaVersion := "2.11.1"
 
 libraryDependencies ++= Seq(
-  javaCore,
   javaJdbc,
   javaEbean,
+  cache,
+  javaWs,
   "com.h2database" % "h2" % "1.3.168",
   "org.springframework" % "spring-core" % "3.2.1.RELEASE",
   "org.springframework" % "spring-context" % "3.2.1.RELEASE",
@@ -42,10 +39,8 @@ libraryDependencies ++= Seq(
   "com.thoughtworks.xstream" % "xstream" % "1.4.7"
 )
 
-play.Project.playJavaSettings
-
 TaskKey[Unit]("stop") := {
-  val pidFile = target.value / "RUNNING_PID"
+  val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"
   if (!pidFile.exists) throw new Exception("App not started!")
   val pid = IO.read(pidFile)
   s"kill $pid".!
