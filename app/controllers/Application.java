@@ -4,9 +4,7 @@ package controllers;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import org.springframework.beans.factory.annotation.Autowired;
-
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -14,8 +12,7 @@ import play.mvc.Result;
 import services.BookingServiceWrapper;
 import services.FlightInfoServiceWrapper;
 import services.FlightSearchWrapper;
-
-import java.util.List;
+import services.MergeSearchResults;
 
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
@@ -25,6 +22,9 @@ public class Application {
 
     @Autowired
     private FlightSearchWrapper flightSearchWrapper;
+
+    @Autowired
+    private MergeSearchResults mergeSearchResults;
 
     @Autowired
     private BookingServiceWrapper bookingService;
@@ -38,7 +38,8 @@ public class Application {
 
         SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         System.out.println("SearchParamerters: " + json.toString());
-        flightSearchWrapper.search(searchParameters);
+//        flightSearchWrapper.search(searchParameters);
+        mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 

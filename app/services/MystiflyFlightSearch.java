@@ -1,58 +1,25 @@
 package services;
 
-import java.math.BigDecimal;
-import java.rmi.RemoteException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
-import models.Airline;
-import models.Airport;
-
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirItineraryPricingInfo;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfFlightSegment;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationOption;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPricedItinerary;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.FareType;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.FlightSegment;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ItinTotalFare;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.OperatingAirline;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationOption;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PTCFareBreakdown;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerFare;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantity;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.Tax;
-import org.springframework.stereotype.Service;
-
-import play.Logger;
-import utils.ErrorMessageHelper;
-
 import com.compassites.GDSWrapper.mystifly.AirLowFareSearchClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.AirSolution;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.JourneyType;
-import com.compassites.model.PassengerTax;
-import com.compassites.model.PricingInformation;
-import com.compassites.model.SearchJourney;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
+import com.compassites.model.*;
+import models.Airline;
+import models.Airport;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.springframework.stereotype.Service;
+import play.Logger;
+import utils.ErrorMessageHelper;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+import java.math.BigDecimal;
+import java.rmi.RemoteException;
+import java.text.ParseException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Santhosh
@@ -65,7 +32,7 @@ public class MystiflyFlightSearch implements FlightSearch{
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
 	public SearchResponse search(SearchParameters searchParameters)
 			throws IncompleteDetailsMessage {
-		Logger.info("[Mystifly] search called at " + new Date());
+		Logger.info("[Mystifly] search started at " + new Date());
 		searchParams = searchParameters;
 
 		SearchResponse searchResponse = new SearchResponse();

@@ -1,63 +1,37 @@
 package services;
 
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
+import com.amadeus.xml.fmptbr_12_4_1a.*;
+import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
+import com.compassites.GDSWrapper.amadeus.SearchFlights;
+import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.exceptions.IncompleteDetailsMessage;
+import com.compassites.exceptions.RetryException;
+import com.compassites.model.*;
+import com.sun.xml.ws.client.ClientTransportException;
+import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import models.Airline;
 import models.Airport;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
-
 import play.Logger;
 import utils.ErrorMessageHelper;
-import utils.StringUtility;
 import utils.XMLFileUtility;
 
-import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply;
-import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
-import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails;
-import com.amadeus.xml.fmptbr_12_4_1a.MonetaryInformationDetailsType;
-import com.amadeus.xml.fmptbr_12_4_1a.PricingTicketingSubsequentType144401S;
-import com.amadeus.xml.fmptbr_12_4_1a.ProposedSegmentDetailsType;
-import com.amadeus.xml.fmptbr_12_4_1a.ReferenceInfoType;
-import com.amadeus.xml.fmptbr_12_4_1a.ReferencingDetailsType191583C;
-import com.amadeus.xml.fmptbr_12_4_1a.TravelProductType;
-import com.compassites.GDSWrapper.amadeus.SearchFlights;
-import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.exceptions.IncompleteDetailsMessage;
-import com.compassites.exceptions.RetryException;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.AirSolution;
-import com.compassites.model.BookingType;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FareJourney;
-import com.compassites.model.FareSegment;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.PAXFareDetails;
-import com.compassites.model.PassengerTax;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.PricingInformation;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
-import com.sun.xml.ws.client.ClientTransportException;
-import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -72,6 +46,7 @@ public class AmadeusFlightSearch  implements FlightSearch{
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
 //        Logger.info("AmadeusFlightSearch called at : " + new Date());
+        Logger.info("AmadeusFlightSearch started  : ");
         SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
         searchResponse.setProvider("Amadeus");

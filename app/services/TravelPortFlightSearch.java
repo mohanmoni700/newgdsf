@@ -41,7 +41,7 @@ public class TravelPortFlightSearch  implements FlightSearch{
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException, IOException {
-        Logger.info("[TravelPort] search called at " + new Date());
+        Logger.info("[TravelPort] search started at " + new Date());
 
         SearchResponse seamanResponse = null;
         SearchResponse nonSeamanResponse = null;
