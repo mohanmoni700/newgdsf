@@ -111,6 +111,7 @@ public class Application {
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         IssuanceResponse issuanceResponse = bookingService.issueTicket(issuanceRequest);
+        System.out.println("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
     }
     

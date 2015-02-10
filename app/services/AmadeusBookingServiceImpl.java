@@ -374,14 +374,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					issuanceResponse.setCappingLimitReached(true);
 				}
 			}
-
 			getCancellationFee(issuanceRequest, issuanceResponse,
 					serviceHandler);
 			System.out.println("");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("Issuance Response ========>>"+Json.toJson(issuanceResponse));
 		return issuanceResponse;
 	}
 
