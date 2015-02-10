@@ -38,8 +38,8 @@ public class Application {
 
         SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         System.out.println("SearchParamerters: " + json.toString());
-//        flightSearchWrapper.search(searchParameters);
-        mergeSearchResults.searchAndMerge(searchParameters);
+        flightSearchWrapper.search(searchParameters);
+//        mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 
