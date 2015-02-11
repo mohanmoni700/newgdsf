@@ -198,6 +198,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					.get(0).getCarrierCode();
 		}
 		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
+		if(pricePNRReply.getApplicationError() != null) {
+			pnrResponse.setFlightAvailable(false);
+			return pricePNRReply;
+		}
 		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,
 				travellerMasterInfo, totalFareIdentifier);
 		PricingInformation pi = setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
