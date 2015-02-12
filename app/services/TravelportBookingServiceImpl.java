@@ -322,11 +322,14 @@ public class TravelportBookingServiceImpl implements BookingService {
 					String carrierCode = airSegment.getCarrier();
 					airSegmentInformation.setCarrierCode(carrierCode);
 					airSegmentInformation.setFlightNumber(airSegment.getFlightNumber());
+					SimpleDateFormat format= new SimpleDateFormat("yyyy-MM-dd"); 
 					/*Date arrvalDate = format.parse(airSegment.getArrivalTime());
 					airSegmentInformation.setArrivalDate(arrvalDate);
 
 					Date depDate = format.parse(airSegment.getDepartureTime());
 					airSegmentInformation.setDepartureDate(depDate);*/
+					String arrivalDateTime = airSegment.getArrivalTime();
+					String departureDateTime = airSegment.getDepartureTime();
 					
 					String fromLoc = airSegment.getOrigin();
 					String toLoc = airSegment.getDestination();
@@ -334,8 +337,10 @@ public class TravelportBookingServiceImpl implements BookingService {
 					airSegmentInformation.setToLocation(airSegment.getDestination());
 					airSegmentInformation.setTravelTime(airSegment.getTravelTime().toString());
 					airSegmentInformation.setDistanceTravelled(airSegment.getDistance().toString());
-					airSegmentInformation.setFromDate(airSegment.getArrivalTime());
-					airSegmentInformation.setToDate(airSegment.getDepartureTime());
+					airSegmentInformation.setFromDate(arrivalDateTime);
+					airSegmentInformation.setToDate(departureDateTime);
+					airSegmentInformation.setArrivalDate(format.parse(arrivalDateTime));
+					airSegmentInformation.setDepartureDate(format.parse(departureDateTime));
 					
 					airSegmentInformation.setAirline(Airline.getAirlineByCode(carrierCode));
 					

@@ -3,6 +3,7 @@ package services;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo;
@@ -35,6 +36,10 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import models.Airline;
 import models.Airport;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
 import play.libs.Json;
@@ -50,8 +55,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
@@ -476,61 +483,156 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		boolean isSeamen = issuanceRequest.isSeamen();
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		masterInfo.setSeamen(isSeamen);
-		
-		///System.out.println(isSeamen + "my issuance obj is =========>>>>\n"+ Json.toJson(issuanceRequest));
+
+		// /System.out.println(isSeamen + "my issuance obj is =========>>>>\n"+
+		// Json.toJson(issuanceRequest));
 
 		try {
 			ServiceHandler serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
 
 			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
-			AmadeusBookingHelper.createTickets(issuanceResponse, issuanceRequest, gdsPNRReply);
-			
-			System.out.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
-					+ "\n"+Json.toJson(gdsPNRReply));
+			/*System.out
+			.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
+					+ "\n" + Json.toJson(gdsPNRReply));*/
+			Set<String> isTicketContainSet = new HashSet<String>();
+			for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
+				String isTicketIssued = isticket.getElementManagementData().getSegmentName();
+				/*System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<DataElementsIndiv>>>>>>>>>>>>>>>>>>>>>>>>"+Json.toJson(isticket.getElementManagementData().getSegmentName()));*/
+				isTicketContainSet.add(isTicketIssued);
+				/*if (isTicketIssued.equals("FA")) {
+					AmadeusBookingHelper.createTickets(issuanceResponse,
+							issuanceRequest, gdsPNRReply);
+				}else {
+					return masterInfo;
+				}*/
+				/*if(isticket.getElementManagementData().getSegmentName() == "FA"){
+					AmadeusBookingHelper.createTickets(issuanceResponse,
+							issuanceRequest, gdsPNRReply);
+				} else {
+					return masterInfo;
+				}*/
+			}
+			/*System.out.println("SET>>>>>>>>>>>>>>>>>>>"+Json.toJson(isTicketContainSet));*/
+			for (String isFA : isTicketContainSet) {
+				if(isFA.equalsIgnoreCase("FA")){
+					AmadeusBookingHelper.createTickets(issuanceResponse,
+							issuanceRequest, gdsPNRReply);
+					break;
+				} else {
+					return masterInfo; 
+				}
+			}
+			/*System.out
+					.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
+							+ "\n" + Json.toJson(gdsPNRReply));*/
 			List<Journey> journeyList = new ArrayList<>();
 			List<AirSegmentInformation> airSegmentList = new ArrayList<>();
 			FlightItinerary flightItinerary = new FlightItinerary();
-			
+
 			Journey journey = new Journey();
-			for (OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()) {
-				for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
-					SimpleDateFormat format = new SimpleDateFormat("ddMMyy");
+			for (OriginDestinationDetails originDestinationDetails : gdsPNRReply
+					.getOriginDestinationDetails()) {
+				for (ItineraryInfo itineraryInfo : originDestinationDetails
+						.getItineraryInfo()) {
 					AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
-					
-					Date fromDate = format.parse(itineraryInfo.getTravelProduct().getProduct().getArrDate());
-					Date toDate = format.parse(itineraryInfo.getTravelProduct().getProduct().getDepDate());
-					
-					airSegmentInformation.setFlightNumber(itineraryInfo.getTravelProduct().getProductDetails().getIdentification());
-					
-					airSegmentInformation.setDepartureDate(toDate);
-					airSegmentInformation.setDepartureTime(itineraryInfo.getTravelProduct().getProduct().getDepTime());
-					
-					
-					airSegmentInformation.setArrivalDate(fromDate);
-					airSegmentInformation.setArrivalTime(itineraryInfo.getTravelProduct().getProduct().getArrTime());
-					
-					airSegmentInformation.setFromDate(itineraryInfo.getTravelProduct().getProduct().getArrDate());
-					airSegmentInformation.setToDate(itineraryInfo.getTravelProduct().getProduct().getDepDate());
-					
-					String fromLoc = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode();
-					String toLoc = itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+
+					String fromLoc = itineraryInfo.getTravelProduct()
+							.getBoardpointDetail().getCityCode();
+					String toLoc = itineraryInfo.getTravelProduct()
+							.getOffpointDetail().getCityCode();
 					airSegmentInformation.setFromLocation(fromLoc);
 					airSegmentInformation.setToLocation(toLoc);
-					
-					//String arrivalTer = itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal();
-					if(itineraryInfo.getFlightDetail().getDepartureInformation() != null ){
-						airSegmentInformation.setFromTerminal(itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal());
+
+					Airport fromAirport = Airport
+							.getAiport(airSegmentInformation.getFromLocation());
+					Airport toAirport = Airport.getAiport(airSegmentInformation
+							.getToLocation());
+
+					SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
+					String DATE_FORMAT = "ddMMyyHHmm";
+					DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat
+							.forPattern(DATE_FORMAT);
+					DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport
+							.getTime_zone());
+					String fromDateTime = itineraryInfo.getTravelProduct()
+							.getProduct().getArrDate()
+							+ itineraryInfo.getTravelProduct().getProduct()
+									.getArrTime();
+					String toDateTime = itineraryInfo.getTravelProduct()
+							.getProduct().getDepDate()
+							+ itineraryInfo.getTravelProduct().getProduct()
+									.getDepTime();
+					DateTime departureDate = DATETIME_FORMATTER.withZone(
+							dateTimeZone).parseDateTime(toDateTime);
+					dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+					DateTime arrivalDate = DATETIME_FORMATTER.withZone(
+							dateTimeZone).parseDateTime(fromDateTime);
+
+					/*
+					 * Date fromDate =
+					 * format.parse(itineraryInfo.getTravelProduct
+					 * ().getProduct().getArrDate()); Date toDate =
+					 * format.parse(
+					 * itineraryInfo.getTravelProduct().getProduct()
+					 * .getDepDate());
+					 */
+
+					airSegmentInformation.setFlightNumber(itineraryInfo
+							.getTravelProduct().getProductDetails()
+							.getIdentification());
+
+					// airSegmentInformation.setDepartureDate(toDate);
+					airSegmentInformation.setDepartureDate(departureDate
+							.toDate());
+					airSegmentInformation.setDepartureTime(departureDate
+							.toString());
+					airSegmentInformation
+							.setArrivalTime(arrivalDate.toString());
+					airSegmentInformation.setArrivalDate(arrivalDate.toDate());
+
+					// System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+fromDateTime);
+					// System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+toDateTime);
+					airSegmentInformation.setFromDate(fromDateTime);
+					airSegmentInformation.setToDate(toDateTime);
+					/*
+					 * airSegmentInformation.setFromDate(format.format(fromDateTime
+					 * ));
+					 * airSegmentInformation.setToDate(format.format(toDateTime
+					 * ));
+					 */
+
+					// String arrivalTer =
+					// itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal();
+					if (itineraryInfo.getFlightDetail() != null
+							&& itineraryInfo.getFlightDetail()
+									.getArrivalStationInfo() != null) {
+						airSegmentInformation.setFromTerminal(itineraryInfo
+								.getFlightDetail().getArrivalStationInfo()
+								.getTerminal());
 					}
-					if(itineraryInfo.getFlightDetail().getArrivalStationInfo() != null){
-						airSegmentInformation.setToTerminal(itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal());
+					if (itineraryInfo.getFlightDetail() != null
+							&& itineraryInfo.getFlightDetail()
+									.getDepartureInformation() != null) {
+						airSegmentInformation.setToTerminal(itineraryInfo
+								.getFlightDetail().getDepartureInformation()
+								.getDepartTerminal());
 					}
-					
-					
-					airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification()));
-					airSegmentInformation.setFromAirport(Airport.getAiport(fromLoc));
-					airSegmentInformation.setToAirport(Airport.getAiport(toLoc));
-					airSegmentInformation.setEquipment(itineraryInfo.getFlightDetail().getProductDetails().getEquipment());
+
+					airSegmentInformation.setAirline(Airline
+							.getAirlineByCode(itineraryInfo.getTravelProduct()
+									.getCompanyDetail().getIdentification()));
+					airSegmentInformation.setFromAirport(Airport
+							.getAiport(fromLoc));
+					airSegmentInformation
+							.setToAirport(Airport.getAiport(toLoc));
+					String responseEquipment = itineraryInfo.getFlightDetail()
+							.getProductDetails().getEquipment();
+					if (responseEquipment != null) {
+						itineraryInfo.getFlightDetail().getProductDetails()
+								.getEquipment();
+					}
+					airSegmentInformation.setEquipment(responseEquipment);
 
 					airSegmentList.add(airSegmentInformation);
 				}
@@ -543,17 +645,16 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
 			}
 			masterInfo.setItinerary(flightItinerary);
-			
-			
+
 			masterInfo.setTravellersList(issuanceResponse.getTravellerList());
-			
-			
-			//System.out.println("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
-			System.out.println("====== masterInfo details =========="+ Json.toJson(masterInfo));
+
+			// System.out.println("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
+			// System.out.println("====== masterInfo details =========="+
+			// Json.toJson(masterInfo));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	
+
 		return masterInfo;
 	}
 }
