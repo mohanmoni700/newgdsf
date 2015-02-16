@@ -492,9 +492,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler.logIn();
 
 			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
-			/*System.out
+			System.out
 			.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
-					+ "\n" + Json.toJson(gdsPNRReply));*/
+					+ "\n" + Json.toJson(gdsPNRReply));
 			Set<String> isTicketContainSet = new HashSet<String>();
 			for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
 				String isTicketIssued = isticket.getElementManagementData().getSegmentName();
@@ -543,7 +543,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 							.getOffpointDetail().getCityCode();
 					airSegmentInformation.setFromLocation(fromLoc);
 					airSegmentInformation.setToLocation(toLoc);
-
+					airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct().getProductDetails().getClassOfService());
 					Airport fromAirport = Airport
 							.getAiport(airSegmentInformation.getFromLocation());
 					Airport toAirport = Airport.getAiport(airSegmentInformation
