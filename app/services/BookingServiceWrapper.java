@@ -4,6 +4,7 @@ import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.IssuanceRequest;
 import com.compassites.model.IssuanceResponse;
+import com.compassites.model.LowestFare;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
@@ -120,4 +121,18 @@ public class BookingServiceWrapper {
     	}
     	return masterInfo;
     }
+	
+	public LowestFare getLowestFare(TravellerMasterInfo travellerMasterInfo) {
+		String provider = getProvider(travellerMasterInfo);
+		LowestFare lowestFare = null;
+		if(provider.equalsIgnoreCase("Amadeus")) {
+			lowestFare = amadeusBookingService.getLowestFare(travellerMasterInfo);
+    	} else if(provider.equalsIgnoreCase("Travelport")) {
+    		// Not implemented.
+    	} else if(provider.equalsIgnoreCase(Mystifly.PROVIDER)) {
+    		// Not implemented.
+    	}
+		return lowestFare;
+	}
+	
 }

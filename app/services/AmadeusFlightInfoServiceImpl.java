@@ -1,7 +1,9 @@
 package services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,17 @@ import com.sun.xml.ws.fault.ServerSOAPFaultException;
 
 @Service
 public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
+	
+	private static Map<String, String> baggageCodes = new HashMap<>();
+	static {
+		baggageCodes.put("700", "Kilos");
+		baggageCodes.put("701", "Pounds");
+		baggageCodes.put("C", "Special Charge");
+		baggageCodes.put("N", "Number of pieces");
+		baggageCodes.put("S", "Size");
+		baggageCodes.put("V", "Value");
+		baggageCodes.put("W", "Weight");
+	}
 
 	@Override
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
@@ -114,9 +127,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 						FlightInfo baggageInfo = new FlightInfo();
 						BaggageDetails baggageDetails = segmentGrp.getBaggageAllowance().getBaggageDetails();
 						baggageInfo.setBaggageAllowance(baggageDetails.getFreeAllowance().toBigInteger());
-						
-						// TODO: Get corresponding units
-						baggageInfo.setBaggageUnit("Kg"); //(baggageDetails.getQuantityCode());
+						baggageInfo.setBaggageUnit(baggageCodes.get(baggageDetails.getQuantityCode()));
 						airSegment.setFlightInfo(baggageInfo);
 					}
 				}

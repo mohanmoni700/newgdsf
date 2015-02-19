@@ -1,37 +1,15 @@
 package services;
 
-import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
-import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo.PassengerData;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo.PassengerData.TravellerInformation;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Passenger;
-import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
-import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.SegmentInformation;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
-import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
-import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FlightInfo;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.Journey;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.PassengerTax;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.PricingInformation;
-import com.compassites.model.traveller.PersonalDetails;
-import com.compassites.model.traveller.Traveller;
-import com.compassites.model.traveller.TravellerMasterInfo;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import models.Airline;
 import models.Airport;
@@ -44,21 +22,39 @@ import org.springframework.stereotype.Service;
 
 import play.libs.Json;
 import utils.AmadeusBookingHelper;
+import utils.DateUtility;
 import utils.ErrorMessageHelper;
 import utils.XMLFileUtility;
-import utils.DateUtility;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
+import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
+import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
+import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.SegmentInformation;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
+import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
+import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
+import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
+import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.ErrorMessage;
+import com.compassites.model.FlightItinerary;
+import com.compassites.model.IssuanceRequest;
+import com.compassites.model.IssuanceResponse;
+import com.compassites.model.Journey;
+import com.compassites.model.LowestFare;
+import com.compassites.model.PNRResponse;
+import com.compassites.model.PassengerTax;
+import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.PricingInformation;
+import com.compassites.model.traveller.Traveller;
+import com.compassites.model.traveller.TravellerMasterInfo;
 
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
@@ -78,48 +74,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		try {
 			serviceHandler = new ServiceHandler();
-
 			serviceHandler.logIn();
-
-			/*
-			 * AirSellFromRecommendationReply sellFromRecommendation =
-			 * serviceHandler.checkFlightAvailability(travellerMasterInfo);
-			 * 
-			 * if(sellFromRecommendation.getErrorAtMessageLevel() != null &&
-			 * sellFromRecommendation.getErrorAtMessageLevel().size() > 0 &&
-			 * (sellFromRecommendation.getItineraryDetails() == null)){
-			 * 
-			 * ErrorMessage errorMessage =
-			 * ErrorMessageHelper.createErrorMessage("error",
-			 * ErrorMessage.ErrorType.ERROR, "Amadeus");
-			 * pnrResponse.setErrorMessage(errorMessage); }
-			 * 
-			 * boolean flightAvailable =
-			 * validateFlightAvailability(sellFromRecommendation);
-			 */
-
 			checkFlightAvailibility(travellerMasterInfo, serviceHandler,
 					pnrResponse);
-
 			if (pnrResponse.isFlightAvailable()) {
 
 				PNRReply gdsPNRReply = serviceHandler
 						.addTravellerInfoToPNR(travellerMasterInfo);
-
-				/*
-				 * String carrierCode = ""; if(travellerMasterInfo.isSeamen()) {
-				 * carrierCode =
-				 * travellerMasterInfo.getItinerary().getJourneyList
-				 * ().get(0).getAirSegmentList().get(0).getCarrierCode(); } else
-				 * { carrierCode =
-				 * travellerMasterInfo.getItinerary().getNonSeamenJourneyList
-				 * ().get(0).getAirSegmentList().get(0).getCarrierCode(); }
-				 * pricePNRReply = serviceHandler.pricePNR(carrierCode,
-				 * gdsPNRReply);
-				 * 
-				 * pnrResponse = checkFare(pricePNRReply, travellerMasterInfo);
-				 */
-
 				pricePNRReply = checkPNRPricing(travellerMasterInfo,
 						serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
 
@@ -151,21 +112,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 					// pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
 					createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse);
-
+					
 					// getCancellationFee(travellerMasterInfo, serviceHandler);
 				}
 			} else {
-
 				pnrResponse.setFlightAvailable(false);
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "Amadeus");
 			pnrResponse.setErrorMessage(errorMessage);
 		}
-
 		return pnrResponse;
 	}
 
@@ -217,17 +175,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	
 	private void setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo,
 			FarePricePNRWithBookingClassReply pricePNRReply) {
-		int adultCount = 0, childCount = 0, infantCount = 0;
-		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
-			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
-			if (passengerType.equals(PassengerTypeCode.ADT)) {
-				adultCount++;
-			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
-				childCount++;
-			} else {
-				infantCount++;
-			}
-		}
+		Map<String, Integer> passengerTypeMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
 		PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
 				.getItinerary().getSeamanPricingInformation() : travellerMasterInfo
 				.getItinerary().getPricingInformation();
@@ -241,21 +189,21 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				Map<String, BigDecimal> taxes = new HashMap<>();
 				if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
 					passengerTax.setPassengerType("ADT");
-					passengerTax.setPassengerCount(adultCount);
+					passengerTax.setPassengerCount(passengerTypeMap.get("adultCount"));
 					for(TaxInformation taxInfo : taxInfos) {
 						String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
 						taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
 					}
 				} else if(paxType.equalsIgnoreCase("CH") || paxType.equalsIgnoreCase("CHD")) {
 					passengerTax.setPassengerType("CHD");
-					passengerTax.setPassengerCount(childCount);
+					passengerTax.setPassengerCount(passengerTypeMap.get("childCount"));
 					for(TaxInformation taxInfo : taxInfos) {
 						String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
 						taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
 					}
 				} else if(paxType.equalsIgnoreCase("IN") || paxType.equalsIgnoreCase("INF")) {
 					passengerTax.setPassengerType("INF");
-					passengerTax.setPassengerCount(infantCount);
+					passengerTax.setPassengerCount(passengerTypeMap.get("infantCount"));
 					for(TaxInformation taxInfo : taxInfos) {
 						String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
 						taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
@@ -378,8 +326,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						.getErrorGroup().getErrorWarningDescription()
 						.getFreeText();
 				if (errorDescription.contains(cappingLimitString)) {
-					System.out
-							.println("Send Email to operator saying capping limit is reached");
+					System.out.println("Send Email to operator saying capping limit is reached");
 					issuanceResponse.setCappingLimitReached(true);
 				}
 			}
@@ -394,20 +341,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 	public void getCancellationFee(IssuanceRequest issuanceRequest,
 			IssuanceResponse issuanceResponse, ServiceHandler serviceHandler) {
-		// ServiceHandler serviceHandler = null;
 		try {
-			// serviceHandler = new ServiceHandler();
-			// serviceHandler.logIn();
-			/*
-			 * int adultCount = 0,childCount = 0,infantCount = 0; for(Traveller
-			 * traveller : travellerMasterInfo.getTravellersList()){
-			 * PassengerTypeCode passengerType =
-			 * DateUtility.getPassengerTypeFromDOB
-			 * (traveller.getPersonalDetails().getDateOfBirth());
-			 * if(passengerType.equals(PassengerTypeCode.ADT)){ adultCount++; }
-			 * else if(passengerType.equals(PassengerTypeCode.CHD)){
-			 * childCount++; } else { infantCount++; } }
-			 */
 
 			// TODO: get right journey list for non seamen
 			FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler
@@ -430,14 +364,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					}
 				}
 			}
-			/*System.out
-					.println("---------------------------------------Fare Rules------------------------------------\n"
-							+ fareRule.toString());*/
 			issuanceResponse.setCancellationFeeText(fareRule.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	public PNRResponse checkFareChangeAndAvailability(
@@ -447,26 +377,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		try {
 			serviceHandler = new ServiceHandler();
-
 			serviceHandler.logIn();
-
 			checkFlightAvailibility(travellerMasterInfo, serviceHandler,
 					pnrResponse);
-
 			if (pnrResponse.isFlightAvailable()) {
-
 				PNRReply gdsPNRReply = serviceHandler
 						.addTravellerInfoToPNR(travellerMasterInfo);
-
 				pricePNRReply = checkPNRPricing(travellerMasterInfo,
 						serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
-
 				return pnrResponse;
 			} else {
-
 				pnrResponse.setFlightAvailable(false);
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
@@ -483,10 +405,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		boolean isSeamen = issuanceRequest.isSeamen();
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		masterInfo.setSeamen(isSeamen);
-
-		// /System.out.println(isSeamen + "my issuance obj is =========>>>>\n"+
-		// Json.toJson(issuanceRequest));
-
 		try {
 			ServiceHandler serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
@@ -657,4 +575,73 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 		return masterInfo;
 	}
+	
+	public LowestFare getLowestFare(TravellerMasterInfo travellerMasterInfo) {
+		LowestFare lowestFare = new LowestFare();
+		ServiceHandler serviceHandler = null;
+		try {
+			serviceHandler = new ServiceHandler();
+			serviceHandler.logIn();
+//			serviceHandler.checkFlightAvailability(travellerMasterInfo);
+//			PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
+			String carrierCode = "";
+			if (travellerMasterInfo.isSeamen()) {
+				carrierCode = travellerMasterInfo.getItinerary().getJourneyList()
+						.get(0).getAirSegmentList().get(0).getCarrierCode();
+			} else {
+				carrierCode = travellerMasterInfo.getItinerary()
+						.getNonSeamenJourneyList().get(0).getAirSegmentList()
+						.get(0).getCarrierCode();
+			}
+//			serviceHandler.pricePNR(carrierCode, gdsPNRReply);
+			
+			serviceHandler.retrivePNR("3KX8H4");
+			FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare(carrierCode);
+			Map<String, Integer> passengerTypeCountMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
+			
+			BigDecimal totalFare = new BigDecimal(0);
+	        for(com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList fare : farePricePNRWithLowestFareReply.getFareList()) {
+	        	int paxCount = 0;
+	        	String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
+	        	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
+	        		paxCount = passengerTypeCountMap.get("adultCount");
+	        	} else if(paxType.equalsIgnoreCase("CHD") || paxType.equalsIgnoreCase("CH")) {
+	        		paxCount = passengerTypeCountMap.get("childCount");
+	        	} else if(paxType.equalsIgnoreCase("INF") || paxType.equalsIgnoreCase("IN")) {
+	        		paxCount = passengerTypeCountMap.get("infantCount");
+	        	}
+	        	for(MonetaryInformationDetailsType223844C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+	        		BigDecimal amount = new BigDecimal(fareData.getFareAmount());
+	        		if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
+	        			totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
+	        		}
+	        	}
+	        }
+			lowestFare.setAmount(totalFare);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return lowestFare;
+	}
+	
+	private Map<String, Integer> getPassengerTypeCount(List<Traveller> travellerList) {
+		int adultCount = 0, childCount = 0, infantCount = 0;
+		Map<String, Integer> passengerTypeMap = new HashMap<>();
+		for (Traveller traveller : travellerList) {
+			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+			if (passengerType.equals(PassengerTypeCode.ADT)) {
+				adultCount++;
+			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
+				childCount++;
+			} else {
+				infantCount++;
+			}
+		}
+		passengerTypeMap.put("adultCount", adultCount);
+		passengerTypeMap.put("childCount", childCount);
+		passengerTypeMap.put("infantCount", infantCount);
+		return passengerTypeMap;
+	}
+	
 }

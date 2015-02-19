@@ -1,5 +1,18 @@
 package com.compassites.GDSWrapper.amadeus;
 
+import java.net.URL;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.ws.BindingProvider;
+import javax.xml.ws.handler.MessageContext;
+
+import play.Logger;
+import utils.XMLFileUtility;
+
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
@@ -18,23 +31,17 @@ import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
+import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
 import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import play.Logger;
-import utils.XMLFileUtility;
-
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.handler.MessageContext;
-import java.net.URL;
-import java.util.*;
 
 public class ServiceHandler {
 
@@ -165,21 +172,6 @@ public class ServiceHandler {
         return  fareInformativePricingPNRReply;
 	}
 	
-//	public List<AirFlightInfoReply> getFlightInfo(List<Journey> journeys) {
-//		mSession.incrementSequenceNumber();
-//		List<AirFlightInfoReply> airFlightInfoReplyList = new ArrayList<>();
-//		for(Journey journey : journeys) {
-//			for(AirSegmentInformation airSegment : journey.getAirSegmentList()) {
-//				AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
-//				XMLFileUtility.createXMLFile(airFlightInfo, "AirFlightInfoReq.xml");
-//				AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, mSession.getSession());
-//				airFlightInfoReplyList.add(airFlightInfoReply);
-//				XMLFileUtility.createXMLFile(airFlightInfoReply, "AirFlightInfoReply.xml");
-//			}
-//		}
-//		return airFlightInfoReplyList;
-//	}
-	
 	public AirFlightInfoReply getFlightInfo(AirSegmentInformation airSegment) {
 		mSession.incrementSequenceNumber();
 		AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
@@ -193,6 +185,15 @@ public class ServiceHandler {
         FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, mSession.getSession());
         XMLFileUtility.createXMLFile(fareCheckRulesReply, "fareRulesRes.xml");
         return fareCheckRulesReply;
+    }
+    
+    public FarePricePNRWithLowestFareReply getLowestFare(String carrierCode) {
+    	mSession.incrementSequenceNumber();
+    	FarePricePNRWithLowestFare farePricePNRWithLowestFare = new PricePNRLowestFare().getFarePricePNRWithLowestFare(carrierCode);
+    	XMLFileUtility.createXMLFile(farePricePNRWithLowestFare, "FarePricePNRWithLowestFareReq.xml");
+    	FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, mSession.getSession());
+    	XMLFileUtility.createXMLFile(farePricePNRWithLowestFareReply, "FarePricePNRWithLowestFareReplyRes.xml");
+    	return farePricePNRWithLowestFareReply;
     }
     
 }

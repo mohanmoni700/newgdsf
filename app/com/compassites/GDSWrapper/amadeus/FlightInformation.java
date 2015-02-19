@@ -25,7 +25,7 @@ public class FlightInformation {
 		CompanyDetails companyDetails = new CompanyDetails();
 		companyDetails.setMarketingCompany(airSegment.getCarrierCode());
 		// TODO: get correct marketing & operating carrier code
-		companyDetails.setOperatingCompany(airSegment.getCarrierCode());
+		// companyDetails.setOperatingCompany(airSegment.getCarrierCode());
 		generalFlightInfo.setCompanyDetails(companyDetails);
 
 		FlightDate flightDate = new FlightDate();

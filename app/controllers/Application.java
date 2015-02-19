@@ -45,7 +45,6 @@ public class Application {
 
     public Result generatePNR(){
         JsonNode json = request().body().asJson();
-
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.generatePNR(travellerMasterInfo);
         System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
@@ -124,7 +123,15 @@ public class Application {
     	TravellerMasterInfo masterInfo=bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
     	System.out.println("==== in Application INFO ==== >>>>>>"+Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
-    	
+    }
+    
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getLowestFare() {
+    	JsonNode json = request().body().asJson();
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+    	LowestFare lowestFare = bookingService.getLowestFare(travellerMasterInfo);
+    	System.out.println("-----------------LowestFare:\n" + Json.toJson(lowestFare));
+    	return ok(Json.toJson(lowestFare));
     }
     
 }
