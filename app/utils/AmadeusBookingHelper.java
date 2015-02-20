@@ -70,17 +70,23 @@ public class AmadeusBookingHelper {
         	int paxCount = 0;
         	String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
         	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
-        		paxCount = adultCount;
+                System.out.println("adultCount : " + adultCount);
+                paxCount = adultCount;
         	} else if(paxType.equalsIgnoreCase("CHD") || paxType.equalsIgnoreCase("CH")) {
         		paxCount = childCount;
+                System.out.println("adultCount : " + childCount);
         	} else if(paxType.equalsIgnoreCase("INF") || paxType.equalsIgnoreCase("IN")) {
         		paxCount = infantCount;
+                System.out.println("adultCount : " + infantCount);
         	}
-        	for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+            System.out.println("passenger counts : " + paxCount);
+            System.out.println("size of fareData : " + fare.getFareDataInformation().getFareDataSupInformation().size());
+            for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
         		BigDecimal amount = new BigDecimal(fareData.getFareAmount());
         		if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
         			totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
-        		} else {
+                    System.out.println("=======================>> Setting new total fare: "+ totalFare );
+                } else {
         			totalTax = totalTax.add(amount.multiply(new BigDecimal(paxCount)));
         		}
         	}
@@ -102,8 +108,11 @@ public class AmadeusBookingHelper {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
 
+
+        System.out.println("Total price before comparing :"+ searchPrice +" changed Price : " + totalFare);
         if(totalFare.compareTo(searchPrice) == 0) {
-        	pnrResponse.setPriceChanged(false);
+            System.out.println("inside comparison 1111111111111111");
+            pnrResponse.setPriceChanged(false);
             return;
         }
         pnrResponse.setChangedPrice(totalFare);
