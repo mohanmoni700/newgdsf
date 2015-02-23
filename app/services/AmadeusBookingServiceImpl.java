@@ -40,6 +40,7 @@ import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
+import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.AirSegmentInformation;
@@ -576,47 +577,24 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return masterInfo;
 	}
 	
-	public LowestFare getLowestFare(TravellerMasterInfo travellerMasterInfo) {
+	public LowestFare getLowestFare(String pnr) {
 		LowestFare lowestFare = new LowestFare();
 		ServiceHandler serviceHandler = null;
 		try {
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
-//			serviceHandler.checkFlightAvailability(travellerMasterInfo);
-//			PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
-			String carrierCode = "";
-			if (travellerMasterInfo.isSeamen()) {
-				carrierCode = travellerMasterInfo.getItinerary().getJourneyList()
-						.get(0).getAirSegmentList().get(0).getCarrierCode();
-			} else {
-				carrierCode = travellerMasterInfo.getItinerary()
-						.getNonSeamenJourneyList().get(0).getAirSegmentList()
-						.get(0).getCarrierCode();
+			serviceHandler.retrivePNR(pnr);
+			FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare();
+			MonetaryInformationType157202S monetaryinfo = farePricePNRWithLowestFareReply.getFareList().get(0).getFareDataInformation();
+			
+			BigDecimal totalFare = null;
+			for(MonetaryInformationDetailsType223844C monetaryDetails : monetaryinfo.getFareDataSupInformation()) {
+				if(totalFareIdentifier.equals(monetaryDetails.getFareDataQualifier())) {
+					totalFare = new BigDecimal(monetaryDetails.getFareAmount());
+					break;
+				}
 			}
-//			serviceHandler.pricePNR(carrierCode, gdsPNRReply);
-			
-			serviceHandler.retrivePNR("3KX8H4");
-			FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare(carrierCode);
-			Map<String, Integer> passengerTypeCountMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
-			
-			BigDecimal totalFare = new BigDecimal(0);
-	        for(com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList fare : farePricePNRWithLowestFareReply.getFareList()) {
-	        	int paxCount = 0;
-	        	String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
-	        	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
-	        		paxCount = passengerTypeCountMap.get("adultCount");
-	        	} else if(paxType.equalsIgnoreCase("CHD") || paxType.equalsIgnoreCase("CH")) {
-	        		paxCount = passengerTypeCountMap.get("childCount");
-	        	} else if(paxType.equalsIgnoreCase("INF") || paxType.equalsIgnoreCase("IN")) {
-	        		paxCount = passengerTypeCountMap.get("infantCount");
-	        	}
-	        	for(MonetaryInformationDetailsType223844C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
-	        		BigDecimal amount = new BigDecimal(fareData.getFareAmount());
-	        		if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
-	        			totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
-	        		}
-	        	}
-	        }
+			lowestFare.setGdsPnr(pnr);
 			lowestFare.setAmount(totalFare);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

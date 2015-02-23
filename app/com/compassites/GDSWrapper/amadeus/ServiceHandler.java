@@ -187,9 +187,9 @@ public class ServiceHandler {
         return fareCheckRulesReply;
     }
     
-    public FarePricePNRWithLowestFareReply getLowestFare(String carrierCode) {
+    public FarePricePNRWithLowestFareReply getLowestFare() {
     	mSession.incrementSequenceNumber();
-    	FarePricePNRWithLowestFare farePricePNRWithLowestFare = new PricePNRLowestFare().getFarePricePNRWithLowestFare(carrierCode);
+    	FarePricePNRWithLowestFare farePricePNRWithLowestFare = new PricePNRLowestFare().getFarePricePNRWithLowestFare();
     	XMLFileUtility.createXMLFile(farePricePNRWithLowestFare, "FarePricePNRWithLowestFareReq.xml");
     	FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, mSession.getSession());
     	XMLFileUtility.createXMLFile(farePricePNRWithLowestFareReply, "FarePricePNRWithLowestFareReplyRes.xml");
