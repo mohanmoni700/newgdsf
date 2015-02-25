@@ -1,0 +1,26 @@
+<com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass>
+  <paxSegReference>
+    <refDetails>
+      <com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass_-PaxSegReference_-RefDetails>
+        <refQualifier>ST</refQualifier>
+        <refNumber>1</refNumber>
+      </com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass_-PaxSegReference_-RefDetails>
+      <com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass_-PaxSegReference_-RefDetails>
+        <refQualifier>ST</refQualifier>
+        <refNumber>2</refNumber>
+      </com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass_-PaxSegReference_-RefDetails>
+    </refDetails>
+  </paxSegReference>
+  <overrideInformation>
+    <attributeDetails>
+      <com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass_-OverrideInformation_-AttributeDetails>
+        <attributeType>ptc</attributeType>
+      </com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass_-OverrideInformation_-AttributeDetails>
+    </attributeDetails>
+  </overrideInformation>
+  <validatingCarrier>
+    <carrierInformation>
+      <carrierCode>9W</carrierCode>
+    </carrierInformation>
+  </validatingCarrier>
+</com.amadeus.xml.tpcbrq__07__3__1a.FarePricePNRWithBookingClass>

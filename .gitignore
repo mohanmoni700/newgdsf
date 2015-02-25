@@ -9,7 +9,7 @@
 /db.h2.db
 /testdb.h2.db
 *.json
-*.xml
+/xmls/*.xml
 /application.home_IS_UNDEFINED
 /.target/
 /.project

@@ -1,0 +1,10 @@
+<com.amadeus.xml.tautcq__04__1__1a.TicketCreateTSTFromPricing>
+  <psaList>
+    <com.amadeus.xml.tautcq__04__1__1a.TicketCreateTSTFromPricing_-PsaList>
+      <itemReference>
+        <referenceType>TST</referenceType>
+        <uniqueReference>1</uniqueReference>
+      </itemReference>
+    </com.amadeus.xml.tautcq__04__1__1a.TicketCreateTSTFromPricing_-PsaList>
+  </psaList>
+</com.amadeus.xml.tautcq__04__1__1a.TicketCreateTSTFromPricing>

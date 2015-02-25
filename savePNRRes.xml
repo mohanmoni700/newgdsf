@@ -1,0 +1,46 @@
+<com.amadeus.xml.pnracc__10__1__1a.PNRReply>
+  <pnrHeader>
+    <com.amadeus.xml.pnracc__10__1__1a.PNRReply_-PnrHeader>
+      <reservationInfo>
+        <reservation>
+          <companyId>1A</companyId>
+          <controlNumber>3JEMM8</controlNumber>
+        </reservation>
+      </reservationInfo>
+    </com.amadeus.xml.pnracc__10__1__1a.PNRReply_-PnrHeader>
+  </pnrHeader>
+  <securityInformation>
+    <responsibilityInformation>
+      <typeOfPnrElement>RP</typeOfPnrElement>
+    </responsibilityInformation>
+  </securityInformation>
+  <sbrPOSDetails>
+    <sbrUserIdentificationOwn>
+      <originIdentification>
+        <inHouseIdentification1> </inHouseIdentification1>
+      </originIdentification>
+    </sbrUserIdentificationOwn>
+  </sbrPOSDetails>
+  <sbrCreationPosDetails>
+    <sbrUserIdentificationOwn>
+      <originIdentification>
+        <inHouseIdentification1> </inHouseIdentification1>
+      </originIdentification>
+    </sbrUserIdentificationOwn>
+  </sbrCreationPosDetails>
+  <sbrUpdatorPosDetails>
+    <sbrUserIdentificationOwn>
+      <originIdentification>
+        <inHouseIdentification1> </inHouseIdentification1>
+      </originIdentification>
+    </sbrUserIdentificationOwn>
+  </sbrUpdatorPosDetails>
+  <originDestinationDetails>
+    <com.amadeus.xml.pnracc__10__1__1a.PNRReply_-OriginDestinationDetails>
+      <originDestination/>
+    </com.amadeus.xml.pnracc__10__1__1a.PNRReply_-OriginDestinationDetails>
+  </originDestinationDetails>
+  <dataElementsMaster>
+    <marker2/>
+  </dataElementsMaster>
+</com.amadeus.xml.pnracc__10__1__1a.PNRReply>

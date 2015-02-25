@@ -1,0 +1,21 @@
+<com.amadeus.xml.tautcr__04__1__1a.TicketCreateTSTFromPricingReply>
+  <tstList>
+    <com.amadeus.xml.tautcr__04__1__1a.TicketCreateTSTFromPricingReply_-TstList>
+      <tstReference>
+        <referenceType>TST</referenceType>
+        <uniqueReference>1</uniqueReference>
+        <idDescription>
+          <idSequenceNumber>1</idSequenceNumber>
+        </idDescription>
+      </tstReference>
+      <paxInformation>
+        <refDetails>
+          <com.amadeus.xml.tautcr__04__1__1a.TicketCreateTSTFromPricingReply_-TstList_-PaxInformation_-RefDetails>
+            <refQualifier>PA</refQualifier>
+            <refNumber>2</refNumber>
+          </com.amadeus.xml.tautcr__04__1__1a.TicketCreateTSTFromPricingReply_-TstList_-PaxInformation_-RefDetails>
+        </refDetails>
+      </paxInformation>
+    </com.amadeus.xml.tautcr__04__1__1a.TicketCreateTSTFromPricingReply_-TstList>
+  </tstList>
+</com.amadeus.xml.tautcr__04__1__1a.TicketCreateTSTFromPricingReply>
