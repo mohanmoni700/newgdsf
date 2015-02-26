@@ -5,14 +5,15 @@ import com.compassites.model.Passenger;
 import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirLowFareSearchPortType;
 import com.travelport.service.air_v26_0.AirService;
-
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import utils.XMLFileUtility;
 
@@ -23,7 +24,6 @@ import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.ws.BindingProvider;
-
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,6 +31,7 @@ import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,6 +49,10 @@ public class LowFareRequestClient extends TravelPortClient {
 
     static AirService airService = null;
     static AirLowFareSearchPortType airLowFareSearchPortTypePort = null;
+
+    static Logger travelportLogger = LoggerFactory.getLogger("travelport");
+
+    static Logger logger = LoggerFactory.getLogger("gds");
 
     static void  init() {
         if (airService == null) {
@@ -219,10 +224,12 @@ public class LowFareRequestClient extends TravelPortClient {
     
     public static LowFareSearchRsp search(SearchParameters searchParameters) throws AirFaultMessage {
         LowFareSearchReq request = buildQuery(searchParameters);
-        XMLFileUtility.createXMLFile(request, "Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchReq.xml");
+//        XMLFileUtility.createXMLFile(request, "Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchReq.xml");
+        travelportLogger.debug("Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchReq" + new Date() +" ------>> "+ new XStream().toXML(request));
         init();
         LowFareSearchRsp response = airLowFareSearchPortTypePort.service(request);
         XMLFileUtility.createXMLFile(response, "Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchRes.xml");
+        travelportLogger.debug("Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchRes.xml"+ new XStream().toXML(response));
         return response;
     }
 
@@ -284,7 +291,7 @@ public class LowFareRequestClient extends TravelPortClient {
             System.out.print("Price:"+ airPricingSolution.getTotalPrice());
             System.out.print(" [BasePrice "+airPricingSolution.getBasePrice() +", ");
             System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
-            System.out.println("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(0).getCabinClass());
+            logger.debug("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(0).getCabinClass());
             List<AirSegmentRef> airSegmentRefList = airPricingSolution.getJourney().get(0).getAirSegmentRef();
             for (Iterator<AirSegmentRef> airSegmentRefIterator = airSegmentRefList.iterator(); airSegmentRefIterator.hasNext();){
                 AirSegmentRef airSegmentRef = airSegmentRefIterator.next();
@@ -318,12 +325,12 @@ public class LowFareRequestClient extends TravelPortClient {
                 }
                 System.out.print(" at "+dtime);
                 if ((airSegment!=null) && (airSegment.getFlightTime()!=null)) {
-                    System.out.println(" (flight time "+airSegment.getFlightTime()+" minutes)");
+                    logger.debug(" (flight time "+airSegment.getFlightTime()+" minutes)");
                 } else {
-                    System.out.println();
+//                    logger.debug();
                 }
             }
-            System.out.println("-----------");
+            logger.debug("-----------");
 
         }
     }

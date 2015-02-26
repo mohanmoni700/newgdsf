@@ -8,8 +8,9 @@ import com.compassites.model.*;
 import models.Airline;
 import models.Airport;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import play.Logger;
 import utils.ErrorMessageHelper;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -29,10 +30,12 @@ public class MystiflyFlightSearch implements FlightSearch{
 
 	private SearchParameters searchParams;
 
+    static Logger logger = LoggerFactory.getLogger("gds");
+
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
 	public SearchResponse search(SearchParameters searchParameters)
 			throws IncompleteDetailsMessage {
-		Logger.info("[Mystifly] search started at " + new Date());
+		logger.debug("[Mystifly] search started at " + new Date());
 		searchParams = searchParameters;
 
 		SearchResponse searchResponse = new SearchResponse();

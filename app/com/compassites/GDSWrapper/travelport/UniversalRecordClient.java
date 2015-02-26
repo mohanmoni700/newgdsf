@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.travelport;
 
+import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.AirReservation;
 import com.travelport.schema.common_v26_0.BillingPointOfSaleInfo;
 import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
@@ -12,12 +13,14 @@ import com.travelport.service.universal_v26_0.UniversalRecordFaultMessage;
 import com.travelport.service.universal_v26_0.UniversalRecordRetrieveServicePortType;
 import com.travelport.service.universal_v26_0.UniversalRecordService;
 import org.apache.commons.logging.LogFactory;
-import utils.XMLFileUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Date;
 
 /**
  * Created by user on 11-09-2014.
@@ -27,6 +30,7 @@ public class UniversalRecordClient extends TravelPortClient {
     static final String ServiceName =  "/UniversalRecordService";
     static UniversalRecordService universalRecordService = null;
     static UniversalRecordRetrieveServicePortType universalRecordRetrieveServicePortType = null;
+    static Logger travelportLogger = LoggerFactory.getLogger("travelport");
 
     static void  init(){
         if (universalRecordService == null){
@@ -74,12 +78,12 @@ public class UniversalRecordClient extends TravelPortClient {
 		recordRetrieveReq.setProviderReservationInfo(reservationInfo);
 		try {
 			init();
-			XMLFileUtility.createXMLFile(recordRetrieveReq,
-					"UniversalRecordRetrieveReq.xml");
+//			XMLFileUtility.createXMLFile(recordRetrieveReq,"UniversalRecordRetrieveReq.xml");
+            travelportLogger.debug("UniversalRecordRetrieveReq " + new Date() +" ------>> "+ new XStream().toXML(recordRetrieveReq));
 			recordRetrieveRsp = universalRecordRetrieveServicePortType.service(
 					recordRetrieveReq, null);
-			XMLFileUtility.createXMLFile(recordRetrieveRsp,
-					"UniversalRecordRetrieveRes.xml");
+//			XMLFileUtility.createXMLFile(recordRetrieveRsp,"UniversalRecordRetrieveRes.xml");
+            travelportLogger.debug("UniversalRecordRetrieveRes " + new Date() +" ------>> "+ new XStream().toXML(recordRetrieveRsp));
 		} catch (UniversalRecordFaultMessage universalRecordFaultMessage) {
 			universalRecordFaultMessage.printStackTrace();
 		} catch (UniversalRecordArchivedFaultMessage universalRecordArchivedFaultMessage) {

@@ -1,12 +1,6 @@
 package com.compassites.GDSWrapper.travelport;
 
-import java.net.MalformedURLException;
-
-import javax.xml.ws.BindingProvider;
-
-import play.Logger;
-import utils.XMLFileUtility;
-
+import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.AirReservation;
 import com.travelport.schema.air_v26_0.AirReservationLocatorCode;
 import com.travelport.schema.air_v26_0.AirTicketingReq;
@@ -18,6 +12,12 @@ import com.travelport.schema.universal_v26_0.UniversalRecord;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirService;
 import com.travelport.service.air_v26_0.AirTicketingPortType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.ws.BindingProvider;
+import java.net.MalformedURLException;
+import java.util.Date;
 
 /**
  * @author Santhosh
@@ -28,6 +28,11 @@ public class AirTicketClient extends TravelPortClient {
 	public static final String WSDL_URL = "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl";
 	static AirService airService = null;
 	static AirTicketingPortType airTicketingPortType = null;
+
+    static Logger logger = LoggerFactory.getLogger("gds");
+
+    static Logger travelportLogger = LoggerFactory.getLogger("travelport");
+
 
 	public AirTicketClient() {
 		init();
@@ -47,10 +52,10 @@ public class AirTicketClient extends TravelPortClient {
 		}
 		if (airTicketingPortType == null) {
 			airTicketingPortType = airService.getAirTicketingPort();
-			Logger.info("Initializing AirTicketingPortType....");
+			logger.debug("Initializing AirTicketingPortType....");
 			setRequestContext((BindingProvider) airTicketingPortType,
 					SERVICE_NAME);
-			Logger.info("Initialized");
+			logger.debug("Initialized");
 		}
 	}
 
@@ -77,14 +82,16 @@ public class AirTicketClient extends TravelPortClient {
 		AirReservationLocatorCode airResLocatorCode = new AirReservationLocatorCode();
 		airResLocatorCode.setValue(airReservation.getLocatorCode());
 		request.setAirReservationLocatorCode(airResLocatorCode);
-		XMLFileUtility.createXMLFile(request, "AirTicketingReq.xml");
+//		XMLFileUtility.createXMLFile(request, "AirTicketingReq.xml");
+        travelportLogger.debug("AirTicketingReq " + new Date() +" ------>> "+ new XStream().toXML(request));
 		try {
 			response = airTicketingPortType.service(request);
 		} catch (AirFaultMessage e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		XMLFileUtility.createXMLFile(response, "AirTicketingRsp.xml");
+//		XMLFileUtility.createXMLFile(response, "AirTicketingRsp.xml");
+        travelportLogger.debug("AirTicketingRsp " + new Date() +" ------>> "+ new XStream().toXML(response));
 		return response;
 	}
 

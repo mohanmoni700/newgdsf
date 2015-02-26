@@ -4,15 +4,15 @@ import com.compassites.constants.CacheConstants;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import play.Logger;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
@@ -30,9 +30,12 @@ public class FlightSearchWrapper {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    static Logger logger = LoggerFactory.getLogger("gds");
+
     public void search(final SearchParameters searchParameters) {
         final String redisKey = searchParameters.redisKey();
-        Logger.info("***********SEARCH STARTED key: ["+ redisKey +"]***********");
+
+        logger.debug("***********SEARCH STARTED key: [" + redisKey + "]***********");
 
 
         SearchResponse searchResponseList = new SearchResponse();
@@ -51,14 +54,14 @@ public class FlightSearchWrapper {
 	            final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
 	
 	            try {
-	                System.out.println("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
+	                logger.debug("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
 	                
 	                //Call provider if response is not already present;
 	                if (!checkOrSetStatus(providerStatusCacheKey)) {
 	                    futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
 	                        public SearchResponse call() throws Exception {
 	                            SearchResponse response = flightSearch.search(searchParameters);
-	                            Logger.info("[" + redisKey + "]Response from provider:" + flightSearch.provider());
+	                            logger.debug("[" + redisKey + "]Response from provider:" + flightSearch.provider());
 	                            checkResponseAndSetStatus(response, providerStatusCacheKey);
 	                            return response;
 	                        }
@@ -78,13 +81,13 @@ public class FlightSearchWrapper {
 	                }
 	            } catch (Exception e) {
 	                checkResponseAndSetStatus(null, providerStatusCacheKey);
-	                Logger.info("["+redisKey+"]Response from provider:" +flightSearch.provider());
+	                logger.debug("["+redisKey+"]Response from provider:" +flightSearch.provider());
 	                e.printStackTrace();
 	            }
         	//}
         }
 
-        Logger.info("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
+        logger.debug("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
         int counter = 0;
         boolean loop = true;
         int searchResponseListSize = futureSearchResponseList.size();
@@ -100,7 +103,7 @@ public class FlightSearchWrapper {
                 }
                 Future<SearchResponse> future = listIterator.next();
                 SearchResponse searchResponse = null;
-                /*System.out.println("=================================>" +
+                /*logger.debug("=================================>" +
                         String.format("[monitor] [%d/%d] Active: %d, Completed: %d, Task: %d, isShutdown: %s, isTerminated: %s",
                                 newExecutor.getPoolSize(),
                                 newExecutor.getCorePoolSize(),
@@ -116,7 +119,7 @@ public class FlightSearchWrapper {
                         exceptionCounter++;
 
                         if(exceptionCounter == flightSearchList.size()){
-                            Logger.error("["+redisKey+"]All providers gave error");
+                            logger.debug("["+redisKey+"]All providers gave error");
                             //send email to IT admin
                         }
                         ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("retrialError",ErrorMessage.ErrorType.ERROR,"Application");
@@ -135,7 +138,7 @@ public class FlightSearchWrapper {
                         searchResponseList.add(searchResponse);
                     }
 
-                    Logger.info("Redis Key :" + searchParameters.redisKey());
+                    logger.debug("Redis Key :" + searchParameters.redisKey());
                     String res = je(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseList)));
 
                     res = j.set(searchParameters.redisKey()+":status","partial");*/
@@ -143,14 +146,14 @@ public class FlightSearchWrapper {
                     counter++;
 
                     if(searchResponse != null){
-                        Logger.info("["+redisKey+"]Received Response "+ counter +" from : " + searchResponse.getProvider()+" Size: " + searchResponse.getAirSolution().getFlightItineraryList().size());
+                        logger.debug("["+redisKey+"]Received Response "+ counter +" from : " + searchResponse.getProvider()+" Size: " + searchResponse.getAirSolution().getFlightItineraryList().size());
                         SearchResponse searchResponseCache=new SearchResponse();
 
-                        //Logger.info("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
+                        //logger.debug("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
                        /* for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()) {
-                            //Logger.info("FlightItinary string :"+flightItinerary.toString());
+                            //logger.debug("FlightItinary string :"+flightItinerary.toString());
                             if(hashMap.containsKey(flightItinerary.hashCode())){
-                                //Logger.info("Common Flights"+Json.toJson(flightItinerary));
+                                //logger.debug("Common Flights"+Json.toJson(flightItinerary));
                                 FlightItinerary hashFlightItinerary = hashMap.get(flightItinerary.hashCode());
                                 //if(searchParameters.getBookingType().equals(BookingType.NON_MARINE)){
                                     if (hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
@@ -195,11 +198,11 @@ public class FlightSearchWrapper {
                         redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;
-                        Logger.info("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
+                        logger.debug("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
                     }
                     else
                     {
-                        Logger.info("["+redisKey+"]Received Response "+ counter +" Null" );
+                        logger.debug("["+redisKey+"]Received Response "+ counter +" Null" );
                     }
 
                 }
@@ -217,11 +220,11 @@ public class FlightSearchWrapper {
                 }
                 redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "complete");
                 redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
-                Logger.info("***********SEARCH END key: ["+ redisKey +"]***********");
+                logger.debug("***********SEARCH END key: ["+ redisKey +"]***********");
             }
         }
 
-        System.out.println("=================================>\n"+
+        logger.debug("=================================>\n"+
                 "=================================>\n"+
                 String.format("[monitor] [%d/%d] Active: %d, Completed: %d, Task: %d, isShutdown: %s, isTerminated: %s",
                         newExecutor.getPoolSize(),
@@ -232,14 +235,14 @@ public class FlightSearchWrapper {
                         newExecutor.isShutdown(),
                         newExecutor.isTerminated()));
         /*
-        Logger.info("HashMap Size: "+hashMap.size());
+        logger.debug("HashMap Size: "+hashMap.size());
         SearchResponse searchResponse=new SearchResponse();
         searchResponse.setErrorMessageList(errorMessageList);
         AirSolution airSolution = new AirSolution();
         airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
         searchResponse.setAirSolution(airSolution);
         searchResponseList.add(searchResponse);
-        Logger.info("***********SEARCH END***********");
+        logger.debug("***********SEARCH END***********");
         */
         return ;
     }
@@ -285,7 +288,7 @@ public class FlightSearchWrapper {
 
             for(Integer hashKey : allFightItineraries.keySet()){
                 if(seamenFareHash == null || nonSeamenFareHash == null){
-                    System.out.println("==================================NULL POINTER EXECEPTION============"+ searchResponse.getProvider()+Json.toJson(searchResponse));
+                    logger.debug("==================================NULL POINTER EXECEPTION============"+ searchResponse.getProvider()+Json.toJson(searchResponse));
                 }
                 if(seamenFareHash.containsKey(hashKey) && nonSeamenFareHash.containsKey(hashKey)){
                     FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);

@@ -6,6 +6,7 @@ import com.compassites.model.Passenger;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.service.air_v26_0.AirAvailabilitySearchPortType;
@@ -17,9 +18,9 @@ import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.joda.time.Years;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.DateUtility;
-import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import java.io.IOException;
@@ -43,6 +44,10 @@ public class AirRequestClient extends TravelPortClient {
     static AirService airService = null;
     static AirAvailabilitySearchPortType airAvailabilitySearchPort = null;
     static AirPricePortType airPricePortType = null;
+
+    static Logger travelportLogger = LoggerFactory.getLogger("travelport");
+
+    static Logger logger = LoggerFactory.getLogger("gds");
 
     static void  init(){
         if (airService == null){
@@ -194,7 +199,7 @@ public class AirRequestClient extends TravelPortClient {
         response = airAvailabilitySearchPort.service(request);
         //print out any messages that the GDS sends back
         for (ResponseMessage message : response.getResponseMessage())
-            System.out.println("MESSAGE:" + message.getProviderCode() + " [" + message.getType()
+            logger.debug("MESSAGE:" + message.getProviderCode() + " [" + message.getType()
                     + "] " + message.getValue());
 
         return response;
@@ -457,10 +462,10 @@ public class AirRequestClient extends TravelPortClient {
                 List<AirPricingSolution> airPricingSolutions =  result.getAirPricingSolution();
                 for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
                     AirPricingSolution airPricingSolution = (AirPricingSolution)airPricingSolutionIterator.next();
-                    System.out.print("Price:"+ airPricingSolution.getTotalPrice());
-                    System.out.print(" [BasePrice "+airPricingSolution.getBasePrice() +", ");
-                    System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
-                    System.out.println("CabinClass "+airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(0).getCabinClass());
+                    logger.debug("Price:"+ airPricingSolution.getTotalPrice());
+                    logger.debug(" [BasePrice "+airPricingSolution.getBasePrice() +", ");
+                    logger.debug("Taxes "+airPricingSolution.getTaxes()+"]");
+                    logger.debug("CabinClass "+airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(0).getCabinClass());
                 }
             }
         }
@@ -516,11 +521,13 @@ public class AirRequestClient extends TravelPortClient {
         priceRequest.setAirPricingModifiers(airPricingModifiers);
 
 
-        XMLFileUtility.createXMLFile(priceRequest,"AirpriceReq.xml" );
+//        XMLFileUtility.createXMLFile(priceRequest,"AirpriceReq.xml" );
+        travelportLogger.debug("AirpriceReq " + new Date() +" ------>> "+ new XStream().toXML(priceRequest));
         initPricePort();
         AirPriceRsp airPriceRsp = airPricePortType.service(priceRequest);
 
-        XMLFileUtility.createXMLFile(airPriceRsp,"AirpriceRes.xml" );
+//        XMLFileUtility.createXMLFile(airPriceRsp,"AirpriceRes.xml" );
+        travelportLogger.debug("AirpriceRes " + new Date() +" ------>> "+ new XStream().toXML(airPriceRsp));
         return airPriceRsp;
     }
 
@@ -546,7 +553,7 @@ public class AirRequestClient extends TravelPortClient {
                         flightNum = airSegment.getFlightNumber();
                     }
                 }
-                System.out.print(carrier+"#"+flightNum);
+                logger.debug(carrier+"#"+flightNum);
                 String o="???",d="???";
                 if (airSegment!=null) {
                     if (airSegment.getOrigin()!=null) {
@@ -556,21 +563,21 @@ public class AirRequestClient extends TravelPortClient {
                         d=airSegment.getDestination();
                     }
                 }
-                System.out.print(" from "+o+" to "+ d);
+                logger.debug(" from "+o+" to "+ d);
                 String dtime = "??:??";
                 if (airSegment!=null) {
                     if (airSegment.getDepartureTime()!=null) {
                         dtime = airSegment.getDepartureTime();
                     }
                 }
-                System.out.print(" at "+dtime);
+                logger.debug(" at "+dtime);
                 if ((airSegment!=null) && (airSegment.getFlightTime()!=null)) {
-                    System.out.println(" (flight time "+airSegment.getFlightTime()+" minutes)");
+                    logger.debug(" (flight time "+airSegment.getFlightTime()+" minutes)");
                 } else {
-                    System.out.println();
+                    logger.debug("");
                 }
             }
-            System.out.println("-----------");
+            logger.debug("-----------");
         }
     }
 

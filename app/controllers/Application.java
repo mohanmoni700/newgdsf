@@ -4,6 +4,8 @@ package controllers;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -32,12 +34,14 @@ public class Application {
     @Autowired
     private FlightInfoServiceWrapper flightInfoService;
 
+    static Logger logger = LoggerFactory.getLogger("gds");
+
     public Result flightSearch(){
-        System.out.println("Request recieved");
+        logger.debug("Request recieved");
         JsonNode json = request().body().asJson();
 
         SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
-        System.out.println("SearchParamerters: " + json.toString());
+        logger.debug("SearchParamerters: " + json.toString());
         flightSearchWrapper.search(searchParameters);
 //        mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
@@ -47,7 +51,7 @@ public class Application {
         JsonNode json = request().body().asJson();
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.generatePNR(travellerMasterInfo);
-        System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
@@ -57,7 +61,7 @@ public class Application {
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.checkFareChangeAndAvailability(travellerMasterInfo);
 
-        System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
@@ -67,7 +71,7 @@ public class Application {
 
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.priceChangePNR(travellerMasterInfo);
-        System.out.println("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
     
@@ -110,7 +114,7 @@ public class Application {
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         IssuanceResponse issuanceResponse = bookingService.issueTicket(issuanceRequest);
-        System.out.println("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
+        logger.debug("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
     }
     
@@ -121,7 +125,7 @@ public class Application {
     	String gdsPNR = issuanceRequest.getGdsPNR();
     	String provider = issuanceRequest.getProvider();
     	TravellerMasterInfo masterInfo=bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
-    	System.out.println("==== in Application INFO ==== >>>>>>"+Json.toJson(masterInfo));
+    	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
     }
     
@@ -130,7 +134,7 @@ public class Application {
     	JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json, String.class);
     	LowestFare lowestFare = bookingService.getLowestFare(pnr, "Amadeus");
-    	System.out.println("-----------------LowestFare:\n" + Json.toJson(lowestFare));
+    	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
     }
     

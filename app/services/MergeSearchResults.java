@@ -4,10 +4,11 @@ import akka.dispatch.Futures;
 import com.compassites.constants.CacheConstants;
 import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import play.Logger;
 import play.libs.Akka;
 import play.libs.Json;
 import scala.Option;
@@ -35,6 +36,8 @@ public class MergeSearchResults {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    static Logger logger = LoggerFactory.getLogger("gds");
+
     public void searchAndMerge( final SearchParameters searchParameters){
 
         final String redisKey = searchParameters.redisKey();
@@ -55,14 +58,14 @@ public class MergeSearchResults {
             final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
 
             try {
-                System.out.println("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
+                logger.debug("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
 
                 //Call provider if response is not already present;
                 if (!checkOrSetStatus(providerStatusCacheKey)) {
                     futureSearchResponseList.add(Futures.future(new Callable<SearchResponse>() {
                         public SearchResponse call() throws Exception {
                             SearchResponse response = flightSearch.search(searchParameters);
-                            Logger.info("[" + redisKey + "]Response from provider:" + flightSearch.provider());
+                            logger.debug("[" + redisKey + "]Response from provider:" + flightSearch.provider());
                             checkResponseAndSetStatus(response, providerStatusCacheKey);
                             return response;
                         }
@@ -82,13 +85,13 @@ public class MergeSearchResults {
                 }
             } catch (Exception e) {
                 checkResponseAndSetStatus(null, providerStatusCacheKey);
-                Logger.info("["+redisKey+"]Response from provider:" +flightSearch.provider());
+                logger.debug("["+redisKey+"]Response from provider:" +flightSearch.provider());
                 e.printStackTrace();
             }
             //}
         }
 
-        Logger.info("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
+        logger.debug("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
         int counter = 0;
         boolean loop = true;
         int searchResponseListSize = futureSearchResponseList.size();
@@ -119,7 +122,7 @@ public class MergeSearchResults {
                     counter++;
 
                     if(searchResponse != null){
-                        Logger.info("["+redisKey+"]Received Response "+ counter +" from : " + searchResponse.getProvider()+" Size: " + searchResponse.getAirSolution().getFlightItineraryList().size());
+                        logger.debug("["+redisKey+"]Received Response "+ counter +" from : " + searchResponse.getProvider()+" Size: " + searchResponse.getAirSolution().getFlightItineraryList().size());
                         SearchResponse searchResponseCache=new SearchResponse();
 
                         mergeResults(hashMap, searchResponse);
@@ -139,11 +142,11 @@ public class MergeSearchResults {
                         redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;
-                        Logger.info("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
+                        logger.debug("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
                     }
                     else
                     {
-                        Logger.info("["+redisKey+"]Received Response "+ counter +" Null" );
+                        logger.debug("["+redisKey+"]Received Response "+ counter +" Null" );
                     }
 
                 }
@@ -161,7 +164,7 @@ public class MergeSearchResults {
                 }
                 redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "complete");
                 redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
-                Logger.info("***********SEARCH END key: ["+ redisKey +"]***********");
+                logger.debug("***********SEARCH END key: ["+ redisKey +"]***********");
             }
         }
     }
@@ -210,7 +213,7 @@ public class MergeSearchResults {
 
             for(Integer hashKey : allFightItineraries.keySet()){
                 if(seamenFareHash == null || nonSeamenFareHash == null){
-                    System.out.println("==================================NULL POINTER EXECEPTION============"+ searchResponse.getProvider()+Json.toJson(searchResponse));
+                    logger.debug("==================================NULL POINTER EXECEPTION============"+ searchResponse.getProvider()+Json.toJson(searchResponse));
                 }
                 if(seamenFareHash.containsKey(hashKey) && nonSeamenFareHash.containsKey(hashKey)){
                     FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);

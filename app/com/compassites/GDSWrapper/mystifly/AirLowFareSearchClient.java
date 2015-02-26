@@ -1,37 +1,27 @@
 package com.compassites.GDSWrapper.mystifly;
 
-import java.rmi.RemoteException;
-import java.util.Calendar;
-
+import com.compassites.model.SearchJourney;
+import com.compassites.model.SearchParameters;
 import onepoint.mystifly.AirLowFareSearchDocument;
 import onepoint.mystifly.AirLowFareSearchDocument.AirLowFareSearch;
 import onepoint.mystifly.AirLowFareSearchResponseDocument;
 import onepoint.mystifly.OnePointStub;
-
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRQ;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirLowFareSearchRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripType.Enum;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripType;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfOriginDestinationInformation;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfPassengerTypeQuantity;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.MaxStopsQuantity;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.OriginDestinationInformation;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerType;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerTypeQuantity;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.RequestOptions;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelPreferences;
-
-import com.compassites.model.SearchJourney;
-import com.compassites.model.SearchParameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
-import utils.XMLFileUtility;
+import java.rmi.RemoteException;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * @author Santhosh
  */
 public class AirLowFareSearchClient {
+
+    static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
 	public AirLowFareSearchRS search(SearchParameters searchParams)
 			throws RemoteException {
@@ -59,12 +49,14 @@ public class AirLowFareSearchClient {
 		// TODO: search params to be added
 		// stopOver, currency, preferredFood
 
-		XMLFileUtility.createFile(searchRQ.xmlText(), "MystiflySearchRQ.xml");
+//		XMLFileUtility.createFile(searchRQ.xmlText(), "MystiflySearchRQ.xml");
+        mystiflyLogger.debug("MystiflySearchRQ "+ new Date() +" ----->>" + searchRQ.xmlText());
 		AirLowFareSearchResponseDocument searchResDoc = onePointStub
 				.airLowFareSearch(searchRQDoc);
 		AirLowFareSearchRS searchRS = searchResDoc
 				.getAirLowFareSearchResponse().getAirLowFareSearchResult();
-		XMLFileUtility.createFile(searchRS.xmlText(), "MystiflySearchRS.xml");
+//		XMLFileUtility.createFile(searchRS.xmlText(), "MystiflySearchRS.xml");
+        mystiflyLogger.debug("MystiflySearchRS "+ new Date() +" ----->>" + searchRS.xmlText());
 		return searchRS;
 	}
 

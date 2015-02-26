@@ -3,6 +3,7 @@ package services;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Aspect
@@ -14,6 +15,8 @@ public class RetryOnFailureAspect
     private static final int DEFAULT_MAX_RETRIES = 2;
 
     private int maxRetries = DEFAULT_MAX_RETRIES;
+
+    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
     @Around("execution(* *(..)) && @annotation(retry)")
     public Object retry(ProceedingJoinPoint pjp, RetryOnFailure retry) throws Throwable
@@ -46,7 +49,7 @@ public class RetryOnFailureAspect
                 }
                 else
                 {
-                    System.out.println(String
+                    logger.debug(String
                             .format("%s: Attempt %d of %d failed with exception '%s'. Will retry immediately. %s",
                                     pjp.getSignature(), attemptCount,
                                     retry.attempts(),

@@ -1,31 +1,5 @@
 package services;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import models.Airline;
-import models.Airport;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.stereotype.Service;
-
-import play.libs.Json;
-import utils.AmadeusBookingHelper;
-import utils.DateUtility;
-import utils.ErrorMessageHelper;
-import utils.XMLFileUtility;
-
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
@@ -43,19 +17,27 @@ import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.Journey;
-import com.compassites.model.LowestFare;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.PassengerTax;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.PricingInformation;
+import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.thoughtworks.xstream.XStream;
+import models.Airline;
+import models.Airport;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import play.libs.Json;
+import utils.AmadeusBookingHelper;
+import utils.DateUtility;
+import utils.ErrorMessageHelper;
+
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
@@ -67,6 +49,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	private final String issuenceOkStatus = "O";
 
 	private final String cappingLimitString = "CT RJT";
+
+    static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
+
+    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
 	@Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
@@ -311,7 +297,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			gdsPNRReply = serviceHandler.savePNR();
 			gdsPNRReply = serviceHandler
 					.retrivePNR(issuanceRequest.getGdsPNR());
-			XMLFileUtility.createXMLFile(gdsPNRReply, "retrievePNRRes1.xml");
+//			XMLFileUtility.createXMLFile(gdsPNRReply, "retrievePNRRes1.xml");
+            amadeusLogger.debug("retrievePNRRes1 "+ new Date()+" ------->>"+ new XStream().toXML(gdsPNRReply));
 			DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler
 					.issueTicket();
 			if (issuenceOkStatus.equals(issuanceIssueTicketReply
@@ -327,13 +314,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						.getErrorGroup().getErrorWarningDescription()
 						.getFreeText();
 				if (errorDescription.contains(cappingLimitString)) {
-					System.out.println("Send Email to operator saying capping limit is reached");
+					logger.debug("Send Email to operator saying capping limit is reached");
 					issuanceResponse.setCappingLimitReached(true);
 				}
 			}
 			getCancellationFee(issuanceRequest, issuanceResponse,
 					serviceHandler);
-			System.out.println("");
+			logger.debug("");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -417,7 +404,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			Set<String> isTicketContainSet = new HashSet<String>();
 			for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
 				String isTicketIssued = isticket.getElementManagementData().getSegmentName();
-				/*System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<DataElementsIndiv>>>>>>>>>>>>>>>>>>>>>>>>"+Json.toJson(isticket.getElementManagementData().getSegmentName()));*/
+				/*logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<DataElementsIndiv>>>>>>>>>>>>>>>>>>>>>>>>"+Json.toJson(isticket.getElementManagementData().getSegmentName()));*/
 				isTicketContainSet.add(isTicketIssued);
 				/*if (isTicketIssued.equals("FA")) {
 					AmadeusBookingHelper.createTickets(issuanceResponse,
@@ -432,7 +419,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					return masterInfo;
 				}*/
 			}
-			/*System.out.println("SET>>>>>>>>>>>>>>>>>>>"+Json.toJson(isTicketContainSet));*/
+			/*logger.debug("SET>>>>>>>>>>>>>>>>>>>"+Json.toJson(isTicketContainSet));*/
 			for (String isFA : isTicketContainSet) {
 				if(isFA.equalsIgnoreCase("FA")){
 					AmadeusBookingHelper.createTickets(issuanceResponse,
@@ -510,8 +497,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 							.setArrivalTime(arrivalDate.toString());
 					airSegmentInformation.setArrivalDate(arrivalDate.toDate());
 
-					// System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+fromDateTime);
-					// System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+toDateTime);
+					// logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+fromDateTime);
+					// logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+toDateTime);
 					airSegmentInformation.setFromDate(fromDateTime);
 					airSegmentInformation.setToDate(toDateTime);
 					/*
@@ -567,8 +554,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 			masterInfo.setTravellersList(issuanceResponse.getTravellerList());
 
-			// System.out.println("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
-			// System.out.println("====== masterInfo details =========="+
+			// logger.debug("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
+			// logger.debug("====== masterInfo details =========="+
 			// Json.toJson(masterInfo));
 		} catch (Exception e) {
 			e.printStackTrace();

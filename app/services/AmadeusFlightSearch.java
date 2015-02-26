@@ -9,6 +9,7 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import com.thoughtworks.xstream.XStream;
 import models.Airline;
 import models.Airport;
 import org.joda.time.DateTime;
@@ -16,10 +17,9 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import play.Logger;
 import utils.ErrorMessageHelper;
-import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -43,10 +43,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class AmadeusFlightSearch  implements FlightSearch{
 
+    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
+
+    static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
+
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
-//        Logger.info("AmadeusFlightSearch called at : " + new Date());
-        Logger.info("AmadeusFlightSearch started  : ");
+//        logger.debug("AmadeusFlightSearch called at : " + new Date());
+        logger.debug("AmadeusFlightSearch started  : ");
         SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
         searchResponse.setProvider("Amadeus");
@@ -60,11 +64,14 @@ public class AmadeusFlightSearch  implements FlightSearch{
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
                 searchParameters.setBookingType(BookingType.SEAMEN);
-                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
-                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
+//                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
+                amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
+                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+//                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
-                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
+//                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
+                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
         } catch (ServerSOAPFaultException soapFaultException) {
 
@@ -86,7 +93,7 @@ public class AmadeusFlightSearch  implements FlightSearch{
             return searchResponse;
         }
 
-        Logger.info("AmadeusFlightSearch search reponse at : " + new Date());
+        logger.debug("AmadeusFlightSearch search reponse at : " + new Date());
         FareMasterPricerTravelBoardSearchReply.ErrorMessage seamenErrorMessage = null;
         FareMasterPricerTravelBoardSearchReply.ErrorMessage errorMessage = fareMasterPricerTravelBoardSearchReply.getErrorMessage();
         if (seamenReply != null) {
@@ -489,12 +496,10 @@ public class AmadeusFlightSearch  implements FlightSearch{
     }
 
     private SearchResponse addSeamenFareToSolution(AirSolution allSolution, AirSolution seamenSolution) {
-        System.out.println();
-        System.out.println("==============================================================================");
-        System.out.println("[Amadeus] All Solution Length:::::" + allSolution.getFlightItineraryList().size());
-        System.out.println("[Amadeus] Seamen Solution Length:::::" + seamenSolution.getFlightItineraryList().size());
-        System.out.println("==============================================================================");
-        System.out.println();
+        logger.debug("==============================================================================");
+        logger.debug("[Amadeus] All Solution Length:::::" + allSolution.getFlightItineraryList().size());
+        logger.debug("[Amadeus] Seamen Solution Length:::::" + seamenSolution.getFlightItineraryList().size());
+        logger.debug("==============================================================================");
         SearchResponse searchResponse = new SearchResponse();
         ConcurrentHashMap<Integer, FlightItinerary> allFaresHash = new ConcurrentHashMap<>();
         ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = new ConcurrentHashMap<>();

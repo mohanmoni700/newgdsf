@@ -1,62 +1,30 @@
 package services;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import models.Airline;
-import models.Airport;
-
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
-import play.libs.Json;
-import utils.ErrorMessageHelper;
-import utils.StringUtility;
-
-import com.compassites.GDSWrapper.travelport.AirRequestClient;
-import com.compassites.GDSWrapper.travelport.AirReservationClient;
-import com.compassites.GDSWrapper.travelport.AirTicketClient;
-import com.compassites.GDSWrapper.travelport.Helper;
-import com.compassites.GDSWrapper.travelport.UniversalRecordClient;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.ErrorMessage;
+import com.compassites.GDSWrapper.travelport.*;
+import com.compassites.model.*;
 import com.compassites.model.FlightInfo;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
 import com.compassites.model.Journey;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.Passenger;
-import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.travelport.schema.air_v26_0.AirItinerary;
-import com.travelport.schema.air_v26_0.AirPriceRsp;
-import com.travelport.schema.air_v26_0.AirPricingInfo;
-import com.travelport.schema.air_v26_0.AirReservation;
-import com.travelport.schema.air_v26_0.AirTicketingRsp;
-import com.travelport.schema.air_v26_0.Coupon;
-import com.travelport.schema.air_v26_0.ETR;
-import com.travelport.schema.air_v26_0.FareInfo;
-import com.travelport.schema.air_v26_0.FlightDetails;
-import com.travelport.schema.air_v26_0.Ticket;
-import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
-import com.travelport.schema.common_v26_0.BookingTravelerName;
-import com.travelport.schema.common_v26_0.GeneralRemark;
-import com.travelport.schema.common_v26_0.ProviderReservationInfoRef;
-import com.travelport.schema.common_v26_0.SupplierLocator;
-import com.travelport.schema.common_v26_0.TypeCabinClass;
+import com.travelport.schema.air_v26_0.*;
+import com.travelport.schema.common_v26_0.*;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
 import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import com.travelport.service.air_v26_0.AirFaultMessage;
+import models.Airline;
+import models.Airport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import play.libs.Json;
+import utils.ErrorMessageHelper;
+import utils.StringUtility;
+
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /*
  *
@@ -66,7 +34,9 @@ import com.travelport.service.air_v26_0.AirFaultMessage;
 @Service
 public class TravelportBookingServiceImpl implements BookingService {
 
-	@Override
+    static Logger logger = LoggerFactory.getLogger("gds");
+
+    @Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
 		PNRResponse pnrResponse = new PNRResponse();
 		try {
@@ -292,7 +262,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		try {
 			UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
 					.retrievePNR(gdsPNR);
-			//System.out.println("Response======>>>>>\n"+ Json.toJson(universalRecordRetrieveRsp));
+			//logger.debug("Response======>>>>>\n"+ Json.toJson(universalRecordRetrieveRsp));
 			// traveller deatials
 			List<Traveller> travellerList = issuanceRequest.getTravellerList();
 			
@@ -378,7 +348,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
 			}
 			masterInfo.setItinerary(flightItinerary);
-			System.out.println("\n<<<<<<<<===================masterInfo======>>>>>\n"+ Json.toJson(masterInfo));
+			logger.debug("\n<<<<<<<<===================masterInfo======>>>>>\n" + Json.toJson(masterInfo));
 
 		} catch (Exception e) {
 			e.printStackTrace();

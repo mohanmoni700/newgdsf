@@ -1,14 +1,5 @@
 package services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Service;
-
-import utils.XMLFileUtility;
-
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply;
 import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply.FlightScheduleDetails.InteractiveFreeText;
@@ -17,12 +8,13 @@ import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.Main
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup.BaggageAllowance.BaggageDetails;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.FlightInfo;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.SearchParameters;
+import com.compassites.model.*;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import com.thoughtworks.xstream.XStream;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 /**
  * @author Santhosh
@@ -30,9 +22,12 @@ import com.sun.xml.ws.fault.ServerSOAPFaultException;
 
 @Service
 public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
-	
+
+    static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
+
 	private static Map<String, String> baggageCodes = new HashMap<>();
-	static {
+
+    static {
 		baggageCodes.put("700", "Kilos");
 		baggageCodes.put("701", "Pounds");
 		baggageCodes.put("C", "Special Charge");
@@ -94,7 +89,8 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
             serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
-            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
+//            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
+            amadeusLogger.debug("FareInformativePricingWithoutPNRReply "+ new Date()+" ------->>"+ new XStream().toXML(pricingReply));
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
             StringBuilder fareRule = new StringBuilder();
             for(FareCheckRulesReply.TariffInfo tariffInfo : fareCheckRulesReply.getTariffInfo()){

@@ -1,15 +1,8 @@
 package com.compassites.GDSWrapper.travelport;
 
-import java.net.MalformedURLException;
-import java.util.List;
-
-import javax.xml.ws.BindingProvider;
-
-import utils.XMLFileUtility;
-
 import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
+import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.FlightDetailsReq;
 import com.travelport.schema.air_v26_0.FlightDetailsRsp;
 import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
@@ -18,6 +11,14 @@ import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirService;
 import com.travelport.service.air_v26_0.FlightDetailsPortType;
 import com.travelport.service.air_v26_0.FlightService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utils.XMLFileUtility;
+
+import javax.xml.ws.BindingProvider;
+import java.net.MalformedURLException;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Santhosh
@@ -28,7 +29,8 @@ public class FlightDetailsClient extends TravelPortClient {
 	public static final String WSDL_URL = "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl";
 	static FlightService flightService = null;
     static FlightDetailsPortType flightDetailsPortType = null;
-    
+    static Logger travelportLogger = LoggerFactory.getLogger("travelport");
+
     public FlightDetailsClient() {
     	init();
     }
@@ -94,6 +96,7 @@ public class FlightDetailsClient extends TravelPortClient {
 //		request.getAirSegment().add(airSegment);
 		
 		XMLFileUtility.createXMLFile(request, "FlightDetailsReq.xml");
+        travelportLogger.debug("FlightDetailsReq " + new Date() +" ------>> "+ new XStream().toXML(request));
 		try {
 			response = flightDetailsPortType.service(request);
 		} catch (AirFaultMessage e) {
@@ -101,6 +104,7 @@ public class FlightDetailsClient extends TravelPortClient {
 			e.printStackTrace();
 		}
 		XMLFileUtility.createXMLFile(response, "FlightDetailsRsp.xml");
+        travelportLogger.debug("FlightDetailsRsp " + new Date() +" ------>> "+ new XStream().toXML(response));
 		return response;
     }
 

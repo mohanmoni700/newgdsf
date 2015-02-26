@@ -8,6 +8,7 @@ import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,12 +16,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import play.libs.Json;
-
 /**
  * Created by Yaseen on 18-12-2014.
  */
 public class AmadeusBookingHelper {
+
+    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
     public static List<TaxDetails> getTaxDetails(FarePricePNRWithBookingClassReply pricePNRReply){
         List<TaxDetails> taxDetailsList = new ArrayList<>();
@@ -70,22 +71,22 @@ public class AmadeusBookingHelper {
         	int paxCount = 0;
         	String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
         	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
-                System.out.println("adultCount : " + adultCount);
+                logger.debug("adultCount : " + adultCount);
                 paxCount = adultCount;
         	} else if(paxType.equalsIgnoreCase("CHD") || paxType.equalsIgnoreCase("CH")) {
         		paxCount = childCount;
-                System.out.println("adultCount : " + childCount);
+                logger.debug("adultCount : " + childCount);
         	} else if(paxType.equalsIgnoreCase("INF") || paxType.equalsIgnoreCase("IN")) {
         		paxCount = infantCount;
-                System.out.println("adultCount : " + infantCount);
+                logger.debug("adultCount : " + infantCount);
         	}
-            System.out.println("passenger counts : " + paxCount);
-            System.out.println("size of fareData : " + fare.getFareDataInformation().getFareDataSupInformation().size());
+            logger.debug("passenger counts : " + paxCount);
+            logger.debug("size of fareData : " + fare.getFareDataInformation().getFareDataSupInformation().size());
             for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
         		BigDecimal amount = new BigDecimal(fareData.getFareAmount());
         		if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
         			totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
-                    System.out.println("=======================>> Setting new total fare: "+ totalFare );
+                    logger.debug("=======================>> Setting new total fare: " + totalFare);
                 } else {
         			totalTax = totalTax.add(amount.multiply(new BigDecimal(paxCount)));
         		}
@@ -109,9 +110,9 @@ public class AmadeusBookingHelper {
         }
 
 
-        System.out.println("Total price before comparing :"+ searchPrice +" changed Price : " + totalFare);
+        logger.debug("Total price before comparing :" + searchPrice + " changed Price : " + totalFare);
         if(totalFare.compareTo(searchPrice) == 0) {
-            System.out.println("inside comparison 1111111111111111");
+            logger.debug("inside comparison 1111111111111111");
             pnrResponse.setPriceChanged(false);
             return;
         }

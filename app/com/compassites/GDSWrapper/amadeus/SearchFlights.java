@@ -8,14 +8,11 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_12_4_1a.*;
 import com.compassites.model.*;
+import com.thoughtworks.xstream.XStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-import play.libs.Json;
-import utils.XMLFileUtility;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -25,6 +22,8 @@ import java.util.*;
 public class SearchFlights {
 
     static int itineraryRef = 1;
+
+    static Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
     //using deprecated methods
     //change to calendar dates everywhere
@@ -85,7 +84,9 @@ public class SearchFlights {
         pricingTicketingDetailsType.setPricingTicketing(pricingTicketingInformationType);
         fareOptions.setPricingTickInfo(pricingTicketingDetailsType);
         se.setFareOptions(fareOptions);*/
-        XMLFileUtility.createXMLFile(se, "AmadeusSearchReq.xml");
+//        XMLFileUtility.createXMLFile(se, "AmadeusSearchReq.xml");
+
+        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " ---->" + new XStream().toXML(se));
         return se;
     }
 

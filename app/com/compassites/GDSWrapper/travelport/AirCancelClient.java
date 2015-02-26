@@ -1,14 +1,10 @@
 package com.compassites.GDSWrapper.travelport;
 
-import java.net.MalformedURLException;
-
-import javax.xml.ws.BindingProvider;
-
-import play.Logger;
-
 import com.travelport.service.air_v26_0.AirService;
-import com.travelport.service.air_v26_0.AirTicketingPortType;
 import com.travelport.service.universal_v26_0.AirCancelPortType;
+import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
 
 public class AirCancelClient {
 	
@@ -17,7 +13,9 @@ public class AirCancelClient {
 	static AirService airService = null;
 	static AirCancelPortType airCancelPortType = null;
 
-	public AirCancelClient() {
+    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
+
+    public AirCancelClient() {
 		init();
 	}
 	
@@ -35,10 +33,10 @@ public class AirCancelClient {
 		}
 		if (airCancelPortType == null) {
 //			airCancelPortType = airService.getAir
-			Logger.info("Initializing AirTicketingPortType....");
+			logger.debug("Initializing AirTicketingPortType....");
 //			setRequestContext((BindingProvider) airTicketingPortType,
 //					SERVICE_NAME);
-			Logger.info("Initialized");
+			logger.debug("Initialized");
 		}
 	}
 

@@ -1,18 +1,5 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import java.net.URL;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.handler.MessageContext;
-
-import play.Logger;
-import utils.XMLFileUtility;
-
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
@@ -42,11 +29,22 @@ import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.thoughtworks.xstream.XStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.ws.BindingProvider;
+import javax.xml.ws.handler.MessageContext;
+import java.net.URL;
+import java.util.*;
 
 public class ServiceHandler {
 
     AmadeusWebServicesPT mPortType;
+
     SessionHandler mSession;
+
+    static Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
     public ServiceHandler() throws Exception{
 //        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_20140429_052541.wsdl");
@@ -82,9 +80,9 @@ public class ServiceHandler {
     //search flights with 2 cities- faremastertravelboard service
     public FareMasterPricerTravelBoardSearchReply searchAirlines(SearchParameters searchParameters) {
         mSession.incrementSequenceNumber();
-        Logger.info("AmadeusFlightSearch called at : " + new Date());
+        amadeusLogger.debug("AmadeusFlightSearch called at : " + new Date());
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(new SearchFlights().createSearchQuery(searchParameters), mSession.getSession());
-        Logger.info("AmadeusFlightSearch response returned  at : " + new Date());
+        amadeusLogger.debug("AmadeusFlightSearch response returned  at : " + new Date());
         return  SearchReply;
     }
     
@@ -92,11 +90,16 @@ public class ServiceHandler {
         mSession.incrementSequenceNumber();
         AirSellFromRecommendation sellFromRecommendation = new BookFlights().sellFromRecommendation(travellerMasterInfo);
 
-        XMLFileUtility.createXMLFile(sellFromRecommendation, "sellFromRecommendationReq.xml");
+//        XMLFileUtility.createXMLFile(sellFromRecommendation, "sellFromRecommendationReq.xml");
+
+        amadeusLogger.debug("sellFromRecommendationReq " + new Date() + " ---->" + new XStream().toXML(sellFromRecommendation));
 
         AirSellFromRecommendationReply sellFromRecommendationReply = mPortType.airSellFromRecommendation(sellFromRecommendation, mSession.getSession());
 
-        XMLFileUtility.createXMLFile(sellFromRecommendationReply, "sellFromRecommendationRes.xml");
+
+        amadeusLogger.debug("sellFromRecommendation Response " + new Date() + " ---->" + new XStream().toXML(sellFromRecommendationReply));
+
+//        XMLFileUtility.createXMLFile(sellFromRecommendationReply, "sellFromRecommendationRes.xml");
 
         return   sellFromRecommendationReply;
     }
@@ -106,10 +109,13 @@ public class ServiceHandler {
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo);
 
-        XMLFileUtility.createXMLFile(pnrAddMultiElements, "pnrAddMultiElementsReq.xml");
+//        XMLFileUtility.createXMLFile(pnrAddMultiElements, "pnrAddMultiElementsReq.xml");
+        amadeusLogger.debug("pnrAddMultiElementsReq " + new Date() + " ---->" + new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
 
-        XMLFileUtility.createXMLFile(pnrReply, "pnrAddMultiElementsRes.xml");
+//        XMLFileUtility.createXMLFile(pnrReply, "pnrAddMultiElementsRes.xml");
+        amadeusLogger.debug("pnrAddMultiElementsRes " + new Date() + " ---->" + new XStream().toXML(pnrReply));
         return  pnrReply;
     }
 
@@ -118,57 +124,70 @@ public class ServiceHandler {
         mSession.incrementSequenceNumber();
         FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply);
 
-        XMLFileUtility.createXMLFile(pricePNRWithBookingClass, "pricePNRWithBookingClassReq.xml");
+//        XMLFileUtility.createXMLFile(pricePNRWithBookingClass, "pricePNRWithBookingClassReq.xml");
+        amadeusLogger.debug("pricePNRWithBookingClassReq " + new Date() + " ---->" + new XStream().toXML(pricePNRWithBookingClass));
 
         FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply = mPortType.farePricePNRWithBookingClass(pricePNRWithBookingClass, mSession.getSession());
 
-        XMLFileUtility.createXMLFile(pricePNRWithBookingClassReply, "pricePNRWithBookingClassRes.xml");
-
+//        XMLFileUtility.createXMLFile(pricePNRWithBookingClassReply, "pricePNRWithBookingClassRes.xml");
+        amadeusLogger.debug("pricePNRWithBookingClassRes " + new Date() + " ---->" + new XStream().toXML(pricePNRWithBookingClassReply));
         return pricePNRWithBookingClassReply;
     }
 
     public TicketCreateTSTFromPricingReply createTST(int numberOfTST) {
         mSession.incrementSequenceNumber();
         TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createTSTReq(numberOfTST);
-        XMLFileUtility.createXMLFile(ticketCreateTSTFromPricing, "createTSTFromPricingReplyReq.xml");
+//        XMLFileUtility.createXMLFile(ticketCreateTSTFromPricing, "createTSTFromPricingReplyReq.xml");
+        amadeusLogger.debug("createTSTFromPricingReplyReq " + new Date() + " ---->" + new XStream().toXML(ticketCreateTSTFromPricing));
+
         TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, mSession.getSession());
-        XMLFileUtility.createXMLFile(createTSTFromPricingReply, "createTSTFromPricingReplyRes.xml");
+
+//        XMLFileUtility.createXMLFile(createTSTFromPricingReply, "createTSTFromPricingReplyRes.xml");
+        amadeusLogger.debug("createTSTFromPricingReplyRes " + new Date() + " ---->" + new XStream().toXML(createTSTFromPricingReply));
         return createTSTFromPricingReply;
     }
 
     public PNRReply savePNR() {
         mSession.incrementSequenceNumber();
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().savePnr();
-        XMLFileUtility.createXMLFile(pnrAddMultiElements, "savePNRReq.xml");
+//        XMLFileUtility.createXMLFile(pnrAddMultiElements, "savePNRReq.xml");
+        amadeusLogger.debug("savePNRReq " + new Date() + " ---->" + new XStream().toXML(pnrAddMultiElements));
         PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
-        XMLFileUtility.createXMLFile(pnrReply, "savePNRRes.xml");
+        amadeusLogger.debug("savePNRRes " + new Date() + " ---->" + new XStream().toXML(pnrReply));
+//        XMLFileUtility.createXMLFile(pnrReply, "savePNRRes.xml");
         return pnrReply;
     }
     
     public PNRReply retrivePNR(String num){
         mSession.incrementSequenceNumber();
         PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);
-        XMLFileUtility.createXMLFile(pnrRetrieve, "pnrRetrieveReq.xml");
+//        XMLFileUtility.createXMLFile(pnrRetrieve, "pnrRetrieveReq.xml");
+        amadeusLogger.debug("pnrRetrieveReq " + new Date() + " ---->" + new XStream().toXML(pnrRetrieve));
         PNRReply pnrReply = mPortType.pnrRetrieve(pnrRetrieve,mSession.getSession());
-        XMLFileUtility.createXMLFile(pnrReply, "pnrRetrieveRes.xml");
+//        XMLFileUtility.createXMLFile(pnrReply, "pnrRetrieveRes.xml");
+        amadeusLogger.debug("pnrRetrieveRes " + new Date() + " ---->" + new XStream().toXML(pnrReply));
         return pnrReply;
     }
     
     public DocIssuanceIssueTicketReply issueTicket(){
         mSession.incrementSequenceNumber();
         DocIssuanceIssueTicket docIssuanceIssueTicket = new IssueTicket().issue();
-        XMLFileUtility.createXMLFile(docIssuanceIssueTicket, "docIssuanceReq.xml");
+//        XMLFileUtility.createXMLFile(docIssuanceIssueTicket, "docIssuanceReq.xml");
+        amadeusLogger.debug("docIssuanceReq " + new Date() + " ---->" + new XStream().toXML(docIssuanceIssueTicket));
         DocIssuanceIssueTicketReply docIssuanceIssueTicketReply = mPortType.docIssuanceIssueTicket(docIssuanceIssueTicket, mSession.getSession());
-        XMLFileUtility.createXMLFile(docIssuanceIssueTicketReply, "docIssuanceRes.xml");
+//        XMLFileUtility.createXMLFile(docIssuanceIssueTicketReply, "docIssuanceRes.xml");
+        amadeusLogger.debug("docIssuanceRes " + new Date() + " ---->" + new XStream().toXML(docIssuanceIssueTicketReply));
         return docIssuanceIssueTicketReply;
     }
     
 	public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, int adultCount, int childCount, int infantCount) {
 		mSession.incrementSequenceNumber();
 		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys, adultCount, childCount, infantCount);
-        XMLFileUtility.createXMLFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.xml");
-		FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
-        XMLFileUtility.createXMLFile(fareInformativePricingPNRReply, "farePricingWithoutPNRRes.xml");
+//        XMLFileUtility.createXMLFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.xml");
+        amadeusLogger.debug("farePricingWithoutPNRReq " + new Date() + " ---->" + new XStream().toXML(farePricingWithoutPNR));
+        FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
+        amadeusLogger.debug("farePricingWithoutPNRRes " + new Date() + " ---->" + new XStream().toXML(fareInformativePricingPNRReply));
+//        XMLFileUtility.createXMLFile(fareInformativePricingPNRReply, "farePricingWithoutPNRRes.xml");
         return  fareInformativePricingPNRReply;
 	}
 	
@@ -181,18 +200,22 @@ public class ServiceHandler {
     public FareCheckRulesReply getFareRules(){
         mSession.incrementSequenceNumber();
         FareCheckRules fareCheckRules = new FareRules().createFareRules();
-        XMLFileUtility.createXMLFile(fareCheckRules, "fareRulesReq.xml");
+//        XMLFileUtility.createXMLFile(fareCheckRules, "fareRulesReq.xml");
+        amadeusLogger.debug("fareRulesReq " + new Date() + " ---->" + new XStream().toXML(fareCheckRules));
         FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, mSession.getSession());
-        XMLFileUtility.createXMLFile(fareCheckRulesReply, "fareRulesRes.xml");
+//        XMLFileUtility.createXMLFile(fareCheckRulesReply, "fareRulesRes.xml");
+        amadeusLogger.debug("fareRulesRes " + new Date() + " ---->" + new XStream().toXML(fareCheckRulesReply));
         return fareCheckRulesReply;
     }
     
     public FarePricePNRWithLowestFareReply getLowestFare() {
     	mSession.incrementSequenceNumber();
     	FarePricePNRWithLowestFare farePricePNRWithLowestFare = new PricePNRLowestFare().getFarePricePNRWithLowestFare();
-    	XMLFileUtility.createXMLFile(farePricePNRWithLowestFare, "FarePricePNRWithLowestFareReq.xml");
+//    	XMLFileUtility.createXMLFile(farePricePNRWithLowestFare, "FarePricePNRWithLowestFareReq.xml");
+        amadeusLogger.debug("FarePricePNRWithLowestFareReq " + new Date() + " ---->" + new XStream().toXML(farePricePNRWithLowestFare));
     	FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, mSession.getSession());
-    	XMLFileUtility.createXMLFile(farePricePNRWithLowestFareReply, "FarePricePNRWithLowestFareReplyRes.xml");
+//    	XMLFileUtility.createXMLFile(farePricePNRWithLowestFareReply, "FarePricePNRWithLowestFareReplyRes.xml");
+        amadeusLogger.debug("FarePricePNRWithLowestFareReplyRes " + new Date() + " ---->" + new XStream().toXML(farePricePNRWithLowestFareReply));
     	return farePricePNRWithLowestFareReply;
     }
     

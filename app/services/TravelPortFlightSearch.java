@@ -11,13 +11,11 @@ import com.sun.xml.ws.client.ClientTransportException;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
-
 import models.Airline;
 import models.Airport;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import play.Logger;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.StringUtility;
@@ -39,31 +37,33 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class TravelPortFlightSearch  implements FlightSearch{
 
+    static Logger logger = LoggerFactory.getLogger("gds");
+
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException, IOException {
-        Logger.info("[TravelPort] search started at " + new Date());
+        logger.debug("[TravelPort] search started at " + new Date());
 
         SearchResponse seamanResponse = null;
         SearchResponse nonSeamanResponse = null;
 
         SearchResponse searchResponse = new SearchResponse();
 
-        Logger.info("[Travelport] Starting non-seaman search");
+        logger.debug("[Travelport] Starting non-seaman search");
         nonSeamanResponse = search(searchParameters, "nonseaman");
         if(nonSeamanResponse != null){
             searchResponse.getAirSolution().setNonSeamenHashMap(nonSeamanResponse.getAirSolution().getNonSeamenHashMap());
         }
 
-        Logger.info("[Travelport] End non-seaman search. Response size: " + nonSeamanResponse.getAirSolution().getSeamenHashMap().size());
+        logger.debug("[Travelport] End non-seaman search. Response size: " + nonSeamanResponse.getAirSolution().getSeamenHashMap().size());
 
         if (searchParameters.getBookingType()==BookingType.SEAMEN){
-            Logger.info("[Travelport] Starting seaman search.");
+            logger.debug("[Travelport] Starting seaman search.");
             seamanResponse = search(searchParameters, "seaman");
             if(seamanResponse != null){
                 searchResponse.getAirSolution().setSeamenHashMap(seamanResponse.getAirSolution().getNonSeamenHashMap());
             }
 
-            Logger.info("[Travelport] End seaman search. Response size: "+ seamanResponse.getAirSolution().getSeamenHashMap().size());
+            logger.debug("[Travelport] End seaman search. Response size: " + seamanResponse.getAirSolution().getSeamenHashMap().size());
         }
 
         //SearchResponse finalResponse = mergeResponse(nonSeamanResponse, seamanResponse);
@@ -97,7 +97,7 @@ public class TravelPortFlightSearch  implements FlightSearch{
                 seamanKey =  seamanKey + seamanOnwardAirSegment.getFromLocation()+ seamanOnwardAirSegment.getToLocation()+ seamanOnwardAirSegment.getCarrierCode()+"#"+ seamanOnwardAirSegment.getFlightNumber()+seamanOnwardAirSegment.getArrivalTime()+seamanOnwardAirSegment.getDepartureTime();
 
             }
-            //System.out.println("Seaman Key" + seamanKey);
+            //logger.debug("Seaman Key" + seamanKey);
 
             for(FlightItinerary nonSeamanFlightItinerary : nonSeamanResponse.getAirSolution().getFlightItineraryList()){
                 Journey nonSeamanOnwardJourney = nonSeamanFlightItinerary.getJourneyList().get(0);
@@ -106,10 +106,10 @@ public class TravelPortFlightSearch  implements FlightSearch{
                     nonSeamanKey =  nonSeamanKey + nonSeamanOnwardAirSegment.getFromLocation()+ nonSeamanOnwardAirSegment.getToLocation()+ nonSeamanOnwardAirSegment.getCarrierCode()+"#"+ nonSeamanOnwardAirSegment.getFlightNumber()+nonSeamanOnwardAirSegment.getArrivalTime()+nonSeamanOnwardAirSegment.getDepartureTime();
                 }
 
-                //System.out.println("Non Seaman Key" + nonSeamanKey);
+                //logger.debug("Non Seaman Key" + nonSeamanKey);
 
                 if (nonSeamanKey.equalsIgnoreCase(seamanKey)){
-                    //System.out.println("Matched");
+                    //logger.debug("Matched");
                     seamanFlightItinerary.setPricingInformation(nonSeamanFlightItinerary.getPricingInformation());
                     break;
                 }
@@ -173,12 +173,12 @@ public class TravelPortFlightSearch  implements FlightSearch{
         SearchResponse searchResponse=new SearchResponse();
         try {
             response = lowFareRequestClient.search(searchParameters);
-            Logger.info("[TravelPort] FlightSearch search response at "+ new Date());
+            logger.debug("[TravelPort] FlightSearch search response at " + new Date());
             List<ResponseMessage> responseMessageList = response.getResponseMessage();
             errorExist = ((response.getAirPricingSolution() ==null) || ( response.getAirPricingSolution().size() == 0)) ;
             for (ResponseMessage responseMessage : responseMessageList){
                if("Error".equalsIgnoreCase(responseMessage.getType())){
-                    Logger.info("[Travelport] Error received from Travel port : "+ responseMessage.getValue());
+                    logger.debug("[Travelport] Error received from Travel port : " + responseMessage.getValue());
 
                     errorCode = ""+responseMessage.getCode();
                     errorMessage = errorMessage + responseMessage.getValue();
@@ -293,7 +293,7 @@ public class TravelPortFlightSearch  implements FlightSearch{
                 com.travelport.schema.air_v26_0.Journey journey = journeyIterator.next();
                 flightItinerary.AddBlankJourney();
                 int journeyStopCounter = -1;
-                //System.out.println("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(journeyList.indexOf(journey)).getCabinClass());
+                //logger.debug("CabinClass " + airPricingSolution.getAirPricingInfo().get(0).getBookingInfo().get(journeyList.indexOf(journey)).getCabinClass());
                 List<AirSegmentRef> airSegmentRefList = journey.getAirSegmentRef();
                 for (Iterator<AirSegmentRef> airSegmentRefIterator = airSegmentRefList.iterator(); airSegmentRefIterator.hasNext(); ) {
                     journeyStopCounter++;
@@ -366,10 +366,10 @@ public class TravelPortFlightSearch  implements FlightSearch{
 
 
                     if ((flightDetails != null) && (flightDetails.getFlightTime() != null)) {
-                        //System.out.println(" (flight time " + flightDetails.getFlightTime() + " minutes)");
+                        //logger.debug(" (flight time " + flightDetails.getFlightTime() + " minutes)");
                         airSegmentInformation.setTravelTime(String.valueOf(flightDetails.getFlightTime()));
                     } else {
-                        //System.out.println();
+                        //logger.debug();
                     }
                     airSegmentInformation.setFlightDetailsKey(flightDetails.getKey());
                     airSegmentInformation.setAirSegmentKey(airSegment.getKey());
@@ -385,10 +385,10 @@ public class TravelPortFlightSearch  implements FlightSearch{
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setTravelTime(journey.getTravelTime());
                 flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).setNoOfStops(journeyStopCounter);
                 
-                //System.out.println("total travel time"+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getHours()+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getMinutes() );
+                //logger.debug("total travel time"+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getHours()+ flightItinerary.getJourneyList().get(journeyList.indexOf(journey)).getTravelTime().getMinutes() );
             }
 
-            //System.out.println("-----------");
+            //logger.debug("-----------");
             //airSolution.getFlightItineraryList().add(flightItinerary);
             flightItinerary.setNonSeamenJourneyList(flightItinerary.getJourneyList());
             flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);

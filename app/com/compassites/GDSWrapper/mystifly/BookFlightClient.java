@@ -1,36 +1,29 @@
 package com.compassites.GDSWrapper.mystifly;
 
-import java.rmi.RemoteException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import onepoint.mystifly.BookFlightDocument;
-import onepoint.mystifly.BookFlightResponseDocument;
-import onepoint.mystifly.OnePointStub;
-
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirBookRQ;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirBookRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTraveler;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ArrayOfAirTraveler;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PassengerName;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.Passport;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelerInfo;
-
-import utils.DateUtility;
-import utils.XMLFileUtility;
-
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import onepoint.mystifly.BookFlightDocument;
+import onepoint.mystifly.BookFlightResponseDocument;
+import onepoint.mystifly.OnePointStub;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utils.DateUtility;
+
+import java.rmi.RemoteException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Santhosh
  */
 public class BookFlightClient {
+
+    static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
 	public AirBookRS bookFlight(TravellerMasterInfo travellerMasterInfo)
 			throws RemoteException {
@@ -58,10 +51,12 @@ public class BookFlightClient {
 		// TODO: Set dynamic values
 		// travelerInfo.setAreaCode("809");
 		// travelerInfo.setCountryCode("91");
-		XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
+//		XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
+        mystiflyLogger.debug("AirBookRQ "+ new Date() +" ----->>" + airBookRQ.xmlText());
 		BookFlightResponseDocument rsDoc = onePointStub
 				.bookFlight(bookFlightDocument);
-		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
+//		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
+        mystiflyLogger.debug("AirBookRS "+ new Date() +" ----->>" + rsDoc.getBookFlightResponse().getBookFlightResult().xmlText());
 		return rsDoc.getBookFlightResponse().getBookFlightResult();
 	}
 
