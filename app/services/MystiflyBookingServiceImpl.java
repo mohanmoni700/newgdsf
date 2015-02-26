@@ -184,7 +184,15 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					travellerMasterInfo.getItinerary().setFareSourceCode(
 							newFareSourceCode);
 					pnrRS.setFlightAvailable(true);
+				} else if (revalidateRS.getPricedItineraries() == null
+						|| revalidateRS.getPricedItineraries()
+								.getPricedItineraryArray() == null
+						|| revalidateRS.getPricedItineraries()
+								.getPricedItineraryArray().length == 0) {
+					pnrRS.setPriceChanged(false);
+					pnrRS.setFlightAvailable(false);
 				} else {
+
 					AirItineraryPricingInfo pricingInfo = revalidateRS
 							.getPricedItineraries().getPricedItineraryArray(0)
 							.getAirItineraryPricingInfo();

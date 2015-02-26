@@ -26,6 +26,8 @@ import com.compassites.model.SearchJourney;
 import com.compassites.model.SearchParameters;
 import org.springframework.util.StringUtils;
 
+import utils.XMLFileUtility;
+
 /**
  * @author Santhosh
  */
@@ -57,10 +59,12 @@ public class AirLowFareSearchClient {
 		// TODO: search params to be added
 		// stopOver, currency, preferredFood
 
+		XMLFileUtility.createFile(searchRQ.xmlText(), "MystiflySearchRQ.xml");
 		AirLowFareSearchResponseDocument searchResDoc = onePointStub
 				.airLowFareSearch(searchRQDoc);
 		AirLowFareSearchRS searchRS = searchResDoc
 				.getAirLowFareSearchResponse().getAirLowFareSearchResult();
+		XMLFileUtility.createFile(searchRS.xmlText(), "MystiflySearchRS.xml");
 		return searchRS;
 	}
 

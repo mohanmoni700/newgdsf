@@ -58,6 +58,7 @@ public class BookFlightClient {
 		// TODO: Set dynamic values
 		// travelerInfo.setAreaCode("809");
 		// travelerInfo.setCountryCode("91");
+		XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
 		BookFlightResponseDocument rsDoc = onePointStub
 				.bookFlight(bookFlightDocument);
 		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");

@@ -40,6 +40,7 @@ public class AirRevalidateClient {
 		airRevalidateRQ.setFareSourceCode(fareSourceCode);
 		airRevalidateRQ.setSessionId(sessionRS.getSessionId());
 
+		XMLFileUtility.createFile(airRevalidateRQ.xmlText(), "AirRevalidateRQ.xml");
 		AirRevalidateResponseDocument airRevalidateRSDoc = onePointStub
 				.airRevalidate(airRevalidateDoc);
 		AirRevalidateResponse airRevalidateResponse = airRevalidateRSDoc
@@ -47,7 +48,6 @@ public class AirRevalidateClient {
 
 		XMLFileUtility.createFile(airRevalidateResponse
 				.getAirRevalidateResult().xmlText(), "AirRevalidateRS.xml");
-
 		return airRevalidateResponse.getAirRevalidateResult();
 	}
 
