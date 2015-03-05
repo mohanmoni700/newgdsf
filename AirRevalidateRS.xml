@@ -1,1 +1,0 @@
-<xml-fragment xmlns:a="http://schemas.datacontract.org/2004/07/Mystifly.OnePoint" xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><a:Errors/><a:IsValid>false</a:IsValid><a:PricedItineraries/><a:Success>true</a:Success><a:Target>Test</a:Target><a:ExtraServices><a:Services/></a:ExtraServices></xml-fragment>
