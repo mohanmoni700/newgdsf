@@ -17,7 +17,7 @@
         <file>${application.home}/logs/play.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
-            <fileNamePattern>play-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/play-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 30 days worth of history -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -30,7 +30,7 @@
         <file>${application.home}/logs/gds.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
-            <fileNamePattern>gds-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/gds-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 30 days worth of history -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -43,7 +43,7 @@
         <file>${application.home}/logs/amadeus.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
-            <fileNamePattern>amadeus-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/amadeus-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 30 days worth of history -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -56,7 +56,7 @@
         <file>${application.home}/logs/travelport.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
-            <fileNamePattern>travelport-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/travelport-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 30 days worth of history -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -69,7 +69,7 @@
         <file>${application.home}/logs/mystifly.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover with compression -->
-            <fileNamePattern>mystifly-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/mystifly-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 30 days worth of history -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -82,7 +82,7 @@
         <file>${application.home}/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover with compression -->
-            <fileNamePattern>access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/access-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!-- keep 1 week worth of history -->
             <maxHistory>7</maxHistory>
         </rollingPolicy>
