@@ -208,9 +208,14 @@ public class ServiceHandler {
         return fareCheckRulesReply;
     }
     
-    public FarePricePNRWithLowestFareReply getLowestFare() {
+    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
     	mSession.incrementSequenceNumber();
-    	FarePricePNRWithLowestFare farePricePNRWithLowestFare = new PricePNRLowestFare().getFarePricePNRWithLowestFare();
+    	FarePricePNRWithLowestFare farePricePNRWithLowestFare = null;
+    	if(isSeamen) {
+    		farePricePNRWithLowestFare = new PricePNRLowestFare().getPricePNRWithLowestSeamenFare();
+    	} else {
+    		farePricePNRWithLowestFare = new PricePNRLowestFare().getPricePNRWithLowestNonSeamenFare();
+    	}
 //    	XMLFileUtility.createXMLFile(farePricePNRWithLowestFare, "FarePricePNRWithLowestFareReq.xml");
         amadeusLogger.debug("FarePricePNRWithLowestFareReq " + new Date() + " ---->" + new XStream().toXML(farePricePNRWithLowestFare));
     	FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, mSession.getSession());

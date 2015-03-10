@@ -564,14 +564,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return masterInfo;
 	}
 	
-	public LowestFare getLowestFare(String pnr) {
+	public LowestFare getLowestFare(String pnr, boolean isSeamen) {
 		LowestFare lowestFare = new LowestFare();
 		ServiceHandler serviceHandler = null;
 		try {
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
 			serviceHandler.retrivePNR(pnr);
-			FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare();
+			FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare(isSeamen);
 			MonetaryInformationType157202S monetaryinfo = farePricePNRWithLowestFareReply.getFareList().get(0).getFareDataInformation();
 			
 			BigDecimal totalFare = null;

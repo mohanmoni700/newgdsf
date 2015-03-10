@@ -132,8 +132,11 @@ public class Application {
     @BodyParser.Of(BodyParser.Json.class)
     public Result getLowestFare() {
     	JsonNode json = request().body().asJson();
-        String pnr = Json.fromJson(json, String.class);
-    	LowestFare lowestFare = bookingService.getLowestFare(pnr, "Amadeus");
+        String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
+        String provider = Json.fromJson(json.findPath("provider"), String.class);
+        Boolean isSeamen = Json.fromJson(json.findPath("isSeamen"), Boolean.class);
+        
+    	LowestFare lowestFare = bookingService.getLowestFare(pnr, provider, isSeamen);
     	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
     }
