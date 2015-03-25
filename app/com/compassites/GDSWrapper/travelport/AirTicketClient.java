@@ -73,11 +73,15 @@ public class AirTicketClient extends TravelPortClient {
 		AirReservation airReservation = uniRcd.getAirReservation().get(0);
 
 		AirPricingInfoRef airPricingInfoRef = new AirPricingInfoRef();
-		airPricingInfoRef.setKey(airReservation.getAirPricingInfo().get(0)
-				.getKey());
-		for (BookingTravelerRef btr : airReservation.getBookingTravelerRef())
-			airPricingInfoRef.getBookingTravelerRef().add(btr);
-		request.getAirPricingInfoRef().add(airPricingInfoRef);
+
+        if(airReservation.getAirPricingInfo() != null && airReservation.getAirPricingInfo().size() > 0){
+            airPricingInfoRef.setKey(airReservation.getAirPricingInfo().get(0)
+                    .getKey());
+            for (BookingTravelerRef btr : airReservation.getBookingTravelerRef())
+                airPricingInfoRef.getBookingTravelerRef().add(btr);
+            request.getAirPricingInfoRef().add(airPricingInfoRef);
+        }
+
 
 		AirReservationLocatorCode airResLocatorCode = new AirReservationLocatorCode();
 		airResLocatorCode.setValue(airReservation.getLocatorCode());

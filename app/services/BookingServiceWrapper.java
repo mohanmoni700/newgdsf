@@ -1,18 +1,10 @@
 package services;
 
 import com.compassites.GDSWrapper.mystifly.Mystifly;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.LowestFare;
-import com.compassites.model.PNRResponse;
+import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import play.libs.Json;
 
 /**
  * Created by user on 07-08-2014.
@@ -127,7 +119,8 @@ public class BookingServiceWrapper {
 		if(provider.equalsIgnoreCase("Amadeus")) {
 			lowestFare = amadeusBookingService.getLowestFare(pnr, isSeamen);
     	} else if(provider.equalsIgnoreCase("Travelport")) {
-    		// Not implemented.
+            lowestFare = travelPortBookingService.getLowestFare(pnr, provider, isSeamen);
+
     	} else if(provider.equalsIgnoreCase(Mystifly.PROVIDER)) {
     		// Not implemented.
     	}

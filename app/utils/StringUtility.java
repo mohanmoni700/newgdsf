@@ -1,5 +1,7 @@
 package utils;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,4 +27,11 @@ public class StringUtility {
 		return "male".equalsIgnoreCase(gender) ? "M" : "F";
 	}
 
+    public static BigDecimal getLowestFareFromString(String numberText){
+        String[] texts = numberText.split("\\s+");
+        if(NumberUtils.isNumber(texts[texts.length - 2])){
+            return new BigDecimal(texts[texts.length - 2]);
+        }
+        return null;
+    }
 }
