@@ -10,9 +10,6 @@ import java.util.Date;
 
 import com.thoughtworks.xstream.XStream;
 
-/**
- * Created by user on 14-11-2014.
- */
 public class XMLFileUtility {
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy-H:m:s");
