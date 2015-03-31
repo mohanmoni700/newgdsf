@@ -114,17 +114,17 @@ public class BookingServiceWrapper {
     	return masterInfo;
     }
 	
-	public LowestFare getLowestFare(String pnr, String provider, boolean isSeamen) {
-		LowestFare lowestFare = null;
+	public LowFareResponse getLowestFare(String pnr, String provider, boolean isSeamen) {
+		LowFareResponse lowFareRS = null;
 		if(provider.equalsIgnoreCase("Amadeus")) {
-			lowestFare = amadeusBookingService.getLowestFare(pnr, isSeamen);
+			lowFareRS = amadeusBookingService.getLowestFare(pnr, isSeamen);
     	} else if(provider.equalsIgnoreCase("Travelport")) {
-            lowestFare = travelPortBookingService.getLowestFare(pnr, provider, isSeamen);
+            lowFareRS = travelPortBookingService.getLowestFare(pnr, provider, isSeamen);
 
     	} else if(provider.equalsIgnoreCase(Mystifly.PROVIDER)) {
     		// Not implemented.
     	}
-		return lowestFare;
+		return lowFareRS;
 	}
 	
 }

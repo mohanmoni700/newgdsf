@@ -136,7 +136,7 @@ public class Application {
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         Boolean isSeamen = Json.fromJson(json.findPath("isSeamen"), Boolean.class);
         
-    	LowestFare lowestFare = bookingService.getLowestFare(pnr, provider, isSeamen);
+    	LowFareResponse lowestFare = bookingService.getLowestFare(pnr, provider, isSeamen);
     	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
     }

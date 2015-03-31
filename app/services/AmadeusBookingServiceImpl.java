@@ -12,6 +12,7 @@ import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.SegmentInformation;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
+import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
@@ -564,21 +565,33 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return masterInfo;
 	}
 	
-	public LowestFare getLowestFare(String pnr, boolean isSeamen) {
-		LowestFare lowestFare = new LowestFare();
+	public LowFareResponse getLowestFare(String pnr, boolean isSeamen) {
+		LowFareResponse lowestFare = new LowFareResponse();
 		ServiceHandler serviceHandler = null;
 		try {
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
 			serviceHandler.retrivePNR(pnr);
 			FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare(isSeamen);
-			MonetaryInformationType157202S monetaryinfo = farePricePNRWithLowestFareReply.getFareList().get(0).getFareDataInformation();
-			
+			com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList fareList = farePricePNRWithLowestFareReply.getFareList().get(0);
+			MonetaryInformationType157202S monetaryinfo = fareList.getFareDataInformation();
 			BigDecimal totalFare = null;
 			for(MonetaryInformationDetailsType223844C monetaryDetails : monetaryinfo.getFareDataSupInformation()) {
 				if(totalFareIdentifier.equals(monetaryDetails.getFareDataQualifier())) {
 					totalFare = new BigDecimal(monetaryDetails.getFareAmount());
 					break;
+				}
+			}
+			for(com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList.SegmentInformation segmentInfo : fareList.getSegmentInformation()) {
+				BaggageDetailsTypeI bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
+				if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
+					if(lowestFare.getMaxBaggageWeight() == 0 || lowestFare.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
+						lowestFare.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+					}
+				} else {
+					if(lowestFare.getBaggageCount() == 0 || lowestFare.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
+						lowestFare.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
+					}
 				}
 			}
 			lowestFare.setGdsPnr(pnr);

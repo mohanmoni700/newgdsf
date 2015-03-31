@@ -86,7 +86,7 @@ public class AirReservationClient  extends TravelPortClient {
 
         //tell uapi where and for who the request is targeting
         request.setProviderCode(GDS);
-        request.setTargetBranch("P7024203");
+        request.setTargetBranch(BRANCH);
         request.setRuleName("ONLINE");
 
 		FormOfPayment fop = new FormOfPayment();
@@ -99,7 +99,7 @@ public class AirReservationClient  extends TravelPortClient {
         //req.setPointOfSale(pos);
         BillingPointOfSaleInfo info = new BillingPointOfSaleInfo();
         //YYY
-        info.setOriginApplication("UAPI");
+        info.setOriginApplication(UAPI);
         request.setBillingPointOfSaleInfo(info);
 
         //put traveller in request
@@ -112,7 +112,7 @@ public class AirReservationClient  extends TravelPortClient {
         }
 
         //provider
-        request.setProviderCode("1G");
+        request.setProviderCode(GDS);
 
         //action status??
 

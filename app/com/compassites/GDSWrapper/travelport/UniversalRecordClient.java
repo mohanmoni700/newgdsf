@@ -69,7 +69,7 @@ public class UniversalRecordClient extends TravelPortClient {
 		recordRetrieveReq.setTargetBranch(BRANCH);
 
 		BillingPointOfSaleInfo billingPointOfSaleInfo = new BillingPointOfSaleInfo();
-		billingPointOfSaleInfo.setOriginApplication("UAPI");
+		billingPointOfSaleInfo.setOriginApplication(UAPI);
 		recordRetrieveReq.setBillingPointOfSaleInfo(billingPointOfSaleInfo);
 		UniversalRecordRetrieveRsp recordRetrieveRsp = null;
 		UniversalRecordRetrieveReq.ProviderReservationInfo reservationInfo = new UniversalRecordRetrieveReq.ProviderReservationInfo();

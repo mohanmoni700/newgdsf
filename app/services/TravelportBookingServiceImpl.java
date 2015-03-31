@@ -357,16 +357,16 @@ public class TravelportBookingServiceImpl implements BookingService {
 		return masterInfo;
 	}
 
-    public LowestFare getLowestFare(String pnr, String provider, boolean isSeamen) {
+    public LowFareResponse getLowestFare(String pnr, String provider, boolean isSeamen) {
         TerminalRequestClient terminalRequestClient = new TerminalRequestClient();
-        LowestFare lowestFare = new LowestFare();
+        LowFareResponse lowFareRS = new LowFareResponse();
         String token = terminalRequestClient.createTerminalSession();
         List<String> lowestFareTextList= terminalRequestClient.getLowestFare(token, isSeamen);
         System.out.println("==========>> Lowest Fare "+ lowestFareTextList);
         String lowestPriceText = lowestFareTextList.get(5);
         BigDecimal lowestFarePrice = StringUtility.getLowestFareFromString(lowestPriceText);
-        lowestFare.setAmount(lowestFarePrice);
-        lowestFare.setGdsPnr(pnr);
-        return lowestFare;
+        lowFareRS.setAmount(lowestFarePrice);
+        lowFareRS.setGdsPnr(pnr);
+        return lowFareRS;
     }
 }
