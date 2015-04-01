@@ -48,6 +48,8 @@ public class PricingInformation {
 
 	private String provider;
 
+    private List<Integer> connectionIndexes;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 	}
@@ -201,5 +203,13 @@ public class PricingInformation {
 
     public void setTotalTax(BigDecimal totalTax) {
         this.totalTax = totalTax;
+    }
+
+    public List<Integer> getConnectionIndexes() {
+        return connectionIndexes;
+    }
+
+    public void setConnectionIndexes(List<Integer> connectionIndexes) {
+        this.connectionIndexes = connectionIndexes;
     }
 }

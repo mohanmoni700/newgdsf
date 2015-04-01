@@ -139,7 +139,12 @@ public class AirReservationClient  extends TravelPortClient {
         //===================================================
         //request.setAirPricingSolution(stripNonXmitSections(airPricingSolution));
         //===================================================
-
+        Connection connection = new Connection();
+        connection.setSegmentIndex(0);
+        airPricingSolution.getConnection().add(connection);
+        connection = new Connection();
+        connection.setSegmentIndex(1);
+        airPricingSolution.getConnection().add(connection);
         request.setAirPricingSolution(airPricingSolution);
         //connect amount of payment to price solution
         //payment.setAmount(airPricingSolution.getTotalPrice());
@@ -210,14 +215,19 @@ public class AirReservationClient  extends TravelPortClient {
         catch (com.travelport.service.universal_v26_0.AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             airFaultMessage.getFaultInfo().getDescription();
-//            XMLFileUtility.createXMLFile(request, "AirReserveResponseException.xml");
-            travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(request));
+//            XMLFileUtility.createXMLFile(airFaultMessage, "AirReserveResponseException.xml");
+            travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(airFaultMessage));
         } catch (AvailabilityFaultMessage availabilityFaultMessage) {
             availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            availabilityFaultMessage.getFaultInfo().getDescription();
+//            XMLFileUtility.createXMLFile(availabilityFaultMessage, "AirReserveResponseException.xml");
+            travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(availabilityFaultMessage));
+
         }
 
 //        XMLFileUtility.createXMLFile(request, "AirReserveResponse.xml");
-        travelportLogger.debug("AirReserveResponse " + new Date() +" ------>> "+ new XStream().toXML(request));
+        travelportLogger.debug("AirReserveResponse " + new Date() +" ------>> "+ new XStream().toXML(response));
         return response;
 
     }
