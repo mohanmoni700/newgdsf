@@ -8,9 +8,16 @@ import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import models.Airline;
+import models.Airport;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -180,23 +187,227 @@ public class AmadeusBookingHelper {
     }
 
 
-    public static int getPassengerTypeCount(List<Traveller> travellerList){
+    public static List<Journey> getJourneyListFromPNRResponse(PNRReply gdsPNRReply){
 
-        int adultCount = 0, childCount = 0, infantCount = 0;
-        int totalCount = 0;
-        for(Traveller traveller : travellerList){
-            PassengerTypeCode passengerTypeCode =DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
-            if(passengerTypeCode.name().equals(PassengerTypeCode.ADT.name())){
-                adultCount = 1;
-            }else if(passengerTypeCode.name().equals(PassengerTypeCode.CHD.name()))  {
-                childCount = 1;
-            }else {
-                infantCount = 1;
+        List<Journey> journeyList = new ArrayList<>();
+        List<AirSegmentInformation> airSegmentList = new ArrayList<>();
+
+
+        Journey journey = new Journey();
+        for (PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply
+                .getOriginDestinationDetails()) {
+            for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails
+                    .getItineraryInfo()) {
+                AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+
+                String fromLoc = itineraryInfo.getTravelProduct()
+                        .getBoardpointDetail().getCityCode();
+                String toLoc = itineraryInfo.getTravelProduct()
+                        .getOffpointDetail().getCityCode();
+                airSegmentInformation.setFromLocation(fromLoc);
+                airSegmentInformation.setToLocation(toLoc);
+                airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct().getProductDetails().getClassOfService());
+                Airport fromAirport = Airport
+                        .getAiport(airSegmentInformation.getFromLocation());
+                Airport toAirport = Airport.getAiport(airSegmentInformation
+                        .getToLocation());
+
+                SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
+                String DATE_FORMAT = "ddMMyyHHmm";
+                DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat
+                        .forPattern(DATE_FORMAT);
+                DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport
+                        .getTime_zone());
+                String fromDateTime = itineraryInfo.getTravelProduct()
+                        .getProduct().getArrDate()
+                        + itineraryInfo.getTravelProduct().getProduct()
+                        .getArrTime();
+                String toDateTime = itineraryInfo.getTravelProduct()
+                        .getProduct().getDepDate()
+                        + itineraryInfo.getTravelProduct().getProduct()
+                        .getDepTime();
+                DateTime departureDate = DATETIME_FORMATTER.withZone(
+                        dateTimeZone).parseDateTime(toDateTime);
+                dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+                DateTime arrivalDate = DATETIME_FORMATTER.withZone(
+                        dateTimeZone).parseDateTime(fromDateTime);
+
+					/*
+					 * Date fromDate =
+					 * format.parse(itineraryInfo.getTravelProduct
+					 * ().getProduct().getArrDate()); Date toDate =
+					 * format.parse(
+					 * itineraryInfo.getTravelProduct().getProduct()
+					 * .getDepDate());
+					 */
+
+                airSegmentInformation.setFlightNumber(itineraryInfo
+                        .getTravelProduct().getProductDetails()
+                        .getIdentification());
+
+                // airSegmentInformation.setDepartureDate(toDate);
+                airSegmentInformation.setDepartureDate(departureDate
+                        .toDate());
+                airSegmentInformation.setDepartureTime(departureDate
+                        .toString());
+                airSegmentInformation
+                        .setArrivalTime(arrivalDate.toString());
+                airSegmentInformation.setArrivalDate(arrivalDate.toDate());
+
+                // logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+fromDateTime);
+                // logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+toDateTime);
+                airSegmentInformation.setFromDate(fromDateTime);
+                airSegmentInformation.setToDate(toDateTime);
+					/*
+					 * airSegmentInformation.setFromDate(format.format(fromDateTime
+					 * ));
+					 * airSegmentInformation.setToDate(format.format(toDateTime
+					 * ));
+					 */
+
+                // String arrivalTer =
+                // itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal();
+                if (itineraryInfo.getFlightDetail() != null
+                        && itineraryInfo.getFlightDetail()
+                        .getArrivalStationInfo() != null) {
+                    airSegmentInformation.setFromTerminal(itineraryInfo
+                            .getFlightDetail().getArrivalStationInfo()
+                            .getTerminal());
+                }
+                if (itineraryInfo.getFlightDetail() != null
+                        && itineraryInfo.getFlightDetail()
+                        .getDepartureInformation() != null) {
+                    airSegmentInformation.setToTerminal(itineraryInfo
+                            .getFlightDetail().getDepartureInformation()
+                            .getDepartTerminal());
+                }
+                airSegmentInformation.setCarrierCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification());
+                airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification()));
+                airSegmentInformation.setFromAirport(Airport.getAiport(fromLoc));
+                airSegmentInformation.setToAirport(Airport.getAiport(toLoc));
+                String responseEquipment = itineraryInfo.getFlightDetail()
+                        .getProductDetails().getEquipment();
+                if (responseEquipment != null) {
+                    itineraryInfo.getFlightDetail().getProductDetails()
+                            .getEquipment();
+                }
+                airSegmentInformation.setEquipment(responseEquipment);
+
+                airSegmentList.add(airSegmentInformation);
             }
-
-            totalCount = adultCount + childCount + infantCount;
-
+            journey.setAirSegmentList(airSegmentList);
+            journeyList.add(journey);
         }
-        return  totalCount;
+
+        return journeyList;
+    }
+
+
+    public static  PricingInformation getPricingForDownsellAndConversion(FarePricePNRWithBookingClassReply pricePNRReply, String totalFareIdentifier, int adultCount){
+        BigDecimal totalFare = new BigDecimal(0);
+        BigDecimal totalTax = new BigDecimal(0);
+        BigDecimal baseFare = new BigDecimal(0);
+        List<FareList> fareList = pricePNRReply.getFareList();
+        PricingInformation pricingInformation = new PricingInformation();
+        for(FareList fare : fareList) {
+            int paxCount = 0;
+            String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
+            if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
+                logger.debug("adultCount : " + adultCount);
+                paxCount = adultCount;
+            }
+            logger.debug("passenger counts : " + paxCount);
+            logger.debug("size of fareData : " + fare.getFareDataInformation().getFareDataSupInformation().size());
+            for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+                BigDecimal amount = new BigDecimal(fareData.getFareAmount());
+                if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
+                    totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
+                    logger.debug("=======================>> Setting new total fare: " + totalFare);
+                }
+                if("E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                    baseFare = amount;
+                }
+            }
+        }
+
+        pricingInformation.setTotalPrice(totalFare);
+        pricingInformation.setTotalPriceValue(totalFare);
+        pricingInformation.setBasePrice(baseFare);
+        pricingInformation.setTax(totalFare.subtract(baseFare));
+        Map<String, Integer> passengerTypeMap = new HashMap<>();
+
+        passengerTypeMap.put("adultCount", adultCount);
+        pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReply, passengerTypeMap));
+        return pricingInformation;
+    }
+
+
+    public static void setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, FarePricePNRWithBookingClassReply pricePNRReply) {
+        Map<String, Integer> passengerTypeMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
+        PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
+                .getItinerary().getSeamanPricingInformation() : travellerMasterInfo
+                .getItinerary().getPricingInformation();
+        List<PassengerTax> passengerTaxes = getTaxBreakup(pricePNRReply, passengerTypeMap);
+        pricingInfo.setPassengerTaxes(passengerTaxes);
+        pnrResponse.setPricingInfo(pricingInfo);
+    }
+
+    public static List<PassengerTax> getTaxBreakup(FarePricePNRWithBookingClassReply pricePNRReply, Map<String, Integer> passengerTypeMap){
+
+        List<PassengerTax> passengerTaxes = new ArrayList<>();
+        for (FareList fare : pricePNRReply.getFareList()) {
+            FareList.SegmentInformation segmentInfo = fare.getSegmentInformation().get(0);
+            List<FareList.TaxInformation> taxInfos = fare.getTaxInformation();
+            if (segmentInfo != null && taxInfos.size() > 0) {
+                PassengerTax passengerTax = new PassengerTax();
+                String paxType = segmentInfo.getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
+                Map<String, BigDecimal> taxes = new HashMap<>();
+                if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
+                    passengerTax.setPassengerType("ADT");
+                    passengerTax.setPassengerCount(passengerTypeMap.get("adultCount"));
+                    for(FareList.TaxInformation taxInfo : taxInfos) {
+                        String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+                        taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
+                    }
+                } else if(paxType.equalsIgnoreCase("CH") || paxType.equalsIgnoreCase("CHD")) {
+                    passengerTax.setPassengerType("CHD");
+                    passengerTax.setPassengerCount(passengerTypeMap.get("childCount"));
+                    for(FareList.TaxInformation taxInfo : taxInfos) {
+                        String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+                        taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
+                    }
+                } else if(paxType.equalsIgnoreCase("IN") || paxType.equalsIgnoreCase("INF")) {
+                    passengerTax.setPassengerType("INF");
+                    passengerTax.setPassengerCount(passengerTypeMap.get("infantCount"));
+                    for(FareList.TaxInformation taxInfo : taxInfos) {
+                        String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+                        taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
+                    }
+                }
+                passengerTax.setTaxes(taxes);
+                passengerTaxes.add(passengerTax);
+            }
+        }
+
+        return  passengerTaxes;
+    }
+
+    public static Map<String, Integer> getPassengerTypeCount(List<Traveller> travellerList) {
+        int adultCount = 0, childCount = 0, infantCount = 0;
+        Map<String, Integer> passengerTypeMap = new HashMap<>();
+        for (Traveller traveller : travellerList) {
+            PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            if (passengerType.equals(PassengerTypeCode.ADT)) {
+                adultCount++;
+            } else if (passengerType.equals(PassengerTypeCode.CHD)) {
+                childCount++;
+            } else {
+                infantCount++;
+            }
+        }
+        passengerTypeMap.put("adultCount", adultCount);
+        passengerTypeMap.put("childCount", childCount);
+        passengerTypeMap.put("infantCount", infantCount);
+        return passengerTypeMap;
     }
 }
