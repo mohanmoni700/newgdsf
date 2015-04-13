@@ -224,6 +224,9 @@ public class SearchFlights {
         OriginAndDestinationRequestType forwardOrdt=new OriginAndDestinationRequestType();
         forwardOrdt.setSegRef(referenceNumber);
         itinerary.setRequestedSegmentRef(forwardOrdt);
+
+//        itinerary.setDepartureLocalization(setDepartureLocationType("NYC"));
+//        itinerary.setArrivalLocalization(setArrivalLocalizationType("BLR"));
         itinerary.setDepartureLocalization(setDepartureLocationType(origin));
         itinerary.setArrivalLocalization(setArrivalLocalizationType(destination));
         return itinerary;

@@ -70,6 +70,10 @@ public class AirLowFareSearchClient {
 				OriginDestinationInformation journey = originDestinationInformations
 						.addNewOriginDestinationInformation();
 				journey.setOriginLocationCode(searchJourney.getOrigin());
+
+//                journey.setOriginLocationCode("NYC");
+//                journey.setDestinationLocationCode("BLR");
+
 				journey.setDestinationLocationCode(searchJourney
 						.getDestination());
 				calendar.setTime(searchJourney.getTravelDate());

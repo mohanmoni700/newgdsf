@@ -344,14 +344,22 @@ public class LowFareRequestClient extends TravelPortClient {
         TypeSearchLocation destLoc = new TypeSearchLocation();
 
         // airport objects are just wrappers for their codes
-        Airport origin = new Airport(), dest = new Airport();
+//        Airport origin = new Airport(), dest = new Airport();
+//        origin.setCode(originAirportCode);
+//        dest.setCode(destAirportCode);
+
+        CityOrAirport origin = new CityOrAirport(),dest = new CityOrAirport();
         origin.setCode(originAirportCode);
         dest.setCode(destAirportCode);
 
         // search locations can be things other than airports but we are using
         // the airport version...
-        originLoc.setAirport(origin);
-        destLoc.setAirport(dest);
+
+//        originLoc.setAirport(origin);
+//        destLoc.setAirport(dest);
+
+        originLoc.setCityOrAirport(origin);
+        destLoc.setCityOrAirport(dest);
 
         return createLeg(originLoc, destLoc, cabinClass, directFlight, preferredAirlineCode,transit);
     }
