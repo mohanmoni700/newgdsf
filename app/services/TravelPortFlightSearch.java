@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class TravelPortFlightSearch  implements FlightSearch{
+public class TravelPortFlightSearch implements FlightSearch {
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -420,7 +420,12 @@ public class TravelPortFlightSearch  implements FlightSearch{
 			passengerTax.setPassengerType(paxType.getCode());
 			Map<String, BigDecimal> taxes = new HashMap<>();
 			for (TypeTaxInfo taxInfo : airPricingInfo.getTaxInfo()) {
-				taxes.put(taxInfo.getCategory(), StringUtility.getDecimalFromString(taxInfo.getAmount()));
+				BigDecimal amount = StringUtility.getDecimalFromString(taxInfo.getAmount());
+				if(taxes.containsKey(taxInfo.getCategory())) {
+					taxes.put(taxInfo.getCategory(), taxes.get(taxInfo.getCategory()).add(amount));
+				} else {
+					taxes.put(taxInfo.getCategory(), amount);
+				}
 			}
 			passengerTax.setTaxes(taxes);
 			passengerTaxes.add(passengerTax);

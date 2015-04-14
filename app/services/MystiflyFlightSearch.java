@@ -26,11 +26,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Santhosh
  */
 @Service
-public class MystiflyFlightSearch implements FlightSearch{
+public class MystiflyFlightSearch implements FlightSearch {
 
 	private SearchParameters searchParams;
 
-    static Logger logger = LoggerFactory.getLogger("gds");
+	static Logger logger = LoggerFactory.getLogger("gds");
 
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
 	public SearchResponse search(SearchParameters searchParameters)
@@ -125,8 +125,8 @@ public class MystiflyFlightSearch implements FlightSearch{
 
 			PassengerTax passengerTax = new PassengerTax();
 			PassengerFare paxFare = ptcFareBreakdown.getPassengerFare();
-//			passengerTax.setBaseFare(new BigDecimal(paxFare.getBaseFare()
-//					.getAmount()));
+			// passengerTax.setBaseFare(new BigDecimal(paxFare.getBaseFare()
+			// .getAmount()));
 			PassengerTypeQuantity passenger = ptcFareBreakdown
 					.getPassengerTypeQuantity();
 			passengerTax.setPassengerCount(passenger.getQuantity());
@@ -135,7 +135,12 @@ public class MystiflyFlightSearch implements FlightSearch{
 			Map<String, BigDecimal> taxes = new HashMap<>();
 			for (Tax tax : ptcFareBreakdown.getPassengerFare().getTaxes()
 					.getTaxArray()) {
-				taxes.put(tax.getTaxCode(), new BigDecimal(tax.getAmount()));
+				if (taxes.containsKey(tax.getTaxCode())) {
+					taxes.put(tax.getTaxCode(), taxes.get(tax.getTaxCode())
+							.add(new BigDecimal(tax.getAmount())));
+				} else {
+					taxes.put(tax.getTaxCode(), new BigDecimal(tax.getAmount()));
+				}
 			}
 			passengerTax.setTaxes(taxes);
 			passengerTaxes.add(passengerTax);
