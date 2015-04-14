@@ -63,6 +63,9 @@ public class Airport extends Model implements Serializable {
 	@Transient
 	private String distance;
 
+    @Column(name = "city_code")
+    private String cityCode;
+
 	public static Finder<Integer, Airport> find = new Finder<Integer, Airport>(
 			Integer.class, Airport.class);
 
@@ -184,7 +187,15 @@ public class Airport extends Model implements Serializable {
 		this.distance = distance;
 	}
 
-	public static Airport getAiport(String iataCode) {
+    public String getCityCode() {
+        return cityCode;
+    }
+
+    public void setCityCode(String cityCode) {
+        this.cityCode = cityCode;
+    }
+
+    public static Airport getAiport(String iataCode) {
 		Jedis j = new Jedis("localhost", 6379);
 		j.connect();
 		String airportJson = j.get(iataCode);
