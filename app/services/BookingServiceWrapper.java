@@ -104,11 +104,11 @@ public class BookingServiceWrapper {
 
 	public TravellerMasterInfo getPnrDetails(IssuanceRequest issuanceRequest, String gdsPNR, String provider){
     	TravellerMasterInfo masterInfo = null;
-    	if(provider.equalsIgnoreCase("Travelport")){
+    	if("Travelport".equalsIgnoreCase(provider)){
     		masterInfo = travelPortBookingService.allPNRDetails(issuanceRequest, gdsPNR);
-    	}else if(provider.equalsIgnoreCase("Amadeus")){
+    	}else if("Amadeus".equalsIgnoreCase(provider)){
     		masterInfo = amadeusBookingService.allPNRDetails(issuanceRequest,gdsPNR);
-    	}else if(provider.equalsIgnoreCase(Mystifly.PROVIDER)){
+    	}else if(Mystifly.PROVIDER.equalsIgnoreCase(provider)){
     		masterInfo = mystiflyBookingService.allPNRDetails(gdsPNR);
     	}
     	return masterInfo;
@@ -116,12 +116,11 @@ public class BookingServiceWrapper {
 	
 	public LowFareResponse getLowestFare(String pnr, String provider, boolean isSeamen) {
 		LowFareResponse lowFareRS = null;
-		if(provider.equalsIgnoreCase("Amadeus")) {
+		if("Amadeus".equalsIgnoreCase(provider)) {
 			lowFareRS = amadeusBookingService.getLowestFare(pnr, isSeamen);
-    	} else if(provider.equalsIgnoreCase("Travelport")) {
+    	} else if("Travelport".equalsIgnoreCase(provider)) {
             lowFareRS = travelPortBookingService.getLowestFare(pnr, provider, isSeamen);
-
-    	} else if(provider.equalsIgnoreCase(Mystifly.PROVIDER)) {
+    	} else if(Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
     		// Not implemented.
     	}
 		return lowFareRS;

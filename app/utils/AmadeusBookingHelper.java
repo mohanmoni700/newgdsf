@@ -5,6 +5,7 @@ import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation;
+import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -341,7 +342,6 @@ public class AmadeusBookingHelper {
         return pricingInformation;
     }
 
-
     public static void setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, FarePricePNRWithBookingClassReply pricePNRReply) {
         Map<String, Integer> passengerTypeMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
         PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
@@ -353,44 +353,43 @@ public class AmadeusBookingHelper {
     }
 
     public static List<PassengerTax> getTaxBreakup(FarePricePNRWithBookingClassReply pricePNRReply, Map<String, Integer> passengerTypeMap){
-
         List<PassengerTax> passengerTaxes = new ArrayList<>();
         for (FareList fare : pricePNRReply.getFareList()) {
             FareList.SegmentInformation segmentInfo = fare.getSegmentInformation().get(0);
-            List<FareList.TaxInformation> taxInfos = fare.getTaxInformation();
+            List<TaxInformation> taxInfos = fare.getTaxInformation();
             if (segmentInfo != null && taxInfos.size() > 0) {
-                PassengerTax passengerTax = new PassengerTax();
                 String paxType = segmentInfo.getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
-                Map<String, BigDecimal> taxes = new HashMap<>();
-                if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
-                    passengerTax.setPassengerType("ADT");
-                    passengerTax.setPassengerCount(passengerTypeMap.get("adultCount"));
-                    for(FareList.TaxInformation taxInfo : taxInfos) {
-                        String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
-                        taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
-                    }
-                } else if(paxType.equalsIgnoreCase("CH") || paxType.equalsIgnoreCase("CHD")) {
-                    passengerTax.setPassengerType("CHD");
-                    passengerTax.setPassengerCount(passengerTypeMap.get("childCount"));
-                    for(FareList.TaxInformation taxInfo : taxInfos) {
-                        String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
-                        taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
-                    }
-                } else if(paxType.equalsIgnoreCase("IN") || paxType.equalsIgnoreCase("INF")) {
-                    passengerTax.setPassengerType("INF");
-                    passengerTax.setPassengerCount(passengerTypeMap.get("infantCount"));
-                    for(FareList.TaxInformation taxInfo : taxInfos) {
-                        String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
-                        taxes.put(taxInfo.getTaxDetails().getTaxType().getIsoCountry(), new BigDecimal(amount));
-                    }
-                }
-                passengerTax.setTaxes(taxes);
+                PassengerTax passengerTax = null;
+                if(paxType.equalsIgnoreCase("CH") || paxType.equalsIgnoreCase("CHD")) {
+                	passengerTax = setTaxDetails(taxInfos, "CHD", passengerTypeMap.get("childCount"));
+        		} else if(paxType.equalsIgnoreCase("IN") || paxType.equalsIgnoreCase("INF")) {
+        			passengerTax = setTaxDetails(taxInfos, "INF", passengerTypeMap.get("infantCount"));
+        		} else {
+        			passengerTax = setTaxDetails(taxInfos, "ADT", passengerTypeMap.get("adultCount"));
+        		}
                 passengerTaxes.add(passengerTax);
             }
         }
-
         return  passengerTaxes;
     }
+
+	private static PassengerTax setTaxDetails(List<TaxInformation> taxInfos, String passengerType, int count) {
+		PassengerTax passengerTax = new PassengerTax();
+		passengerTax.setPassengerType(passengerType);
+		passengerTax.setPassengerCount(count);
+		Map<String, BigDecimal> taxes = new HashMap<>();
+		for(TaxInformation taxInfo : taxInfos) {
+			String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+			String taxCode = taxInfo.getTaxDetails().getTaxType().getIsoCountry();
+			if(taxes.containsKey(taxCode)) {
+				taxes.put(taxCode, taxes.get(taxCode).add(new BigDecimal(amount)));
+			} else {
+				taxes.put(taxCode, new BigDecimal(amount));
+			}
+		}
+		passengerTax.setTaxes(taxes);
+		return passengerTax;
+	}
 
     public static Map<String, Integer> getPassengerTypeCount(List<Traveller> travellerList) {
         int adultCount = 0, childCount = 0, infantCount = 0;
