@@ -20,7 +20,8 @@ import java.util.Map;
 /**
  * Created by Yaseen on 14-04-2015.
  */
-public class TravelPortHelper {
+public class TravelportHelper {
+
 
     public static List<Journey> getJourneyListFromPNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp){
         List<Journey> journeyList = new ArrayList<>();

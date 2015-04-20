@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.StringUtility;
-import utils.TravelPortHelper;
+import utils.TravelportHelper;
 
 import java.io.*;
 import java.text.ParseException;
@@ -283,7 +283,7 @@ public class TravelPortFlightSearch implements FlightSearch {
                 flightItinerary.getPricingInformation().setFareRules(airPricingSolution.getAirPricingInfo().get(0).getCancelPenalty().getAmount());
                 flightItinerary.getPricingInformation().setCancelFee(StringUtility.getDecimalFromString(airPricingSolution.getAirPricingInfo().get(0).getCancelPenalty().getAmount()));
             }
-            TravelPortHelper.getPassengerTaxes(flightItinerary.getPricingInformation(), airPricingSolution.getAirPricingInfo());
+            TravelportHelper.getPassengerTaxes(flightItinerary.getPricingInformation(), airPricingSolution.getAirPricingInfo());
             
             //System.out.print("Price:"+ airPricingSolution.getTotalPrice());
             //System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");

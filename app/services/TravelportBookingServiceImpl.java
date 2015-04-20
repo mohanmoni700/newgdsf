@@ -18,7 +18,7 @@ import org.springframework.util.StringUtils;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.StringUtility;
-import utils.TravelPortHelper;
+import utils.TravelportHelper;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -277,7 +277,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 			}
             masterInfo.setTravellersList(travellerList); // traveller is
 
-            List<Journey> journeyList = TravelPortHelper.getJourneyListFromPNR(universalRecordRetrieveRsp);
+            List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(universalRecordRetrieveRsp);
 			FlightItinerary flightItinerary = new FlightItinerary();
             PricingInformation pricingInformation = new PricingInformation();
 
