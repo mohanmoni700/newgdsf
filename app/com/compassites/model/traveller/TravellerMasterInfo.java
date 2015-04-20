@@ -25,6 +25,8 @@ public class TravellerMasterInfo {
 
     private String approvers;
 
+    private String cancellationFeeText;
+
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
     }
@@ -83,5 +85,13 @@ public class TravellerMasterInfo {
 
     public void setApprovers(String approvers) {
         this.approvers = approvers;
+    }
+
+    public String getCancellationFeeText() {
+        return cancellationFeeText;
+    }
+
+    public void setCancellationFeeText(String cancellationFeeText) {
+        this.cancellationFeeText = cancellationFeeText;
     }
 }

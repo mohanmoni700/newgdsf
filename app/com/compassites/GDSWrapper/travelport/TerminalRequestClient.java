@@ -86,9 +86,9 @@ public class TerminalRequestClient extends TravelPortClient {
         return  null;
     }
 
-    public List<String> getLowestFare(String token, boolean isSeamen){
+    public List<String> getLowestFare(String token, boolean isSeamen, String pnr){
 
-        retrievePNR(token);
+        retrievePNR(token, pnr);
         String lowestFareCommand = "";
         TerminalReq terminalReq = new TerminalReq();
         HostToken hostToken = new HostToken();
@@ -96,9 +96,9 @@ public class TerminalRequestClient extends TravelPortClient {
         hostToken.setHost(GDS);
         terminalReq.setHostToken(hostToken);
         if(isSeamen){
-            lowestFareCommand = "FQBA";
-        }else {
             lowestFareCommand = "FQBA*SEA";
+        }else {
+            lowestFareCommand = "FQBA";
         }
 
         terminalReq.setTerminalCommand(lowestFareCommand);
@@ -123,14 +123,14 @@ public class TerminalRequestClient extends TravelPortClient {
         return terminalResponseList;
     }
 
-    public void retrievePNR(String token){
+    public void retrievePNR(String token, String pnr){
         TerminalReq terminalReq = new TerminalReq();
         HostToken hostToken = new HostToken();
         hostToken.setValue(token);
         hostToken.setHost(GDS);
         terminalReq.setHostToken(hostToken);
-        String lowestFareCommand = "FQBA";
-        terminalReq.setTerminalCommand("*78GK2S");
+//        String lowestFareCommand = "FQBA";
+        terminalReq.setTerminalCommand("*"+pnr);
 
         terminalReq.setTargetBranch(BRANCH);
         terminalReq.setAuthorizedBy("FINE");

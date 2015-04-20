@@ -44,6 +44,8 @@ public class PricingInformation {
 
 	private BigDecimal totalCalculatedValue;
 
+    private BigDecimal cancelFee;
+
 	private String fareRules;
 
 	private String provider;
@@ -211,5 +213,13 @@ public class PricingInformation {
 
     public void setConnectionIndexes(List<Integer> connectionIndexes) {
         this.connectionIndexes = connectionIndexes;
+    }
+
+    public BigDecimal getCancelFee() {
+        return cancelFee;
+    }
+
+    public void setCancelFee(BigDecimal cancelFee) {
+        this.cancelFee = cancelFee;
     }
 }

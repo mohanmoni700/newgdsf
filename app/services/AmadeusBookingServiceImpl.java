@@ -405,7 +405,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			masterInfo.setItinerary(flightItinerary);
 
 			masterInfo.setTravellersList(issuanceResponse.getTravellerList());
-
+            getCancellationFee(issuanceRequest,issuanceResponse,serviceHandler);
+            masterInfo.setCancellationFeeText(issuanceResponse.getCancellationFeeText());
 			// logger.debug("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
 			// logger.debug("====== masterInfo details =========="+
 			// Json.toJson(masterInfo));

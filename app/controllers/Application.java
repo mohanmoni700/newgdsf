@@ -124,7 +124,7 @@ public class Application {
     	IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
     	String gdsPNR = issuanceRequest.getGdsPNR();
     	String provider = issuanceRequest.getProvider();
-    	TravellerMasterInfo masterInfo=bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
+    	TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
     	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
     }
