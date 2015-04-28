@@ -27,6 +27,8 @@ public class TravellerMasterInfo {
 
     private String cancellationFeeText;
 
+    private String reasonForApproval;
+
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
     }
@@ -93,5 +95,13 @@ public class TravellerMasterInfo {
 
     public void setCancellationFeeText(String cancellationFeeText) {
         this.cancellationFeeText = cancellationFeeText;
+    }
+
+    public String getReasonForApproval() {
+        return reasonForApproval;
+    }
+
+    public void setReasonForApproval(String reasonForApproval) {
+        this.reasonForApproval = reasonForApproval;
     }
 }
