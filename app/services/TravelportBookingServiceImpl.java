@@ -275,6 +275,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				}
 				traveller.setTicketNumberMap(ticketMap);
 			}
+
             masterInfo.setTravellersList(travellerList); // traveller is
 
             List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(universalRecordRetrieveRsp);
@@ -288,13 +289,18 @@ public class TravelportBookingServiceImpl implements BookingService {
                     pricingInformation.setTax(StringUtility.getDecimalFromString(airPricingInfo.getTaxes()));
                     pricingInformation.setTotalPrice(StringUtility.getDecimalFromString(airPricingInfo.getTotalPrice()));
                     pricingInformation.setTotalPriceValue(StringUtility.getDecimalFromString(airPricingInfo.getTotalPrice()));
+
+
                 }
+                TravelportHelper.getPassengerTaxes(pricingInformation, airReservation.getAirPricingInfo());
             }
 
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
+                flightItinerary.setSeamanPricingInformation(pricingInformation);
 			} else {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
+                flightItinerary.setPricingInformation(pricingInformation);
 			}
 			masterInfo.setItinerary(flightItinerary);
 			logger.debug("\n<<<<<<<<===================masterInfo======>>>>>\n" + Json.toJson(masterInfo));

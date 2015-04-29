@@ -19,7 +19,6 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import play.libs.Json;
 import utils.AmadeusBookingHelper;
 import utils.DateUtility;
 import utils.ErrorMessageHelper;
@@ -344,9 +343,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler.logIn();
 
 			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
-			System.out
-			.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
-					+ "\n" + Json.toJson(gdsPNRReply));
 			Set<String> isTicketContainSet = new HashSet<String>();
 			for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
 				String isTicketIssued = isticket.getElementManagementData().getSegmentName();
@@ -371,9 +367,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					AmadeusBookingHelper.createTickets(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
 					break;
-				} else {
+				} /*else {
 					return masterInfo; 
-				}
+				}*/
 			}
 			/*System.out
 					.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"

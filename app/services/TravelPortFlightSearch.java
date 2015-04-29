@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class TravelPortFlightSearch implements FlightSearch {
+public class TravelPortFlightSearch implements FlightSearch{
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -187,7 +187,7 @@ public class TravelPortFlightSearch implements FlightSearch {
         } catch (AirFaultMessage airFaultMessage) {
             //throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
 
-
+            airFaultMessage.printStackTrace();
             ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
             searchResponse.getErrorMessageList().add(errMessage);
             return searchResponse;
@@ -197,7 +197,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             throw new RetryException(clientTransportException.getMessage());
         }catch (Exception e){
             //throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
-
+            e.printStackTrace();
             ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
             searchResponse.getErrorMessageList().add(errMessage);
             return searchResponse;

@@ -1,18 +1,14 @@
 package utils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import com.thoughtworks.xstream.XStream;
+
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.thoughtworks.xstream.XStream;
-
 public class XMLFileUtility {
 	
-	static SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy-H:m:s");
+	static SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy-H-m-s");
 
 	public static void createXMLFile(Object object, String fileName) {
 		fileName = "xmls/" + fileName.split("\\.")[0] + dateFormat.format(new Date()) + ".xml";

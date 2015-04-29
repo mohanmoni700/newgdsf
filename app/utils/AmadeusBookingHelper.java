@@ -325,7 +325,9 @@ public class AmadeusBookingHelper {
                     totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
                     logger.debug("=======================>> Setting new total fare: " + totalFare);
                 }
-                if("E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                //Todo --commented below line as the base fare string is B need to validate
+//                if("E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                if("B".equalsIgnoreCase(fareData.getFareDataQualifier())) {
                     baseFare = amount;
                 }
             }

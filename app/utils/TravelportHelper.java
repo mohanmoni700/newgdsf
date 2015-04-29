@@ -48,8 +48,13 @@ public class TravelportHelper {
                 String toLoc = airSegment.getDestination();
                 airSegmentInformation.setFromLocation(fromLoc);
                 airSegmentInformation.setToLocation(airSegment.getDestination());
-                airSegmentInformation.setTravelTime(airSegment.getTravelTime().toString());
-                airSegmentInformation.setDistanceTravelled(airSegment.getDistance().toString());
+                if(airSegment.getTravelTime() != null){
+                    airSegmentInformation.setTravelTime(airSegment.getTravelTime().toString());
+                }
+                if(airSegment.getDistance() != null){
+                    airSegmentInformation.setDistanceTravelled(airSegment.getDistance().toString());
+                }
+
                 airSegmentInformation.setFromDate(arrivalDateTime);
                 airSegmentInformation.setToDate(departureDateTime);
 
