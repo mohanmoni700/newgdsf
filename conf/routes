@@ -2,16 +2,17 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-POST     /searchFlight                              @controllers.Application.flightSearch
-POST     /generatePNR                               @controllers.Application.generatePNR
-POST     /priceChangePNR                            @controllers.Application.priceChangePNR
-POST     /baggageInfo                               @controllers.Application.getBaggageInfo
-POST     /flightDetails                             @controllers.Application.getFlightDetails
-POST     /getCancelFee                              @controllers.Application.getCancellationFee()
-POST     /issueTicket                               @controllers.Application.issueTicket()
-POST     /checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
-POST	 /getPnrDetails								@controllers.Application.getPnrDetails()
-POST     /lowestFare                                @controllers.Application.getLowestFare()
+POST	/searchFlight                              @controllers.Application.flightSearch
+POST	/generatePNR                               @controllers.Application.generatePNR
+POST	/priceChangePNR                            @controllers.Application.priceChangePNR
+POST	/baggageInfo                               @controllers.Application.getBaggageInfo
+POST	/flightDetails                             @controllers.Application.getFlightDetails
+POST	/getCancelFee                              @controllers.Application.getCancellationFee()
+POST	/issueTicket                               @controllers.Application.issueTicket()
+POST	/checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
+POST	/getPnrDetails							   @controllers.Application.getPnrDetails()
+POST	/getBookingDetails						   @controllers.Application.getBookingDetails()
+POST	/lowestFare                                @controllers.Application.getLowestFare()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

@@ -1,9 +1,32 @@
 package services;
 
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import play.libs.Json;
+
+import utils.AmadeusBookingHelper;
+import utils.DateUtility;
+import utils.ErrorMessageHelper;
+
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
@@ -13,23 +36,20 @@ import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.*;
+import com.compassites.model.ErrorMessage;
+import com.compassites.model.FlightItinerary;
+import com.compassites.model.IssuanceRequest;
+import com.compassites.model.IssuanceResponse;
+import com.compassites.model.Journey;
+import com.compassites.model.LowFareResponse;
+import com.compassites.model.PNRResponse;
+import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.PricingInformation;
+import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thoughtworks.xstream.XStream;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import utils.AmadeusBookingHelper;
-import utils.DateUtility;
-import utils.ErrorMessageHelper;
-
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
@@ -470,5 +490,76 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
         return  totalCount;
     }
-	
+    
+	public ObjectNode getBookingDetails(String gdsPNR) {
+		PNRReply gdsPNRReply = null;
+		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
+		FarePricePNRWithBookingClassReply pricePNRReply = null;
+		PricingInformation pricingInfo = null;
+		try {
+			ServiceHandler serviceHandler = new ServiceHandler();
+			serviceHandler.logIn();
+			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
+			List<Traveller> travellersList = new ArrayList<>();
+			List<TravellerInfo> travellerinfoList = gdsPNRReply.getTravellerInfo();
+			for (TravellerInfo travellerInfo : travellerinfoList) {
+				PassengerData paxData = travellerInfo.getPassengerData().get(0);
+				String lastName = paxData.getTravellerInformation().getTraveller().getSurname();
+				String firstName = paxData.getTravellerInformation().getPassenger().get(0).getFirstName();
+				Traveller traveller = new Traveller();
+				PersonalDetails personalDetails = new PersonalDetails();
+				personalDetails.setFirstName(firstName);
+				personalDetails.setLastName(lastName);
+				traveller.setPersonalDetails(personalDetails);
+				travellersList.add(traveller);
+			}
+			masterInfo.setTravellersList(travellersList);
+			Map<String, Integer> paxTypeCount = AmadeusBookingHelper.getPaxTypeCount(travellerinfoList);
+			String paxType = travellerinfoList.get(0).getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getType();
+			boolean isSeamen = false;
+			if ("sea".equalsIgnoreCase(paxType)	|| "sc".equalsIgnoreCase(paxType))
+				isSeamen = true;
+
+			FlightItinerary flightItinerary = new FlightItinerary();
+			List<Journey> journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply);
+			String carrierCode = "";
+			if (isSeamen) {
+				flightItinerary.setJourneyList(journeyList);
+				carrierCode = flightItinerary.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
+			} else {
+				flightItinerary.setNonSeamenJourneyList(journeyList);
+				carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
+			}
+			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
+			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
+							paxTypeCount.get("adultCount"),	paxTypeCount.get("childCount"),	paxTypeCount.get("infantCount"));
+			if (isSeamen) {
+				flightItinerary.setSeamanPricingInformation(pricingInfo);
+			} else {
+				flightItinerary.setPricingInformation(pricingInfo);
+			}
+			masterInfo.setSeamen(isSeamen);
+			masterInfo.setItinerary(flightItinerary);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		PNRResponse pnrResponse = new PNRResponse();
+		pnrResponse.setPnrNumber(gdsPNR);
+		pnrResponse.setPricingInfo(pricingInfo);
+		
+		List<ItineraryInfo> itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+		if(itineraryInfos != null && itineraryInfos.size() > 0) {
+			String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
+			pnrResponse.setAirlinePNR(airlinePnr);
+		}
+		gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo().get(0).getItineraryReservationInfo().getReservation().getControlNumber();
+		createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse);
+		
+		ObjectNode jsonObj = Json.newObject();
+		jsonObj.put("travellerMasterInfo", Json.toJson(masterInfo));
+		jsonObj.put("pnrResponse", Json.toJson(pnrResponse));
+		return jsonObj;
+	}
+
 }

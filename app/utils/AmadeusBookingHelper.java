@@ -2,6 +2,8 @@ package utils;
 
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo;
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation;
@@ -344,6 +346,64 @@ public class AmadeusBookingHelper {
         return pricingInformation;
     }
 
+	public static PricingInformation getPricingInfo(
+			FarePricePNRWithBookingClassReply pricePNRReply,
+			String totalFareIdentifier, int adultCount, int childCount,
+			int infantCount) {
+		BigDecimal totalFare = new BigDecimal(0);
+        BigDecimal totalBaseFare = new BigDecimal(0);
+        BigDecimal adtBaseFare = new BigDecimal(0);
+        BigDecimal chdBaseFare = new BigDecimal(0);
+        BigDecimal infBaseFare = new BigDecimal(0);
+        String currency = null;
+        
+        List<FareList> fareList = pricePNRReply.getFareList();
+        PricingInformation pricingInformation = new PricingInformation();
+        for(FareList fare : fareList) {
+            int paxCount = 0;
+            String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
+            if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+            	paxCount = childCount;
+			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+				paxCount = infantCount;
+			} else {
+				paxCount = adultCount;
+			}
+            currency = fare.getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
+            for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+                BigDecimal amount = new BigDecimal(fareData.getFareAmount());
+                if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
+                    totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
+                }
+                if("B".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                	totalBaseFare = totalBaseFare.add(amount.multiply(new BigDecimal(paxCount)));
+                	if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+                		chdBaseFare = amount;
+        			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+        				infBaseFare = amount;
+        			} else {
+        				adtBaseFare = amount;
+        			}
+                }
+            }
+        }
+        pricingInformation.setGdsCurrency(currency);
+        pricingInformation.setTotalPrice(totalFare);
+        pricingInformation.setTotalPriceValue(totalFare);
+        pricingInformation.setBasePrice(totalBaseFare);
+        pricingInformation.setAdtBasePrice(adtBaseFare);
+        pricingInformation.setChdBasePrice(chdBaseFare);
+        pricingInformation.setInfBasePrice(infBaseFare);
+        pricingInformation.setTax(totalFare.subtract(totalBaseFare));
+        Map<String, Integer> passengerTypeMap = new HashMap<>();
+
+        passengerTypeMap.put("adultCount", adultCount);
+        passengerTypeMap.put("childCount", childCount);
+        passengerTypeMap.put("infantCount", infantCount);
+        pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReply, passengerTypeMap));
+        return pricingInformation;
+	}
+
     public static void setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, FarePricePNRWithBookingClassReply pricePNRReply) {
         Map<String, Integer> passengerTypeMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
         PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
@@ -411,4 +471,25 @@ public class AmadeusBookingHelper {
         passengerTypeMap.put("infantCount", infantCount);
         return passengerTypeMap;
     }
+    
+    public static Map<String, Integer> getPaxTypeCount(List<TravellerInfo> travellerinfoList) {
+		Map<String, Integer> paxTypeCounts = new HashMap<>();
+		int adultCount = 0, childCount = 0, infantCount = 0;
+		for(TravellerInfo travellerInfo : travellerinfoList) {
+			PassengerData paxData = travellerInfo.getPassengerData().get(0);
+			String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
+			if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+				childCount++;
+			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+				infantCount++;
+			} else {
+				adultCount++;
+			}
+		}
+		paxTypeCounts.put("adultCount", adultCount);
+		paxTypeCounts.put("childCount", childCount);
+		paxTypeCounts.put("infantCount", infantCount);
+		return paxTypeCounts;
+	}
+    
 }

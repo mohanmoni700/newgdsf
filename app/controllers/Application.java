@@ -1,9 +1,12 @@
 package controllers;
 
 
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,6 +130,17 @@ public class Application {
     	TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
     	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
+    }
+    
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getBookingDetails() {
+    	JsonNode json = request().body().asJson();
+    	String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
+        String provider = Json.fromJson(json.findPath("provider"), String.class);
+
+        ObjectNode res = bookingService.getBookingDetails(provider, pnr);
+        logger.debug("PNRReply =>>>>>>>>>>>> " + res);
+		return ok(res);
     }
     
     @BodyParser.Of(BodyParser.Json.class)

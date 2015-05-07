@@ -1,8 +1,12 @@
 package services;
 
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -106,13 +110,23 @@ public class BookingServiceWrapper {
     	TravellerMasterInfo masterInfo = null;
     	if("Travelport".equalsIgnoreCase(provider)){
     		masterInfo = travelPortBookingService.allPNRDetails(issuanceRequest, gdsPNR);
-    	}else if("Amadeus".equalsIgnoreCase(provider)){
+    	} else if("Amadeus".equalsIgnoreCase(provider)){
     		masterInfo = amadeusBookingService.allPNRDetails(issuanceRequest,gdsPNR);
-    	}else if(Mystifly.PROVIDER.equalsIgnoreCase(provider)){
+    	} else if(Mystifly.PROVIDER.equalsIgnoreCase(provider)){
     		masterInfo = mystiflyBookingService.allPNRDetails(gdsPNR);
     	}
     	return masterInfo;
     }
+	
+	public ObjectNode getBookingDetails(String provider, String gdsPNR) {
+		ObjectNode json = null;
+		if("Travelport".equalsIgnoreCase(provider)){
+    		
+    	} else if("Amadeus".equalsIgnoreCase(provider)){
+    		json = amadeusBookingService.getBookingDetails(gdsPNR);
+    	}
+		return json;
+	}
 	
 	public LowFareResponse getLowestFare(String pnr, String provider, boolean isSeamen) {
 		LowFareResponse lowFareRS = null;
