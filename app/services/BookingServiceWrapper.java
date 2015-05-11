@@ -118,9 +118,9 @@ public class BookingServiceWrapper {
     	return masterInfo;
     }
 	
-	public ObjectNode getBookingDetails(String provider, String gdsPNR) {
-		ObjectNode json = null;
-		if("Travelport".equalsIgnoreCase(provider)){
+	public JsonNode getBookingDetails(String provider, String gdsPNR) {
+		JsonNode json = null;
+		if("Travelport".equalsIgnoreCase(provider) || "Galileo".equalsIgnoreCase(provider)){
 			json = travelPortBookingService.getBookingDetails(gdsPNR);
     	} else if("Amadeus".equalsIgnoreCase(provider)){
     		json = amadeusBookingService.getBookingDetails(gdsPNR);

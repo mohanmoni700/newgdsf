@@ -22,6 +22,10 @@ public class StringUtility {
 	public static BigDecimal getDecimalFromString(String str) {
 		return new BigDecimal(str.replaceAll("[^\\d\\.]", ""));
 	}
+	
+	public static String getCurrencyFromString(String str) {
+		return str.replaceAll("[\\d\\.]", "");
+	}
 
 	public static String getGenderCode(String gender) {
 		return "male".equalsIgnoreCase(gender) ? "M" : "F";

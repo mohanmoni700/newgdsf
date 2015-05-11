@@ -138,7 +138,7 @@ public class Application {
     	String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
 
-        ObjectNode res = bookingService.getBookingDetails(provider, pnr);
+        JsonNode res = bookingService.getBookingDetails(provider, pnr);
         logger.debug("PNRReply =>>>>>>>>>>>> " + res);
 		return ok(res);
     }

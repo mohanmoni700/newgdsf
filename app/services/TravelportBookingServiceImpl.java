@@ -6,6 +6,7 @@ import com.compassites.model.Journey;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
@@ -313,7 +314,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		return masterInfo;
 	}
 	
-	public ObjectNode getBookingDetails(String gdsPNR) {
+	public JsonNode getBookingDetails(String gdsPNR) {
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		UniversalRecordRetrieveRsp univRecRetrRsp = UniversalRecordClient.retrievePNR(gdsPNR);
 		UniversalRecord univRec = univRecRetrRsp.getUniversalRecord();
@@ -346,9 +347,10 @@ public class TravelportBookingServiceImpl implements BookingService {
         BigDecimal totalBaseFare = new BigDecimal(0);
         BigDecimal totalTax = new BigDecimal(0);
         for(AirPricingInfo airPricingInfo : airPricingInfoList) {
-        	BigDecimal total = StringUtility.getDecimalFromString(airPricingInfo.getTotalPrice());
-        	BigDecimal base = StringUtility.getDecimalFromString(airPricingInfo.getBasePrice());
+        	BigDecimal total = StringUtility.getDecimalFromString(airPricingInfo.getApproximateTotalPrice());
+        	BigDecimal base = StringUtility.getDecimalFromString(airPricingInfo.getApproximateBasePrice());
         	BigDecimal tax = StringUtility.getDecimalFromString(airPricingInfo.getTaxes());
+        	pricingInfo.setGdsCurrency(StringUtility.getCurrencyFromString(airPricingInfo.getTotalPrice()));
         	List<PassengerType> passegerTypes = airPricingInfo.getPassengerType();
         	String paxType = passegerTypes.get(0).getCode();
         	
@@ -384,10 +386,11 @@ public class TravelportBookingServiceImpl implements BookingService {
 		pnrResponse.setPricingInfo(pricingInfo);
 		retrievePNR(univRecRetrRsp, pnrResponse, masterInfo);
 		
-		ObjectNode jsonObj = Json.newObject();
-		jsonObj.put("travellerMasterInfo", Json.toJson(masterInfo));
-		jsonObj.put("pnrResponse", Json.toJson(pnrResponse));
-		return jsonObj;
+		Map<String, Object> json = new HashMap<>();
+		json.put("travellerMasterInfo", masterInfo);
+		json.put("pnrResponse", pnrResponse);
+		
+		return Json.toJson(json);
     }
 
     public LowFareResponse getLowestFare(String pnr, String provider, boolean isSeamen) {

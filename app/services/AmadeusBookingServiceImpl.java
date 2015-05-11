@@ -42,6 +42,7 @@ import com.compassites.model.PricingInformation;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thoughtworks.xstream.XStream;
 import utils.HoldTimeUtility;
@@ -492,7 +493,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         return  totalCount;
     }
     
-	public ObjectNode getBookingDetails(String gdsPNR) {
+	public JsonNode getBookingDetails(String gdsPNR) {
 		PNRReply gdsPNRReply = null;
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
@@ -556,11 +557,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo().get(0).getItineraryReservationInfo().getReservation().getControlNumber();
 		createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
+
+		Map<String, Object> json = new HashMap<>();
+		json.put("travellerMasterInfo", masterInfo);
+		json.put("pnrResponse", pnrResponse);
 		
-		ObjectNode jsonObj = Json.newObject();
-		jsonObj.put("travellerMasterInfo", Json.toJson(masterInfo));
-		jsonObj.put("pnrResponse", Json.toJson(pnrResponse));
-		return jsonObj;
+		return Json.toJson(json);
 	}
 
 }
