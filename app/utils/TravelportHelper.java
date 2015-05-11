@@ -106,14 +106,18 @@ public class TravelportHelper {
 //			passengerTax.setBaseFare(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
             passengerTax.setPassengerCount(airPricingInfo.getPassengerType().size());
             PassengerType paxType = airPricingInfo.getPassengerType().get(0);
+            String paxCode = null;
             if(paxType.getCode().equalsIgnoreCase("ADT") || paxType.getCode().equalsIgnoreCase("SEA")) {
                 pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+                paxCode = "ADT";
             } else if(paxType.getCode().equalsIgnoreCase("CHD") || paxType.getCode().equalsIgnoreCase("CNN")) {
                 pricingInfo.setChdBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+                paxCode = "CHD";
             } else if(paxType.getCode().equalsIgnoreCase("INF")) {
                 pricingInfo.setInfBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+                paxCode = "INF";
             }
-            passengerTax.setPassengerType(paxType.getCode());
+            passengerTax.setPassengerType(paxCode);
             Map<String, BigDecimal> taxes = new HashMap<>();
             for (TypeTaxInfo taxInfo : airPricingInfo.getTaxInfo()) {
                 BigDecimal amount = StringUtility.getDecimalFromString(taxInfo.getAmount());

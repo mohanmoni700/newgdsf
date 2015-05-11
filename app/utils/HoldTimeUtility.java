@@ -29,7 +29,12 @@ public class HoldTimeUtility {
         return calendar.getTime();
     }
     public static Date getHoldTime(TravellerMasterInfo travellerMasterInfo){
-        List<Journey> journeyList = travellerMasterInfo.getItinerary().getJourneyList();
+        List<Journey> journeyList = null;
+        if(travellerMasterInfo.isSeamen()) {
+        	journeyList = travellerMasterInfo.getItinerary().getJourneyList();
+        } else {
+        	journeyList = travellerMasterInfo.getItinerary().getNonSeamenJourneyList();
+        }
         Date travelDate = journeyList.get(0).getAirSegmentList().get(0).getDepartureDate();
         Calendar calendar = getCalendar(travelDate,0);
 

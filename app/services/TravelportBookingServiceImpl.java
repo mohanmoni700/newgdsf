@@ -3,12 +3,15 @@ package services;
 import com.compassites.GDSWrapper.travelport.*;
 import com.compassites.model.*;
 import com.compassites.model.Journey;
+import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
 import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
+import com.travelport.schema.universal_v26_0.UniversalRecord;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.slf4j.Logger;
@@ -309,6 +312,83 @@ public class TravelportBookingServiceImpl implements BookingService {
 
 		return masterInfo;
 	}
+	
+	public ObjectNode getBookingDetails(String gdsPNR) {
+		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
+		UniversalRecordRetrieveRsp univRecRetrRsp = UniversalRecordClient.retrievePNR(gdsPNR);
+		UniversalRecord univRec = univRecRetrRsp.getUniversalRecord();
+		
+		List<Traveller> travellersList = new ArrayList<>();
+		List<BookingTraveler> bookingTravelerList = univRec.getBookingTraveler();
+		for(BookingTraveler bookingTraveler : bookingTravelerList) {
+			Traveller traveller = new Traveller();
+			PersonalDetails personalDetails = new PersonalDetails();
+			personalDetails.setFirstName(bookingTraveler.getBookingTravelerName().getFirst());
+			personalDetails.setLastName(bookingTraveler.getBookingTravelerName().getLast());
+			traveller.setPersonalDetails(personalDetails);
+			travellersList.add(traveller);
+		}
+		boolean isSeamen = false;
+		if("SEA".equalsIgnoreCase(bookingTravelerList.get(0).getTravelerType()))
+			isSeamen = true;
+		masterInfo.setSeamen(isSeamen);
+		masterInfo.setTravellersList(travellersList);
+		
+		TypeCabinClass cabinClass = univRec.getAirReservation().get(0).getAirSegment().get(0).getCabinClass();
+		masterInfo.setCabinClass(com.compassites.model.CabinClass.fromValue(cabinClass.name()));
+		
+		List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(univRecRetrRsp);
+		FlightItinerary flightItinerary = new FlightItinerary();
+        PricingInformation pricingInfo = new PricingInformation();
+        List<AirPricingInfo> airPricingInfoList = univRec.getAirReservation().get(0).getAirPricingInfo();
+
+        BigDecimal totalFare = new BigDecimal(0);
+        BigDecimal totalBaseFare = new BigDecimal(0);
+        BigDecimal totalTax = new BigDecimal(0);
+        for(AirPricingInfo airPricingInfo : airPricingInfoList) {
+        	BigDecimal total = StringUtility.getDecimalFromString(airPricingInfo.getTotalPrice());
+        	BigDecimal base = StringUtility.getDecimalFromString(airPricingInfo.getBasePrice());
+        	BigDecimal tax = StringUtility.getDecimalFromString(airPricingInfo.getTaxes());
+        	List<PassengerType> passegerTypes = airPricingInfo.getPassengerType();
+        	String paxType = passegerTypes.get(0).getCode();
+        	
+        	int paxCount = passegerTypes.size();
+        	totalFare = totalFare.add(total.multiply(new BigDecimal(paxCount)));
+        	totalBaseFare = totalBaseFare.add(base.multiply(new BigDecimal(paxCount)));
+        	totalTax = totalTax.add(tax.multiply(new BigDecimal(paxCount)));
+        	
+        	if("CHD".equalsIgnoreCase(paxType) || "CNN".equalsIgnoreCase(paxType)) {
+				pricingInfo.setChdBasePrice(base);
+			} else if("INF".equalsIgnoreCase(paxType)) {
+				pricingInfo.setInfBasePrice(base);
+			} else {
+				pricingInfo.setAdtBasePrice(base);
+			}
+        }
+        pricingInfo.setTax(totalTax);
+        pricingInfo.setBasePrice(totalBaseFare);
+        pricingInfo.setTotalPrice(totalFare);
+        pricingInfo.setTotalPriceValue(totalFare);
+        pricingInfo.setProvider("Travelport");
+        TravelportHelper.getPassengerTaxes(pricingInfo, airPricingInfoList);
+		if (isSeamen) {
+			flightItinerary.setJourneyList(journeyList);
+            flightItinerary.setSeamanPricingInformation(pricingInfo);
+		} else {
+			flightItinerary.setNonSeamenJourneyList(journeyList);
+            flightItinerary.setPricingInformation(pricingInfo);
+		}
+		masterInfo.setItinerary(flightItinerary);
+
+		PNRResponse pnrResponse = new PNRResponse();
+		pnrResponse.setPricingInfo(pricingInfo);
+		retrievePNR(univRecRetrRsp, pnrResponse, masterInfo);
+		
+		ObjectNode jsonObj = Json.newObject();
+		jsonObj.put("travellerMasterInfo", Json.toJson(masterInfo));
+		jsonObj.put("pnrResponse", Json.toJson(pnrResponse));
+		return jsonObj;
+    }
 
     public LowFareResponse getLowestFare(String pnr, String provider, boolean isSeamen) {
         TerminalRequestClient terminalRequestClient = new TerminalRequestClient();

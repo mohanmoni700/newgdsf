@@ -106,10 +106,19 @@ public class AirReservationClient  extends TravelPortClient {
         List<BookingTraveler> bookingTravelers = createBookingTravellers(travellerMasterInfo);
         request.getBookingTraveler().addAll(bookingTravelers);
         
-        List<PassengerType> PassengerTypes = airPricingSolution.getAirPricingInfo().get(0).getPassengerType();
-        for(int i=0; i<PassengerTypes.size(); i++) {
-        	PassengerTypes.get(i).setBookingTravelerRef((i + 1) + "");
+        
+        int i = 1;
+        for(AirPricingInfo airPricingInfo : airPricingSolution.getAirPricingInfo()) {
+        	for(PassengerType passengerType : airPricingInfo.getPassengerType()) {
+        		passengerType.setBookingTravelerRef(i + "");
+        		i++;
+        	}
         }
+       
+//        List<PassengerType> PassengerTypes = airPricingSolution.getAirPricingInfo().get(0).getPassengerType();
+//        for(int i=0; i<PassengerTypes.size(); i++) {
+//        	PassengerTypes.get(i).setBookingTravelerRef((i + 1) + "");
+//        }
 
         //provider
         request.setProviderCode(GDS);
@@ -336,7 +345,10 @@ public class AirReservationClient  extends TravelPortClient {
             bookingTraveler.setDOB(calendar);
             bookingTraveler.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth())));
             //adult
-            String travelerType = travellerMasterInfo.isSeamen() ? PassengerTypeCode.SEA.name() : DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).name();
+//            String travelerType = travellerMasterInfo.isSeamen() ? PassengerTypeCode.SEA.name() : DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).name();
+            
+            long age = DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            String travelerType = age <= 12 ? "CNN" : "ADT";
             bookingTraveler.setTravelerType(travelerType);
             bookingTraveler.setKey(i++ + "");
 

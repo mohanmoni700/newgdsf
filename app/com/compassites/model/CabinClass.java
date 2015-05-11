@@ -45,7 +45,7 @@ public enum  CabinClass {
 
     public static CabinClass fromValue(String v) {
         for (CabinClass c: CabinClass.values()) {
-            if (c.value.equals(v)) {
+            if (c.value.equalsIgnoreCase(v)) {
                 return c;
             }
         }
