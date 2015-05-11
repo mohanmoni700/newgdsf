@@ -13,13 +13,12 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
 import org.springframework.stereotype.Service;
 
 import utils.ErrorMessageHelper;
+import utils.HoldTimeUtility;
 
 import java.math.BigDecimal;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Santhosh
@@ -51,8 +50,14 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					if (airbookRS.getSuccess()) {
 						pnrRS.setPnrNumber(airbookRS.getUniqueID());
 						pnrRS.setFlightAvailable(airbookRS.getSuccess());
-						pnrRS.setValidTillDate(airbookRS.getTktTimeLimit()
-								.getTime());
+                        if(airbookRS.getTktTimeLimit().getTime() == null){
+                            Calendar calendar = Calendar.getInstance();
+                            Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
+                            calendar.setTime(holdDate);
+                            pnrRS.setValidTillDate(calendar.getTime());
+                        }else{
+                            pnrRS.setValidTillDate(airbookRS.getTktTimeLimit().getTime());
+                        }
 						setAirlinePNR(pnrRS);
 					} else {
 						ErrorMessage error = new ErrorMessage();

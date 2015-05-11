@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
+import utils.HoldTimeUtility;
 import utils.StringUtility;
 import utils.TravelportHelper;
 
@@ -58,7 +59,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
 						.retrievePNR(reservationRsp);
 				pnrResponse = retrievePNR(universalRecordRetrieveRsp,
-						pnrResponse);
+						pnrResponse,travellerMasterInfo);
 			}
 
 		} catch (AirFaultMessage airFaultMessage) {
@@ -154,9 +155,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		return pnrResponse;
 	}
 
-	public PNRResponse retrievePNR(
-			UniversalRecordRetrieveRsp universalRecordRetrieveRsp,
-			PNRResponse pnrResponse) {
+	public PNRResponse retrievePNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp,PNRResponse pnrResponse,TravellerMasterInfo travellerMasterInfo) {
 		
 		Helper.ReservationInfoMap reservationInfoMap = Helper
 				.createReservationInfoMap(universalRecordRetrieveRsp
@@ -187,6 +186,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				pnrResponse.setAirlinePNR(airlinePNR);
 			}
 		}
+        Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
 		try {
 			List<GeneralRemark> generalRemarks = universalRecordRetrieveRsp.getUniversalRecord().getGeneralRemark();
 			if(generalRemarks != null && generalRemarks.size() > 0) {
@@ -201,15 +201,14 @@ public class TravelportBookingServiceImpl implements BookingService {
 				SimpleDateFormat sdf = new SimpleDateFormat("HHmm/ddMMMyyyy");
 
 				lastDate = sdf.parse(dateString);
+
 			} else {
-				calendar.setTime(new Date());
-				calendar.add(Calendar.HOUR_OF_DAY, 6);
+				calendar.setTime(holdDate);
 				lastDate = calendar.getTime();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			calendar.setTime(new Date());
-			calendar.add(Calendar.HOUR_OF_DAY, 6);
+			calendar.setTime(holdDate);
 			lastDate = calendar.getTime();
 		}
 		pnrResponse.setValidTillDate(lastDate);
@@ -258,8 +257,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		masterInfo.setSeamen(isSeamen);
 
 		try {
-			UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
-					.retrievePNR(gdsPNR);
+			UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient.retrievePNR(gdsPNR);
 			//logger.debug("Response======>>>>>\n"+ Json.toJson(universalRecordRetrieveRsp));
 			// traveller deatials
 			List<Traveller> travellerList = issuanceRequest.getTravellerList();

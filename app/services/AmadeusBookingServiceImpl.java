@@ -3,13 +3,7 @@ package services;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -50,6 +44,7 @@ import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thoughtworks.xstream.XStream;
+import utils.HoldTimeUtility;
 
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
@@ -107,7 +102,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
 
 					// pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
-					createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse);
+					createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse,travellerMasterInfo);
 					
 					// getCancellationFee(travellerMasterInfo, serviceHandler);
 				}
@@ -187,7 +182,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	}
 
 	public PNRResponse createPNRResponse(PNRReply gdsPNRReply,
-			FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse) {
+			FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
 //		PNRResponse pnrResponse = new PNRResponse();
 		for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
 			pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
@@ -208,6 +203,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
+        if(lastTicketingDate == null){
+            Calendar calendar = Calendar.getInstance();
+            Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
+            calendar.setTime(holdDate);
+            lastTicketingDate = calendar.getTime();
+        }
 		pnrResponse.setValidTillDate(lastTicketingDate);
 		pnrResponse.setFlightAvailable(true);
 		
@@ -554,7 +555,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pnrResponse.setAirlinePNR(airlinePnr);
 		}
 		gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo().get(0).getItineraryReservationInfo().getReservation().getControlNumber();
-		createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse);
+		createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
 		
 		ObjectNode jsonObj = Json.newObject();
 		jsonObj.put("travellerMasterInfo", Json.toJson(masterInfo));
