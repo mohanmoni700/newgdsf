@@ -12,6 +12,9 @@ import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_10_1_1a.PNRRetrieve;
+import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
+import com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType;
+import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
@@ -25,6 +28,7 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
+import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
@@ -35,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
+import java.math.BigInteger;
 import java.net.URL;
 import java.util.*;
 
@@ -45,6 +50,8 @@ public class ServiceHandler {
     SessionHandler mSession;
 
     static Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
+
+    static Logger logger = LoggerFactory.getLogger("gds");
 
     public ServiceHandler() throws Exception{
 //        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_20140429_052541.wsdl");
@@ -223,5 +230,23 @@ public class ServiceHandler {
         amadeusLogger.debug("FarePricePNRWithLowestFareReplyRes " + new Date() + " ---->" + new XStream().toXML(farePricePNRWithLowestFareReply));
     	return farePricePNRWithLowestFareReply;
     }
-    
+
+
+    public com.amadeus.xml.pnracc_11_3_1a.PNRReply cancelPNR(String pnr){
+        logger.debug("cancelPNR called ................");
+
+        mSession.incrementSequenceNumber();
+        PNRCancel pnrCancel = new PNRCancel();
+        OptionalPNRActionsType pnrActionsType = new OptionalPNRActionsType();
+        pnrActionsType.getOptionCode().add(BigInteger.valueOf(0));
+        pnrCancel.setPnrActions(pnrActionsType);
+        CancelPNRElementType cancelPNRElementType = new CancelPNRElementType();
+        cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ITINERARY_TYPE);
+        pnrCancel.getCancelElements().add(cancelPNRElementType);
+
+        com.amadeus.xml.pnracc_11_3_1a.PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, mSession.getSession());
+
+        return pnrReply;
+
+    }
 }

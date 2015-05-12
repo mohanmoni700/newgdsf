@@ -9,11 +9,21 @@ package com.compassites.exceptions;
  */
 public class BaseCompassitesException extends Exception {
 
+    private String errorCode;
+
     public BaseCompassitesException(String message) {
         super(message);
     }
 
     public BaseCompassitesException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 }

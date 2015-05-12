@@ -1,12 +1,9 @@
 package controllers;
 
 
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +11,7 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
-import services.BookingServiceWrapper;
-import services.FlightInfoServiceWrapper;
-import services.FlightSearchWrapper;
-import services.MergeSearchResults;
+import services.*;
 
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
@@ -36,6 +30,9 @@ public class Application {
     
     @Autowired
     private FlightInfoServiceWrapper flightInfoService;
+
+    @Autowired
+    private CancelServiceWrapper cancelService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -153,6 +150,15 @@ public class Application {
     	LowFareResponse lowestFare = bookingService.getLowestFare(pnr, provider, isSeamen);
     	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
+    }
+
+    public Result cancelPNR(){
+
+        JsonNode json = request().body().asJson();
+        String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
+        String provider = Json.fromJson(json.findPath("provider"), String.class);
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
+        return ok(Json.toJson(cancelPNRResponse));
     }
     
 }
