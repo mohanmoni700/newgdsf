@@ -30,6 +30,7 @@ import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.model.CabinClass;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.IssuanceRequest;
@@ -498,6 +499,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		PricingInformation pricingInfo = null;
+		List<Journey> journeyList = null;
 		try {
 			ServiceHandler serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
@@ -523,7 +525,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				isSeamen = true;
 
 			FlightItinerary flightItinerary = new FlightItinerary();
-			List<Journey> journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply);
+			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply);
 			String carrierCode = "";
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
@@ -545,6 +547,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		// TODO: change hardcoded value
+		masterInfo.setCabinClass(CabinClass.ECONOMY);
 
 		PNRResponse pnrResponse = new PNRResponse();
 		pnrResponse.setPnrNumber(gdsPNR);
