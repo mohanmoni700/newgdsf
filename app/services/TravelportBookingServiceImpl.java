@@ -7,7 +7,6 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
@@ -89,6 +88,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 	}
 
 	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
+
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		AirTicketClient airTicketClient = new AirTicketClient();
 		AirTicketingRsp airTicketingRsp = airTicketClient
@@ -126,6 +126,8 @@ public class TravelportBookingServiceImpl implements BookingService {
 		} else {
 			issuanceResponse.setSuccess(false);
 		}
+
+        getCancellationFee(issuanceRequest);
 		return issuanceResponse;
 	}
 
@@ -404,5 +406,38 @@ public class TravelportBookingServiceImpl implements BookingService {
         lowFareRS.setAmount(lowestFarePrice);
         lowFareRS.setGdsPnr(pnr);
         return lowFareRS;
+    }
+
+    public String getCancellationFee(IssuanceRequest issuanceRequest){
+        PNRResponse pnrResponse = new PNRResponse();
+        TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
+        travellerMasterInfo.setTravellersList(issuanceRequest.getTravellerList());
+        travellerMasterInfo.setSeamen(issuanceRequest.isSeamen());
+        travellerMasterInfo.setItinerary(issuanceRequest.getFlightItinerary());
+
+
+        StringBuilder cancelFeeText = new StringBuilder();
+        AirPriceRsp priceRsp = null;
+        try {
+            AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo);
+            TypeCabinClass typeCabinClass = TypeCabinClass.valueOf(issuanceRequest.getCabinClass().upperValue());
+            priceRsp = AirRequestClient.priceItinerary(airItinerary, "INR", typeCabinClass, travellerMasterInfo);
+            for(AirPriceResult airPriceResult : priceRsp.getAirPriceResult()){
+                FareRuleKey fareRuleKey = airPriceResult.getAirPricingSolution().get(0).getAirPricingInfo().get(0).getFareInfo().get(0).getFareRuleKey();
+                FareRulesClient fareRulesClient =  new FareRulesClient();
+                AirFareRulesRsp airFareRulesRsp = fareRulesClient.getFareRules(fareRuleKey.getFareInfoRef(),fareRuleKey.getValue());
+
+                for(FareRule fareRule :airFareRulesRsp.getFareRule()){
+                    for(FareRuleLong fareRuleLong :fareRule.getFareRuleLong()){
+                        cancelFeeText.append(fareRuleLong.getValue());
+                    }
+                }
+            }
+        } catch (AirFaultMessage airFaultMessage) {
+            airFaultMessage.printStackTrace();
+            logger.error("Error in getting cancel Fee text for travelport "+ airFaultMessage.getMessage());
+        }
+
+        return cancelFeeText.toString();
     }
 }

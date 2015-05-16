@@ -34,12 +34,12 @@ public class TravelportCancelServiceImpl implements CancelService {
             cancelPNRResponse.setSuccess(false);
             cancelPNRResponse.setErrorMessage(errorMessage);
         }
-        if(airCancelRsp == null){
+        /*if(airCancelRsp == null){
             cancelPNRResponse.setSuccess(false);
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Travelport");
             cancelPNRResponse.setErrorMessage(errorMessage);
             return cancelPNRResponse;
-        }
+        }*/
         cancelPNRResponse.setSuccess(true);
         return cancelPNRResponse;
 

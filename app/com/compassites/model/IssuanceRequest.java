@@ -22,6 +22,8 @@ public class IssuanceRequest implements Serializable{
 
     private boolean isSeamen;
 
+    private CabinClass cabinClass;
+
     private FlightItinerary flightItinerary;
 
     private List<Traveller> travellerList;
@@ -88,5 +90,13 @@ public class IssuanceRequest implements Serializable{
 
     public void setSeamen(boolean isSeamen) {
         this.isSeamen = isSeamen;
+    }
+
+    public CabinClass getCabinClass() {
+        return cabinClass;
+    }
+
+    public void setCabinClass(CabinClass cabinClass) {
+        this.cabinClass = cabinClass;
     }
 }

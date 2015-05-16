@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
@@ -35,11 +36,11 @@ public class FareRulesClient extends TravelPortClient {
         if (airService == null) {
             java.net.URL url = null;
             try {
-                //String path = new File(".").getCanonicalPath();
+                String path = new File(".").getCanonicalPath();
                 //airService = new AirService(new java.net.URL("file:"+path+"/wsdl/galileo/air_v26_0/Air.wsdl"));
                 java.net.URL baseUrl;
                 baseUrl = AirService.class.getResource(".");
-                url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/air_v31_0/Air.wsdl");
+                url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl");
                 //url = new java.net.URL(baseUrl, "Air.wsdl");
                 airService = new AirService(url);
             } catch (MalformedURLException e) {
@@ -71,8 +72,10 @@ public class FareRulesClient extends TravelPortClient {
         reqFareRuleKey.setFareInfoRef(fareRuleRef);
         reqFareRuleKey.setValue(fareRuleKey);
         reqFareRuleKey.setProviderCode(GDS);
+        airFareRulesReq.getFareRuleKey().add(reqFareRuleKey);
         AirFareRulesRsp airFareDisplayRsp = null;
         try {
+            init();
             airFareDisplayRsp = airFareRulesPortType.service(airFareRulesReq);
         } catch (AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();
