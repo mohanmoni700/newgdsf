@@ -28,6 +28,7 @@ public class TravelportCancelServiceImpl implements CancelService {
         try {
             airCancelRsp = airCancelClient.cancelPNR(airReservationLocatorCode);
 
+            cancelPNRResponse.setSuccess(true);
         } catch (BaseCompassitesException e) {
             e.printStackTrace();
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(e.getErrorCode(), ErrorMessage.ErrorType.ERROR, PROVIDERS.TRAVELPORT.toString());
@@ -40,7 +41,7 @@ public class TravelportCancelServiceImpl implements CancelService {
             cancelPNRResponse.setErrorMessage(errorMessage);
             return cancelPNRResponse;
         }*/
-        cancelPNRResponse.setSuccess(true);
+
         return cancelPNRResponse;
 
     }
