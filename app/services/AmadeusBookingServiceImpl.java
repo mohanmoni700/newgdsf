@@ -512,7 +512,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				String firstName = paxData.getTravellerInformation().getPassenger().get(0).getFirstName();
 				Traveller traveller = new Traveller();
 				PersonalDetails personalDetails = new PersonalDetails();
-				personalDetails.setFirstName(firstName);
+				String[] names = firstName.split("\\s");
+				personalDetails.setFirstName(names[0]);
+				if(names.length > 1)
+					personalDetails.setMiddleName(names[1]);
 				personalDetails.setLastName(lastName);
 				traveller.setPersonalDetails(personalDetails);
 				travellersList.add(traveller);
