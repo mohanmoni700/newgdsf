@@ -326,7 +326,10 @@ public class TravelportBookingServiceImpl implements BookingService {
 		for(BookingTraveler bookingTraveler : bookingTravelerList) {
 			Traveller traveller = new Traveller();
 			PersonalDetails personalDetails = new PersonalDetails();
-			personalDetails.setFirstName(bookingTraveler.getBookingTravelerName().getFirst());
+			String[] names = bookingTraveler.getBookingTravelerName().getFirst().split("\\s");
+			personalDetails.setFirstName(names[0]);
+			if(names.length > 1)
+				personalDetails.setMiddleName(names[1]);
 			personalDetails.setLastName(bookingTraveler.getBookingTravelerName().getLast());
 			traveller.setPersonalDetails(personalDetails);
 			travellersList.add(traveller);
