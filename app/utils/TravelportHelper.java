@@ -101,25 +101,14 @@ public class TravelportHelper {
 
     public static void getPassengerTaxes(PricingInformation pricingInfo, List<AirPricingInfo> airPricingInfoList) {
         List<PassengerTax> passengerTaxes = new ArrayList<>();
-        for (AirPricingInfo airPricingInfo : airPricingInfoList) {
-            PassengerTax passengerTax = new PassengerTax();
-//			passengerTax.setBaseFare(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
-            passengerTax.setPassengerCount(airPricingInfo.getPassengerType().size());
-            PassengerType paxType = airPricingInfo.getPassengerType().get(0);
-            String paxCode = null;
-            if(paxType.getCode().equalsIgnoreCase("ADT") || paxType.getCode().equalsIgnoreCase("SEA")) {
-                pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
-                paxCode = "ADT";
-            } else if(paxType.getCode().equalsIgnoreCase("CHD") || paxType.getCode().equalsIgnoreCase("CNN")) {
-                pricingInfo.setChdBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
-                paxCode = "CHD";
-            } else if(paxType.getCode().equalsIgnoreCase("INF")) {
-                pricingInfo.setInfBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
-                paxCode = "INF";
-            }
-            passengerTax.setPassengerType(paxCode);
-            Map<String, BigDecimal> taxes = new HashMap<>();
-            for (TypeTaxInfo taxInfo : airPricingInfo.getTaxInfo()) {
+        
+        AirPricingInfo airPriceInfo = airPricingInfoList.get(0);
+        if("SEA".equalsIgnoreCase(airPriceInfo.getPassengerType().get(0).getCode())) {
+        	pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPriceInfo.getBasePrice()));
+        	PassengerTax passengerTax = new PassengerTax();
+        	passengerTax.setPassengerType("ADT");
+        	Map<String, BigDecimal> taxes = new HashMap<>();
+        	for (TypeTaxInfo taxInfo : airPriceInfo.getTaxInfo()) {
                 BigDecimal amount = StringUtility.getDecimalFromString(taxInfo.getAmount());
                 if(taxes.containsKey(taxInfo.getCategory())) {
                     taxes.put(taxInfo.getCategory(), taxes.get(taxInfo.getCategory()).add(amount));
@@ -127,8 +116,42 @@ public class TravelportHelper {
                     taxes.put(taxInfo.getCategory(), amount);
                 }
             }
+        	int count = 0;
+        	for (AirPricingInfo airPricingInfo : airPricingInfoList) {
+        		count+= airPricingInfo.getPassengerType().size();
+        	}
+        	passengerTax.setPassengerCount(count);
             passengerTax.setTaxes(taxes);
             passengerTaxes.add(passengerTax);
+        } else {
+        	for (AirPricingInfo airPricingInfo : airPricingInfoList) {
+                PassengerTax passengerTax = new PassengerTax();
+                passengerTax.setPassengerCount(airPricingInfo.getPassengerType().size());
+                PassengerType paxType = airPricingInfo.getPassengerType().get(0);
+                String paxCode = null;
+                if(paxType.getCode().equalsIgnoreCase("ADT")) {
+                    pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+                    paxCode = "ADT";
+                } else if(paxType.getCode().equalsIgnoreCase("CHD") || paxType.getCode().equalsIgnoreCase("CNN")) {
+                    pricingInfo.setChdBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+                    paxCode = "CHD";
+                } else if(paxType.getCode().equalsIgnoreCase("INF")) {
+                    pricingInfo.setInfBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+                    paxCode = "INF";
+                }
+                passengerTax.setPassengerType(paxCode);
+                Map<String, BigDecimal> taxes = new HashMap<>();
+                for (TypeTaxInfo taxInfo : airPricingInfo.getTaxInfo()) {
+                    BigDecimal amount = StringUtility.getDecimalFromString(taxInfo.getAmount());
+                    if(taxes.containsKey(taxInfo.getCategory())) {
+                        taxes.put(taxInfo.getCategory(), taxes.get(taxInfo.getCategory()).add(amount));
+                    } else {
+                        taxes.put(taxInfo.getCategory(), amount);
+                    }
+                }
+                passengerTax.setTaxes(taxes);
+                passengerTaxes.add(passengerTax);
+            }
         }
         pricingInfo.setPassengerTaxes(passengerTaxes);
     }
