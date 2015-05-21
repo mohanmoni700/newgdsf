@@ -15,7 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-import utils.XMLFileUtility;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -203,7 +202,7 @@ public class LowFareRequestClient extends TravelPortClient {
 
         AirSearchModifiers modifiers = AirRequestClient.createModifiersWithProviders(GDS);
 
-        modifiers.setMaxSolutions(BigInteger.valueOf(10));
+        modifiers.setMaxSolutions(BigInteger.valueOf(30));
 
         request.setAirSearchModifiers(modifiers);
 
@@ -228,7 +227,7 @@ public class LowFareRequestClient extends TravelPortClient {
         travelportLogger.debug("Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchReq" + new Date() +" ------>> "+ new XStream().toXML(request));
         init();
         LowFareSearchRsp response = airLowFareSearchPortTypePort.service(request);
-        XMLFileUtility.createXMLFile(response, "Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchRes.xml");
+//        XMLFileUtility.createXMLFile(response, "Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchRes.xml");
         travelportLogger.debug("Travelport" + searchParameters.getSearchBookingType() + "LowFareSearchRes.xml"+ new XStream().toXML(response));
         return response;
     }
