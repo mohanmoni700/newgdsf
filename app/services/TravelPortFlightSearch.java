@@ -308,26 +308,32 @@ public class TravelPortFlightSearch implements FlightSearch {
                     journeyStopCounter++;
                     AirSegmentRef airSegmentRef = airSegmentRefIterator.next();
                     TypeBaseAirSegment airSegment = allSegments.getByRef(airSegmentRef);
-                    String carrier = "??";
+//                    String carrier = "??";
                     String flightNum = "???";
-                    String equipment = "";
-                    String operatingCarrier = "";
+//                    String equipment = "";
+//                    String operatingCarrier = null;
+                    
+                    AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+                    
                     if (airSegment != null) {
-                    	equipment = airSegment.getEquipment();
-                        if (airSegment.getCarrier() != null)
-                            carrier = airSegment.getCarrier();
-                        if(airSegment.getCodeshareInfo() != null) 
-                        	operatingCarrier = airSegment.getCodeshareInfo().getOperatingCarrier();
+                    	airSegmentInformation.setEquipment(airSegment.getEquipment());
+                        if (airSegment.getCarrier() != null) {
+                            String carrier = airSegment.getCarrier();
+                            if(carrier != null) {
+                            	airSegmentInformation.setCarrierCode(carrier);
+                                airSegmentInformation.setAirline(Airline.getAirlineByCode(carrier));
+                            }
+                        }
+                        if(airSegment.getCodeshareInfo() != null) {
+                        	String operatingCarrier = airSegment.getCodeshareInfo().getOperatingCarrier();
+                        	if(operatingCarrier != null) {
+        	                    airSegmentInformation.setOperatingCarrierCode(operatingCarrier);
+        	                    airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(operatingCarrier));
+                            }
+                        }
                         if (airSegment.getFlightNumber() != null)
                             flightNum = airSegment.getFlightNumber();
                     }
-
-                    AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
-                    airSegmentInformation.setEquipment(equipment);
-                    airSegmentInformation.setCarrierCode(carrier);
-                    airSegmentInformation.setOperatingCarrierCode(operatingCarrier);
-                    airSegmentInformation.setAirline(Airline.getAirlineByCode(carrier));
-                    airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(operatingCarrier));
                     airSegmentInformation.setFlightNumber(flightNum);
                     //System.out.print(carrier + "#" + flightNum);
                     String o = "???", d = "???";

@@ -347,7 +347,8 @@ public class AmadeusFlightSearch implements FlightSearch {
         TravelProductType flightInformation=flightDetails.getFlightInformation();
 
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
-        airSegmentInformation.setOperatingCarrierCode(flightInformation.getCompanyId().getOperatingCarrier());
+        if(flightInformation.getCompanyId().getOperatingCarrier() != null)
+        	airSegmentInformation.setOperatingCarrierCode(flightInformation.getCompanyId().getOperatingCarrier());
         airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
         airSegmentInformation.setEquipment(flightInformation.getProductDetail().getEquipmentType());
 
@@ -448,7 +449,8 @@ public class AmadeusFlightSearch implements FlightSearch {
 
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
-        airSegmentInformation.setOperatingCarrierCode(flightInformation.getCompanyId().getOperatingCarrier());
+        if(flightInformation.getCompanyId().getOperatingCarrier() != null)
+        	airSegmentInformation.setOperatingCarrierCode(flightInformation.getCompanyId().getOperatingCarrier());
         airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
 
         //airSegmentInformation.setArrivalTime(flightInformation.getProductDateTime().getTimeOfArrival());
