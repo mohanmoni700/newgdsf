@@ -64,6 +64,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				pnrResponse = retrievePNR(universalRecordRetrieveRsp,
 						pnrResponse,travellerMasterInfo);
 			}
+            setTaxBreakup(pnrResponse, travellerMasterInfo, priceRsp);
 
 		} catch (AirFaultMessage airFaultMessage) {
 			airFaultMessage.printStackTrace(); // To change body of catch
@@ -158,8 +159,17 @@ public class TravelportBookingServiceImpl implements BookingService {
 		} else {
 			pnrResponse.setPriceChanged(true);
 		}
+
 		return pnrResponse;
 	}
+
+    public static void setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo,AirPriceRsp  priceRsp){
+        PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
+                .getItinerary().getSeamanPricingInformation() : travellerMasterInfo
+                .getItinerary().getPricingInformation();
+        TravelportHelper.getPassengerTaxes(pricingInfo, priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getAirPricingInfo());
+        pnrResponse.setPricingInfo(pricingInfo);
+    }
 
 	public PNRResponse retrievePNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp,PNRResponse pnrResponse,TravellerMasterInfo travellerMasterInfo) {
 		
@@ -228,14 +238,10 @@ public class TravelportBookingServiceImpl implements BookingService {
 			// AirItinerary airItinerary =
 			// AirRequestClient.getItinerary(responseTwo,
 			// responseTwo.getAirPricingSolution().get(0));
-			AirItinerary airItinerary = AirRequestClient
-					.buildAirItinerary(travellerMasterInfo);
-			TypeCabinClass typeCabinClass = TypeCabinClass
-					.valueOf(travellerMasterInfo.getCabinClass().upperValue());
+			AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo);
+			TypeCabinClass typeCabinClass = TypeCabinClass.valueOf(travellerMasterInfo.getCabinClass().upperValue());
 
-			AirPriceRsp priceRsp = AirRequestClient.priceItinerary(
-					airItinerary, "INR",
-					typeCabinClass, travellerMasterInfo);
+			AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, "INR",typeCabinClass, travellerMasterInfo);
 			pnrResponse = checkFare(priceRsp, travellerMasterInfo);
 
 		} catch (AirFaultMessage airFaultMessage) {

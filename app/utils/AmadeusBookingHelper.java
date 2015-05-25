@@ -75,7 +75,7 @@ public class AmadeusBookingHelper {
 			}
 		}
 		BigDecimal totalFare = new BigDecimal(0);
-		BigDecimal totalTax = new BigDecimal(0);
+		BigDecimal baseFare = new BigDecimal(0);
         List<FareList> fareList = pricePNRReply.getFareList();
         for(FareList fare : fareList) {
         	int paxCount = 0;
@@ -98,7 +98,7 @@ public class AmadeusBookingHelper {
         			totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
                     logger.debug("=======================>> Setting new total fare: " + totalFare);
                 } else {
-        			totalTax = totalTax.add(amount.multiply(new BigDecimal(paxCount)));
+                    baseFare = baseFare.add(amount.multiply(new BigDecimal(paxCount)));
         		}
         	}
         }
@@ -127,7 +127,7 @@ public class AmadeusBookingHelper {
             return;
         }
         pnrResponse.setChangedPrice(totalFare);
-        pnrResponse.setChangedBasePrice(totalFare.subtract(totalTax));
+        pnrResponse.setChangedBasePrice(baseFare);
         pnrResponse.setOriginalPrice(searchPrice);
         pnrResponse.setPriceChanged(true);
         pnrResponse.setFlightAvailable(true);
