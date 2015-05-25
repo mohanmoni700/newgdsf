@@ -233,6 +233,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		OperatingAirline airline = flightSegment.getOperatingAirline();
 		airSegment.setFlightNumber(airline.getFlightNumber());
 		airSegment.setEquipment(airline.getEquipment());
+		airSegment.setOperatingCarrierCode(airline.getCode());
 		airSegment.setCarrierCode(flightSegment.getMarketingAirlineCode());
 		airSegment.setFromAirport(Airport.getAiport(flightSegment
 				.getDepartureAirportLocationCode()));
@@ -246,6 +247,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 				.toString());
 		airSegment.setAirline(Airline.getAirlineByCode(flightSegment
 				.getMarketingAirlineCode()));
+		airSegment.setOperatingAirline(Airline.getAirlineByCode(airline.getCode()));
 		airSegment.setToLocation(flightSegment.getArrivalAirportLocationCode());
 		airSegment.setTravelTime("" + flightSegment.getJourneyDuration());
 		return airSegment;

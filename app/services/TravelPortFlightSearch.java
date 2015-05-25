@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class TravelPortFlightSearch implements FlightSearch{
+public class TravelPortFlightSearch implements FlightSearch {
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -311,20 +311,23 @@ public class TravelPortFlightSearch implements FlightSearch{
                     String carrier = "??";
                     String flightNum = "???";
                     String equipment = "";
+                    String operatingCarrier = "";
                     if (airSegment != null) {
                     	equipment = airSegment.getEquipment();
-                        if (airSegment.getCarrier() != null) {
+                        if (airSegment.getCarrier() != null)
                             carrier = airSegment.getCarrier();
-                        }
-                        if (airSegment.getFlightNumber() != null) {
+                        if(airSegment.getCodeshareInfo() != null) 
+                        	operatingCarrier = airSegment.getCodeshareInfo().getOperatingCarrier();
+                        if (airSegment.getFlightNumber() != null)
                             flightNum = airSegment.getFlightNumber();
-                        }
                     }
 
                     AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
                     airSegmentInformation.setEquipment(equipment);
                     airSegmentInformation.setCarrierCode(carrier);
+                    airSegmentInformation.setOperatingCarrierCode(operatingCarrier);
                     airSegmentInformation.setAirline(Airline.getAirlineByCode(carrier));
+                    airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(operatingCarrier));
                     airSegmentInformation.setFlightNumber(flightNum);
                     //System.out.print(carrier + "#" + flightNum);
                     String o = "???", d = "???";

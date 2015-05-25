@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class AmadeusFlightSearch  implements FlightSearch{
+public class AmadeusFlightSearch implements FlightSearch {
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
@@ -392,6 +392,7 @@ public class AmadeusFlightSearch  implements FlightSearch{
         airSegmentInformation.setTravelTime("" + diff.getMinutes());
         if (flightInformation.getCompanyId() != null && flightInformation.getCompanyId().getMarketingCarrier() != null && flightInformation.getCompanyId().getMarketingCarrier().length() >= 2) {
             airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
+            airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier()));
         }
         return airSegmentInformation;
     }
@@ -490,6 +491,7 @@ public class AmadeusFlightSearch  implements FlightSearch{
         airSegmentInformation.setTravelTime("" + diff.getMinutes());
         if (flightInformation.getCompanyId() != null && flightInformation.getCompanyId().getMarketingCarrier() != null && flightInformation.getCompanyId().getMarketingCarrier().length() >= 2) {
             airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
+            airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier()));
         }
 
         return airSegmentInformation;

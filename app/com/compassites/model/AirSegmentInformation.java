@@ -32,6 +32,8 @@ public class AirSegmentInformation implements Serializable{
    
     @Property
     private String carrierCode;
+    
+    private String operatingCarrierCode;
 
     private String fromTerminal;
 
@@ -56,6 +58,8 @@ public class AirSegmentInformation implements Serializable{
     private String connectionTimeStr;
 
     private Airline airline;
+    
+    private Airline operatingAirline;
     
     private Airport fromAirport;
     
@@ -186,7 +190,15 @@ public class AirSegmentInformation implements Serializable{
         this.carrierCode = carrierCode;
     }
 
-    public Date getDepartureDate() {
+    public String getOperatingCarrierCode() {
+		return operatingCarrierCode;
+	}
+
+	public void setOperatingCarrierCode(String operatingCarrierCode) {
+		this.operatingCarrierCode = operatingCarrierCode;
+	}
+
+	public Date getDepartureDate() {
         return departureDate;
     }
 
@@ -256,7 +268,15 @@ public class AirSegmentInformation implements Serializable{
         this.airline = airline;
     }
 
-    public Airport getFromAirport() {
+    public Airline getOperatingAirline() {
+		return operatingAirline;
+	}
+
+	public void setOperatingAirline(Airline operatingAirline) {
+		this.operatingAirline = operatingAirline;
+	}
+
+	public Airport getFromAirport() {
         return fromAirport;
     }
 
