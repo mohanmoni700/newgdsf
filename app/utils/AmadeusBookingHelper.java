@@ -105,7 +105,7 @@ public class AmadeusBookingHelper {
 
         PricingInformation pricingInformation = getPricingInfo(pricePNRReply, totalFareIdentifier, adultCount, childCount, infantCount);
         totalFare = pricingInformation.getTotalPrice();
-        baseFare = pricingInformation.getTotalBasePrice();
+        baseFare = pricingInformation.getBasePrice();
         pnrResponse.setPricingInfo(pricingInformation);
 
         BigDecimal searchPrice = new BigDecimal(0);
