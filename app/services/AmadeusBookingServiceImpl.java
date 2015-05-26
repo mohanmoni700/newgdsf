@@ -542,6 +542,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 		PNRResponse pnrResponse = new PNRResponse();
 		pnrResponse.setPnrNumber(gdsPNR);
+		pricingInfo.setProvider("Amadeus");
 		pnrResponse.setPricingInfo(pricingInfo);
 		
 		List<ItineraryInfo> itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
