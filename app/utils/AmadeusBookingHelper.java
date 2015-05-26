@@ -76,7 +76,7 @@ public class AmadeusBookingHelper {
 		}
 		BigDecimal totalFare = new BigDecimal(0);
 		BigDecimal baseFare = new BigDecimal(0);
-        List<FareList> fareList = pricePNRReply.getFareList();
+        /*List<FareList> fareList = pricePNRReply.getFareList();
         for(FareList fare : fareList) {
         	int paxCount = 0;
         	String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
@@ -101,17 +101,13 @@ public class AmadeusBookingHelper {
                     baseFare = baseFare.add(amount.multiply(new BigDecimal(paxCount)));
         		}
         	}
-        }
-//        PNRResponse pnrResponse = new PNRResponse();
-//        List<FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation> fareList = pricePNRReply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
-//        for (FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation fareData : fareList){
-//
-//            if(totalFareIdentifier.equals(fareData.getFareDataQualifier())){
-//                totalFare = new BigDecimal(fareData.getFareAmount());
-//                break;
-//            }
-//
-//        }
+        }*/
+
+        PricingInformation pricingInformation = getPricingInfo(pricePNRReply, totalFareIdentifier, adultCount, childCount, infantCount);
+        totalFare = pricingInformation.getTotalPrice();
+        baseFare = pricingInformation.getTotalBasePrice();
+        pnrResponse.setPricingInfo(pricingInformation);
+
         BigDecimal searchPrice = new BigDecimal(0);
         if(travellerMasterInfo.isSeamen()) {
             searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
@@ -131,6 +127,7 @@ public class AmadeusBookingHelper {
         pnrResponse.setOriginalPrice(searchPrice);
         pnrResponse.setPriceChanged(true);
         pnrResponse.setFlightAvailable(true);
+
     }
 
 
@@ -366,9 +363,11 @@ public class AmadeusBookingHelper {
             	paxCount = childCount;
 			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
 				paxCount = infantCount;
-			} else {
+			} else if("adt".equalsIgnoreCase(paxType)){
 				paxCount = adultCount;
-			}
+			}else {
+                paxCount = adultCount + childCount + infantCount;
+            }
             currency = fare.getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
             for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());

@@ -1,19 +1,5 @@
 package services;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import play.libs.Json;
-
-import utils.AmadeusBookingHelper;
-import utils.DateUtility;
-import utils.ErrorMessageHelper;
-
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
@@ -30,23 +16,24 @@ import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.model.CabinClass;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.Journey;
-import com.compassites.model.LowFareResponse;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.PricingInformation;
+import com.compassites.model.*;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.thoughtworks.xstream.XStream;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import play.libs.Json;
+import utils.AmadeusBookingHelper;
+import utils.DateUtility;
+import utils.ErrorMessageHelper;
 import utils.HoldTimeUtility;
+
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
@@ -162,7 +149,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,
 				travellerMasterInfo, totalFareIdentifier);
-        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
+//        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
 		return pricePNRReply;
 	}
 	
