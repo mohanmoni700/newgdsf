@@ -59,21 +59,17 @@ public class Journey
             this.travelTimeMillis = Long.valueOf(0);
             return;
         }
-        if (travelTime.getMonths() > 0){
-            timeStr = timeStr + travelTime.getMonths() +" Month(s) ";
-        }
-        if (travelTime.getDays() > 0){
-            timeStr = timeStr + travelTime.getDays() +" Day(s) ";
-        }
-        if (travelTime.getHours() > 0){
-            timeStr = timeStr + travelTime.getHours() +" Hour(s) ";
-        }
-        if (travelTime.getMinutes() > 0){
+        int hours = 0;
+        if (travelTime.getDays() > 0)
+        	hours = travelTime.getDays() * 24;
+        if (travelTime.getHours() > 0)
+        	hours = hours + travelTime.getHours();
+        if(hours > 0)
+			timeStr = timeStr + hours + " Hour(s) ";
+        if (travelTime.getMinutes() > 0)
             timeStr = timeStr + travelTime.getMinutes() +" Minutes ";
-        }
-        if (travelTime.getSeconds() > 0){
+        if (travelTime.getSeconds() > 0)
             timeStr = timeStr + travelTime.getSeconds() +" Seconds ";
-        }
         this.travelTimeStr = timeStr;
         Calendar c = Calendar.getInstance();
         this.travelTimeMillis = travelTime.getTimeInMillis(c);
