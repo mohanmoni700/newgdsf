@@ -197,7 +197,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
             Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
             calendar.setTime(holdDate);
             lastTicketingDate = calendar.getTime();
+            pnrResponse.setHoldTime(true);
         }
+        pnrResponse.setHoldTime(false);
 		pnrResponse.setValidTillDate(lastTicketingDate);
 		pnrResponse.setFlightAvailable(true);
 		

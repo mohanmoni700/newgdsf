@@ -75,9 +75,11 @@ public class MystiflyBookingServiceImpl implements BookingService {
 									.getHoldTime(travellerMasterInfo);
 							calendar.setTime(holdDate);
 							pnrRS.setValidTillDate(calendar.getTime());
+                            pnrRS.setHoldTime(true);
 						} else {
 							pnrRS.setValidTillDate(airbookRS.getTktTimeLimit()
 									.getTime());
+                            pnrRS.setHoldTime(false);
 						}
 						setAirlinePNR(pnrRS);
 					} else {

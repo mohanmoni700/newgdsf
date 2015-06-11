@@ -32,6 +32,8 @@ public class PNRResponse {
     
     private PricingInformation pricingInfo;
 
+    private boolean holdTime;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -127,6 +129,13 @@ public class PNRResponse {
 	public void setPricingInfo(PricingInformation pricingInfo) {
 		this.pricingInfo = pricingInfo;
 	}
-	
+
+    public boolean isHoldTime() {
+        return holdTime;
+    }
+
+    public void setHoldTime(boolean holdTime) {
+        this.holdTime = holdTime;
+    }
 }
 

@@ -217,10 +217,11 @@ public class TravelportBookingServiceImpl implements BookingService {
 				SimpleDateFormat sdf = new SimpleDateFormat("HHmm/ddMMMyyyy");
 
 				lastDate = sdf.parse(dateString);
-
+                pnrResponse.setHoldTime(false);
 			} else {
 				calendar.setTime(holdDate);
 				lastDate = calendar.getTime();
+                pnrResponse.setHoldTime(true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
