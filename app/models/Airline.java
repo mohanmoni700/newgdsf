@@ -1,24 +1,17 @@
 package models;
 
-import static com.avaje.ebean.Expr.like;
-import static com.avaje.ebean.Expr.or;
-
-import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-
-import play.db.ebean.Model.Finder;
-import play.libs.Json;
-import redis.clients.jedis.Jedis;
-
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 import com.compassites.constants.CacheConstants;
+import play.db.ebean.Model.Finder;
+import play.libs.Json;
+import redis.clients.jedis.Jedis;
+
+import javax.persistence.*;
+import java.util.List;
+
+import static com.avaje.ebean.Expr.like;
 
 /**
  * Created by Renu on 6/24/14.
@@ -46,7 +39,10 @@ public class Airline {
 	
 	@Column(name = "commission_basis")
 	private String commissionBasis;
-	
+
+    @Column(name = "logo_url")
+    private String logoUrl;
+
 	@Lob
 	@Column(name = "airline_logo")
 	public byte[] airlineLogo;
@@ -133,8 +129,16 @@ public class Airline {
 	{
 		return find.byId(id);
 	}
-	
-	public static List<SqlRow> findCommissionbasicList()
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
+    }
+
+    public static List<SqlRow> findCommissionbasicList()
 	{
 		String sqlQuery = "SELECT distinct commission_basis FROM airline WHERE  commission_basis != '' ";
 
