@@ -1,24 +1,42 @@
 package services;
 
-import com.compassites.GDSWrapper.mystifly.*;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.traveller.Traveller;
-import com.compassites.model.traveller.TravellerMasterInfo;
+import java.math.BigDecimal;
+import java.rmi.RemoteException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirBookRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirItineraryPricingInfo;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirOrderTicketRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirRevalidateRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.CustomerInfo;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ETicket;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ItineraryInfo;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.ReservationItem;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelItinerary;
 import org.springframework.stereotype.Service;
 
 import utils.ErrorMessageHelper;
 import utils.HoldTimeUtility;
 
-import java.math.BigDecimal;
-import java.rmi.RemoteException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.compassites.GDSWrapper.mystifly.AirOrderTicketClient;
+import com.compassites.GDSWrapper.mystifly.AirRevalidateClient;
+import com.compassites.GDSWrapper.mystifly.AirTripDetailsClient;
+import com.compassites.GDSWrapper.mystifly.BookFlightClient;
+import com.compassites.GDSWrapper.mystifly.Mystifly;
+import com.compassites.model.ErrorMessage;
+import com.compassites.model.IssuanceRequest;
+import com.compassites.model.IssuanceResponse;
+import com.compassites.model.PNRResponse;
+import com.compassites.model.PricingInformation;
+import com.compassites.model.traveller.Traveller;
+import com.compassites.model.traveller.TravellerMasterInfo;
 
 /**
  * @author Santhosh
@@ -45,19 +63,22 @@ public class MystiflyBookingServiceImpl implements BookingService {
 							newFareSourceCode);
 
 					BookFlightClient bookFlightClient = new BookFlightClient();
-					AirBookRS airbookRS = bookFlightClient
-							.bookFlight(travellerMasterInfo);
+					AirBookRS airbookRS = bookFlightClient.bookFlight(
+							travellerMasterInfo.getItinerary(),
+							travellerMasterInfo.getTravellersList());
 					if (airbookRS.getSuccess()) {
 						pnrRS.setPnrNumber(airbookRS.getUniqueID());
 						pnrRS.setFlightAvailable(airbookRS.getSuccess());
-                        if(airbookRS.getTktTimeLimit().getTime() == null){
-                            Calendar calendar = Calendar.getInstance();
-                            Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
-                            calendar.setTime(holdDate);
-                            pnrRS.setValidTillDate(calendar.getTime());
-                        }else{
-                            pnrRS.setValidTillDate(airbookRS.getTktTimeLimit().getTime());
-                        }
+						if (airbookRS.getTktTimeLimit().getTime() == null) {
+							Calendar calendar = Calendar.getInstance();
+							Date holdDate = HoldTimeUtility
+									.getHoldTime(travellerMasterInfo);
+							calendar.setTime(holdDate);
+							pnrRS.setValidTillDate(calendar.getTime());
+						} else {
+							pnrRS.setValidTillDate(airbookRS.getTktTimeLimit()
+									.getTime());
+						}
 						setAirlinePNR(pnrRS);
 					} else {
 						ErrorMessage error = new ErrorMessage();
@@ -89,14 +110,22 @@ public class MystiflyBookingServiceImpl implements BookingService {
 
 	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
-		AirOrderTicketClient orderTicketClient = new AirOrderTicketClient();
-		AirOrderTicketRS orderTicketRS = null;
+		PricingInformation pricingInfo = issuanceRequest.getFlightItinerary()
+				.getPricingInformation();
 		try {
-			orderTicketRS = orderTicketClient.issueTicket(issuanceRequest
-					.getGdsPNR());
-			issuanceResponse.setPnrNumber(orderTicketRS.getUniqueID());
+			if (pricingInfo.isLCC()) {
+				TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
+				travellerMasterInfo.setItinerary(issuanceRequest.getFlightItinerary());
+				travellerMasterInfo.setTravellersList(issuanceRequest.getTravellerList());
+				generatePNR(travellerMasterInfo);
+			} else {
+				AirOrderTicketClient orderTicketClient = new AirOrderTicketClient();
+				AirOrderTicketRS orderTicketRS = orderTicketClient
+						.issueTicket(issuanceRequest.getGdsPNR());
+				issuanceResponse.setPnrNumber(orderTicketRS.getUniqueID());
+			}
 			List<Traveller> travellerList = issuanceRequest.getTravellerList();
-			setTravellerTickets(travellerList, orderTicketRS.getUniqueID());
+			setTravellerTickets(travellerList, issuanceRequest.getGdsPNR());
 			issuanceResponse.setTravellerList(travellerList);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
@@ -111,18 +140,19 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				.getAirTripDetails(pnrResponse.getPnrNumber());
 
 		TravelItinerary itinerary = tripDetailsRS.getTravelItinerary();
-		String airlinePNR = itinerary.getItineraryInfo().getReservationItems().getReservationItemArray(0).getAirlinePNR();
+		String airlinePNR = itinerary.getItineraryInfo().getReservationItems()
+				.getReservationItemArray(0).getAirlinePNR();
 		pnrResponse.setAirlinePNR(airlinePNR);
-//		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
-//		Map<String, String> airlinePNRMap = new HashMap<>();
-//		for (ReservationItem resItem : itinerary.getItineraryInfo()
-//				.getReservationItems().getReservationItemArray()) {
-//			String key = resItem.getDepartureAirportLocationCode()
-//					+ resItem.getArrivalAirportLocationCode()
-//					+ sdf.format(resItem.getDepartureDateTime().getTime());
-//			airlinePNRMap.put(key, resItem.getAirlinePNR());
-//		}
-//		pnrResponse.setAirlinePNRMap(airlinePNRMap);
+		// SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
+		// Map<String, String> airlinePNRMap = new HashMap<>();
+		// for (ReservationItem resItem : itinerary.getItineraryInfo()
+		// .getReservationItems().getReservationItemArray()) {
+		// String key = resItem.getDepartureAirportLocationCode()
+		// + resItem.getArrivalAirportLocationCode()
+		// + sdf.format(resItem.getDepartureDateTime().getTime());
+		// airlinePNRMap.put(key, resItem.getAirlinePNR());
+		// }
+		// pnrResponse.setAirlinePNRMap(airlinePNRMap);
 	}
 
 	private void setTravellerTickets(List<Traveller> travellerList, String pnr)

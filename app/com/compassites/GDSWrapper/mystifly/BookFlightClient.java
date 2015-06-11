@@ -25,13 +25,13 @@ public class BookFlightClient {
 
     static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
-	public AirBookRS bookFlight(TravellerMasterInfo travellerMasterInfo)
+	public AirBookRS bookFlight(FlightItinerary itinerary, List<Traveller> travellerList)
 			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
 		SessionCreateRS sessionRS = sessionsHandler.login();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
-		FlightItinerary itinerary = travellerMasterInfo.getItinerary();
+//		FlightItinerary itinerary = travellerMasterInfo.getItinerary();
 		String fareSourceCode = itinerary.getFareSourceCode();
 		BookFlightDocument bookFlightDocument = BookFlightDocument.Factory
 				.newInstance();
@@ -41,9 +41,8 @@ public class BookFlightClient {
 		airBookRQ.setFareSourceCode(fareSourceCode);
 		TravelerInfo travelerInfo = airBookRQ.addNewTravelerInfo();
 		ArrayOfAirTraveler arrayOfTravelers = travelerInfo.addNewAirTravelers();
-		setTravelers(arrayOfTravelers, travellerMasterInfo.getTravellersList());
-		PersonalDetails personalDetails = travellerMasterInfo
-				.getTravellersList().get(0).getPersonalDetails();
+		setTravelers(arrayOfTravelers, travellerList);
+		PersonalDetails personalDetails = travellerList.get(0).getPersonalDetails();
 		travelerInfo.setPhoneNumber(personalDetails.getCountryCode()
 				+ personalDetails.getMobileNumber());
 		travelerInfo.setEmail(personalDetails.getEmail());
