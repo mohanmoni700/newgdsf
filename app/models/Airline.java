@@ -170,18 +170,15 @@ public class Airline {
 		Airline airline = null;
 		if (airlineJson != null) {
 			airline = Json.fromJson(Json.parse(airlineJson), Airline.class);
-
 		} else {
-			List<Airline> airlines = find.where()
-					.eq("iata_code", airlineCode).findList();
-			if (airlines.size() > 0)
-				airline = find.where().eq("iata_code", airlineCode).findList()
-						.get(0);
-			else
+			List<Airline> airlines = find.where().eq("iata_code", airlineCode).findList();
+			if (airlines.size() > 0) {
+				airline = find.where().eq("iata_code", airlineCode).findList().get(0);
+			} else {
 				airline = new Airline();
-			j.setex(cacheKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, Json
-					.toJson(airline).toString());
-
+				airline.setIataCode(airlineCode);
+			}
+			j.setex(cacheKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.toJson(airline).toString());
 		}
 		j.disconnect();
 		return airline;
