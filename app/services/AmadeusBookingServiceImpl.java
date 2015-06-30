@@ -15,6 +15,7 @@ import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
+import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.compassites.model.traveller.PersonalDetails;
@@ -23,12 +24,10 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.thoughtworks.xstream.XStream;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
-import utils.AmadeusBookingHelper;
-import utils.DateUtility;
-import utils.ErrorMessageHelper;
-import utils.HoldTimeUtility;
+import utils.*;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -50,28 +49,41 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
-	@Override
+    private AmadeusSessionManager amadeusSessionManager;
+
+    public AmadeusBookingServiceImpl() {
+    }
+
+    @Autowired
+    public AmadeusBookingServiceImpl(AmadeusSessionManager amadeusSessionManager) {
+        this.amadeusSessionManager = amadeusSessionManager;
+    }
+
+    @Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
+        logger.debug("generatePNR called ........");
 		ServiceHandler serviceHandler = null;
 		PNRResponse pnrResponse = new PNRResponse();
+        PNRReply gdsPNRReply = null;
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		try {
 			serviceHandler = new ServiceHandler();
-			serviceHandler.logIn();
-			checkFlightAvailibility(travellerMasterInfo, serviceHandler,
-					pnrResponse);
-			if (pnrResponse.isFlightAvailable()) {
+            Session session = amadeusSessionManager.getActiveSession(travellerMasterInfo.getSessionIdRef());
+            serviceHandler.setSession(session);
+//			serviceHandler.logIn();
+
+			/*checkFlightAvailibility(travellerMasterInfo, serviceHandler,
+                    pnrResponse);*/
+			/*if (pnrResponse.isFlightAvailable()) {
 
 				PNRReply gdsPNRReply = serviceHandler
 						.addTravellerInfoToPNR(travellerMasterInfo);
-				pricePNRReply = checkPNRPricing(travellerMasterInfo,
-						serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
+				pricePNRReply = checkPNRPricing(travellerMasterInfo,serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
 
-				if (!pnrResponse.isPriceChanged()) {
+				if (!pnrResponse.isPriceChanged()) {*/
 					int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getPassengerTypeCount(travellerMasterInfo.getTravellersList());
 
-					TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler
-							.createTST(numberOfTst);
+					TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst);
 					if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
 						String errorCode = ticketCreateTSTFromPricingReply
 								.getApplicationError()
@@ -90,14 +102,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 					gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
 
-					// pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
 					createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse,travellerMasterInfo);
-					
+
 					// getCancellationFee(travellerMasterInfo, serviceHandler);
-				}
-			} else {
+//				}
+			/*} else {
 				pnrResponse.setFlightAvailable(false);
-			}
+			}*/
 		} catch (Exception e) {
 			e.printStackTrace();
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
@@ -110,7 +121,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	public void checkFlightAvailibility(
 			TravellerMasterInfo travellerMasterInfo,
 			ServiceHandler serviceHandler, PNRResponse pnrResponse) {
-
+        logger.debug("checkFlightAvailibility called ........");
 		AirSellFromRecommendationReply sellFromRecommendation = serviceHandler
 				.checkFlightAvailability(travellerMasterInfo);
 
@@ -125,6 +136,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		boolean flightAvailable = AmadeusBookingHelper
 				.validateFlightAvailability(sellFromRecommendation,
 						amadeusFlightAvailibilityCode);
+        /*if(!flightAvailable){
+            serviceHandler.logOut();
+        }*/
+        pnrResponse.setSessionIdRef(amadeusSessionManager.storeActiveSession(serviceHandler.getSession()));
 		pnrResponse.setFlightAvailable(flightAvailable);
 	}
 
@@ -177,21 +192,33 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
 					.getReservation().getControlNumber());
 		}
-		FarePricePNRWithBookingClassReply.FareList.LastTktDate.DateTime dateTime = pricePNRReply
-				.getFareList().get(0).getLastTktDate().getDateTime();
-		String day = ((dateTime.getDay().toString().length() == 1) ? "0"
-				+ dateTime.getDay() : dateTime.getDay().toString());
-		String month = ((dateTime.getMonth().toString().length() == 1) ? "0"
-				+ dateTime.getMonth() : dateTime.getMonth().toString());
-		String year = dateTime.getYear().toString();
-		// pnrResponse.setValidTillDate(""+dateTime.getDay()+dateTime.getMonth()+dateTime.getYear());
-		SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
-		Date lastTicketingDate = null;
-		try {
-			lastTicketingDate = sdf.parse(day + month + year);
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+        if(pricePNRReply != null){
+            setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
+        }
+		pnrResponse.setFlightAvailable(true);
+		// TODO: there is a delay in airline PNR generation.
+		pnrResponse.setAirlinePNR("");
+//		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
+//				.getTaxDetails(pricePNRReply));
+		return pnrResponse;
+	}
+
+
+    public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
+        FarePricePNRWithBookingClassReply.FareList.LastTktDate.DateTime dateTime = pricePNRReply
+                .getFareList().get(0).getLastTktDate().getDateTime();
+        String day = ((dateTime.getDay().toString().length() == 1) ? "0"
+                + dateTime.getDay() : dateTime.getDay().toString());
+        String month = ((dateTime.getMonth().toString().length() == 1) ? "0"
+                + dateTime.getMonth() : dateTime.getMonth().toString());
+        String year = dateTime.getYear().toString();
+        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
+        Date lastTicketingDate = null;
+        try {
+            lastTicketingDate = sdf.parse(day + month + year);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         if(lastTicketingDate == null){
             Calendar calendar = Calendar.getInstance();
             Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
@@ -200,17 +227,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
             pnrResponse.setHoldTime(true);
         }
         pnrResponse.setHoldTime(false);
-		pnrResponse.setValidTillDate(lastTicketingDate);
-		pnrResponse.setFlightAvailable(true);
-		
-		// TODO: there is a delay in airline PNR generation.
-		pnrResponse.setAirlinePNR("");
-		
-//		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
-//				.getTaxDetails(pricePNRReply));
-		return pnrResponse;
-	}
+        pnrResponse.setValidTillDate(lastTicketingDate);
 
+    }
 	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
 		ServiceHandler serviceHandler = null;
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
@@ -317,6 +336,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 	public PNRResponse checkFareChangeAndAvailability(
 			TravellerMasterInfo travellerMasterInfo) {
+        logger.debug("checkFareChangeAndAvailability called...........");
 		ServiceHandler serviceHandler = null;
 		PNRResponse pnrResponse = new PNRResponse();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
@@ -330,6 +350,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						.addTravellerInfoToPNR(travellerMasterInfo);
 				pricePNRReply = checkPNRPricing(travellerMasterInfo,
 						serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
+
+                setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
 				return pnrResponse;
 			} else {
 				pnrResponse.setFlightAvailable(false);

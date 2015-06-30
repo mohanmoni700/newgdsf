@@ -399,6 +399,7 @@ public class AmadeusBookingHelper {
         passengerTypeMap.put("adultCount", adultCount);
         passengerTypeMap.put("childCount", childCount);
         passengerTypeMap.put("infantCount", infantCount);
+        pricingInformation.setProvider("Amadeus");
         pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReply, passengerTypeMap));
         return pricingInformation;
 	}

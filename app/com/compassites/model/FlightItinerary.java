@@ -158,4 +158,18 @@ public class FlightItinerary implements Serializable{
     public void setNonSeamenJourneyList(List<Journey> nonSeamenJourneyList) {
         this.nonSeamenJourneyList = nonSeamenJourneyList;
     }
+
+    public PricingInformation getPricingInformation(boolean isSeamen){
+        if(isSeamen){
+            return seamanPricingInformation;
+        }
+        return pricingInformation;
+    }
+
+    public void setPricingInformation(boolean isSeamen, PricingInformation pricingInformation){
+        if(isSeamen){
+            this.seamanPricingInformation = pricingInformation;
+        }
+        this.pricingInformation = pricingInformation;
+    }
 }

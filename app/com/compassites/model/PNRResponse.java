@@ -34,6 +34,8 @@ public class PNRResponse {
 
     private boolean holdTime;
 
+    private String sessionIdRef;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -136,6 +138,14 @@ public class PNRResponse {
 
     public void setHoldTime(boolean holdTime) {
         this.holdTime = holdTime;
+    }
+
+    public String getSessionIdRef() {
+        return sessionIdRef;
+    }
+
+    public void setSessionIdRef(String sessionIdRef) {
+        this.sessionIdRef = sessionIdRef;
     }
 }
 

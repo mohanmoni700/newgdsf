@@ -1,7 +1,8 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import javax.xml.ws.Holder;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
+
+import javax.xml.ws.Holder;
 
 public class SessionHandler {
 
@@ -11,8 +12,12 @@ public class SessionHandler {
 		mSession = new Holder<Session>();
 		resetSession();
 	}
-	
-	public Holder<Session> getSession() {
+
+    public SessionHandler(Holder<Session> mSession) {
+        this.mSession = mSession;
+    }
+
+    public Holder<Session> getSession() {
 		return mSession;
 	}
 	

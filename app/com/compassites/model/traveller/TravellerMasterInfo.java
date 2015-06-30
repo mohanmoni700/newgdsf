@@ -4,6 +4,7 @@ import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,6 +29,10 @@ public class TravellerMasterInfo {
     private String cancellationFeeText;
 
     private String reasonForApproval;
+
+    private String sessionIdRef;
+
+    private Date validTillDate;
 
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
@@ -103,5 +108,21 @@ public class TravellerMasterInfo {
 
     public void setReasonForApproval(String reasonForApproval) {
         this.reasonForApproval = reasonForApproval;
+    }
+
+    public String getSessionIdRef() {
+        return sessionIdRef;
+    }
+
+    public void setSessionIdRef(String sessionIdRef) {
+        this.sessionIdRef = sessionIdRef;
+    }
+
+    public Date getValidTillDate() {
+        return validTillDate;
+    }
+
+    public void setValidTillDate(Date validTillDate) {
+        this.validTillDate = validTillDate;
     }
 }

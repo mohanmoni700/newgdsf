@@ -4,6 +4,7 @@ import com.amadeus.xml.fmptbr_12_4_1a.*;
 import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
 import com.compassites.GDSWrapper.amadeus.SearchFlights;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
@@ -18,8 +19,12 @@ import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import utils.AmadeusSessionManager;
+import utils.AmadeusSessionWrapper;
 import utils.ErrorMessageHelper;
+import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -47,40 +52,52 @@ public class AmadeusFlightSearch implements FlightSearch {
 
     static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
+//    private ServiceHandler serviceHandler;
+
+    private AmadeusSessionManager amadeusSessionManager;
+
+    @Autowired
+    public AmadeusFlightSearch(ServiceHandler serviceHandler, AmadeusSessionManager amadeusSessionManager) {
+//        this.serviceHandler = serviceHandler;
+        this.amadeusSessionManager = amadeusSessionManager;
+    }
+
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
-//        logger.debug("AmadeusFlightSearch called at : " + new Date());
         logger.debug("AmadeusFlightSearch started  : ");
         SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
         searchResponse.setProvider("Amadeus");
         FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply = null;
         FareMasterPricerTravelBoardSearchReply seamenReply = null;
         try {
+            amadeusSessionWrapper = amadeusSessionManager.getSession();
             ServiceHandler serviceHandler = new ServiceHandler();
-            serviceHandler.logIn();
+            SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
+//            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-                seamenReply = serviceHandler.searchAirlines(searchParameters);
+                seamenReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
                 searchParameters.setBookingType(BookingType.NON_MARINE);
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
                 searchParameters.setBookingType(BookingType.SEAMEN);
-//                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
+                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
                 amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
                 amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
-//                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
+                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters);
-//                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
                 amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
+
+//            serviceHandler.logOut();
         } catch (ServerSOAPFaultException soapFaultException) {
 
             soapFaultException.printStackTrace();
             throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
         } catch (ClientTransportException clientTransportException) {
-
             //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
-
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
             searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
@@ -91,6 +108,9 @@ public class AmadeusFlightSearch implements FlightSearch {
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
             searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
+        }finally {
+            amadeusSessionWrapper.setQueryInProgress(false);
+            amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
         }
 
         logger.debug("AmadeusFlightSearch search reponse at : " + new Date());

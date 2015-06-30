@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 @Configuration
 @EnableAspectJAutoProxy
-@ComponentScan({"controllers", "services", "com.compassites.*"})
+@ComponentScan({"controllers", "services", "com.compassites.*","utils"})
 public class AppConfig {
 
     @Bean
