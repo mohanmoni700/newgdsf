@@ -17,12 +17,14 @@ import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.model.*;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.thoughtworks.xstream.XStream;
+import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -294,9 +296,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					issuanceResponse.setCappingLimitReached(true);
 				}
 			}
-			getCancellationFee(issuanceRequest, issuanceResponse,
-					serviceHandler);
+            serviceHandler.logOut();
+            AmadeusSessionWrapper amadeusSessionWrapper = amadeusSessionManager.getSession();
+            SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
+            serviceHandler.setSession(sessionHandler.getSession().value);
+            getCancellationFee(issuanceRequest, issuanceResponse,
+                    serviceHandler);
+
 			logger.debug("");
+            serviceHandler.logOut();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

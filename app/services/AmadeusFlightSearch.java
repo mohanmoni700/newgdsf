@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utils.AmadeusSessionManager;
-import utils.AmadeusSessionWrapper;
+import models.AmadeusSessionWrapper;
 import utils.ErrorMessageHelper;
 import utils.XMLFileUtility;
 
@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class AmadeusFlightSearch implements FlightSearch {
+public class AmadeusFlightSearch implements FlightSearch{
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
@@ -109,7 +109,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
         }finally {
-            amadeusSessionWrapper.setQueryInProgress(false);
+
             amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
         }
 

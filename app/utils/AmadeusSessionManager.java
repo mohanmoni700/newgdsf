@@ -4,13 +4,13 @@ import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
+import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import play.cache.Cache;
 
 import javax.xml.ws.Holder;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -32,36 +32,33 @@ public class AmadeusSessionManager {
     public AmadeusSessionWrapper getSession() throws InterruptedException {
 
         logger.debug("AmadeusSessionManager getSession called");
-        HashMap<String, AmadeusSessionWrapper> sessionHashMap = (HashMap<String, AmadeusSessionWrapper>) Cache.get(AmadeusConstants.AMADEUS_SESSION_LIST);
+       /* HashMap<String, AmadeusSessionWrapper> sessionHashMap = (HashMap<String, AmadeusSessionWrapper>) Cache.get(AmadeusConstants.AMADEUS_SESSION_LIST);
+
         if(sessionHashMap == null) {
             sessionHashMap = new HashMap<>();
-        }
-        /*if(sessionHashMap.size() == 0){
-            AmadeusSessionWrapper amadeusSessionWrapper = createSession();
-            sessionHashMap.put(amadeusSessionWrapper.getmSession().value.getSecurityToken(),amadeusSessionWrapper);
-            Cache.set(AmadeusConstants.AMADEUS_SESSION_LIST, sessionHashMap);
-            return  amadeusSessionWrapper;
         }*/
+        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextList();
         int count = 0;
-        for(String amadeusSessionWrapperKey : sessionHashMap.keySet()){
-            AmadeusSessionWrapper amadeusSessionWrapper = sessionHashMap.get(amadeusSessionWrapperKey);
+        for(AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList){
             count++;
             if(amadeusSessionWrapper.isQueryInProgress()){
                 continue;
             }
             amadeusSessionWrapper.setQueryInProgress(true);
             amadeusSessionWrapper.setLastQueryDate(new Date());
-            updateAmadeusSession(amadeusSessionWrapper);
+//            updateAmadeusSession(amadeusSessionWrapper);
+            amadeusSessionWrapper.save();
+            System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
             return amadeusSessionWrapper;
         }
-        if(count == AmadeusConstants.SESSION_POOL_SIZE){
-            logger.debug("Amadeus session pooling max connection size reached waiting for connection");
+        if(count >= AmadeusConstants.SESSION_POOL_SIZE){
+            logger.debug("Amadeus session pooling max connection size reached waiting for connection...................");
             Thread.sleep(2000);
             getSession();
         }else {
             AmadeusSessionWrapper amadeusSessionWrapper = createSession();
-            sessionHashMap.put(amadeusSessionWrapper.getmSession().value.getSecurityToken(),amadeusSessionWrapper);
-            Cache.set(AmadeusConstants.AMADEUS_SESSION_LIST, sessionHashMap);
+/*            sessionHashMap.put(amadeusSessionWrapper.getmSession().value.getSecurityToken(),amadeusSessionWrapper);
+            Cache.set(AmadeusConstants.AMADEUS_SESSION_LIST, sessionHashMap);*/
             return amadeusSessionWrapper;
         }
 
@@ -70,6 +67,7 @@ public class AmadeusSessionManager {
 
 
     public AmadeusSessionWrapper createSession(){
+        System.out.println("creating new  session ........................................." );
         try {
             ServiceHandler serviceHandler = new ServiceHandler();
             SessionHandler sessionHandler = serviceHandler.logIn(new SessionHandler());
@@ -85,31 +83,28 @@ public class AmadeusSessionManager {
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
         amadeusSessionWrapper.setActiveContext(false);
         amadeusSessionWrapper.setQueryInProgress(false);
+        amadeusSessionWrapper.setLastQueryDate(new Date());
         amadeusSessionWrapper.setmSession(new Holder<>(session));
+        amadeusSessionWrapper.save();
         return amadeusSessionWrapper;
     }
 
     public void updateAmadeusSession(AmadeusSessionWrapper amadeusSessionWrapper){
-
-        HashMap<String, AmadeusSessionWrapper> sessionHashMap = (HashMap<String, AmadeusSessionWrapper>) Cache.get(AmadeusConstants.AMADEUS_SESSION_LIST);
-        sessionHashMap.put(amadeusSessionWrapper.getmSession().value.getSecurityToken(), amadeusSessionWrapper);
-        Cache.set(AmadeusConstants.AMADEUS_SESSION_LIST, sessionHashMap);
+        amadeusSessionWrapper.setQueryInProgress(false);
+        amadeusSessionWrapper.update();
     }
 
     public String storeActiveSession(Session session){
-        HashMap<String, AmadeusSessionWrapper> sessionHashMap = (HashMap<String, AmadeusSessionWrapper>) Cache.get(AmadeusConstants.AMADEUS_ACTIVE_SESSION_LIST);
-        if(sessionHashMap == null){
-            sessionHashMap = new HashMap<>();
-        }
+
         String uuid = UUID.randomUUID().toString();
         AmadeusSessionWrapper amadeusSessionWrapper = createSessionWrapper(session);
-        sessionHashMap.put(uuid,amadeusSessionWrapper);
-        Cache.set(AmadeusConstants.AMADEUS_ACTIVE_SESSION_LIST, sessionHashMap);
+        amadeusSessionWrapper.setSessionUUID(uuid);
+        amadeusSessionWrapper.save();
         return uuid;
     }
 
     public Session getActiveSession(String sessionIdRef){
-        HashMap<String, AmadeusSessionWrapper> sessionHashMap = (HashMap<String, AmadeusSessionWrapper>) Cache.get(AmadeusConstants.AMADEUS_ACTIVE_SESSION_LIST);
-        return sessionHashMap.get(sessionIdRef).getmSession().value;
+        AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findSessionByUUID(sessionIdRef);
+        return amadeusSessionWrapper.getmSession().value;
     }
 }
