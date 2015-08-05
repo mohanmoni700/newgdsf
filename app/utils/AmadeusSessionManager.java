@@ -5,6 +5,9 @@ import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
 import models.AmadeusSessionWrapper;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +45,12 @@ public class AmadeusSessionManager {
         for(AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList){
             count++;
             if(amadeusSessionWrapper.isQueryInProgress()){
+                continue;
+            }
+            Period p = new Period(new DateTime(amadeusSessionWrapper.getLastQueryDate()), new DateTime(), PeriodType.minutes());
+            int inactivityTimeInMinutes = p.getMinutes();
+            if(inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT){
+                amadeusSessionWrapper.delete();
                 continue;
             }
             amadeusSessionWrapper.setQueryInProgress(true);
