@@ -21,6 +21,8 @@ public class PassportDetails {
 
 	private Date dateOfBirth;
 
+    private String passportImageUrl;
+
 	private Nationality nationality;
 
 	public Long getId() {
@@ -79,4 +81,11 @@ public class PassportDetails {
 		this.nationality = nationality;
 	}
 
+    public String getPassportImageUrl() {
+        return passportImageUrl;
+    }
+
+    public void setPassportImageUrl(String passportImageUrl) {
+        this.passportImageUrl = passportImageUrl;
+    }
 }
