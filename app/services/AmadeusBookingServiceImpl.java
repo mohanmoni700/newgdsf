@@ -236,6 +236,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		ServiceHandler serviceHandler = null;
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
+		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
@@ -297,16 +298,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				}
 			}
             serviceHandler.logOut();
-            AmadeusSessionWrapper amadeusSessionWrapper = amadeusSessionManager.getSession();
+            amadeusSessionWrapper = amadeusSessionManager.getSession();
             SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
             serviceHandler.setSession(sessionHandler.getSession().value);
-            getCancellationFee(issuanceRequest, issuanceResponse,
-                    serviceHandler);
+            getCancellationFee(issuanceRequest, issuanceResponse,serviceHandler);
 
 			logger.debug("");
             serviceHandler.logOut();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+
+			amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
 		}
 		return issuanceResponse;
 	}
