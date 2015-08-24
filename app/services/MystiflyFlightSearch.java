@@ -5,12 +5,14 @@ import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import models.Airline;
 import models.Airport;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
 import utils.ErrorMessageHelper;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -37,6 +39,14 @@ public class MystiflyFlightSearch implements FlightSearch {
 			throws IncompleteDetailsMessage {
 		logger.debug("[Mystifly] search started at " + new Date());
 		searchParams = searchParameters;
+
+        /*
+            Return null if search Date type is arrival
+         */
+        JsonNode jsonNode = Json.toJson(searchParameters);
+        if(jsonNode.findValue("dateType").asText().equals(DateType.ARRIVAL.name().toString())){
+            return null;
+        }
 
 		SearchResponse searchResponse = new SearchResponse();
 		AirLowFareSearchClient lowFareRequestClient = new AirLowFareSearchClient();

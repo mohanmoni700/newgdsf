@@ -7,6 +7,8 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.compassites.model.AirSolution;
 import com.compassites.model.FlightInfo;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonObject;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
@@ -47,6 +49,14 @@ public class TravelPortFlightSearch implements FlightSearch {
         SearchResponse nonSeamanResponse = null;
 
         SearchResponse searchResponse = new SearchResponse();
+
+        /*
+            Return null if search Date type is arrival
+         */
+        JsonNode jsonNode =  Json.toJson(searchParameters);
+        if(jsonNode.findValue("dateType").asText().equals(DateType.ARRIVAL.name().toString())){
+            return null;
+        }
 
         logger.debug("[Travelport] Starting non-seaman search");
         nonSeamanResponse = search(searchParameters, "nonseaman");
