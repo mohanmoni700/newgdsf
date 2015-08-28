@@ -55,14 +55,27 @@ public class PNRAddMultiElementsh {
         dem.getDataElementsIndiv().add(addReceivedFrom(qualifierNumber));
         dem.getDataElementsIndiv().add(addTckArr(qualifierNumber));
         dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo, qualifierNumber));
-        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber));
+//        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber));
         //dem.getDataElementsIndiv().add(addEOTInfo());
 
         element.setDataElementsMaster(dem);
         return element;
     }
 
+    public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo) {
+        PNRAddMultiElements element = new PNRAddMultiElements();
+        PnrActions pnrActions = new PnrActions();
+        pnrActions.getOptionCode().add(new BigDecimal("0"));
+        element.setPnrActions(pnrActions);
 
+        element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
+        DataElementsMaster dem = new DataElementsMaster();
+        dem.setMarker1(new Marker1());
+        int qualifierNumber = 0;
+        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber));
+        element.setDataElementsMaster(dem);
+        return element;
+    }
     private List<TravellerInfo> getPassengersList(TravellerMasterInfo travellerMasterInfo){
 
         int passengerCount = 1;

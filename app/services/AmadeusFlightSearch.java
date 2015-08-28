@@ -21,6 +21,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
 import utils.AmadeusSessionManager;
 import models.AmadeusSessionWrapper;
 import utils.ErrorMessageHelper;
@@ -75,6 +76,8 @@ public class AmadeusFlightSearch implements FlightSearch{
             amadeusSessionWrapper = amadeusSessionManager.getSession();
             ServiceHandler serviceHandler = new ServiceHandler();
             SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
+
+            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(sessionHandler.getSession().value));
 //            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
                 seamenReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
@@ -97,6 +100,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             soapFaultException.printStackTrace();
             throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
         } catch (ClientTransportException clientTransportException) {
+            //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
             //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
             searchResponse.getErrorMessageList().add(errorMessage);

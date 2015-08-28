@@ -72,45 +72,36 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler = new ServiceHandler();
             Session session = amadeusSessionManager.getActiveSession(travellerMasterInfo.getSessionIdRef());
             serviceHandler.setSession(session);
-//			serviceHandler.logIn();
 
-			/*checkFlightAvailibility(travellerMasterInfo, serviceHandler,
-                    pnrResponse);*/
-			/*if (pnrResponse.isFlightAvailable()) {
+            int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getPassengerTypeCount(travellerMasterInfo.getTravellersList());
 
-				PNRReply gdsPNRReply = serviceHandler
-						.addTravellerInfoToPNR(travellerMasterInfo);
-				pricePNRReply = checkPNRPricing(travellerMasterInfo,serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
+            TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst);
+            if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
+                String errorCode = ticketCreateTSTFromPricingReply
+                        .getApplicationError()
+                        .getApplicationErrorInfo()
+                        .getApplicationErrorDetail()
+                        .getApplicationErrorCode();
 
-				if (!pnrResponse.isPriceChanged()) {*/
-					int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getPassengerTypeCount(travellerMasterInfo.getTravellersList());
+                ErrorMessage errorMessage = ErrorMessageHelper
+                        .createErrorMessage("error",
+                                ErrorMessage.ErrorType.ERROR, "Amadeus");
+                pnrResponse.setErrorMessage(errorMessage);
+                pnrResponse.setFlightAvailable(false);
+                return pnrResponse;
+            }
+            gdsPNRReply = serviceHandler.savePNR();
+            String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+            serviceHandler.retrivePNR(tstRefNo);
 
-					TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst);
-					if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
-						String errorCode = ticketCreateTSTFromPricingReply
-								.getApplicationError()
-								.getApplicationErrorInfo()
-								.getApplicationErrorDetail()
-								.getApplicationErrorCode();
+            serviceHandler.addSSRDetailsToPNR(travellerMasterInfo);
+            serviceHandler.savePNR();
+            gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
 
-						ErrorMessage errorMessage = ErrorMessageHelper
-								.createErrorMessage("error",
-										ErrorMessage.ErrorType.ERROR, "Amadeus");
-						pnrResponse.setErrorMessage(errorMessage);
-						pnrResponse.setFlightAvailable(false);
-						return pnrResponse;
-					}
-					gdsPNRReply = serviceHandler.savePNR();
-					String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
-					gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
+            serviceHandler.logOut();
 
-					createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse,travellerMasterInfo);
+            createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse,travellerMasterInfo);
 
-					// getCancellationFee(travellerMasterInfo, serviceHandler);
-//				}
-			/*} else {
-				pnrResponse.setFlightAvailable(false);
-			}*/
 		} catch (Exception e) {
 			e.printStackTrace();
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
@@ -232,7 +223,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
         pnrResponse.setValidTillDate(lastTicketingDate);
 
     }
-	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
+
+    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
 		ServiceHandler serviceHandler = null;
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
@@ -298,13 +290,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				}
 			}
             serviceHandler.logOut();
+
             amadeusSessionWrapper = amadeusSessionManager.getSession();
             SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
             serviceHandler.setSession(sessionHandler.getSession().value);
             getCancellationFee(issuanceRequest, issuanceResponse,serviceHandler);
 
-			logger.debug("");
-            serviceHandler.logOut();
+            logger.debug("=======================  Issuance end =========================");
+//            serviceHandler.logOut();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}finally {
@@ -357,10 +350,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			checkFlightAvailibility(travellerMasterInfo, serviceHandler,
 					pnrResponse);
 			if (pnrResponse.isFlightAvailable()) {
-				PNRReply gdsPNRReply = serviceHandler
-						.addTravellerInfoToPNR(travellerMasterInfo);
-				pricePNRReply = checkPNRPricing(travellerMasterInfo,
-						serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
+				PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo);
+				pricePNRReply = checkPNRPricing(travellerMasterInfo,serviceHandler, gdsPNRReply, pricePNRReply, pnrResponse);
 
                 setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
 				return pnrResponse;
