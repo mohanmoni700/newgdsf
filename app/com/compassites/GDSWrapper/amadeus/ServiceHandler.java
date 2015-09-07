@@ -57,7 +57,7 @@ public class ServiceHandler {
 
     public ServiceHandler() throws Exception{
 //        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_20140429_052541.wsdl");
-        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_20141017_122132.wsdl");
+        URL wsdlUrl=ServiceHandler.class.getResource("/wsdl/amadeus/amadeus.wsdl");
         AmadeusWebServices service = new AmadeusWebServices(wsdlUrl);
         mPortType = service.getAmadeusWebServicesPort();
 
