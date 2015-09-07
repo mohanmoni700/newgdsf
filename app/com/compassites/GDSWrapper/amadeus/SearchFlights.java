@@ -6,7 +6,7 @@
 
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.fmptbq_12_4_1a.*;
+import com.amadeus.xml.fmptbq_14_2_1a.*;
 import com.compassites.model.*;
 import com.thoughtworks.xstream.XStream;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class SearchFlights {
         se.getPaxReference().addAll(createPassengers(searchParameters));
         se.getItinerary().addAll(createItinerary(searchParameters));
 
-        TravelFlightInformationType148734S travelFlightInfo = new TravelFlightInformationType148734S();
+        TravelFlightInformationType165052S travelFlightInfo = new TravelFlightInformationType165052S();
 
         if (searchParameters.getPreferredAirlines() != null && StringUtils.hasText(searchParameters.getPreferredAirlines())) {
             setPreferredAirlines(travelFlightInfo,searchParameters.getPreferredAirlines());
@@ -90,15 +90,15 @@ public class SearchFlights {
         return se;
     }
 
-    private void setPreferredAirlines(TravelFlightInformationType148734S travelFlightInfo,String carrier){
-        CompanyIdentificationType214105C cid = new CompanyIdentificationType214105C();
+    private void setPreferredAirlines(TravelFlightInformationType165052S travelFlightInfo,String carrier){
+        CompanyIdentificationType233548C cid = new CompanyIdentificationType233548C();
         cid.getCarrierId().add(carrier);
         cid.getCarrierId().add("YY");
         cid.setCarrierQualifier("M");
         travelFlightInfo.getCompanyIdentity().add(cid);
     }
 
-    private void setDirectFlights(TravelFlightInformationType148734S travelFlightInfo){
+    private void setDirectFlights(TravelFlightInformationType165052S travelFlightInfo){
         ProductTypeDetailsType120801C ptd = new ProductTypeDetailsType120801C();
         ptd.getFlightType().add("D");
         ptd.getFlightType().add("N");
@@ -128,8 +128,8 @@ public class SearchFlights {
 
         pdt.setPricingTicketing(pit);
 
-        CodedAttributeType78503S fid = new CodedAttributeType78503S();
-        CodedAttributeInformationType120700C cid = new CodedAttributeInformationType120700C();
+        CodedAttributeType fid = new CodedAttributeType();
+        CodedAttributeInformationType247829C cid = new CodedAttributeInformationType247829C();
         cid.setFeeType("NPS");
         cid.setFeeIdNumber("0");
         fid.getFeeId().add(cid);
@@ -205,8 +205,8 @@ public class SearchFlights {
         return alt;
     }
 
-    private DateAndTimeInformationType setDateAndTimeInformationType(DateType dateType,String fromDate){
-        DateAndTimeInformationType dti = new DateAndTimeInformationType();
+    private DateAndTimeInformationType181295S setDateAndTimeInformationType(DateType dateType,String fromDate){
+        DateAndTimeInformationType181295S dti = new DateAndTimeInformationType181295S();
         DateAndTimeDetailsTypeI dtit = new DateAndTimeDetailsTypeI();
         if (dateType== DateType.ARRIVAL) {
             dtit.setTimeQualifier("TA");
@@ -240,7 +240,7 @@ public class SearchFlights {
             setItineraryLocationDetails(itinerary,new BigInteger(Integer.toString(counter++)),searchJourney.getOrigin(),searchJourney.getDestination());
             itinerary.setTimeDetails(setDateAndTimeInformationType(searchParameters.getDateType(),mapDate(searchJourney.getTravelDate())));
             if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
-                TravelFlightInformationType141002S fi=new TravelFlightInformationType141002S();
+                TravelFlightInformationType165053S fi=new TravelFlightInformationType165053S();
                 setTransitPoint(searchParameters.getTransit(),fi,itinerary);
             }
             itineraryList.add(itinerary);
@@ -248,7 +248,7 @@ public class SearchFlights {
         return itineraryList;
     }
 
-    private void setTransitPoint(String transitPoint,TravelFlightInformationType141002S fi,FareMasterPricerTravelBoardSearch.Itinerary idt){
+    private void setTransitPoint(String transitPoint,TravelFlightInformationType165053S fi,FareMasterPricerTravelBoardSearch.Itinerary idt){
         ConnectPointDetailsType195492C connectingPoint = new ConnectPointDetailsType195492C();
         connectingPoint.setInclusionIdentifier("M");
         connectingPoint.setLocationId(transitPoint);
@@ -256,14 +256,14 @@ public class SearchFlights {
         idt.setFlightInfo(fi);
     }
 
-    private void setCabinClass(CabinClass cabinClass, TravelFlightInformationType148734S fi){
+    private void setCabinClass(CabinClass cabinClass, TravelFlightInformationType165052S fi){
         String cabinQualifier="";
         switch (cabinClass){
             case BUSINESS:cabinQualifier="C";
             case FIRST:cabinQualifier="F";
             default:cabinQualifier="Y";
         }
-        CabinIdentificationType cit=new CabinIdentificationType();
+        CabinIdentificationType233500C cit=new CabinIdentificationType233500C();
         cit.getCabin().add(cabinQualifier);
         fi.setCabinId(cit);
     }

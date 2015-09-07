@@ -2,14 +2,15 @@ package services;
 
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo.PassengerData;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_12_4_1a.StructuredDateTimeType;
 import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
@@ -198,7 +199,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
     public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
-        FarePricePNRWithBookingClassReply.FareList.LastTktDate.DateTime dateTime = pricePNRReply
+		StructuredDateTimeType dateTime = pricePNRReply
                 .getFareList().get(0).getLastTktDate().getDateTime();
         String day = ((dateTime.getDay().toString().length() == 1) ? "0"
                 + dateTime.getDay() : dateTime.getDay().toString());
@@ -244,7 +245,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						.getNonSeamenJourneyList().get(0).getAirSegmentList()
 						.get(0).getCarrierCode();
 			}
-			FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler
+			com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler
 					.pricePNR(carrierCode, gdsPNRReply);
 
 			int numberOfTst = (issuanceRequest.isSeamen()) ? 1
@@ -426,7 +427,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList()
                         .get(0).getCarrierCode();
             }
-            FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
+            com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
             PricingInformation pricingInformation = AmadeusBookingHelper.getPricingForDownsellAndConversion(pricePNRReply,totalFareIdentifier, issuanceRequest.getAdultCount());
             if(isSeamen){
                 flightItinerary.setSeamanPricingInformation(pricingInformation);

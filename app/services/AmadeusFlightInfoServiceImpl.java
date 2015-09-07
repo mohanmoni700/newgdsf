@@ -11,8 +11,11 @@ import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
+import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import utils.AmadeusSessionManager;
 
 import java.util.*;
 
@@ -26,6 +29,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
     static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
 	private static Map<String, String> baggageCodes = new HashMap<>();
+
+	private AmadeusSessionManager amadeusSessionManager;
+
+	@Autowired
+	public void setAmadeusSessionManager(AmadeusSessionManager amadeusSessionManager){
+		this.amadeusSessionManager = amadeusSessionManager;
+	}
 
     static {
 		baggageCodes.put("700", "Kilos");
@@ -84,9 +94,12 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	
 	public String getCancellationFee(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
         String fareRules = "";
+		AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
+			amadeusSessionWrapper = amadeusSessionManager.getSession();
         	ServiceHandler serviceHandler = new ServiceHandler();
-            serviceHandler.logIn();
+			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
+//            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
 //            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
@@ -103,8 +116,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
             fareRules = fareRule.toString();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        return fareRules;
+        }finally {
+			if(amadeusSessionWrapper != null) {
+				amadeusSessionWrapper.setQueryInProgress(false);
+				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+			}
+		}
+		return fareRules;
     }
 	
 	private void addBaggageInfo(FlightItinerary itinerary, List<PricingGroupLevelGroup> pricingLevelGroup, boolean seamen) {

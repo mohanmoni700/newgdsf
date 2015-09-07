@@ -67,7 +67,7 @@ public class MessageFactory {
 		// passwordInfo
 		PasswordInfo passwordInfo = factory
 				.createSecurityAuthenticatePasswordInfo();
-		passwordInfo.setDataLength(BigDecimal.valueOf(7));
+		passwordInfo.setDataLength(new BigDecimal(prop.getProperty("DATA_LENGTH")));
 		passwordInfo.setDataType(prop.getProperty("DATA_TYPE"));
 		passwordInfo.setBinaryData(prop.getProperty("BINARY_DATA"));
 		authenticateRequest.getPasswordInfo().add(passwordInfo);

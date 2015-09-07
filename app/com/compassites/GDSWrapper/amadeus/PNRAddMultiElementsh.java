@@ -1,24 +1,10 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.ElementManagementData;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.ElementManagementData.Reference;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FormOfPayment;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FormOfPayment.Fop;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FreetextData;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.FreetextData.FreetextDetail;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.TicketElement;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.TicketElement.Ticket;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.Marker1;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.PnrActions;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.ElementManagementPassenger;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Passenger;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.TravellerInfo.PassengerData.TravellerInformation.Traveller;
+
+import com.amadeus.xml.pnradd_11_3_1a.*;
+import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster;
+import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv;
+import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.PersonalDetails;
@@ -30,7 +16,7 @@ import org.joda.time.PeriodType;
 import org.springframework.util.StringUtils;
 import utils.StringUtility;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,16 +26,16 @@ public class PNRAddMultiElementsh {
 
     public PNRAddMultiElements getMultiElements(TravellerMasterInfo travellerMasterInfo) {
         PNRAddMultiElements element = new PNRAddMultiElements();
-        PnrActions pnrActions = new PnrActions();
-        pnrActions.getOptionCode().add(new BigDecimal("0"));
+        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+        pnrActions.getOptionCode().add(new BigInteger("0"));
         element.setPnrActions(pnrActions);
-        
+
         //element.getTravellerInfo().add(addPassenger());
         //element.getTravellerInfo().add(addChildPassenger());
         //element.getTravellerInfo().add(addInfantPassenger());
         element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
-        DataElementsMaster dem = new DataElementsMaster();
-        dem.setMarker1(new Marker1());
+        PNRAddMultiElements.DataElementsMaster dem = new PNRAddMultiElements.DataElementsMaster();
+        dem.setMarker1(new DummySegmentTypeI());
         int qualifierNumber = 0;
         dem.getDataElementsIndiv().add(addCreditCardData(qualifierNumber));
         dem.getDataElementsIndiv().add(addReceivedFrom(qualifierNumber));
@@ -64,13 +50,13 @@ public class PNRAddMultiElementsh {
 
     public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo) {
         PNRAddMultiElements element = new PNRAddMultiElements();
-        PnrActions pnrActions = new PnrActions();
-        pnrActions.getOptionCode().add(new BigDecimal("0"));
+        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+        pnrActions.getOptionCode().add(new BigInteger("0"));
         element.setPnrActions(pnrActions);
 
         element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
         DataElementsMaster dem = new DataElementsMaster();
-        dem.setMarker1(new Marker1());
+        dem.setMarker1(new DummySegmentTypeI());
         int qualifierNumber = 0;
         dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber));
         element.setDataElementsMaster(dem);
@@ -83,21 +69,21 @@ public class PNRAddMultiElementsh {
 
         for (com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()){
             TravellerInfo travellerInfo = new TravellerInfo();
-            ElementManagementPassenger emp = new ElementManagementPassenger();
-            ElementManagementPassenger.Reference rf = new ElementManagementPassenger.Reference();
+            ElementManagementSegmentType emp = new ElementManagementSegmentType();
+            ReferencingDetailsType rf = new ReferencingDetailsType();
             rf.setNumber(String.valueOf(passengerCount++));
             rf.setQualifier("PR");
             emp.setReference(rf);
             emp.setSegmentName("NM");
             travellerInfo.setElementManagementPassenger(emp);
 
-            PassengerData passengerData = new PassengerData();
-            TravellerInformation ti = new TravellerInformation();
-            Traveller tr = new Traveller();
+            TravellerInfo.PassengerData passengerData = new TravellerInfo.PassengerData();
+            TravellerInformationTypeI ti = new TravellerInformationTypeI();
+            TravellerSurnameInformationTypeI tr = new TravellerSurnameInformationTypeI();
             tr.setSurname(traveller.getPersonalDetails().getLastName());
-            tr.setQuantity(new BigDecimal("1"));
+            tr.setQuantity(new BigInteger("1"));
 
-            Passenger p = new Passenger();
+            TravellerDetailsTypeI p = new TravellerDetailsTypeI();
             p.setFirstName(traveller.getPersonalDetails().getFirstName()+" "+traveller.getPersonalDetails().getMiddleName());
             //p.setIdentificationCode("ID1234");
             //p.setType("SEA");
@@ -135,26 +121,26 @@ public class PNRAddMultiElementsh {
             passengerType = "ADT";
         }
 
-       return passengerType;
+        return passengerType;
 
     }
     public TravellerInfo addPassenger(){
         TravellerInfo travellerInfo = new TravellerInfo();
-        ElementManagementPassenger emp = new ElementManagementPassenger();
-        ElementManagementPassenger.Reference rf = new ElementManagementPassenger.Reference();
+        ElementManagementSegmentType emp = new ElementManagementSegmentType();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setNumber("1");
         rf.setQualifier("PR");
         emp.setReference(rf);
         emp.setSegmentName("NM");
         travellerInfo.setElementManagementPassenger(emp);
 
-        PassengerData passengerData = new PassengerData();
-        TravellerInformation ti = new TravellerInformation();
-        Traveller tr = new Traveller();
+        TravellerInfo.PassengerData passengerData = new TravellerInfo.PassengerData();
+        TravellerInformationTypeI ti = new TravellerInformationTypeI();
+        TravellerSurnameInformationTypeI tr = new TravellerSurnameInformationTypeI();
         tr.setSurname("DUPONT");
-        tr.setQuantity(new BigDecimal("1"));
+        tr.setQuantity(new BigInteger("1"));
 
-        Passenger p = new Passenger();
+        TravellerDetailsTypeI p = new TravellerDetailsTypeI();
         p.setFirstName("MATHIEU");
         p.setIdentificationCode("ID1234");
         p.setType("SEA");
@@ -165,24 +151,24 @@ public class PNRAddMultiElementsh {
         travellerInfo.getPassengerData().add(passengerData);
         return travellerInfo;
     }
-    
+
     public TravellerInfo addChildPassenger(){
         TravellerInfo travellerInfo = new TravellerInfo();
-        ElementManagementPassenger emp = new ElementManagementPassenger();
-        ElementManagementPassenger.Reference rf = new ElementManagementPassenger.Reference();
+        ElementManagementSegmentType emp = new ElementManagementSegmentType();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setNumber("2");
         rf.setQualifier("PR");
         emp.setReference(rf);
         emp.setSegmentName("NM");
         travellerInfo.setElementManagementPassenger(emp);
 
-        PassengerData passengerData = new PassengerData();
-        TravellerInformation ti = new TravellerInformation();
-        Traveller tr = new Traveller();
+        TravellerInfo.PassengerData passengerData = new TravellerInfo.PassengerData();
+        TravellerInformationTypeI ti = new TravellerInformationTypeI();
+        TravellerSurnameInformationTypeI tr = new TravellerSurnameInformationTypeI();
         tr.setSurname("DUPONTER");
-        tr.setQuantity(new BigDecimal("1"));
+        tr.setQuantity(BigInteger.valueOf(1));
 
-        Passenger p = new Passenger();
+        TravellerDetailsTypeI p = new TravellerDetailsTypeI();
         p.setFirstName("ADAM");
         p.setIdentificationCode("ID12345");
         p.setType("CH");
@@ -193,24 +179,24 @@ public class PNRAddMultiElementsh {
         travellerInfo.getPassengerData().add(passengerData);
         return travellerInfo;
     }
-    
-        public TravellerInfo addInfantPassenger(){
+
+    public TravellerInfo addInfantPassenger(){
         TravellerInfo travellerInfo = new TravellerInfo();
-        ElementManagementPassenger emp = new ElementManagementPassenger();
-        ElementManagementPassenger.Reference rf = new ElementManagementPassenger.Reference();
+        ElementManagementSegmentType emp = new ElementManagementSegmentType();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setNumber("3");
         rf.setQualifier("PR");
         emp.setReference(rf);
         emp.setSegmentName("NM");
         travellerInfo.setElementManagementPassenger(emp);
 
-        PassengerData passengerData = new PassengerData();
-        TravellerInformation ti = new TravellerInformation();
-        Traveller tr = new Traveller();
+        TravellerInfo.PassengerData passengerData = new TravellerInfo.PassengerData();
+        TravellerInformationTypeI ti = new TravellerInformationTypeI();
+        TravellerSurnameInformationTypeI tr = new TravellerSurnameInformationTypeI();
         tr.setSurname("DUPONTERINF");
-        tr.setQuantity(new BigDecimal("1"));
+        tr.setQuantity(new BigInteger("1"));
 
-        Passenger p = new Passenger();
+        TravellerDetailsTypeI p = new TravellerDetailsTypeI();
         p.setFirstName("ADAMER");
         p.setType("INF");
 
@@ -220,47 +206,47 @@ public class PNRAddMultiElementsh {
         travellerInfo.getPassengerData().add(passengerData);
         return travellerInfo;
     }
-    
-    
+
+
 
     public PNRAddMultiElements savePnr() {
         PNRAddMultiElements element = new PNRAddMultiElements();
-        PnrActions pnrActions = new PnrActions();
-        pnrActions.getOptionCode().add(new BigDecimal("10"));
+        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+        pnrActions.getOptionCode().add(new BigInteger("10"));
         element.setPnrActions(pnrActions);
 
         DataElementsMaster dataElementsMaster =  new DataElementsMaster();
         DataElementsIndiv dataElementsIndiv = new DataElementsIndiv();
 
-        ElementManagementData elementManagementData = new ElementManagementData();
-        Reference reference =  new Reference();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+        ReferencingDetailsType reference =  new ReferencingDetailsType();
         reference.setNumber("15");
         reference.setQualifier("OT");
         elementManagementData.setSegmentName("RF");
         elementManagementData.setReference(reference);
         dataElementsIndiv.setElementManagementData(elementManagementData);
 
-        FreetextData freetextData = new FreetextData();
-        FreetextDetail freetextDetail = new FreetextDetail();
+        LongFreeTextType freetextData = new LongFreeTextType();
+        FreeTextQualificationType freetextDetail = new FreeTextQualificationType();
         freetextDetail.setSubjectQualifier("3");
         freetextDetail.setType("P22");
         freetextData.setFreetextDetail(freetextDetail);
         freetextData.setLongFreetext("Internet");
         dataElementsIndiv.setFreetextData(freetextData);
         dataElementsMaster.getDataElementsIndiv().add(dataElementsIndiv);
-        dataElementsMaster.setMarker1(new Marker1());
+        dataElementsMaster.setMarker1(new DummySegmentTypeI());
         element.setDataElementsMaster(dataElementsMaster);
 
         return element;
     }
-   
+
     public PNRAddMultiElements addEotTimeElement() {
         PNRAddMultiElements element = new PNRAddMultiElements();
-        PnrActions pnrActions = new PnrActions();
-        pnrActions.getOptionCode().add(new BigDecimal("0"));
+        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+        pnrActions.getOptionCode().add(new BigInteger("0"));
         element.setPnrActions(pnrActions);
         DataElementsMaster dem = new DataElementsMaster();
-        dem.setMarker1(new Marker1());
+        dem.setMarker1(new DummySegmentTypeI());
         dem.getDataElementsIndiv().add(addEOTInfo());
         element.setDataElementsMaster(dem);
         return element;
@@ -272,18 +258,18 @@ public class PNRAddMultiElementsh {
         PersonalDetails personalDetails = travellerMasterInfo.getTravellersList().get(0).getPersonalDetails();
         List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
         DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData elementManagementData = new ElementManagementData();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
 
         elementManagementData.setSegmentName("AP");
-        Reference rf = new Reference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("OT");
         rf.setNumber((++qualifierNumber)+"");
         elementManagementData.setReference(rf);
         de.setElementManagementData(elementManagementData);
 
-        FreetextData ftd = new FreetextData();
+        LongFreeTextType ftd = new LongFreeTextType();
         de.setFreetextData(ftd);
-        FreetextDetail ftdt = new FreetextDetail();
+        FreeTextQualificationType ftdt = new FreeTextQualificationType();
         ftdt.setSubjectQualifier("3");
         ftdt.setType("P02");
         ftd.setFreetextDetail(ftdt);
@@ -292,18 +278,18 @@ public class PNRAddMultiElementsh {
 
         //home contact number
         de = new DataElementsIndiv();
-        elementManagementData = new ElementManagementData();
+        elementManagementData = new ElementManagementSegmentType();
 
         elementManagementData.setSegmentName("AP");
-        rf = new Reference();
+        rf = new ReferencingDetailsType();
         rf.setQualifier("OT");
         rf.setNumber(++qualifierNumber+"");
         elementManagementData.setReference(rf);
         de.setElementManagementData(elementManagementData);
 
-        ftd = new FreetextData();
+        ftd = new LongFreeTextType();
         de.setFreetextData(ftd);
-        ftdt = new FreetextDetail();
+        ftdt = new FreeTextQualificationType();
         ftdt.setSubjectQualifier("3");
         ftdt.setType("3");
         ftd.setFreetextDetail(ftdt);
@@ -312,18 +298,18 @@ public class PNRAddMultiElementsh {
 
         //emergency contact number
         de = new DataElementsIndiv();
-        elementManagementData = new ElementManagementData();
+        elementManagementData = new ElementManagementSegmentType();
 
         elementManagementData.setSegmentName("OS");
-        rf = new Reference();
+        rf = new ReferencingDetailsType();
         rf.setQualifier("OT");
         rf.setNumber((++qualifierNumber)+"");
         elementManagementData.setReference(rf);
         de.setElementManagementData(elementManagementData);
 
-        ftd = new FreetextData();
+        ftd = new LongFreeTextType();
         de.setFreetextData(ftd);
-        ftdt = new FreetextDetail();
+        ftdt = new FreeTextQualificationType();
         ftdt.setSubjectQualifier("3");
         ftdt.setType("3");
         ftd.setFreetextDetail(ftdt);
@@ -332,17 +318,17 @@ public class PNRAddMultiElementsh {
         return dataElementsDivList;
     }
     //credit card info
-    public DataElementsIndiv addCreditCardData(int qualifierNumber) {
-        DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData emd = new ElementManagementData();
+    public DataElementsMaster.DataElementsIndiv addCreditCardData(int qualifierNumber) {
+        DataElementsMaster.DataElementsIndiv de = new DataElementsMaster.DataElementsIndiv();
+        ElementManagementSegmentType emd = new ElementManagementSegmentType();
         emd.setSegmentName("FP");
-        Reference rf = new Reference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("OT");
         rf.setNumber((++qualifierNumber)+"");
         emd.setReference(rf);
 
-        FormOfPayment fop = new FormOfPayment();
-        Fop fopd = new Fop();
+        FormOfPaymentTypeI fop = new FormOfPaymentTypeI();
+        FormOfPaymentDetailsTypeI fopd = new FormOfPaymentDetailsTypeI();
         fop.getFop().add(fopd);
         //fopd.setAccountNumber("4111111111111111");
         fopd.setIdentification("CA");
@@ -359,20 +345,20 @@ public class PNRAddMultiElementsh {
         return de;
     }
     //info for ticketing agent
-    public DataElementsIndiv addReceivedFrom(int qualifierNumber) {
-        DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData emd = new ElementManagementData();
+    public DataElementsMaster.DataElementsIndiv addReceivedFrom(int qualifierNumber) {
+        DataElementsMaster.DataElementsIndiv de = new DataElementsMaster.DataElementsIndiv();
+        ElementManagementSegmentType emd = new ElementManagementSegmentType();
         emd.setSegmentName("RF");
-        
-        Reference rf = new Reference();
+
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("OT");
         rf.setNumber((++qualifierNumber)+"");
         emd.setReference(rf);
-        
-        FreetextData ftd = new FreetextData();
+
+        LongFreeTextType ftd = new LongFreeTextType();
         de.setFreetextData(ftd);
 
-        FreetextDetail ftdt = new FreetextDetail();
+        FreeTextQualificationType ftdt = new FreeTextQualificationType();
         ftdt.setSubjectQualifier("3");
         ftdt.setType("P22");
         ftd.setFreetextDetail(ftdt);
@@ -384,16 +370,16 @@ public class PNRAddMultiElementsh {
     //ticketing arrangement info
     public DataElementsIndiv addTckArr(int qualifierNumber) {
         DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData emd = new ElementManagementData();
+        ElementManagementSegmentType emd = new ElementManagementSegmentType();
         emd.setSegmentName("TK");
 
-        Reference rf = new Reference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("OT");
         rf.setNumber((++qualifierNumber)+"");
         emd.setReference(rf);
 
-        TicketElement te = new TicketElement();
-        Ticket tck = new Ticket();
+        TicketElementType te = new TicketElementType();
+        TicketInformationType tck = new TicketInformationType();
         tck.setIndicator("OK");
         te.setTicket(tck);
         te.setPassengerType("PAX");
@@ -404,13 +390,13 @@ public class PNRAddMultiElementsh {
     //end of transaction info
     public DataElementsIndiv addEOTInfo() {
         DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData emd = new ElementManagementData();
+        ElementManagementSegmentType emd = new ElementManagementSegmentType();
         emd.setSegmentName("RF");
 
-        FreetextData ftd = new FreetextData();
+        LongFreeTextType ftd = new LongFreeTextType();
         de.setFreetextData(ftd);
 
-        FreetextDetail ftdt = new FreetextDetail();
+        FreeTextQualificationType ftdt = new FreeTextQualificationType();
         ftdt.setSubjectQualifier("3");
         ftdt.setType("P22");
         ftd.setFreetextDetail(ftdt);
@@ -439,22 +425,22 @@ public class PNRAddMultiElementsh {
 
     public DataElementsIndiv addMealPreference(com.compassites.model.traveller.Traveller traveller, int qualifierNumber, int passengerRefNumber){
         DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData elementManagementData = new ElementManagementData();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
         elementManagementData.setSegmentName("SSR");
         de.setElementManagementData(elementManagementData);
 
-        DataElementsIndiv.ServiceRequest serviceRequest = new DataElementsIndiv.ServiceRequest();
-        DataElementsIndiv.ServiceRequest.Ssr ssr = new DataElementsIndiv.ServiceRequest.Ssr();
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
         ssr.setType(traveller.getPreferences().getMeal());
         ssr.setStatus("NN");
-        ssr.setQuantity(new BigDecimal(1));
+        ssr.setQuantity(BigInteger.valueOf(1));
 
         serviceRequest.setSsr(ssr);
         de.setServiceRequest(serviceRequest);
 
-        DataElementsIndiv.ReferenceForDataElement referenceForDataElement = new DataElementsIndiv.ReferenceForDataElement();
-        List<DataElementsIndiv.ReferenceForDataElement.Reference> referenceList = referenceForDataElement.getReference();
-        DataElementsIndiv.ReferenceForDataElement.Reference rf = new DataElementsIndiv.ReferenceForDataElement.Reference();
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("PR");
         rf.setNumber("" + (passengerRefNumber));
         referenceList.add(rf);
@@ -465,27 +451,27 @@ public class PNRAddMultiElementsh {
 
     public DataElementsIndiv addFrequentFlyerNumber(com.compassites.model.traveller.Traveller traveller, int qualifierNumber, int passengerRefNumber){
         DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementData elementManagementData = new ElementManagementData();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
         elementManagementData.setSegmentName("SSR");
         de.setElementManagementData(elementManagementData);
 
-        DataElementsIndiv.ServiceRequest serviceRequest = new DataElementsIndiv.ServiceRequest();
-        DataElementsIndiv.ServiceRequest.Ssr ssr = new DataElementsIndiv.ServiceRequest.Ssr();
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
         ssr.setType("FQTV");
         ssr.setCompanyId(traveller.getPreferences().getFrequentFlyerAirlines());
         serviceRequest.setSsr(ssr);
         de.setServiceRequest(serviceRequest);
 
-        DataElementsIndiv.FrequentTravellerData frequentTravellerData = new DataElementsIndiv.FrequentTravellerData();
-        DataElementsIndiv.FrequentTravellerData.FrequentTraveller frequentTraveller = new DataElementsIndiv.FrequentTravellerData.FrequentTraveller();
+        FrequentTravellerInformationTypeU frequentTravellerData = new FrequentTravellerInformationTypeU();
+        FrequentTravellerIdentificationTypeU frequentTraveller = new FrequentTravellerIdentificationTypeU();
         frequentTraveller.setCompanyId(traveller.getPreferences().getFrequentFlyerAirlines());
         frequentTraveller.setMembershipNumber(traveller.getPreferences().getFrequentFlyerNumber());
         frequentTravellerData.setFrequentTraveller(frequentTraveller);
         de.setFrequentTravellerData(frequentTravellerData);
 
-        DataElementsIndiv.ReferenceForDataElement referenceForDataElement = new DataElementsIndiv.ReferenceForDataElement();
-        List<DataElementsIndiv.ReferenceForDataElement.Reference> referenceList = referenceForDataElement.getReference();
-        DataElementsIndiv.ReferenceForDataElement.Reference rf = new DataElementsIndiv.ReferenceForDataElement.Reference();
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("PR");
         rf.setNumber("" + (passengerRefNumber));
         referenceList.add(rf);
@@ -497,7 +483,7 @@ public class PNRAddMultiElementsh {
         DataElementsIndiv de = new DataElementsIndiv();
         PassportDetails passportDetails = traveller.getPassportDetails();
 
-        ElementManagementData elementManagementData = new ElementManagementData();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
         /*Reference refrence = new Reference();
         refrence.setQualifier("OT");
         refrence.setNumber((++qualifierNumber)+"");
@@ -505,11 +491,11 @@ public class PNRAddMultiElementsh {
         elementManagementData.setSegmentName("SSR");
         de.setElementManagementData(elementManagementData);
 
-        DataElementsIndiv.ServiceRequest serviceRequest = new DataElementsIndiv.ServiceRequest();
-        DataElementsIndiv.ServiceRequest.Ssr ssr = new DataElementsIndiv.ServiceRequest.Ssr();
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
         ssr.setType("DOCS");
         ssr.setStatus("HK");
-        ssr.setQuantity(new BigDecimal(1));
+        ssr.setQuantity(BigInteger.valueOf(1));
         //Todo -- remove the hard coded company value
         ssr.setCompanyId("YY");
         List<String> freeTextList = ssr.getFreetext();
@@ -525,9 +511,9 @@ public class PNRAddMultiElementsh {
         serviceRequest.setSsr(ssr);
         de.setServiceRequest(serviceRequest);
 
-        DataElementsIndiv.ReferenceForDataElement referenceForDataElement = new DataElementsIndiv.ReferenceForDataElement();
-        List<DataElementsIndiv.ReferenceForDataElement.Reference> referenceList = referenceForDataElement.getReference();
-        DataElementsIndiv.ReferenceForDataElement.Reference rf = new DataElementsIndiv.ReferenceForDataElement.Reference();
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("PR");
         rf.setNumber("" + (passengerRefNumber));
         referenceList.add(rf);

@@ -1,7 +1,6 @@
 package services;
 
-import com.amadeus.xml.fmptbr_12_4_1a.*;
-import com.amadeus.xml.fmptbr_12_4_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
+import com.amadeus.xml.fmptbr_14_2_1a.*;
 import com.compassites.GDSWrapper.amadeus.SearchFlights;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
@@ -13,6 +12,7 @@ import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import models.Airline;
 import models.Airport;
+import models.AmadeusSessionWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.AmadeusSessionManager;
-import models.AmadeusSessionWrapper;
 import utils.ErrorMessageHelper;
 import utils.XMLFileUtility;
 
@@ -100,7 +99,6 @@ public class AmadeusFlightSearch implements FlightSearch{
             soapFaultException.printStackTrace();
             throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
         } catch (ClientTransportException clientTransportException) {
-            //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
             //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
             searchResponse.getErrorMessageList().add(errorMessage);
@@ -434,7 +432,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         pricingInformation.setTotalPrice(totalFare);
         pricingInformation.setTotalPriceValue(totalFare);
         List<PassengerTax> passengerTaxes= new ArrayList<>();
-        for(PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
+        for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
         	PassengerTax passengerTax = new PassengerTax();
         	int paxCount = paxFareProduct.getPaxReference().get(0).getTraveller().size();
         	String paxType = paxFareProduct.getPaxReference().get(0).getPtc().get(0);

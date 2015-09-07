@@ -1,13 +1,14 @@
 package utils;
 
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo;
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply.TravellerInfo.PassengerData;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.FareDataInformation.FareDataSupInformation;
-import com.amadeus.xml.tpcbrr_07_3_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
+import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType111975C;
+import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
+import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
+import com.amadeus.xml.tpcbrr_12_4_1a.MonetaryInformationDetailsType223826C;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -149,7 +150,7 @@ public class AmadeusBookingHelper {
                 String passengerRef = "";
                 List<String> segmentRefList = new ArrayList<>();
                 String travellerKey = "";
-                for(PNRReply.DataElementsMaster.DataElementsIndiv.ReferenceForDataElement.Reference reference :dataElementsDiv.getReferenceForDataElement().getReference()){
+                for(ReferencingDetailsType111975C reference :dataElementsDiv.getReferenceForDataElement().getReference()){
                     travellerKey = reference.getQualifier()+ reference.getNumber();
                     if(travellerMap.containsKey(travellerKey)){
                         passengerRef = travellerKey;
@@ -318,7 +319,7 @@ public class AmadeusBookingHelper {
             }
             logger.debug("passenger counts : " + paxCount);
             logger.debug("size of fareData : " + fare.getFareDataInformation().getFareDataSupInformation().size());
-            for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+            for(MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
                 if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
                     totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
@@ -369,7 +370,7 @@ public class AmadeusBookingHelper {
                 paxCount = adultCount + childCount + infantCount;
             }
             currency = fare.getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
-            for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+            for(MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
                 if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
                     totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));

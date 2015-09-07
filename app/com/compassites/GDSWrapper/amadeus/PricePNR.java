@@ -6,15 +6,10 @@
 
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
-import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass;
-import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.CurrencyOverride;
-import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.CurrencyOverride.FirstRateDetail;
-import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.OverrideInformation;
-import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.OverrideInformation.AttributeDetails;
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.tpcbrq_12_4_1a.*;
 import com.compassites.model.Journey;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -24,16 +19,16 @@ import java.util.List;
 public class PricePNR {
     public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply){
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
-        OverrideInformation oi=new OverrideInformation();
-        FarePricePNRWithBookingClass.PaxSegReference paxSegReference = new FarePricePNRWithBookingClass.PaxSegReference();
-        FarePricePNRWithBookingClass.PaxSegReference.RefDetails refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
+        CodedAttributeType overrideInformation = new CodedAttributeType();
+        ReferenceInformationTypeI94605S paxSegReference = new ReferenceInformationTypeI94605S();
+        ReferencingDetailsTypeI142222C refDetails = new ReferencingDetailsTypeI142222C();
 
 
         for(PNRReply.OriginDestinationDetails originatorDetails : pnrReply.getOriginDestinationDetails())  {
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originatorDetails.getItineraryInfo()){
-                refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
+                refDetails = new ReferencingDetailsTypeI142222C();
                 refDetails.setRefQualifier(itineraryInfo.getElementManagementItinerary().getReference().getQualifier());
-                refDetails.setRefNumber(new BigDecimal(itineraryInfo.getElementManagementItinerary().getReference().getNumber()));
+                refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
                 paxSegReference.getRefDetails().add(refDetails);
 
             }
@@ -47,16 +42,16 @@ public class PricePNR {
         paxSegReference.getRefDetails().add(refDetails);*/
         pricepnr.setPaxSegReference(paxSegReference);
 
-        AttributeDetails ad=new AttributeDetails();
-        //ad.setAttributeType("BK");
-        //ad.setAttributeType("NOP");
-        //ad.setAttributeDescription("XN");
-        ad.setAttributeType("ptc");
-        oi.getAttributeDetails().add(ad);
-        pricepnr.setOverrideInformation(oi);
+        CodedAttributeInformationType attributeDetails=new CodedAttributeInformationType();
+        //attributeDetails.setAttributeType("BK");
+        //attributeDetails.setAttributeType("NOP");
+        //attributeDetails.setAttributeDescription("XN");
+        attributeDetails.setAttributeType("ptc");
+        overrideInformation.getAttributeDetails().add(attributeDetails);
+        pricepnr.setOverrideInformation(overrideInformation);
 
-        FarePricePNRWithBookingClass.ValidatingCarrier validatingCarrier = new FarePricePNRWithBookingClass.ValidatingCarrier();
-        FarePricePNRWithBookingClass.ValidatingCarrier.CarrierInformation carrierInformation = new FarePricePNRWithBookingClass.ValidatingCarrier.CarrierInformation();
+        TransportIdentifierType validatingCarrier = new TransportIdentifierType();
+        CompanyIdentificationTypeI carrierInformation = new CompanyIdentificationTypeI();
         List<Journey> journeyList = null;
 
         carrierInformation.setCarrierCode(carrierCode);
@@ -68,24 +63,24 @@ public class PricePNR {
     public void helper(){
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
 
-        CurrencyOverride co=new CurrencyOverride();
-        FirstRateDetail frd=new FirstRateDetail();
-        frd.setCurrencyCode("INR");
-        co.setFirstRateDetail(frd);
-        OverrideInformation oi=new OverrideInformation();
-        AttributeDetails ad=new AttributeDetails();
-        
-        ad.setAttributeType("AC");
-        
-        oi.getAttributeDetails().add(ad);
-        pricepnr.setOverrideInformation(oi);
-        pricepnr.setCurrencyOverride(co);  
+        ConversionRateTypeI currencyOverride = new ConversionRateTypeI();
+        ConversionRateDetailsTypeI firstRateDetail=new ConversionRateDetailsTypeI();
+        firstRateDetail.setCurrencyCode("INR");
+        currencyOverride.setFirstRateDetail(firstRateDetail);
+        CodedAttributeType overrideInformation=new CodedAttributeType();
+        CodedAttributeInformationType attributeDetails=new CodedAttributeInformationType();
+
+        attributeDetails.setAttributeType("AC");
+
+        overrideInformation.getAttributeDetails().add(attributeDetails);
+        pricepnr.setOverrideInformation(overrideInformation);
+        pricepnr.setCurrencyOverride(currencyOverride);
     }
 
     public FarePricePNRWithBookingClass lpf(){
         FarePricePNRWithBookingClass pricepnr = new FarePricePNRWithBookingClass();
-        OverrideInformation overrideInformation = new OverrideInformation();
-        AttributeDetails attributeDetails = new AttributeDetails();
+        CodedAttributeType overrideInformation = new CodedAttributeType();
+        CodedAttributeInformationType attributeDetails = new CodedAttributeInformationType();
         attributeDetails.setAttributeType("RLO");
         overrideInformation.getAttributeDetails().add(attributeDetails);
         pricepnr.setOverrideInformation(overrideInformation);

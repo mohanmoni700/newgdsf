@@ -30,7 +30,7 @@ public class AmadeusCancelServiceImpl implements CancelService {
             serviceHandler.retrivePNR(pnr);
             PNRReply pnrReply = serviceHandler.cancelPNR(pnr);
 
-            com.amadeus.xml.pnracc_10_1_1a.PNRReply savePNRReply = serviceHandler.savePNR();
+            com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR();
             cancelPNRResponse.setSuccess(true);
             return cancelPNRResponse;
 
