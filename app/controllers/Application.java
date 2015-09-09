@@ -1,6 +1,8 @@
 package controllers;
 
 
+import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
+import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,6 +14,7 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import services.*;
+import utils.XMLFileUtility;
 
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
@@ -153,12 +156,20 @@ public class Application {
     }
 
     public Result cancelPNR(){
-
         JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
         return ok(Json.toJson(cancelPNRResponse));
     }
-    
+    public Result getQueueListInfo(){
+        ServiceHandler serviceHandler = null;
+        try {
+            serviceHandler = new ServiceHandler();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        logger.debug("-----------------QueueList Response: " + Json.toJson(serviceHandler.getQueuesListInfo()));
+        return ok();
+    }
 }

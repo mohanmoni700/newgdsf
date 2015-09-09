@@ -2,8 +2,6 @@ package com.compassites.GDSWrapper.amadeus;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Properties;
 
 import com.amadeus.xml.vlsslq_06_1_1a.SecurityAuthenticate;

@@ -12,6 +12,7 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
 import com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType;
 import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
+import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
@@ -35,6 +36,7 @@ import com.thoughtworks.xstream.XStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import services.AmadeusQueueListInfoService;
 import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
@@ -293,5 +295,11 @@ public class ServiceHandler {
 
         return pnrReply;
 
+    }
+
+    public QueueListReply getQueuesListInfo(){
+        SessionReply sessionReply  = logIn();
+        QueueListReply queueListReply = mPortType.queueList(AmadeusQueueListInfoService.getQueueListRequest(),mSession.getSession());
+        return queueListReply;
     }
 }
