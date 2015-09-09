@@ -2,6 +2,7 @@ package utils;
 
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
+import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import models.AmadeusSessionWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -38,7 +39,12 @@ public class CronJobs {
                             logger.debug("Deleted an session .................... " + amadeusSessionWrapper.getmSession().value.getSessionId());
                             amadeusSessionWrapper.delete();
 
-                        } catch (Exception e) {
+                        }catch (ServerSOAPFaultException e){
+
+                            amadeusSessionWrapper.delete();
+                            logger.debug("Exception in cron job" + e);
+                            e.printStackTrace();
+                        }catch (Exception e) {
                             logger.debug("Exception in cron job : " + e);
                             e.printStackTrace();
                         }

@@ -132,7 +132,8 @@ public class AmadeusBookingHelper {
     }
 
 
-    public static void createTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){
+    public static boolean createTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){
+        int ticketsCount = 0;
         Map<String,Object> airSegmentRefMap = new HashMap<>();
         Map<String,Object> travellerMap = new HashMap<>();
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
@@ -177,6 +178,7 @@ public class AmadeusBookingHelper {
                             String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
                                     itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId();
                             ticketMap.put(key.toLowerCase(),ticketNumber);
+                            ticketsCount++;
                         }
                         traveller1.setTicketNumberMap(ticketMap);
                     }
@@ -185,6 +187,12 @@ public class AmadeusBookingHelper {
                 issuanceResponse.setSuccess(true);
             }
         }
+
+        if(ticketsCount == issuanceRequest.getTravellerList().size()){
+            return true;
+        }
+
+        return false;
     }
 
 

@@ -240,6 +240,17 @@ public class PNRAddMultiElementsh {
         return element;
     }
 
+
+    public PNRAddMultiElements ignoreAndRetrievePNR(){
+
+        PNRAddMultiElements element = new PNRAddMultiElements();
+        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+        pnrActions.getOptionCode().add(new BigInteger("10"));
+        element.setPnrActions(pnrActions);
+
+        return element;
+    }
+
     public PNRAddMultiElements addEotTimeElement() {
         PNRAddMultiElements element = new PNRAddMultiElements();
         OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
