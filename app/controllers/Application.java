@@ -1,7 +1,6 @@
 package controllers;
 
 
-import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -14,7 +13,6 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import services.*;
-import utils.XMLFileUtility;
 
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;

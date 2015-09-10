@@ -37,10 +37,12 @@ import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.thoughtworks.xstream.XStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
 import services.AmadeusQueueListInfoService;
 import utils.XMLFileUtility;
 
@@ -333,6 +335,16 @@ public class ServiceHandler {
     public QueueListReply getQueuesListInfo(){
         SessionReply sessionReply  = logIn();
         QueueListReply queueListReply = mPortType.queueList(AmadeusQueueListInfoService.getQueueListRequest(),mSession.getSession());
+        //JsonNode jsonNode = Json.toJson(queueListReply);
+        //JsonNode queueView = jsonNode.get("queueView");
+
+        //List<String> controlNumbers = new ArrayList<String>();
+        //for(int i = 0;i<queueView.findPath("item").size();i+=1){
+            //controlNumbers.add(queueView.findPath("item").get(i).get("recLoc").get("reservation").findValue("controlNumber").asText());
+       // }
+
+        //logger.debug("QueueList Retreive Pnr called...................."+Json.toJson(retrivePNR(controlNumbers.get(0))));
+
         return queueListReply;
     }
 }

@@ -1,6 +1,7 @@
 package services;
 
 import com.amadeus.xml.qdqlrq_11_1_1a.*;
+import com.sun.xml.bind.v2.TODO;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -13,6 +14,8 @@ import java.util.Properties;
  * Created by ritesh on 9/7/15.
  */
 public class AmadeusQueueListInfoService {
+
+    //TODO Add values from amadeusQueueListDetails property file
 
     private static Properties readQueueListPropertyFile(){
         Properties prop = new Properties();
@@ -56,19 +59,19 @@ public class AmadeusQueueListInfoService {
          */
         QueueInformationTypeI queueInformationTypeI = new QueueInformationTypeI();
         QueueInformationDetailsTypeI queueInformationDetailsTypeI = new QueueInformationDetailsTypeI();
-        queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(7L));
+        queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(1L));
         queueInformationTypeI.setQueueDetails(queueInformationDetailsTypeI);
         queueList.setQueueNumber(queueInformationTypeI);
 
         /*
             Category Details
          */
-        SubQueueInformationTypeI subQueueInformationTypeI = new SubQueueInformationTypeI();
-        SubQueueInformationDetailsTypeI subQueueInformationDetailsTypeI = new SubQueueInformationDetailsTypeI();
-        subQueueInformationDetailsTypeI.setIdentificationType("C");
-        subQueueInformationDetailsTypeI.setItemNumber("0");
-        subQueueInformationTypeI.setSubQueueInfoDetails(subQueueInformationDetailsTypeI);
-        queueList.setCategoryDetails(subQueueInformationTypeI);
+//        SubQueueInformationTypeI subQueueInformationTypeI = new SubQueueInformationTypeI();
+//        SubQueueInformationDetailsTypeI subQueueInformationDetailsTypeI = new SubQueueInformationDetailsTypeI();
+//        subQueueInformationDetailsTypeI.setIdentificationType("C");
+//        subQueueInformationDetailsTypeI.setItemNumber("1");
+//        subQueueInformationTypeI.setSubQueueInfoDetails(subQueueInformationDetailsTypeI);
+//        queueList.setCategoryDetails(subQueueInformationTypeI);
 
         return queueList;
 
