@@ -35,6 +35,9 @@ public class Application {
     @Autowired
     private CancelServiceWrapper cancelService;
 
+    @Autowired
+    private QueueListServiceWrapper queueListServiceWrapper;
+
     static Logger logger = LoggerFactory.getLogger("gds");
 
     public Result flightSearch(){
@@ -161,13 +164,6 @@ public class Application {
         return ok(Json.toJson(cancelPNRResponse));
     }
     public Result getQueueListInfo(){
-        ServiceHandler serviceHandler = null;
-        try {
-            serviceHandler = new ServiceHandler();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        logger.debug("-----------------QueueList Response: " + Json.toJson(serviceHandler.getQueuesListInfo()));
-        return ok();
+        return ok(Json.toJson(queueListServiceWrapper.getQueueListResponse()));
     }
 }
