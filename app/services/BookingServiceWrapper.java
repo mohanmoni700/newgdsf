@@ -1,14 +1,20 @@
 package services;
 
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
+import utils.PNRRequest;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by user on 07-08-2014.
@@ -139,5 +145,27 @@ public class BookingServiceWrapper {
     	}
 		return lowFareRS;
 	}
-	
+
+    public HashMap getBookingDetailsForPNR(JsonNode json) {
+        PNRRequest[] PNRRequestList = null;
+        HashMap<String, Object> jsonMap = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        TypeFactory typeFactory = objectMapper.getTypeFactory();
+        try {
+           PNRRequestList =
+                    objectMapper.readValue(json.toString(), PNRRequest[].class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for(PNRRequest pnrRequest: PNRRequestList){
+            if("Travelport".equalsIgnoreCase(pnrRequest.getProvider()) || "Galileo".equalsIgnoreCase(pnrRequest.getProvider())){
+                jsonMap.put(pnrRequest.getGdsPnr(), travelPortBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
+            } else if("Amadeus".equalsIgnoreCase(pnrRequest.getProvider())){
+                jsonMap.put(pnrRequest.getGdsPnr(), amadeusBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
+            }
+        }
+//        System.out.println(" HashMap ==============>>>>>>\n"+Json.toJson(jsonMap));
+        return jsonMap;
+    }
 }
