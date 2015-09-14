@@ -13,7 +13,8 @@ POST	/checkFareChangeAndAvailability            @controllers.Application.checkFa
 POST	/getPnrDetails							   @controllers.Application.getPnrDetails()
 POST	/getBookingDetails						   @controllers.Application.getBookingDetails()
 POST	/lowestFare                                @controllers.Application.getLowestFare()
-POST 	/cancelPNR                                @controllers.Application.cancelPNR()
+POST 	/cancelPNR                                 @controllers.Application.cancelPNR()
+POST    /getBookingDetailsForPNR                   @controllers.Application.getBookingDetailsForPNR()
 
 GET     /getQueueListInfo                       @controllers.Application.getQueueListInfo()
 # Map static resources from the /public folder to the /assets URL path

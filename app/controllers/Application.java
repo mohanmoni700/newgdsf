@@ -14,6 +14,8 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import services.*;
 
+import java.util.HashMap;
+
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
 
@@ -163,7 +165,22 @@ public class Application {
         CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
         return ok(Json.toJson(cancelPNRResponse));
     }
+
     public Result getQueueListInfo(){
         return ok(Json.toJson(queueListServiceWrapper.getQueueListResponse()));
+    }
+
+    public Result getBookingDetailsForPNR(){
+        JsonNode json = request().body().asJson();
+/*        String pretty = null;
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        System.out.println(" ---------------- JSON " + pretty);*/
+        HashMap<String, Object> jsonMap = bookingService.getBookingDetailsForPNR(json);
+        return ok(Json.toJson(jsonMap));
     }
 }
