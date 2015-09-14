@@ -10,8 +10,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class QueueListServiceWrapper {
 
-    @Autowired
+
     private AmadeusQueueListServiceImpl amadeusQueueListService;
+
+    public AmadeusQueueListServiceImpl getAmadeusQueueListService() {
+        return amadeusQueueListService;
+    }
+
+
+    @Autowired
+    public void setAmadeusQueueListService(AmadeusQueueListServiceImpl amadeusQueueListService) {
+        this.amadeusQueueListService = amadeusQueueListService;
+    }
 
     public QueueListReply getQueueListResponse(){
         return amadeusQueueListService.getQueueResponse();

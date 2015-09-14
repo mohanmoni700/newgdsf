@@ -8,8 +8,10 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import services.QueueListService;
 
 import java.util.List;
 
@@ -20,6 +22,17 @@ import java.util.List;
 public class CronJobs {
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
+
+    private QueueListService queueListService;
+
+    public QueueListService getQueueListService() {
+        return queueListService;
+    }
+
+    @Autowired
+    public void setQueueListService(QueueListService queueListService) {
+        this.queueListService = queueListService;
+    }
 
     @Scheduled(fixedRate = 120000)
     public void amadeusSessionProcess() {
@@ -55,7 +68,11 @@ public class CronJobs {
                 }
             }
         }
+    }
 
-
+//    @Scheduled(fixedRate = 3600000)
+    public void queueJobs(){
+        queueListService.getQueueResponse();
     }
 }
+

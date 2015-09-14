@@ -14,6 +14,7 @@ import java.util.Properties;
  * Created by ritesh on 9/10/15.
  */
 public class QueueListReq {
+
     private final static String SOURCE_QUALIFIER = "4";
     private final static String IDENTIFICATION_TYPE = "C";
     private final static String ITEM_NUMBER = "1";
@@ -42,9 +43,10 @@ public class QueueListReq {
         return prop;
     }
 
-    private static com.amadeus.xml.qdqlrq_11_1_1a.QueueList buildQueueReq(){
+    private static QueueList buildQueueReq(){
+
         Properties prop = getPropertyFileRef();
-        com.amadeus.xml.qdqlrq_11_1_1a.QueueList queueList = new com.amadeus.xml.qdqlrq_11_1_1a.QueueList();
+        QueueList queueList = new QueueList();
          /*
             Target Office Details
          */
@@ -71,8 +73,8 @@ public class QueueListReq {
 
     }
 
-    public static com.amadeus.xml.qdqlrq_11_1_1a.QueueList getQueueNum_1_Request(){
-        com.amadeus.xml.qdqlrq_11_1_1a.QueueList queueList = buildQueueReq();
+    public static QueueList getConfirmQueueRequest(){
+        QueueList queueList = buildQueueReq();
         QueueInformationTypeI queueInformationTypeI = new QueueInformationTypeI();
         QueueInformationDetailsTypeI queueInformationDetailsTypeI = new QueueInformationDetailsTypeI();
         queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(QUEUE_NUM_ONE));
@@ -81,8 +83,8 @@ public class QueueListReq {
         return queueList;
     }
 
-    public static com.amadeus.xml.qdqlrq_11_1_1a.QueueList getQueueNum_7_Request(){
-        com.amadeus.xml.qdqlrq_11_1_1a.QueueList queueList = buildQueueReq();
+    public static QueueList getScheduleChangesQueueRequest(){
+        QueueList queueList = buildQueueReq();
         QueueInformationTypeI queueInformationTypeI = new QueueInformationTypeI();
         QueueInformationDetailsTypeI queueInformationDetailsTypeI = new QueueInformationDetailsTypeI();
         queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(QUEUE_NUM_SEVEN));
@@ -91,8 +93,8 @@ public class QueueListReq {
         return queueList;
     }
 
-    public static com.amadeus.xml.qdqlrq_11_1_1a.QueueList getQueueNum_12_Request(){
-        com.amadeus.xml.qdqlrq_11_1_1a.QueueList queueList = buildQueueReq();
+    public static QueueList getExpiryTimeQueueRequest(){
+        QueueList queueList = buildQueueReq();
         QueueInformationTypeI queueInformationTypeI = new QueueInformationTypeI();
         QueueInformationDetailsTypeI queueInformationDetailsTypeI = new QueueInformationDetailsTypeI();
         queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(QUEUE_NUM_TWELVE));

@@ -16,6 +16,7 @@ import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve;
 import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
 import com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType;
 import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
+import com.amadeus.xml.qdqlrq_11_1_1a.QueueList;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
@@ -329,8 +330,9 @@ public class ServiceHandler {
 
     }
 
-    public QueueListReply queueListResponse(com.amadeus.xml.qdqlrq_11_1_1a.QueueList queueListReq){
-        SessionReply sessionReply  = logIn();
+    public QueueListReply queueListResponse(QueueList queueListReq){
+        logger.debug("queueListResponse called at "+ new Date() + "..................");
+
         QueueListReply queueListReply = mPortType.queueList(queueListReq,mSession.getSession());
         return queueListReply;
     }
