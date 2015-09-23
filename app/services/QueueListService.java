@@ -6,9 +6,11 @@ import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
  */
 public interface QueueListService {
 
-    QueueListReply getQueueResponse();
+    QueueListReply getWaitListConfirmRequest();
 
     QueueListReply getScheduleChange();
 
     QueueListReply getExpiryTimeQueueRequest();
+
+    QueueListReply getSegmentWaitListConfirmReq();
 }

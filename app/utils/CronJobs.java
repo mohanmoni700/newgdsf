@@ -7,6 +7,7 @@ import models.AmadeusSessionWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,7 +22,7 @@ import java.util.List;
 @Component
 public class CronJobs {
 
-    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
+    static Logger logger = LoggerFactory.getLogger("gds");
 
     private QueueListService queueListService;
 
@@ -70,9 +71,14 @@ public class CronJobs {
         }
     }
 
-//    @Scheduled(fixedRate = 3600000)
+    @Scheduled(fixedRate = 3600000)
     public void queueJobs(){
-        queueListService.getQueueResponse();
+        queueListService.getWaitListConfirmRequest();
+        queueListService.getScheduleChange();
+        queueListService.getExpiryTimeQueueRequest();
+        queueListService.getWaitListConfirmRequest();
     }
+
+
 }
 

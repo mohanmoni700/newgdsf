@@ -19,9 +19,11 @@ public class QueueListReq {
     private final static String IDENTIFICATION_TYPE = "C";
     private final static String ITEM_NUMBER = "1";
     private final static String SOURCE_OFFICE = "SOURCE_OFFICE";
-    private final static Long QUEUE_NUM_ONE = 1L;
-    private final static Long QUEUE_NUM_SEVEN = 7L;
-    private final static Long QUEUE_NUM_TWELVE = 12L;
+    private final static Long WAITLIST_CONFIRMATION_QUEUE = 2L;
+    private final static Long WAITLIST_SEGMENT_CONFIRMATION_QUEUE = 1L;
+    private final static Long SCHEDULE_CHANGES_QUEUE = 7L;
+    private final static Long EXPIRED_TIME_lIMIT_QUEUE = 12L;
+
 
     private static Properties getPropertyFileRef(){
         Properties prop = new Properties();
@@ -73,33 +75,43 @@ public class QueueListReq {
 
     }
 
-    public static QueueList getConfirmQueueRequest(){
-        QueueList queueList = buildQueueReq();
+    public static QueueInformationTypeI createQueueDetails(BigInteger queueNumber){
         QueueInformationTypeI queueInformationTypeI = new QueueInformationTypeI();
         QueueInformationDetailsTypeI queueInformationDetailsTypeI = new QueueInformationDetailsTypeI();
-        queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(QUEUE_NUM_ONE));
+        queueInformationDetailsTypeI.setNumber(queueNumber);
         queueInformationTypeI.setQueueDetails(queueInformationDetailsTypeI);
+
+        return queueInformationTypeI;
+    }
+
+
+    public static QueueList getWaitListConfirmRequest(){
+        QueueList queueList = buildQueueReq();
+        QueueInformationTypeI queueInformationTypeI = createQueueDetails(BigInteger.valueOf(WAITLIST_CONFIRMATION_QUEUE));
         queueList.setQueueNumber(queueInformationTypeI);
         return queueList;
     }
 
-    public static QueueList getScheduleChangesQueueRequest(){
+    public static QueueList getSegmentWaitListConfirmReq(){
         QueueList queueList = buildQueueReq();
-        QueueInformationTypeI queueInformationTypeI = new QueueInformationTypeI();
-        QueueInformationDetailsTypeI queueInformationDetailsTypeI = new QueueInformationDetailsTypeI();
-        queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(QUEUE_NUM_SEVEN));
-        queueInformationTypeI.setQueueDetails(queueInformationDetailsTypeI);
+        QueueInformationTypeI queueInformationTypeI = createQueueDetails(BigInteger.valueOf(WAITLIST_SEGMENT_CONFIRMATION_QUEUE));
         queueList.setQueueNumber(queueInformationTypeI);
         return queueList;
     }
 
-    public static QueueList getExpiryTimeQueueRequest(){
+    public static QueueList getScheduleChangesRequest(){
         QueueList queueList = buildQueueReq();
-        QueueInformationTypeI queueInformationTypeI = new QueueInformationTypeI();
-        QueueInformationDetailsTypeI queueInformationDetailsTypeI = new QueueInformationDetailsTypeI();
-        queueInformationDetailsTypeI.setNumber(BigInteger.valueOf(QUEUE_NUM_TWELVE));
-        queueInformationTypeI.setQueueDetails(queueInformationDetailsTypeI);
+        QueueInformationTypeI queueInformationTypeI = createQueueDetails(BigInteger.valueOf(SCHEDULE_CHANGES_QUEUE));
         queueList.setQueueNumber(queueInformationTypeI);
         return queueList;
     }
+
+    public static QueueList getExpiryTimeRequest(){
+        QueueList queueList = buildQueueReq();
+        QueueInformationTypeI queueInformationTypeI = createQueueDetails(BigInteger.valueOf(EXPIRED_TIME_lIMIT_QUEUE));
+        queueList.setQueueNumber(queueInformationTypeI);
+        return queueList;
+    }
+
+
 }

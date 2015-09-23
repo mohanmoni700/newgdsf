@@ -24,6 +24,10 @@ public class QueueListServiceWrapper {
     }
 
     public QueueListReply getQueueListResponse(){
-        return amadeusQueueListService.getQueueResponse();
+        amadeusQueueListService.getExpiryTimeQueueRequest();
+       /* amadeusQueueListService.getScheduleChange();
+        amadeusQueueListService.getWaitListConfirmRequest();
+         amadeusQueueListService.getSegmentWaitListConfirmReq();*/
+        return null;
     }
 }

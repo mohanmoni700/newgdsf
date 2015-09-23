@@ -332,8 +332,9 @@ public class ServiceHandler {
 
     public QueueListReply queueListResponse(QueueList queueListReq){
         logger.debug("queueListResponse called at "+ new Date() + "..................");
-
+        amadeusLogger.debug("queueListReq" + new Date() + " ---->" + new XStream().toXML(queueListReq));
         QueueListReply queueListReply = mPortType.queueList(queueListReq,mSession.getSession());
+        amadeusLogger.debug("queueListRes" + new Date() + " ---->" + new XStream().toXML(queueListReply));
         return queueListReply;
     }
 }

@@ -7,6 +7,8 @@ import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply.QueueView.Item;
 import com.compassites.GDSWrapper.amadeus.QueueListReq;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.constants.AmadeusConstants;
+import com.compassites.model.QueuePNR;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -28,8 +31,8 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
     Logger gdsLogger = LoggerFactory.getLogger("gds");
 
     @Override
-    public QueueListReply getQueueResponse() {
-        gdsLogger.debug("getQueueResponse called ........");
+    public QueueListReply getWaitListConfirmRequest() {
+        gdsLogger.debug("getWaitListConfirmRequest called ........");
         ServiceHandler serviceHandler = null;
         try {
             serviceHandler = new ServiceHandler();
@@ -37,22 +40,95 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
             e.printStackTrace();
         }
         serviceHandler.logIn();
-        QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getConfirmQueueRequest());
 
-        List<String> pnrList = new ArrayList<>();
+        QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getWaitListConfirmRequest());
+
+        List<QueuePNR> pnrList = new ArrayList<>();
+        if(queueListReply.getQueueView() == null){
+            return null;
+        }
+        for (Item item : queueListReply.getQueueView().getItem()){
+            String pnr = item.getRecLoc().getReservation().getControlNumber();
+            gdsLogger.debug("PNR Number returned =========>>> : " + pnr);
+            PNRReply pnrReply = null;
+            try {
+
+                pnrReply = serviceHandler.retrivePNR(pnr);
+                for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()){
+                    for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
+                        String segmentStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
+                        String confirmWaitListStatus = AmadeusConstants.SEGMENT_STATUS.CONFIRMAT_WAITLIST.getSegmentStatus();
+                        if(confirmWaitListStatus.equalsIgnoreCase(segmentStatus)){
+                            QueuePNR queuePNR = new QueuePNR();
+                            queuePNR.setPnr(pnr);
+                            queuePNR.setQueueType(AmadeusConstants.QUEUE_TYPE.CONFIRMATION);
+                            pnrList.add(queuePNR);
+                        }
+
+                        gdsLogger.debug("Status of the segment : " + segmentStatus);
+                    }
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                gdsLogger.error("error in  getWaitListConfirmRequest ........" , e);
+            }
+
+        }
+
+        String url =  play.Play.application().configuration().getString("gds.jocservice.url")+"notifyScheduleChange";
+        final JsonNode jsonRequest = Json.toJson(pnrList);
+        WS.url(url).post(jsonRequest).map(
+                new F.Function<WSResponse, JsonNode>() {
+                    public JsonNode apply(WSResponse response) {
+                        JsonNode json = null;
+                        if (response != null) {
+                            json = response.asJson();
+                        }
+                        return json;
+                    }
+                }
+        );
+        return queueListReply;
+    }
+
+    @Override
+    public QueueListReply getSegmentWaitListConfirmReq() {
+        gdsLogger.debug("getWaitListConfirmRequest called ........");
+        ServiceHandler serviceHandler = null;
+        try {
+            serviceHandler = new ServiceHandler();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        serviceHandler.logIn();
+        QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getSegmentWaitListConfirmReq());
+        if(queueListReply.getQueueView() == null){
+            return null;
+        }
+        List<QueuePNR> pnrList = new ArrayList<>();
 
         for (Item item : queueListReply.getQueueView().getItem()){
             String pnr = item.getRecLoc().getReservation().getControlNumber();
             gdsLogger.debug("PNR Number returned =========>>> : " + pnr);
+            try {
+                PNRReply pnrReply = serviceHandler.retrivePNR(pnr);
+                EnumSet<AmadeusConstants.CONFIRMATION_SEGMENT_STATUS> segmentStatuses = EnumSet.allOf(AmadeusConstants.CONFIRMATION_SEGMENT_STATUS.class);
+                for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
+                    for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
+                        String segmentStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
+                        if (AmadeusConstants.CONFIRMATION_SEGMENT_STATUS.contains(segmentStatus)) {
+                            QueuePNR queuePNR = new QueuePNR();
+                            queuePNR.setPnr(pnr);
+                            queuePNR.setQueueType(AmadeusConstants.QUEUE_TYPE.SEGMENT_CONFIRMATION);
+                            pnrList.add(queuePNR);
+                        }
 
-            PNRReply pnrReply = serviceHandler.retrivePNR(pnr);
-
-            for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()){
-                for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
-                    String segmenStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
-                    pnrList.add(pnr);
-                    gdsLogger.debug("Status of the segment : " + segmenStatus);
+                        gdsLogger.debug("Status of the segment : " + segmentStatus);
+                    }
                 }
+            }catch (Exception e){
+                e.printStackTrace();
+                gdsLogger.error("error in  getSegmentWaitListConfirmReq ........", e);
             }
         }
 
@@ -72,8 +148,6 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
         return queueListReply;
     }
 
-
-
     @Override
     public QueueListReply getScheduleChange() {
         gdsLogger.debug("getScheduleChange called ........");
@@ -84,22 +158,37 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
             e.printStackTrace();
         }
         serviceHandler.logIn();
-        QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getScheduleChangesQueueRequest());
-
-        List<String> pnrList = new ArrayList<>();
+        QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getScheduleChangesRequest());
+        if(queueListReply.getQueueView() == null){
+            return null;
+        }
+        List<QueuePNR> pnrList = new ArrayList<>();
 
         for (Item item : queueListReply.getQueueView().getItem()){
             String pnr = item.getRecLoc().getReservation().getControlNumber();
             gdsLogger.debug("PNR Number returned =========>>> : " + pnr);
 
-            PNRReply pnrReply = serviceHandler.retrivePNR(pnr);
+            try {
+                PNRReply pnrReply = serviceHandler.retrivePNR(pnr);
 
-            for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()){
-                for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
-                    String segmenStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
-                    pnrList.add(pnr);
-                    gdsLogger.debug("Status of the segment : " + segmenStatus);
+                for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
+                    for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
+
+                        String segmentStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
+                        String confirmWaitListStatus = AmadeusConstants.SEGMENT_STATUS.SCHEDULE_CHANGE.getSegmentStatus();
+                        if (confirmWaitListStatus.equalsIgnoreCase(segmentStatus)) {
+
+                            QueuePNR queuePNR = new QueuePNR();
+                            queuePNR.setPnr(pnr);
+                            queuePNR.setQueueType(AmadeusConstants.QUEUE_TYPE.SCHEDULE_CHANGE);
+                            pnrList.add(queuePNR);
+                        }
+                        gdsLogger.debug("Status of the segment : " + segmentStatus);
+                    }
                 }
+            }catch (Exception e){
+                e.printStackTrace();
+                gdsLogger.error("error in  getScheduleChange ........", e);
             }
         }
 
@@ -130,23 +219,36 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
             e.printStackTrace();
         }
         serviceHandler.logIn();
-        QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getExpiryTimeQueueRequest());
-
-        List<String> pnrList = new ArrayList<>();
+        QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getExpiryTimeRequest());
+        if(queueListReply.getQueueView() == null){
+            return null;
+        }
+        List<QueuePNR> pnrList = new ArrayList<>();
 
         for (Item item : queueListReply.getQueueView().getItem()){
             String pnr = item.getRecLoc().getReservation().getControlNumber();
             gdsLogger.debug("PNR Number returned =========>>> : " + pnr);
+            try {
+                PNRReply pnrReply = serviceHandler.retrivePNR(pnr);
 
-            PNRReply pnrReply = serviceHandler.retrivePNR(pnr);
-
-            for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()){
-                for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
-                    String segmenStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
-                    pnrList.add(pnr);
-                    gdsLogger.debug("Status of the segment : " + segmenStatus);
+                for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
+                    for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
+                        String segmentStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
+                        String confirmWaitListStatus = AmadeusConstants.SEGMENT_STATUS.EXPIRED_TIME_LIMIT.getSegmentStatus();
+//                        if (confirmWaitListStatus.equalsIgnoreCase(segmentStatus)) {
+                            QueuePNR queuePNR = new QueuePNR();
+                            queuePNR.setPnr(pnr);
+                            queuePNR.setQueueType(AmadeusConstants.QUEUE_TYPE.EXPIRE_TIME_LIMIT);
+                            pnrList.add(queuePNR);
+//                        }
+                        gdsLogger.debug("Status of the segment : " + segmentStatus);
+                    }
                 }
+            }catch (Exception e){
+                e.printStackTrace();
+                gdsLogger.error("error in  getExpiryTimeQueueRequest ........", e);
             }
+
         }
 
         String url =  play.Play.application().configuration().getString("gds.jocservice.url")+"notifyScheduleChange";
