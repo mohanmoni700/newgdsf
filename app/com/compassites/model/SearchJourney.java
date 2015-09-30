@@ -23,7 +23,7 @@ public class SearchJourney implements Serializable{
     @Property
     private Date travelDate;
 
-    private DateTime travelDateStr;
+    private String travelDateStr;
 
     public String getOrigin() {
         return origin;
@@ -49,11 +49,11 @@ public class SearchJourney implements Serializable{
         this.travelDate = travelDate;
     }
 
-    public DateTime getTravelDateStr() {
+    public String getTravelDateStr() {
         return travelDateStr;
     }
 
-    public void setTravelDateStr(DateTime travelDateStr) {
+    public void setTravelDateStr(String travelDateStr) {
         this.travelDateStr = travelDateStr;
     }
 }
