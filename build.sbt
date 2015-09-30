@@ -29,6 +29,7 @@ libraryDependencies ++= Seq(
   "redis.clients" % "jedis" % "2.4.2",
   "org.pojomatic" % "pojomatic" % "1.0",
   "joda-time" % "joda-time" % "2.3",
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-joda" % "2.3.0",
   "mysql" % "mysql-connector-java" % "5.1.18",
   "org.apache.commons" % "commons-pool2" % "2.0",
   "org.apache.axis2" % "axis2" % "1.6.2",

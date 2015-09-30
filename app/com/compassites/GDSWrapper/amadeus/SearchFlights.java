@@ -9,6 +9,7 @@ package com.compassites.GDSWrapper.amadeus;
 import com.amadeus.xml.fmptbq_14_2_1a.*;
 import com.compassites.model.*;
 import com.thoughtworks.xstream.XStream;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -27,7 +28,7 @@ public class SearchFlights {
 
     //using deprecated methods
     //change to calendar dates everywhere
-    private String mapDate(Date date) {
+    private String mapDate(Date date, DateTime dateTime) {
         String amadeusDate = "";
         Calendar calDate = Calendar.getInstance();
         calDate.setTime(date);
@@ -37,7 +38,18 @@ public class SearchFlights {
         day = day.length() == 1 ? "0" + day : day;
         month = month.length() == 1 ? "0" + month : month;
         year = year.length() == 1 ? "0" + year : year;
-        amadeusDate = day + month + year.substring(2);
+//        amadeusDate = day + month + year.substring(2);
+
+        day = "" + dateTime.getDayOfMonth();
+        month = "" + dateTime.getMonthOfYear();
+        year = "" + dateTime.getYearOfCentury();
+
+        day = day.length() == 1 ? "0" + day : day;
+        month = month.length() == 1 ? "0" + month : month;
+        year = year.length() == 1 ? "0" + year : year;
+        amadeusDate = day + month + year;
+
+
         return amadeusDate;
     }
 
@@ -238,7 +250,7 @@ public class SearchFlights {
         for(SearchJourney searchJourney:searchParameters.getJourneyList()){
             FareMasterPricerTravelBoardSearch.Itinerary itinerary=new FareMasterPricerTravelBoardSearch.Itinerary();
             setItineraryLocationDetails(itinerary,new BigInteger(Integer.toString(counter++)),searchJourney.getOrigin(),searchJourney.getDestination());
-            itinerary.setTimeDetails(setDateAndTimeInformationType(searchParameters.getDateType(),mapDate(searchJourney.getTravelDate())));
+            itinerary.setTimeDetails(setDateAndTimeInformationType(searchParameters.getDateType(),mapDate(searchJourney.getTravelDate(), searchJourney.getTravelDateStr())));
             if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
                 TravelFlightInformationType165053S fi=new TravelFlightInformationType165053S();
                 setTransitPoint(searchParameters.getTransit(),fi,itinerary);

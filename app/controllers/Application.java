@@ -1,10 +1,11 @@
 package controllers;
 
 
-import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import services.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import static play.mvc.Controller.request;
@@ -44,9 +46,16 @@ public class Application {
 
     public Result flightSearch(){
         logger.debug("Request recieved");
-        JsonNode json = request().body().asJson();
-
-        SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
+        String json = request().body().asText();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
+        SearchParameters  searchParameters = null;
+        try {
+            searchParameters = mapper.readValue(json, SearchParameters.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         logger.debug("SearchParamerters: " + json.toString());
         flightSearchWrapper.search(searchParameters);
 //        mergeSearchResults.searchAndMerge(searchParameters);
