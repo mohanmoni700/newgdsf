@@ -39,7 +39,7 @@ public class CronJobs {
     public void amadeusSessionProcess() {
         logger.debug("amadeusSessionProcess  cron job called ..................");
 
-        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextList();
+        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllContextList();
         if(amadeusSessionWrapperList != null && amadeusSessionWrapperList.size() > 0) {
             for(AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList) {
                if(!amadeusSessionWrapper.isQueryInProgress())  {

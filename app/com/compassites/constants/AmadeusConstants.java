@@ -19,7 +19,7 @@ public class AmadeusConstants {
 
     public static String AMADEUS_ACTIVE_SESSION_LIST = "amadeusActiveSessionList";
 
-    public static int INACTIVITY_TIMEOUT = 15;
+    public static int INACTIVITY_TIMEOUT = 12;
 
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");

@@ -72,9 +72,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		PNRResponse pnrResponse = new PNRResponse();
         PNRReply gdsPNRReply = null;
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
+		Session session = null;
 		try {
 			serviceHandler = new ServiceHandler();
-            Session session = amadeusSessionManager.getActiveSession(travellerMasterInfo.getSessionIdRef());
+            session = amadeusSessionManager.getActiveSession(travellerMasterInfo.getSessionIdRef());
             serviceHandler.setSession(session);
 
             int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getPassengerTypeCount(travellerMasterInfo.getTravellersList());
@@ -102,7 +103,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             serviceHandler.savePNR();
             gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
 
-            serviceHandler.logOut();
+
 
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse,travellerMasterInfo);
 
@@ -111,6 +112,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "Amadeus");
 			pnrResponse.setErrorMessage(errorMessage);
+		}finally {
+			if(session != null){
+				serviceHandler.logOut();
+				amadeusSessionManager.removeActiveSession(session);
+			}
+
 		}
 		return pnrResponse;
 	}

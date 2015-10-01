@@ -76,7 +76,7 @@ public class AmadeusSessionManager {
 
 
     public AmadeusSessionWrapper createSession(){
-        System.out.println("creating new  session ........................................." );
+        System.out.println("creating new  session .........................................");
         try {
             ServiceHandler serviceHandler = new ServiceHandler();
             SessionHandler sessionHandler = serviceHandler.logIn(new SessionHandler());
@@ -108,6 +108,7 @@ public class AmadeusSessionManager {
         String uuid = UUID.randomUUID().toString();
         AmadeusSessionWrapper amadeusSessionWrapper = createSessionWrapper(session);
         amadeusSessionWrapper.setSessionUUID(uuid);
+        amadeusSessionWrapper.setActiveContext(true);
         amadeusSessionWrapper.save();
         return uuid;
     }
@@ -115,5 +116,10 @@ public class AmadeusSessionManager {
     public Session getActiveSession(String sessionIdRef){
         AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findSessionByUUID(sessionIdRef);
         return amadeusSessionWrapper.getmSession().value;
+    }
+
+    public void removeActiveSession(Session session){
+        AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findBySessionId(session.getSessionId());
+        amadeusSessionWrapper.delete();
     }
 }

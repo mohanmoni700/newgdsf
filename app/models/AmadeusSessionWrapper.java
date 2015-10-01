@@ -123,6 +123,13 @@ public class AmadeusSessionWrapper extends Model{
 
     public static List<AmadeusSessionWrapper> findAllInactiveContextList(){
 
+        List<AmadeusSessionWrapper> amadeusSessions = find.where().eq("active_context", 0).eq("session_uuid",null).findList();
+
+        return amadeusSessions;
+    }
+
+    public static List<AmadeusSessionWrapper> findAllContextList(){
+
         List<AmadeusSessionWrapper> amadeusSessions = find.where().eq("active_context", 0).findList();
 
         return amadeusSessions;
@@ -131,6 +138,12 @@ public class AmadeusSessionWrapper extends Model{
     public static AmadeusSessionWrapper findSessionByUUID(String uuid){
 
         AmadeusSessionWrapper amadeusSessions = find.where().eq("session_uuid", uuid).findUnique();
+
+        return amadeusSessions;
+    }
+
+    public static AmadeusSessionWrapper findBySessionId(String sessionId){
+        AmadeusSessionWrapper amadeusSessions = find.where().eq("session_id", sessionId).findUnique();
 
         return amadeusSessions;
     }
