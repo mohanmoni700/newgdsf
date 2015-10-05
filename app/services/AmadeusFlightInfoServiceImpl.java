@@ -49,9 +49,12 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 	@Override
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
+		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
+			amadeusSessionWrapper = amadeusSessionManager.getSession();
 			ServiceHandler serviceHandler = new ServiceHandler();
-			serviceHandler.logIn();
+//			serviceHandler.logIn();
+			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
@@ -59,14 +62,22 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			ssf.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+			if(amadeusSessionWrapper != null) {
+				amadeusSessionWrapper.setQueryInProgress(false);
+				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+			}
 		}
 		return flightItinerary;
 	}
 	
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
+		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
+			amadeusSessionWrapper = amadeusSessionManager.getSession();
 			ServiceHandler serviceHandler = new ServiceHandler();
-			serviceHandler.logIn();
+//			serviceHandler.logIn();
+			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			for(Journey journey : journeyList) {
 				for(AirSegmentInformation segment : journey.getAirSegmentList()) {
@@ -88,6 +99,11 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			ssf.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+			if(amadeusSessionWrapper != null) {
+				amadeusSessionWrapper.setQueryInProgress(false);
+				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+			}
 		}
 		return flightItinerary;
 	}

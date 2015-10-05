@@ -95,7 +95,7 @@ public class Application {
     	JsonNode json = request().body().asJson();
     	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-    	String provider = Json.fromJson(json.findPath("provider"), String.class);
+    	String provider = json.get("provider").asText();
     	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
     	
     	FlightItinerary response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen);
@@ -107,7 +107,7 @@ public class Application {
     	JsonNode json = request().body().asJson();
     	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-    	String provider = Json.fromJson(json.findPath("provider"), String.class);
+    	String provider = json.get("provider").asText();
     	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
     	
     	String fareRules = flightInfoService.getCancellationFee(flightItinerary, searchParams, provider, seamen);
@@ -118,7 +118,7 @@ public class Application {
     public Result getFlightDetails() {
     	JsonNode json = request().body().asJson();
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-    	String provider = Json.fromJson(json.findPath("provider"), String.class);
+    	String provider = json.get("provider").asText();
     	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
     	FlightItinerary response = flightInfoService.getInFlightDetails(flightItinerary, provider, seamen);
     	return Controller.ok(Json.toJson(response));

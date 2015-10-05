@@ -5,6 +5,7 @@ import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -222,7 +223,13 @@ public class SearchParameters implements Serializable,Cloneable{
     public String redisKey(){
         String key = "";
         for(SearchJourney journey:journeyList){
-            key+="O:"+journey.getOrigin()+",D:"+journey.getDestination()+",DD:"+journey.getTravelDate().getDay()+",DM:"+journey.getTravelDate().getMonth();
+            Calendar calDate = Calendar.getInstance();
+            calDate.setTime(journey.getTravelDate());
+            String day = String.valueOf(calDate.get(Calendar.DAY_OF_MONTH));
+            String month = String.valueOf(calDate.get(Calendar.MONTH) + 1);
+            day = day.length() == 1 ? "0" + day : day;
+            month = month.length() == 1 ? "0" + month : month;
+            key+="O:"+journey.getOrigin()+",D:"+journey.getDestination()+",DD:"+day+",DM:"+month;
         }
         key += "ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+ this.cabinClass;
         key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + this.preferredAirlines;
