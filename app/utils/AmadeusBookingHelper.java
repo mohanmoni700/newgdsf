@@ -9,11 +9,13 @@ import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
 import com.amadeus.xml.tpcbrr_12_4_1a.MonetaryInformationDetailsType223826C;
+import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import models.Airline;
 import models.Airport;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -500,5 +502,22 @@ public class AmadeusBookingHelper {
 		paxTypeCounts.put("infantCount", infantCount);
 		return paxTypeCounts;
 	}
+
+
+    public static boolean checkForSimultaneousChange(PNRReply pnrReply){
+
+        boolean simultaneousChange = false;
+        if(pnrReply.getGeneralErrorInfo() != null && pnrReply.getGeneralErrorInfo().size() > 0){
+            for(PNRReply.GeneralErrorInfo generalErrorInfo : pnrReply.getGeneralErrorInfo()){
+                String errorText = StringUtils.join(generalErrorInfo.getMessageErrorText().getText());
+                //todo check the string contains works with spaces and all other cases , use regular expression
+                if(errorText.contains(AmadeusConstants.SIMULTANEOUS_PNR_CHANGE)){
+                    simultaneousChange = true;
+                }
+            }
+        }
+
+        return simultaneousChange;
+    }
     
 }

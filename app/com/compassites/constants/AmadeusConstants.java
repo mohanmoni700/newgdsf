@@ -21,6 +21,10 @@ public class AmadeusConstants {
 
     public static int INACTIVITY_TIMEOUT = 12;
 
+    public static String SIMULTANEOUS_PNR_CHANGE = "SIMULTANEOUS CHANGES TO PNR";
+
+    public static String SEGMENT_HOLDING_CONFIRMED = "HK";
+
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");
 

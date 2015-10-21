@@ -228,15 +228,30 @@ public class ServiceHandler {
         mSession.incrementSequenceNumber();
         logger.debug("amadeus ignoreAndRetrievePNR called at " + new Date() + "..................Session Id " + mSession.getSession().value.getSessionId());
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().ignoreAndRetrievePNR();
-        XMLFileUtility.createXMLFile(pnrAddMultiElements, "ignoreAndRetrievePNR.xml");
+        XMLFileUtility.createXMLFile(pnrAddMultiElements, "ignoreAndRetrievePNRReq.xml");
         amadeusLogger.debug("ignoreAndRetrievePNR " + new Date() + " ---->" + new XStream().toXML(pnrAddMultiElements));
         PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
         amadeusLogger.debug("ignoreAndRetrievePNR " + new Date() + " ---->" + new XStream().toXML(pnrReply));
-        XMLFileUtility.createXMLFile(pnrReply, "ignoreAndRetrievePNR.xml");
+        XMLFileUtility.createXMLFile(pnrReply, "ignoreAndRetrievePNRRes.xml");
         return pnrReply;
 
     }
 
+    public PNRReply ignorePNRAddMultiElement(){
+        mSession.incrementSequenceNumber();
+        logger.debug("amadeus ignorePNRAddMultiElement called at " + new Date() + "..................Session Id " + mSession.getSession().value.getSessionId());
+        PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().ignorePNRAddMultiElement();
+
+        XMLFileUtility.createXMLFile(pnrAddMultiElements, "ignorePNRAddMultiElementReq.xml");
+        amadeusLogger.debug("ignorePNRAddMultiElementReq " + new Date() + " ---->" + new XStream().toXML(pnrAddMultiElements));
+
+        PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
+
+        amadeusLogger.debug("ignorePNRAddMultiElement Res" + new Date() + " ---->" + new XStream().toXML(pnrReply));
+        XMLFileUtility.createXMLFile(pnrReply, "ignorePNRAddMultiElementRes.xml");
+        return pnrReply;
+
+    }
     public PNRReply addSSRDetailsToPNR(TravellerMasterInfo travellerMasterInfo){
         mSession.incrementSequenceNumber();
         logger.debug("amadeus addSSRDetailsToPNR called   at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());

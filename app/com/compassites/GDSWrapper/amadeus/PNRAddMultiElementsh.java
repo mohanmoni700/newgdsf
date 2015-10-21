@@ -245,7 +245,17 @@ public class PNRAddMultiElementsh {
 
         PNRAddMultiElements element = new PNRAddMultiElements();
         OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
-        pnrActions.getOptionCode().add(new BigInteger("10"));
+        pnrActions.getOptionCode().add(new BigInteger("21"));
+        element.setPnrActions(pnrActions);
+
+        return element;
+    }
+
+    public PNRAddMultiElements ignorePNRAddMultiElement(){
+
+        PNRAddMultiElements element = new PNRAddMultiElements();
+        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+        pnrActions.getOptionCode().add(new BigInteger("20"));
         element.setPnrActions(pnrActions);
 
         return element;

@@ -22,15 +22,14 @@ public class AmadeusCancelServiceImpl implements CancelService {
         try {
             serviceHandler = new ServiceHandler();
             serviceHandler.logIn();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        try {
             serviceHandler.retrivePNR(pnr);
             PNRReply pnrReply = serviceHandler.cancelPNR(pnr);
-
             com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR();
+            PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr);
+
+            //todo check for origindestinationDetails in retrievePNRReply to confirm cancellation
+            serviceHandler.logOut();
             cancelPNRResponse.setSuccess(true);
             return cancelPNRResponse;
 
