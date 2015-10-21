@@ -574,7 +574,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		PricingInformation pricingInfo = null;
 		List<Journey> journeyList = null;
-		try {
+        Map<String, Object> json = new HashMap<>();
+
+        try {
 			ServiceHandler serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
@@ -621,29 +623,29 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 			masterInfo.setSeamen(isSeamen);
 			masterInfo.setItinerary(flightItinerary);
+
+            // TODO: change hardcoded value
+            masterInfo.setCabinClass(CabinClass.ECONOMY);
+
+            PNRResponse pnrResponse = new PNRResponse();
+            pnrResponse.setPnrNumber(gdsPNR);
+            pricingInfo.setProvider("Amadeus");
+            pnrResponse.setPricingInfo(pricingInfo);
+
+            List<ItineraryInfo> itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+            if(itineraryInfos != null && itineraryInfos.size() > 0) {
+                String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
+                pnrResponse.setAirlinePNR(airlinePnr);
+            }
+            gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo().get(0).getItineraryReservationInfo().getReservation().getControlNumber();
+            createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
+
+            json.put("travellerMasterInfo", masterInfo);
+            json.put("pnrResponse", pnrResponse);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// TODO: change hardcoded value
-		masterInfo.setCabinClass(CabinClass.ECONOMY);
-
-		PNRResponse pnrResponse = new PNRResponse();
-		pnrResponse.setPnrNumber(gdsPNR);
-		pricingInfo.setProvider("Amadeus");
-		pnrResponse.setPricingInfo(pricingInfo);
-		
-		List<ItineraryInfo> itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
-		if(itineraryInfos != null && itineraryInfos.size() > 0) {
-			String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
-			pnrResponse.setAirlinePNR(airlinePnr);
-		}
-		gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo().get(0).getItineraryReservationInfo().getReservation().getControlNumber();
-		createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
-
-		Map<String, Object> json = new HashMap<>();
-		json.put("travellerMasterInfo", masterInfo);
-		json.put("pnrResponse", pnrResponse);
-		
 		return Json.toJson(json);
 	}
 
