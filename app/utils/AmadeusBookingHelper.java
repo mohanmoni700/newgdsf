@@ -575,8 +575,9 @@ public class AmadeusBookingHelper {
                     passengerType.put(key,"ADT");
                 }
 
-//                passengerType.put(key, paxType);
+
             }
+            passengerType.put(key, "ADT");
 
         }
 
