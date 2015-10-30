@@ -5,9 +5,14 @@
  */
 package com.compassites.GDSWrapper.amadeus;
 
+
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing.PsaList;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing.PsaList.ItemReference;
+import com.amadeus.xml.ttstrq_13_1_1a.CodedAttributeInformationType;
+import com.amadeus.xml.ttstrq_13_1_1a.CodedAttributeType;
+import com.amadeus.xml.ttstrq_13_1_1a.TicketDisplayTST;
+
 import java.math.BigDecimal;
 
 /**
@@ -36,5 +41,16 @@ public class CreateTST {
         ir.setUniqueReference(new BigDecimal(ref));
         psa.setItemReference(ir);
         return psa;
+    }
+
+    public TicketDisplayTST createTicketDisplayTSTReq(){
+        TicketDisplayTST ticketDisplayTST = new TicketDisplayTST();
+        CodedAttributeType codedAttributeType = new CodedAttributeType();
+        CodedAttributeInformationType codedAttributeInformationType = new CodedAttributeInformationType();
+        codedAttributeInformationType.setAttributeType("ALL");
+        codedAttributeType.setAttributeDetails(codedAttributeInformationType);
+        ticketDisplayTST.setDisplayMode(codedAttributeType);
+
+        return ticketDisplayTST;
     }
 }

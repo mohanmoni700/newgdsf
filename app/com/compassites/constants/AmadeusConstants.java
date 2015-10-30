@@ -25,6 +25,8 @@ public class AmadeusConstants {
 
     public static String SEGMENT_HOLDING_CONFIRMED = "HK";
 
+    public static String TOTAL_FARE_IDENTIFIER = "712";
+
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");
 

@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Time: 3:43 PM
  * To change this template use File | Settings | File Templates.
  */
-@Service
+//@Service
 public class TravelPortFlightSearch implements FlightSearch {
 
     static Logger logger = LoggerFactory.getLogger("gds");
@@ -299,11 +299,11 @@ public class TravelPortFlightSearch implements FlightSearch {
             //System.out.print(" Travelport BasePrice "+airPricingSolution.getBasePrice() +", ");
             //System.out.print("Taxes "+airPricingSolution.getTaxes()+"]");
 
-            List<Integer> connectionIndexes = new ArrayList<>();
+            /*List<Integer> connectionIndexes = new ArrayList<>();
             for(Connection connection :airPricingSolution.getConnection()){
                 connectionIndexes.add(connection.getSegmentIndex());
             }
-            flightItinerary.getPricingInformation().setConnectionIndexes(connectionIndexes);
+            flightItinerary.getPricingInformation().setConnectionIndexes(connectionIndexes);*/
 
             List<com.travelport.schema.air_v26_0.Journey> journeyList = airPricingSolution.getJourney();
             

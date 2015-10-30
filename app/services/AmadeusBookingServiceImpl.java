@@ -16,6 +16,7 @@ import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
+import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
@@ -399,7 +400,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	public IssuanceResponse ignoreAndRetrievePNR(ServiceHandler serviceHandler, IssuanceRequest issuanceRequest, IssuanceResponse issuanceResponse,  Date pnrResponseReceivedAt) throws InterruptedException {
 		Thread.sleep(3000L);
 		PNRReply gdsPNRReply = serviceHandler.ignoreAndRetrievePNR();
-		boolean allTicketsReceived = AmadeusBookingHelper.createTickets(issuanceResponse,issuanceRequest, gdsPNRReply);
+		boolean allTicketsReceived = AmadeusBookingHelper.createTickets(issuanceResponse, issuanceRequest, gdsPNRReply);
 
 		if(allTicketsReceived){
 			issuanceResponse.setSuccess(true);
@@ -622,9 +623,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		PricingInformation pricingInfo = null;
 		List<Journey> journeyList = null;
         Map<String, Object> json = new HashMap<>();
-
+		ServiceHandler serviceHandler = null;
         try {
-			ServiceHandler serviceHandler = new ServiceHandler();
+			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
 			List<Traveller> travellersList = new ArrayList<>();
@@ -660,9 +661,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
 				carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
 			}
-			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
-			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
-							paxTypeCount.get("adultCount"),	paxTypeCount.get("childCount"),	paxTypeCount.get("infantCount"));
+//			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
+
+            //todo -- added for segment wise pricing
+			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST();
+
+//			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
+//							paxTypeCount.get("adultCount"),	paxTypeCount.get("childCount"),	paxTypeCount.get("infantCount"));
+
+			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen);
 			if (isSeamen) {
 				flightItinerary.setSeamanPricingInformation(pricingInfo);
 			} else {
@@ -692,8 +699,25 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+			serviceHandler.logOut();
 		}
 		return Json.toJson(json);
+	}
+
+	public void getDisplayTicketDetails(String pnr){
+		ServiceHandler serviceHandler = null;
+		try {
+			serviceHandler = new ServiceHandler();
+			serviceHandler.logIn();
+
+			serviceHandler.retrivePNR(pnr);
+
+			serviceHandler.ticketDisplayTST();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

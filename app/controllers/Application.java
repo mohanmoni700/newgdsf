@@ -139,7 +139,7 @@ public class Application {
     	IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
     	String gdsPNR = issuanceRequest.getGdsPNR();
     	String provider = issuanceRequest.getProvider();
-    	TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest,gdsPNR, provider);
+    	TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest, gdsPNR, provider);
     	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
     }
@@ -191,5 +191,15 @@ public class Application {
         System.out.println(" ---------------- JSON " + pretty);*/
         HashMap<String, Object> jsonMap = bookingService.getBookingDetailsForPNR(json);
         return ok(Json.toJson(jsonMap));
+    }
+
+
+    //todo-- added for testing need to remove
+    public Result displayTST(String pnr){
+        AmadeusBookingServiceImpl amadeusBookingService = new AmadeusBookingServiceImpl();
+//        amadeusBookingService.getDisplayTicketDetails(pnr);
+
+        JsonNode jsonNode = amadeusBookingService.getBookingDetails(pnr);
+        return ok(jsonNode);
     }
 }

@@ -20,6 +20,12 @@ public class PricingInformation {
 	
     private BigDecimal infBasePrice;
 
+	private BigDecimal adtTotalPrice;
+
+	private BigDecimal chdTotalPrice;
+
+	private BigDecimal infTotalPrice;
+
 	private BigDecimal tax;
 
 	private BigDecimal totalPrice;
@@ -50,10 +56,14 @@ public class PricingInformation {
 
 	private String provider;
 
-    private List<Integer> connectionIndexes;
+	private boolean segmentWisePricing;
+
+	private List<SegmentPricing> segmentPricingList;
 
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
+		segmentWisePricing = false;
+		segmentPricingList = new ArrayList<>();
 	}
 
 	public boolean isLCC() {
@@ -207,14 +217,6 @@ public class PricingInformation {
         this.totalTax = totalTax;
     }
 
-    public List<Integer> getConnectionIndexes() {
-        return connectionIndexes;
-    }
-
-    public void setConnectionIndexes(List<Integer> connectionIndexes) {
-        this.connectionIndexes = connectionIndexes;
-    }
-
     public BigDecimal getCancelFee() {
         return cancelFee;
     }
@@ -222,4 +224,44 @@ public class PricingInformation {
     public void setCancelFee(BigDecimal cancelFee) {
         this.cancelFee = cancelFee;
     }
+
+	public BigDecimal getAdtTotalPrice() {
+		return adtTotalPrice;
+	}
+
+	public void setAdtTotalPrice(BigDecimal adtTotalPrice) {
+		this.adtTotalPrice = adtTotalPrice;
+	}
+
+	public BigDecimal getChdTotalPrice() {
+		return chdTotalPrice;
+	}
+
+	public void setChdTotalPrice(BigDecimal chdTotalPrice) {
+		this.chdTotalPrice = chdTotalPrice;
+	}
+
+	public BigDecimal getInfTotalPrice() {
+		return infTotalPrice;
+	}
+
+	public void setInfTotalPrice(BigDecimal infTotalPrice) {
+		this.infTotalPrice = infTotalPrice;
+	}
+
+	public boolean isSegmentWisePricing() {
+		return segmentWisePricing;
+	}
+
+	public void setSegmentWisePricing(boolean segmentWisePricing) {
+		this.segmentWisePricing = segmentWisePricing;
+	}
+
+	public List<SegmentPricing> getSegmentPricingList() {
+		return segmentPricingList;
+	}
+
+	public void setSegmentPricingList(List<SegmentPricing> segmentPricingList) {
+		this.segmentPricingList = segmentPricingList;
+	}
 }

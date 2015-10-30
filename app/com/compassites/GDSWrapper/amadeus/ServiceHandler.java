@@ -28,6 +28,8 @@ import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
+import com.amadeus.xml.ttstrq_13_1_1a.TicketDisplayTST;
+import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.amadeus.xml.vlsslq_06_1_1a.SecurityAuthenticate;
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
 import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
@@ -351,5 +353,19 @@ public class ServiceHandler {
         QueueListReply queueListReply = mPortType.queueList(queueListReq,mSession.getSession());
         amadeusLogger.debug("queueListRes" + new Date() + " ---->" + new XStream().toXML(queueListReply));
         return queueListReply;
+    }
+
+    public TicketDisplayTSTReply ticketDisplayTST(){
+        logger.debug("queueListResponse called at " + new Date() + "..................");
+
+        mSession.incrementSequenceNumber();
+        TicketDisplayTST ticketDisplayTST  = new CreateTST().createTicketDisplayTSTReq();
+        XMLFileUtility.createXMLFile(ticketDisplayTST, "ticketDisplayTSTReq.xml");
+
+        TicketDisplayTSTReply ticketDisplayTSTReply = mPortType.ticketDisplayTST(ticketDisplayTST, mSession.getSession());
+
+        XMLFileUtility.createXMLFile(ticketDisplayTSTReply, "ticketDisplayTSTRes.xml");
+
+        return ticketDisplayTSTReply;
     }
 }
