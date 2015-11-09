@@ -110,7 +110,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
             String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 			Thread.sleep(10000);
 			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
-			Date lastPNRAddMultiElements = new Date();
+            Date lastPNRAddMultiElements = new Date();
+
+            gdsPNRReply = readAirlinePNR(serviceHandler,gdsPNRReply,lastPNRAddMultiElements,pnrResponse);
+
 			checkSegmentStatus(gdsPNRReply);
 
 			addSSRDetailsToPNR(serviceHandler, travellerMasterInfo, 1, lastPNRAddMultiElements);
@@ -133,6 +136,33 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 		}
 		return pnrResponse;
+	}
+
+	private PNRReply readAirlinePNR(ServiceHandler serviceHandler, PNRReply  pnrReply, Date lastPNRAddMultiElements, PNRResponse pnrResponse) throws BaseCompassitesException, InterruptedException {
+		List<ItineraryInfo> itineraryInfos = pnrReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+		String airlinePnr = null;
+		if(itineraryInfos != null && itineraryInfos.size() > 0) {
+            for(ItineraryInfo itineraryInfo : itineraryInfos){
+                if(itineraryInfo.getItineraryReservationInfo() != null && itineraryInfo.getItineraryReservationInfo().getReservation() != null){
+                    airlinePnr =  itineraryInfo.getItineraryReservationInfo().getReservation().getControlNumber();
+                }
+            }
+            pnrResponse.setAirlinePNR(airlinePnr);
+
+		}
+        if(airlinePnr == null){
+            Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
+            if (p.getSeconds() >= 12) {
+                throw new BaseCompassitesException("Simultaneous changes Error");
+            }else {
+                Thread.sleep(3000);
+                pnrReply = serviceHandler.ignoreAndRetrievePNR();
+                lastPNRAddMultiElements = new Date();
+                readAirlinePNR(serviceHandler, pnrReply, lastPNRAddMultiElements, pnrResponse);
+            }
+        }
+
+        return pnrReply;
 	}
 
 	private void addSSRDetailsToPNR(ServiceHandler serviceHandler, TravellerMasterInfo travellerMasterInfo, int iteration, Date lastPNRAddMultiElements) throws BaseCompassitesException, InterruptedException {
@@ -208,15 +238,20 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	public FarePricePNRWithBookingClassReply checkPNRPricing(TravellerMasterInfo travellerMasterInfo,ServiceHandler serviceHandler,
 						PNRReply gdsPNRReply, FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse) {
 		String carrierCode = "";
+		List<Journey> journeys;
 		if (travellerMasterInfo.isSeamen()) {
 			carrierCode = travellerMasterInfo.getItinerary().getJourneyList()
 					.get(0).getAirSegmentList().get(0).getCarrierCode();
+			journeys = travellerMasterInfo.getItinerary().getJourneyList();
 		} else {
 			carrierCode = travellerMasterInfo.getItinerary()
 					.getNonSeamenJourneyList().get(0).getAirSegmentList()
 					.get(0).getCarrierCode();
+			journeys = travellerMasterInfo.getItinerary().getNonSeamenJourneyList();
 		}
-		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
+		//todo -- isDomesticFlight variable is hard coded
+		boolean isDomestic = AmadeusHelper.checkAirportCountry("India", journeys);
+		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, journeys);
 		if(pricePNRReply.getApplicationError() != null) {
 			pnrResponse.setFlightAvailable(false);
 			return pricePNRReply;
@@ -255,8 +290,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
         }
 		pnrResponse.setFlightAvailable(true);
-		// TODO: there is a delay in airline PNR generation.
-		pnrResponse.setAirlinePNR("");
+
 //		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
 //				.getTaxDetails(pricePNRReply));
 		return pnrResponse;
@@ -301,17 +335,21 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest
 					.getGdsPNR());
 			String carrierCode = "";
+			List<Journey> journeys = null;
 			if (issuanceRequest.isSeamen()) {
 				carrierCode = issuanceRequest.getFlightItinerary()
 						.getJourneyList().get(0).getAirSegmentList().get(0)
 						.getCarrierCode();
+				journeys = issuanceRequest.getFlightItinerary().getJourneyList();
 			} else {
 				carrierCode = issuanceRequest.getFlightItinerary()
 						.getNonSeamenJourneyList().get(0).getAirSegmentList()
 						.get(0).getCarrierCode();
+				journeys = issuanceRequest.getFlightItinerary().getNonSeamenJourneyList();
 			}
+			//todo isDomesticFlight variable in call to priciPNR is hard coded
 			com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler
-					.pricePNR(carrierCode, gdsPNRReply);
+					.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), false, journeys);
 
 			int numberOfTst = (issuanceRequest.isSeamen()) ? 1
 					: getPassengerTypeCount(issuanceRequest.getTravellerList());
@@ -527,6 +565,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
 			}
             String carrierCode = "";
+
             if (issuanceRequest.isSeamen()) {
                 carrierCode = flightItinerary.getJourneyList()
                         .get(0).getAirSegmentList().get(0).getCarrierCode();
@@ -534,7 +573,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList()
                         .get(0).getCarrierCode();
             }
-            com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
+			//todo -- isDomesticFlight variable is hard coded PricPNR call
+            com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, isSeamen , false, journeyList);
             PricingInformation pricingInformation = AmadeusBookingHelper.getPricingForDownsellAndConversion(pricePNRReply,totalFareIdentifier, issuanceRequest.getAdultCount());
             if(isSeamen){
                 flightItinerary.setSeamanPricingInformation(pricingInformation);

@@ -216,4 +216,11 @@ public class Airport extends Model implements Serializable {
 		return airport;
 	}
 
+	public static boolean checkCountry(String country, List<String> codes){
+		int count = find.where().in("iata_code",codes).eq("country", country).findRowCount();
+		if(count == codes.size()){
+			return true;
+		}
+		return false;
+	}
 }

@@ -48,7 +48,13 @@ public class BookFlights {
 				fareJourney = flightItinerary.getPricingInformation().getPaxFareDetailsList().get(0).getFareJourneyList().get(i);
 			}
 			if (journey.getAirSegmentList().size() > 0) {
-				sfr.getItineraryDetails().add(createItineraryDetails(journey, fareJourney, travellerMasterInfo.getTravellersList().size()));
+                int travellerCount = 0;
+                if(travellerMasterInfo.isSeamen()){
+                    travellerCount = travellerMasterInfo.getTravellersList().size();
+                }else {
+                    travellerCount = travellerMasterInfo.getAdultChildPaxCount();
+                }
+				sfr.getItineraryDetails().add(createItineraryDetails(journey, fareJourney, travellerCount));
 			}
 		}
 		return sfr;

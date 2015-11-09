@@ -115,11 +115,11 @@ public class FareInformation {
 				segmentControlDetails);
 		passengerGroup.setSegmentRepetitionControl(segmentRepetitionControl);
 
-		TravellersID travellersId = new TravellersID();
+		/*TravellersID travellersId = new TravellersID();
 		TravellerDetails travellerDetails = new TravellerDetails();
 		travellerDetails.setMeasurementValue(new BigDecimal(1));
 		travellersId.getTravellerDetails().add(travellerDetails);
-		passengerGroup.setTravellersID(travellersId);
+		passengerGroup.setTravellersID(travellersId);*/
 
 		PtcGroup ptcGroup = new PtcGroup();
 		DiscountPtc discountPtc = new DiscountPtc();

@@ -2,6 +2,8 @@ package com.compassites.model.traveller;
 
 import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
+import com.compassites.model.PassengerTypeCode;
+import utils.DateUtility;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -124,5 +126,18 @@ public class TravellerMasterInfo {
 
     public void setValidTillDate(Date validTillDate) {
         this.validTillDate = validTillDate;
+    }
+
+    public int getAdultChildPaxCount(){
+        int count = 0;
+
+        for(Traveller traveller : this.travellersList){
+            PassengerTypeCode passengerTypeCode = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            if(!"INF".equalsIgnoreCase(passengerTypeCode.toString())){
+                count = count + 1;
+            }
+
+        }
+        return count;
     }
 }

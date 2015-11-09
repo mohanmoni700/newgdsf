@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -268,7 +269,7 @@ public class AmadeusFlightSearch implements FlightSearch{
     }
 
     //list with all flight informaition
-    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
+//    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
     private ConcurrentHashMap<Integer, FlightItinerary> createFlightItineraryList(AirSolution airSolution, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
         List<FlightItinerary> flightItineraryList = new ArrayList<>();
@@ -276,21 +277,21 @@ public class AmadeusFlightSearch implements FlightSearch{
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
 
         String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
-        flightIndexList=fareMasterPricerTravelBoardSearchReply.getFlightIndex();
+        List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
         for (FareMasterPricerTravelBoardSearchReply.Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                 FlightItinerary flightItinerary = new FlightItinerary();
                 flightItinerary.setPricingInformation(getPricingInformation(recommendation));
-                flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation));
                 flightItinerary.getPricingInformation().setGdsCurrency(currency);
-                flightItinerary = createJourneyInformation(segmentRef,flightItinerary);
+                flightItinerary = createJourneyInformation(segmentRef,flightItinerary, flightIndexList, recommendation);
+                flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
                 flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
             }
         }
         return flightItineraryHashMap;
     }
 
-    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef,FlightItinerary flightItinerary){
+    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef,FlightItinerary flightItinerary, List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList, FareMasterPricerTravelBoardSearchReply.Recommendation recommendation){
         /*Journey forwardJourney=new Journey();
         Journey returnJourney=new Journey();*/
         int flightIndexNumber=0;
@@ -298,7 +299,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             //0 is for forward journey and refQualifier should be S for segment
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
                 Journey journey = new Journey();
-                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1));
+                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1),recommendation);
                 flightItinerary.getJourneyList().add(journey);
                 flightItinerary.getNonSeamenJourneyList().add(journey);
                 //flightItinerary.getJourneyList().add(setJourney(flightIndexNumber == 0 ? forwardJourney : returnJourney, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
@@ -324,7 +325,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         return duration;
     }
 
-    private Journey setJourney(Journey journey,FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlight){
+    private Journey setJourney(Journey journey,FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlight, FareMasterPricerTravelBoardSearchReply.Recommendation recommendation){
         //no of stops
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
         //set travel time
@@ -333,9 +334,11 @@ public class AmadeusFlightSearch implements FlightSearch{
                 journey.setTravelTime(setTravelDuraion(proposedSegmentDetailsType.getRef()));
             }
         }
+        //get farebases
+        String fareBasis = getFareBasis(recommendation.getPaxFareProduct().get(0).getFareDetails().get(0));
         //set segments information
         for(FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails:groupOfFlight.getFlightDetails()){
-            journey.getAirSegmentList().add(setSegmentInformation(flightDetails));
+            journey.getAirSegmentList().add(setSegmentInformation(flightDetails, fareBasis));
             journey.setProvider("Amadeus");
         }
         getConnectionTime(journey.getAirSegmentList());
@@ -364,7 +367,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 		}
 	}
     
-    private AirSegmentInformation setSegmentInformation(FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails){
+    private AirSegmentInformation setSegmentInformation(FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis){
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         TravelProductType flightInformation=flightDetails.getFlightInformation();
 
@@ -412,6 +415,8 @@ public class AmadeusFlightSearch implements FlightSearch{
             Minutes diffDeparture = Minutes.minutesBetween(prevArrivalDateTime, departureDate);
             airSegmentInformation.setConnectionTime(diffDeparture.getMinutes());
         }*/
+
+        airSegmentInformation.setFareBasis(fareBasis);
 
         airSegmentInformation.setTravelTime("" + diff.getMinutes());
         if (flightInformation.getCompanyId() != null && flightInformation.getCompanyId().getMarketingCarrier() != null && flightInformation.getCompanyId().getMarketingCarrier().length() >= 2) {
@@ -560,7 +565,7 @@ public class AmadeusFlightSearch implements FlightSearch{
     }
 
 
-    private List<PAXFareDetails> createFareDetails(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation){
+    private List<PAXFareDetails> createFareDetails(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation, List<Journey> journeys){
         List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
         for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct :recommendation.getPaxFareProduct()){
             PAXFareDetails paxFareDetails = new PAXFareDetails();
@@ -577,5 +582,13 @@ public class AmadeusFlightSearch implements FlightSearch{
             paxFareDetailsList.add(paxFareDetails);
         }
         return paxFareDetailsList;
+    }
+
+    public String getFareBasis(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails){
+        for(PaxFareProduct.FareDetails.GroupOfFares groupOfFares : fareDetails.getGroupOfFares()){
+            return groupOfFares.getProductInformation().getFareProductDetail().getFareBasis();
+
+        }
+        return  null;
     }
 }

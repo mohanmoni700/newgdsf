@@ -5,11 +5,9 @@ import com.amadeus.xml.pnradd_11_3_1a.*;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
+import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.PassengerTypeCode;
-import com.compassites.model.traveller.PassportDetails;
-import com.compassites.model.traveller.PersonalDetails;
-import com.compassites.model.traveller.Preferences;
-import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.traveller.*;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
@@ -20,6 +18,7 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class PNRAddMultiElementsh {
@@ -62,12 +61,20 @@ public class PNRAddMultiElementsh {
         element.setDataElementsMaster(dem);
         return element;
     }
+
     private List<TravellerInfo> getPassengersList(TravellerMasterInfo travellerMasterInfo){
 
         int passengerCount = 1;
         List<TravellerInfo> travellerInfoList = new ArrayList<>();
+        boolean isSeamen = travellerMasterInfo.isSeamen();
 
-        for (com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()){
+        List<Traveller> travellers = travellerMasterInfo.getTravellersList();
+        List<Traveller> infantTravellerList = new ArrayList<>();
+        if(!isSeamen) {
+            infantTravellerList = getInfantTravellerList(travellerMasterInfo.getTravellersList());  //also removes the infant from traveller
+        }
+        int infantIndex = 0;
+        for (com.compassites.model.traveller.Traveller traveller : travellers){
             TravellerInfo travellerInfo = new TravellerInfo();
             ElementManagementSegmentType emp = new ElementManagementSegmentType();
             ReferencingDetailsType rf = new ReferencingDetailsType();
@@ -78,32 +85,83 @@ public class PNRAddMultiElementsh {
             travellerInfo.setElementManagementPassenger(emp);
 
             TravellerInfo.PassengerData passengerData = new TravellerInfo.PassengerData();
-            TravellerInformationTypeI ti = new TravellerInformationTypeI();
-            TravellerSurnameInformationTypeI tr = new TravellerSurnameInformationTypeI();
-            tr.setSurname(traveller.getPersonalDetails().getLastName());
-            tr.setQuantity(new BigInteger("1"));
+            TravellerInformationTypeI travellerInformation = new TravellerInformationTypeI();
+            TravellerSurnameInformationTypeI gdsTraveller = new TravellerSurnameInformationTypeI();
+            gdsTraveller.setSurname(traveller.getPersonalDetails().getLastName());
+            gdsTraveller.setQuantity(new BigInteger("1"));
 
-            TravellerDetailsTypeI p = new TravellerDetailsTypeI();
-            p.setFirstName(traveller.getPersonalDetails().getFirstName()+" "+traveller.getPersonalDetails().getMiddleName());
-            //p.setIdentificationCode("ID1234");
-            //p.setType("SEA");
+            TravellerDetailsTypeI passenger = new TravellerDetailsTypeI();
+            passenger.setFirstName(traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName());
+
             if(travellerMasterInfo.isSeamen()){
-                p.setType(PassengerTypeCode.SEA.toString());
+                passenger.setType(PassengerTypeCode.SEA.toString());
 
             }else {
-                p.setType(getPassengerType(traveller.getPassportDetails().getDateOfBirth()));
+                passenger.setType(getPassengerType(traveller.getPassportDetails().getDateOfBirth()));
             }
 
-            ti.getPassenger().add(p);
+            TravellerInfo.PassengerData infantPassengerData = null;
+            if(!isSeamen && infantTravellerList.size() >= 1){
+                passenger.setInfantIndicator("3");
+                infantPassengerData = addInfantAssociation(infantTravellerList.get(infantIndex));
+                infantTravellerList.remove(infantIndex);
+//                infantIndex++;
+            }
 
-            ti.setTraveller(tr);
-            passengerData.setTravellerInformation(ti);
+            travellerInformation.getPassenger().add(passenger);
+            travellerInformation.setTraveller(gdsTraveller);
+            passengerData.setTravellerInformation(travellerInformation);
             travellerInfo.getPassengerData().add(passengerData);
-
+            if(infantPassengerData != null){
+                travellerInfo.getPassengerData().add(infantPassengerData);
+            }
             travellerInfoList.add(travellerInfo);
         }
 
         return travellerInfoList;
+    }
+
+    public TravellerInfo.PassengerData addInfantAssociation(Traveller traveller){
+        TravellerInfo.PassengerData passengerData = new TravellerInfo.PassengerData();
+        TravellerInformationTypeI travellerInformation = new TravellerInformationTypeI();
+        TravellerSurnameInformationTypeI gdsTraveller = new TravellerSurnameInformationTypeI();
+        gdsTraveller.setSurname(traveller.getPersonalDetails().getLastName());
+        gdsTraveller.setQuantity(new BigInteger("1"));
+
+
+        TravellerDetailsTypeI passenger = new TravellerDetailsTypeI();
+        passenger.setFirstName(traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName());
+        passenger.setType(getPassengerType(traveller.getPassportDetails().getDateOfBirth()));
+
+        DateAndTimeInformationType dateAndTimeInformationType = new DateAndTimeInformationType();
+        DateAndTimeDetailsTypeI56946C dateAndTimeDetails = new DateAndTimeDetailsTypeI56946C();
+        dateAndTimeDetails.setQualifier(AmadeusConstants.DOB_QUALIFIER);
+        SimpleDateFormat sdf = new SimpleDateFormat("dMMMyy");
+//        dateAndTimeDetails.setDate(sdf.format(traveller.getPassportDetails().getDateOfBirth()));
+        dateAndTimeDetails.setDate("08Feb14");
+        dateAndTimeInformationType.setDateAndTimeDetails(dateAndTimeDetails);
+        passengerData.setDateOfBirth(dateAndTimeInformationType);
+
+        travellerInformation.getPassenger().add(passenger);
+        travellerInformation.setTraveller(gdsTraveller);
+        passengerData.setTravellerInformation(travellerInformation);
+
+        return passengerData;
+    }
+
+    public List<Traveller>  getInfantTravellerList(List<Traveller> travellerList){
+        List<Traveller> infantList = new ArrayList<>();
+        Iterator<Traveller> travellerIterator = travellerList.iterator();
+        while(travellerIterator.hasNext()){
+            Traveller traveller = travellerIterator.next();
+            String passengerType = getPassengerType(traveller.getPassportDetails().getDateOfBirth());
+            if("INF".equals(passengerType)){
+                infantList.add(traveller);
+                travellerIterator.remove();
+            }
+
+        }
+        return infantList;
     }
 
     //TODO-- Add Seaman type to the adult passenger

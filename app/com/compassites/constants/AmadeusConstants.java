@@ -27,6 +27,8 @@ public class AmadeusConstants {
 
     public static String TOTAL_FARE_IDENTIFIER = "712";
 
+    public static String DOB_QUALIFIER = "706";
+
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");
 

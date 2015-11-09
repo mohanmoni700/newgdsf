@@ -60,7 +60,12 @@ public class SearchFlights {
     //search flights with 2 cities- faremasterpricertravelboardsearch service
     public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters) {
         FareMasterPricerTravelBoardSearch se = new FareMasterPricerTravelBoardSearch();
-        se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
+        if(searchParameters.getBookingType() == BookingType.SEAMEN){
+            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount() + searchParameters.getInfantCount()));
+        }else {
+            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
+        }
+
 
         se.getPaxReference().addAll(createPassengers(searchParameters));
         se.getItinerary().addAll(createItinerary(searchParameters));
@@ -82,6 +87,9 @@ public class SearchFlights {
         }
 
         setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
+
+        FareMasterPricerTravelBoardSearch.FareOptions  fareOptions = createFareOptions();
+        se.setFareOptions(fareOptions);
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
             FareMasterPricerTravelBoardSearch.FareOptions fe1 = new FareMasterPricerTravelBoardSearch.FareOptions();
@@ -138,18 +146,18 @@ public class SearchFlights {
         pit.getPriceType().add("RP");
         pit.getPriceType().add("RU");
         pit.getPriceType().add("TAC");
-        pit.getPriceType().add("PTC");
+       /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");
-        pit.getPriceType().add("NSD");
+        pit.getPriceType().add("NSD");*/
 
         pdt.setPricingTicketing(pit);
 
-        CodedAttributeType fid = new CodedAttributeType();
+       /* CodedAttributeType fid = new CodedAttributeType();
         CodedAttributeInformationType247829C cid = new CodedAttributeInformationType247829C();
         cid.setFeeType("NPS");
         cid.setFeeIdNumber("0");
         fid.getFeeId().add(cid);
-        fe.setFeeIdDescription(fid);
+        fe.setFeeIdDescription(fid);*/
         fe.setPricingTickInfo(pdt);
         return fe;
     }

@@ -7,9 +7,13 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.tpcbrq_07_3_1a.*;
+import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.PricingFareBase;
 import com.amadeus.xml.tpcbrq_12_4_1a.*;
+import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
 import com.compassites.model.Journey;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,47 +21,83 @@ import java.util.List;
  * @author mahendra-singh
  */
 public class PricePNR {
-    public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply){
+    public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply,boolean isSeamen, boolean isDomesticFlight, List<Journey> journeyList){
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
         CodedAttributeType overrideInformation = new CodedAttributeType();
         ReferenceInformationTypeI94605S paxSegReference = new ReferenceInformationTypeI94605S();
         ReferencingDetailsTypeI142222C refDetails = new ReferencingDetailsTypeI142222C();
 
+        if(isDomesticFlight){
+            for(PNRReply.OriginDestinationDetails originatorDetails : pnrReply.getOriginDestinationDetails())  {
+                for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originatorDetails.getItineraryInfo()){
+                    refDetails = new ReferencingDetailsTypeI142222C();
+                    refDetails.setRefQualifier(itineraryInfo.getElementManagementItinerary().getReference().getQualifier());
+                    refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
+                    paxSegReference.getRefDetails().add(refDetails);
 
-        for(PNRReply.OriginDestinationDetails originatorDetails : pnrReply.getOriginDestinationDetails())  {
-            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originatorDetails.getItineraryInfo()){
-                refDetails = new ReferencingDetailsTypeI142222C();
-                refDetails.setRefQualifier(itineraryInfo.getElementManagementItinerary().getReference().getQualifier());
-                refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
-                paxSegReference.getRefDetails().add(refDetails);
-
+                }
             }
+           /* refDetails.setRefQualifier("S");
+            refDetails.setRefNumber(new BigDecimal(1));
+            paxSegReference.getRefDetails().add(refDetails);
+            refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
+            refDetails.setRefQualifier("S");
+            refDetails.setRefNumber(new BigDecimal(2));
+            paxSegReference.getRefDetails().add(refDetails);*/
+            pricepnr.setPaxSegReference(paxSegReference);
         }
-       /* refDetails.setRefQualifier("S");
-        refDetails.setRefNumber(new BigDecimal(1));
-        paxSegReference.getRefDetails().add(refDetails);
-        refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
-        refDetails.setRefQualifier("S");
-        refDetails.setRefNumber(new BigDecimal(2));
-        paxSegReference.getRefDetails().add(refDetails);*/
-        pricepnr.setPaxSegReference(paxSegReference);
+
 
         CodedAttributeInformationType attributeDetails=new CodedAttributeInformationType();
         //attributeDetails.setAttributeType("BK");
         //attributeDetails.setAttributeType("NOP");
         //attributeDetails.setAttributeDescription("XN");
-        attributeDetails.setAttributeType("ptc");
-        overrideInformation.getAttributeDetails().add(attributeDetails);
+        if(isSeamen) {
+            attributeDetails.setAttributeType("ptc");
+            overrideInformation.getAttributeDetails().add(attributeDetails);
+        }else {
+            overrideInformation.getAttributeDetails().addAll(addPricingOptions(false));
+        }
+
+
+
         pricepnr.setOverrideInformation(overrideInformation);
 
         TransportIdentifierType validatingCarrier = new TransportIdentifierType();
         CompanyIdentificationTypeI carrierInformation = new CompanyIdentificationTypeI();
-        List<Journey> journeyList = null;
 
         carrierInformation.setCarrierCode(carrierCode);
         validatingCarrier.setCarrierInformation(carrierInformation);
         pricepnr.setValidatingCarrier(validatingCarrier);
+
+
+       /* FarePricePNRWithBookingClass.PricingFareBase pricingFareBase = new FarePricePNRWithBookingClass.PricingFareBase();
+        PricingFareBase.FareBasisOptions fareBasisOptions = new PricingFareBase.FareBasisOptions();
+        PricingFareBase.FareBasisOptions.FareBasisDetails fareBasisDetails = new PricingFareBase.FareBasisOptions.FareBasisDetails();
+        fareBasisDetails.setPrimaryCode("");*/
         return pricepnr;
+    }
+
+
+    public List<CodedAttributeInformationType> addPricingOptions(boolean isDomestic){
+        List<CodedAttributeInformationType> attributeList = new ArrayList<>();
+        CodedAttributeInformationType codedAttributeInformationType = new CodedAttributeInformationType();
+        codedAttributeInformationType.setAttributeType("RP");
+        attributeList.add(codedAttributeInformationType);
+        codedAttributeInformationType = new CodedAttributeInformationType();
+        codedAttributeInformationType.setAttributeType("RU");
+        attributeList.add(codedAttributeInformationType);
+
+        codedAttributeInformationType = new CodedAttributeInformationType();
+        if (isDomestic) {
+            codedAttributeInformationType.setAttributeType("RU");
+        }else {
+            codedAttributeInformationType.setAttributeType("RLO");
+        }
+        attributeList.add(codedAttributeInformationType);
+
+
+        return attributeList;
     }
     
     public void helper(){
