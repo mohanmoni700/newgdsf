@@ -3,6 +3,7 @@ package com.compassites.model.traveller;
 import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.PassengerTypeCode;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import utils.DateUtility;
 
 import java.util.ArrayList;
@@ -128,15 +129,17 @@ public class TravellerMasterInfo {
         this.validTillDate = validTillDate;
     }
 
+    @JsonIgnore
     public int getAdultChildPaxCount(){
         int count = 0;
 
         for(Traveller traveller : this.travellersList){
-            PassengerTypeCode passengerTypeCode = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
-            if(!"INF".equalsIgnoreCase(passengerTypeCode.toString())){
-                count = count + 1;
+            if(traveller.getPassportDetails() != null){
+                PassengerTypeCode passengerTypeCode = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+                if(!"INF".equalsIgnoreCase(passengerTypeCode.toString())){
+                    count = count + 1;
+                }
             }
-
         }
         return count;
     }
