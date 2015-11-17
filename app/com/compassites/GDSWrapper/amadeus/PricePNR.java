@@ -7,12 +7,16 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
-import com.amadeus.xml.tpcbrq_07_3_1a.*;
-import com.amadeus.xml.tpcbrq_07_3_1a.FarePricePNRWithBookingClass.PricingFareBase;
+import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
+import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.StructuredFareCalcGroup.Group27.Group28.StructuredFareCalcG28PTS.FareBasisDetails;
+import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass.PricingFareBase;
 import com.amadeus.xml.tpcbrq_12_4_1a.*;
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
+import com.compassites.model.FareJourney;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,29 +25,23 @@ import java.util.List;
  * @author mahendra-singh
  */
 public class PricePNR {
-    public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply,boolean isSeamen, boolean isDomesticFlight, List<Journey> journeyList){
+    public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply,boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary){
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
         CodedAttributeType overrideInformation = new CodedAttributeType();
         ReferenceInformationTypeI94605S paxSegReference = new ReferenceInformationTypeI94605S();
         ReferencingDetailsTypeI142222C refDetails = new ReferencingDetailsTypeI142222C();
 
-        if(isDomesticFlight){
-            for(PNRReply.OriginDestinationDetails originatorDetails : pnrReply.getOriginDestinationDetails())  {
-                for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originatorDetails.getItineraryInfo()){
-                    refDetails = new ReferencingDetailsTypeI142222C();
-                    refDetails.setRefQualifier(itineraryInfo.getElementManagementItinerary().getReference().getQualifier());
-                    refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
-                    paxSegReference.getRefDetails().add(refDetails);
 
-                }
+        if(isDomesticFlight){
+            int i = 1;
+            for(Journey journey : flightItinerary.getJourneys(isSeamen))  {
+                refDetails = new ReferencingDetailsTypeI142222C();
+                refDetails.setRefQualifier("S");
+                refDetails.setRefNumber(BigInteger.valueOf(i));
+                paxSegReference.getRefDetails().add(refDetails);
+                i = i + 1;
             }
-           /* refDetails.setRefQualifier("S");
-            refDetails.setRefNumber(new BigDecimal(1));
-            paxSegReference.getRefDetails().add(refDetails);
-            refDetails = new FarePricePNRWithBookingClass.PaxSegReference.RefDetails();
-            refDetails.setRefQualifier("S");
-            refDetails.setRefNumber(new BigDecimal(2));
-            paxSegReference.getRefDetails().add(refDetails);*/
+
             pricepnr.setPaxSegReference(paxSegReference);
         }
 
@@ -56,7 +54,7 @@ public class PricePNR {
             attributeDetails.setAttributeType("ptc");
             overrideInformation.getAttributeDetails().add(attributeDetails);
         }else {
-            overrideInformation.getAttributeDetails().addAll(addPricingOptions(false));
+            overrideInformation.getAttributeDetails().addAll(addPricingOptions(isDomesticFlight));
         }
 
 
@@ -70,11 +68,36 @@ public class PricePNR {
         validatingCarrier.setCarrierInformation(carrierInformation);
         pricepnr.setValidatingCarrier(validatingCarrier);
 
+        if(isDomesticFlight){
+            List<FareJourney> fareJourneys = flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList().get(0).getFareJourneyList();
+            int journeyIndex = 1;
+            for(FareJourney fareJourney : fareJourneys){
+                FarePricePNRWithBookingClass.PricingFareBase pricingFareBase = new FarePricePNRWithBookingClass.PricingFareBase();
+                FareQualifierDetailsTypeI fareBasisOptions = new FareQualifierDetailsTypeI();
+                AdditionalFareQualifierDetailsTypeI fareBasisDetails = new AdditionalFareQualifierDetailsTypeI();
+                String fareBasis = fareJourney.getFareSegmentList().get(0).getFareBasis();
+                String primaryCode = fareBasis.substring(0, 3);
+                fareBasisDetails.setPrimaryCode(primaryCode);
+                if(fareBasis.length() > 3){
+                    String basisCode = fareBasis.substring(3);
+                    fareBasisDetails.setFareBasisCode(basisCode);
+                }
+                fareBasisOptions.setFareBasisDetails(fareBasisDetails);
+                pricingFareBase.setFareBasisOptions(fareBasisOptions);
 
-       /* FarePricePNRWithBookingClass.PricingFareBase pricingFareBase = new FarePricePNRWithBookingClass.PricingFareBase();
-        PricingFareBase.FareBasisOptions fareBasisOptions = new PricingFareBase.FareBasisOptions();
-        PricingFareBase.FareBasisOptions.FareBasisDetails fareBasisDetails = new PricingFareBase.FareBasisOptions.FareBasisDetails();
-        fareBasisDetails.setPrimaryCode("");*/
+                ReferenceInformationTypeI94606S fareBasisSegReferenc = new ReferenceInformationTypeI94606S();
+                ReferencingDetailsTypeI142223C referencingDetails = new ReferencingDetailsTypeI142223C();
+                referencingDetails.setRefNumber(BigInteger.valueOf(journeyIndex));
+                referencingDetails.setRefQualifier("S");
+                fareBasisSegReferenc.getRefDetails().add(referencingDetails);
+                pricingFareBase.setFareBasisSegReference(fareBasisSegReferenc);
+
+                journeyIndex = journeyIndex + 1;
+                pricepnr.getPricingFareBase().add(pricingFareBase);
+            }
+        }
+
+
         return pricepnr;
     }
 
@@ -90,7 +113,7 @@ public class PricePNR {
 
         codedAttributeInformationType = new CodedAttributeInformationType();
         if (isDomestic) {
-            codedAttributeInformationType.setAttributeType("RU");
+            codedAttributeInformationType.setAttributeType("FBA");
         }else {
             codedAttributeInformationType.setAttributeType("RLO");
         }

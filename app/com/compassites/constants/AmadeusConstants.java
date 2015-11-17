@@ -29,6 +29,9 @@ public class AmadeusConstants {
 
     public static String DOB_QUALIFIER = "706";
 
+    public static final String SERVICE_TAX_COUNTRY = "India";
+
+
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");
 

@@ -38,4 +38,29 @@ public class FareRules {
 
         return fareCheckRules;
     }
+
+    public FareCheckRules getFareInfoForFCType(String fcNumber){
+
+        FareCheckRules fareCheckRules = new FareCheckRules();
+
+        FareCheckRules.MsgType msgType = new FareCheckRules.MsgType();
+        FareCheckRules.MsgType.MessageFunctionDetails messageFunctionDetails = new FareCheckRules.MsgType.MessageFunctionDetails();
+        messageFunctionDetails.setMessageFunction("712");
+        msgType.setMessageFunctionDetails(messageFunctionDetails);
+        fareCheckRules.setMsgType(msgType);
+
+        FareCheckRules.ItemNumber itemNumber = new FareCheckRules.ItemNumber();
+        FareCheckRules.ItemNumber.ItemNumberDetails itemNumberDetails = new FareCheckRules.ItemNumber.ItemNumberDetails();
+        itemNumberDetails.setNumber("1");
+        itemNumber.getItemNumberDetails().add(itemNumberDetails);
+
+        FareCheckRules.ItemNumber.ItemNumberDetails fcItemNumberDetails = new FareCheckRules.ItemNumber.ItemNumberDetails();
+        fcItemNumberDetails.setNumber(fcNumber);
+        fcItemNumberDetails.setType("FC");
+        itemNumber.getItemNumberDetails().add(fcItemNumberDetails);
+
+        fareCheckRules.setItemNumber(itemNumber);
+
+        return fareCheckRules;
+    }
 }

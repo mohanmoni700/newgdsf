@@ -109,7 +109,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	}
 	
 	public String getCancellationFee(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
-        String fareRules = "";
+		String fareRules = "";
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
@@ -122,13 +122,24 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
             amadeusLogger.debug("FareInformativePricingWithoutPNRReply "+ new Date()+" ------->>"+ new XStream().toXML(pricingReply));
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
             StringBuilder fareRule = new StringBuilder();
-            for(FareCheckRulesReply.TariffInfo tariffInfo : fareCheckRulesReply.getTariffInfo()){
-                if("(16)".equals(tariffInfo.getFareRuleInfo().getRuleCategoryCode())){
-                    for(FareCheckRulesReply.TariffInfo.FareRuleText text : tariffInfo.getFareRuleText() ) {
-                        fareRule.append(text.getFreeText().get(0));
-                    }
-                }
-            }
+			if(fareCheckRulesReply.getErrorInfo() != null){
+				return "No Fare Rules";
+			}
+			if(fareCheckRulesReply.getTariffInfo() == null || fareCheckRulesReply.getTariffInfo().size() == 0){
+				for(FareCheckRulesReply.FlightDetails flightDetails :fareCheckRulesReply.getFlightDetails()){
+					for(FareCheckRulesReply.FlightDetails.TravellerGrp travellerGrp : flightDetails.getTravellerGrp()){
+						for(FareCheckRulesReply.FlightDetails.TravellerGrp.TravellerIdentRef.ReferenceDetails referenceDetails : travellerGrp.getTravellerIdentRef().getReferenceDetails()){
+							if("FC".equalsIgnoreCase(referenceDetails.getType())){
+								FareCheckRulesReply fcFareRulesReply = serviceHandler.getFareRulesForFCType(referenceDetails.getValue());
+								fareRule.append(getFareRuleFromTariffInfo(fcFareRulesReply));
+							}
+						}
+					}
+				}
+			}else{
+				fareRule.append(getFareRuleFromTariffInfo(fareCheckRulesReply));
+			}
+
             fareRules = fareRule.toString();
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,7 +151,19 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		}
 		return fareRules;
     }
-	
+	public String getFareRuleFromTariffInfo(FareCheckRulesReply fareCheckRulesReply){
+		StringBuilder fareRuleText = new StringBuilder();
+		for(FareCheckRulesReply.TariffInfo tariffInfo : fareCheckRulesReply.getTariffInfo()){
+			if("(16)".equals(tariffInfo.getFareRuleInfo().getRuleCategoryCode())){
+				for(FareCheckRulesReply.TariffInfo.FareRuleText text : tariffInfo.getFareRuleText() ) {
+					fareRuleText.append(text.getFreeText().get(0));
+				}
+			}
+		}
+
+		return fareRuleText.toString();
+	}
+
 	private void addBaggageInfo(FlightItinerary itinerary, List<PricingGroupLevelGroup> pricingLevelGroup, boolean seamen) {
 		List<SegmentLevelGroup> segmentGrpList = new ArrayList<>();
 		for(PricingGroupLevelGroup pricingLevelGrp : pricingLevelGroup) {

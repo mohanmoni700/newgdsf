@@ -172,4 +172,11 @@ public class FlightItinerary implements Serializable{
         }
         this.pricingInformation = pricingInformation;
     }
+
+    public List<Journey> getJourneys(boolean isSeamen){
+        if(isSeamen){
+           return journeyList;
+        }
+        return nonSeamenJourneyList;
+    }
 }

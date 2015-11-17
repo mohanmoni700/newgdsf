@@ -7,6 +7,7 @@ public class FareSegment {
 
     private String BookingClass;
 
+    private String fareBasis;
 
     public String getBookingClass() {
         return BookingClass;
@@ -14,5 +15,13 @@ public class FareSegment {
 
     public void setBookingClass(String bookingClass) {
         BookingClass = bookingClass;
+    }
+
+    public String getFareBasis() {
+        return fareBasis;
+    }
+
+    public void setFareBasis(String fareBasis) {
+        this.fareBasis = fareBasis;
     }
 }

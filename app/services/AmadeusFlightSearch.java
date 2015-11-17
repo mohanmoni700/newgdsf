@@ -575,6 +575,8 @@ public class AmadeusFlightSearch implements FlightSearch{
                     FareSegment fareSegment = new FareSegment();
                     fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
                     paxFareDetails.setPassengerTypeCode(PassengerTypeCode.valueOf(groupOfFares.getProductInformation().getFareProductDetail().getPassengerType()));
+
+                    fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
                     fareJourney.getFareSegmentList().add(fareSegment);
                 }
                 paxFareDetails.getFareJourneyList().add(fareJourney);

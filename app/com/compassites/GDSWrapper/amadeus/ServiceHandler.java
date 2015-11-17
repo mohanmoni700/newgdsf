@@ -37,6 +37,7 @@ import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -173,10 +174,10 @@ public class ServiceHandler {
     }
 
     //pricing transaction
-    public FarePricePNRWithBookingClassReply pricePNR(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, List<Journey> journeyList) {
+    public FarePricePNRWithBookingClassReply pricePNR(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary) {
         mSession.incrementSequenceNumber();
         logger.debug("amadeus pricePNR called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
-        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, journeyList);
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary);
 
         XMLFileUtility.createXMLFile(pricePNRWithBookingClass, "pricePNRWithBookingClassReq.xml");
         amadeusLogger.debug("pricePNRWithBookingClassReq " + new Date() + " ---->" + new XStream().toXML(pricePNRWithBookingClass));
@@ -292,7 +293,7 @@ public class ServiceHandler {
         XMLFileUtility.createXMLFile(fareInformativePricingPNRReply, "farePricingWithoutPNRRes.xml");
         return  fareInformativePricingPNRReply;
 	}
-	
+
 	public AirFlightInfoReply getFlightInfo(AirSegmentInformation airSegment) {
 		mSession.incrementSequenceNumber();
         logger.debug("amadeus getFlightInfo  called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
@@ -311,7 +312,21 @@ public class ServiceHandler {
         amadeusLogger.debug("fareRulesRes " + new Date() + " ---->" + new XStream().toXML(fareCheckRulesReply));
         return fareCheckRulesReply;
     }
-    
+
+    public FareCheckRulesReply getFareRulesForFCType(String fcNumber){
+        mSession.incrementSequenceNumber();
+        logger.debug("amadeus getFareRulesForFCType called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
+        FareCheckRules fareCheckRules = new FareRules().getFareInfoForFCType(fcNumber);
+        XMLFileUtility.createXMLFile(fareCheckRules, "getFareRulesForFCTypeReq.xml");
+        amadeusLogger.debug("getFareRulesForFCTypeReq " + new Date() + " ---->" + new XStream().toXML(fareCheckRules));
+        FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, mSession.getSession());
+        XMLFileUtility.createXMLFile(fareCheckRulesReply, "getFareRulesForFCTypeRes.xml");
+        amadeusLogger.debug("getFareRulesForFCTypeRes " + new Date() + " ---->" + new XStream().toXML(fareCheckRulesReply));
+        return fareCheckRulesReply;
+    }
+
+
+
     public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
     	mSession.incrementSequenceNumber();
     	FarePricePNRWithLowestFare farePricePNRWithLowestFare = null;

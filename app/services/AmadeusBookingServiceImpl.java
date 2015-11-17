@@ -19,7 +19,6 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.exceptions.BaseCompassitesException;
 import com.compassites.model.*;
@@ -29,7 +28,6 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.thoughtworks.xstream.XStream;
 import models.AmadeusSessionWrapper;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
@@ -37,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
-import play.libs.XML;
 import utils.*;
 
 import java.math.BigDecimal;
@@ -251,7 +248,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		//todo -- isDomesticFlight variable is hard coded
 		boolean isDomestic = AmadeusHelper.checkAirportCountry("India", journeys);
-		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, journeys);
+		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, travellerMasterInfo.getItinerary());
 		if(pricePNRReply.getApplicationError() != null) {
 			pnrResponse.setFlightAvailable(false);
 			return pricePNRReply;
@@ -298,20 +295,24 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
     public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
-		StructuredDateTimeType dateTime = pricePNRReply
-                .getFareList().get(0).getLastTktDate().getDateTime();
-        String day = ((dateTime.getDay().toString().length() == 1) ? "0"
-                + dateTime.getDay() : dateTime.getDay().toString());
-        String month = ((dateTime.getMonth().toString().length() == 1) ? "0"
-                + dateTime.getMonth() : dateTime.getMonth().toString());
-        String year = dateTime.getYear().toString();
-        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
-        Date lastTicketingDate = null;
-        try {
-            lastTicketingDate = sdf.parse(day + month + year);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+		Date lastTicketingDate = null;
+		if(pricePNRReply.getFareList().get(0).getLastTktDate() != null){
+			StructuredDateTimeType dateTime = pricePNRReply
+					.getFareList().get(0).getLastTktDate().getDateTime();
+			String day = ((dateTime.getDay().toString().length() == 1) ? "0"
+					+ dateTime.getDay() : dateTime.getDay().toString());
+			String month = ((dateTime.getMonth().toString().length() == 1) ? "0"
+					+ dateTime.getMonth() : dateTime.getMonth().toString());
+			String year = dateTime.getYear().toString();
+			SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
+
+			try {
+				lastTicketingDate = sdf.parse(day + month + year);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+
         if(lastTicketingDate == null){
             Calendar calendar = Calendar.getInstance();
             Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
@@ -349,7 +350,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 			//todo isDomesticFlight variable in call to priciPNR is hard coded
 			com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler
-					.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), false, journeys);
+					.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), false, issuanceRequest.getFlightItinerary());
 
 			int numberOfTst = (issuanceRequest.isSeamen()) ? 1
 					: getPassengerTypeCount(issuanceRequest.getTravellerList());
@@ -564,18 +565,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			} else {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
 			}
-            String carrierCode = "";
 
-            if (issuanceRequest.isSeamen()) {
-                carrierCode = flightItinerary.getJourneyList()
-                        .get(0).getAirSegmentList().get(0).getCarrierCode();
-            } else {
-                carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList()
-                        .get(0).getCarrierCode();
-            }
-			//todo -- isDomesticFlight variable is hard coded PricPNR call
-            com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, isSeamen , false, journeyList);
-            PricingInformation pricingInformation = AmadeusBookingHelper.getPricingForDownsellAndConversion(pricePNRReply,totalFareIdentifier, issuanceRequest.getAdultCount());
+			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST();
+			PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen);
+
             if(isSeamen){
                 flightItinerary.setSeamanPricingInformation(pricingInformation);
             }else {
@@ -585,7 +578,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			masterInfo.setItinerary(flightItinerary);
 
 			masterInfo.setTravellersList(issuanceResponse.getTravellerList());
-            getCancellationFee(issuanceRequest,issuanceResponse,serviceHandler);
+//            getCancellationFee(issuanceRequest,issuanceResponse,serviceHandler);
             masterInfo.setCancellationFeeText(issuanceResponse.getCancellationFeeText());
 			// logger.debug("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
 			// logger.debug("====== masterInfo details =========="+
