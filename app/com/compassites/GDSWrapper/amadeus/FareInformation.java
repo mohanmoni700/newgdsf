@@ -24,9 +24,7 @@ import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGrou
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.FlightIdentification;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.OffpointDetails;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.Trigger;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.Journey;
-import com.compassites.model.PassengerTypeCode;
+import com.compassites.model.*;
 
 /**
  * @author Santhosh
@@ -34,7 +32,7 @@ import com.compassites.model.PassengerTypeCode;
 public class FareInformation {
 
 	public FareInformativePricingWithoutPNR getFareInfo(
-			List<Journey> journeys, int adultCount, int childCount, int infantCount) {
+			List<Journey> journeys, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList) {
 
 		FareInformativePricingWithoutPNR fareInfo = new FareInformativePricingWithoutPNR();
 
@@ -60,13 +58,21 @@ public class FareInformation {
 		fareInfo.setTripsGroup(tripsGroup);
 		List<SegmentGroup> segmentGroups = tripsGroup.getSegmentGroup();
 		List<AirSegmentInformation> airSegments = new ArrayList<>();
-
+		List<FareSegment> fareSegments = new ArrayList<>();
+		int i = 0 ;
 		for (Journey journey : journeys) {
+			FareJourney fareJourney = paxFareDetailsList.get(0).getFareJourneyList().get(i);
+			int j = 0;
 			for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+
 				airSegments.add(airSegment);
+				fareSegments.add(fareJourney.getFareSegmentList().get(j));
+                j++;
 			}
+            i++;
 		}
 
+        i = 0;
 		for (AirSegmentInformation airSegment : airSegments) {
 			SegmentGroup segmentGroup = new SegmentGroup();
 			SegmentInformation segmentInfo = new SegmentInformation();
@@ -84,7 +90,7 @@ public class FareInformation {
 			segmentInfo.setCompanyDetails(companyDetails);
 			FlightIdentification flightIdentification = new FlightIdentification();
 			// TODO: Change hard coded value
-			flightIdentification.setBookingClass("S");
+			flightIdentification.setBookingClass(fareSegments.get(i).getBookingClass());
 			flightIdentification.setFlightNumber(airSegment.getFlightNumber());
 			segmentInfo.setFlightIdentification(flightIdentification);
 

@@ -56,7 +56,8 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 //			serviceHandler.logIn();
 			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
-			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
+			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
+			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList);
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
@@ -117,7 +118,9 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
-			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount());
+			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
+			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(),
+							searchParams.getInfantCount(), paxFareDetailsList);
 //            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
             amadeusLogger.debug("FareInformativePricingWithoutPNRReply "+ new Date()+" ------->>"+ new XStream().toXML(pricingReply));
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();

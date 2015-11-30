@@ -36,10 +36,7 @@ import com.amadeus.xml.vlssoq_04_1_1a.SecuritySignOut;
 import com.amadeus.xml.vlssor_04_1_1a.SecuritySignOutReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.constants.AmadeusConstants;
-import com.compassites.model.AirSegmentInformation;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.SearchParameters;
+import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import org.slf4j.Logger;
@@ -282,10 +279,10 @@ public class ServiceHandler {
         return docIssuanceIssueTicketReply;
     }
     
-	public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, int adultCount, int childCount, int infantCount) {
+	public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList) {
 		mSession.incrementSequenceNumber();
         logger.debug("amadeus getFareInfo called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
-		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys, adultCount, childCount, infantCount);
+		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys, adultCount, childCount, infantCount, paxFareDetailsList);
         XMLFileUtility.createXMLFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.xml");
         amadeusLogger.debug("farePricingWithoutPNRReq " + new Date() + " ---->" + new XStream().toXML(farePricingWithoutPNR));
         FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());
