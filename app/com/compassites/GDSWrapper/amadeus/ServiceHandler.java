@@ -295,7 +295,13 @@ public class ServiceHandler {
 		mSession.incrementSequenceNumber();
         logger.debug("amadeus getFlightInfo  called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
 		AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
-		return mPortType.airFlightInfo(airFlightInfo, mSession.getSession());
+        amadeusLogger.debug("flightInfoReq " + new Date() + " ---->" + new XStream().toXML(airFlightInfo));
+        XMLFileUtility.createXMLFile(airFlightInfo, "flightInfoReq.xml");
+        AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, mSession.getSession());
+
+        amadeusLogger.debug("flightInfoRes " + new Date() + " ---->" + new XStream().toXML(airFlightInfo));
+        XMLFileUtility.createXMLFile(airFlightInfoReply, "flightInfoRes.xml");
+		return airFlightInfoReply;
 	}
 
     public FareCheckRulesReply getFareRules(){

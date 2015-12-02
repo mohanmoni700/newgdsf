@@ -192,8 +192,14 @@ public class AmadeusBookingHelper {
                 issuanceResponse.setSuccess(true);
             }
         }
+        int passengerCount = 0;
+        if(issuanceRequest.isSeamen()){
+            passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount() + issuanceRequest.getInfantCount();
 
-        if(ticketsCount == issuanceRequest.getTravellerList().size()){
+        }else {
+            passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount();
+        }
+        if(ticketsCount == passengerCount){
             return true;
         }
 
