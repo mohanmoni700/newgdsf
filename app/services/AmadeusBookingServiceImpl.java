@@ -525,9 +525,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		boolean isSeamen = issuanceRequest.isSeamen();
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		masterInfo.setSeamen(isSeamen);
-		try {
-			ServiceHandler serviceHandler = new ServiceHandler();
-			serviceHandler.logIn();
+        ServiceHandler serviceHandler = null;
+
+        try {
+            serviceHandler = new ServiceHandler();
+            serviceHandler.logIn();
 
 			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
 			Set<String> isTicketContainSet = new HashSet<String>();
@@ -589,7 +591,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			// Json.toJson(masterInfo));
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}finally {
+            serviceHandler.logOut();
+        }
 
 		return masterInfo;
 	}

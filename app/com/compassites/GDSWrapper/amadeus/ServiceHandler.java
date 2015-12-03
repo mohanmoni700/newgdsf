@@ -332,6 +332,7 @@ public class ServiceHandler {
 
     public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
     	mSession.incrementSequenceNumber();
+        logger.debug("amadeus getLowestFare called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
     	FarePricePNRWithLowestFare farePricePNRWithLowestFare = null;
     	if(isSeamen) {
     		farePricePNRWithLowestFare = new PricePNRLowestFare().getPricePNRWithLowestSeamenFare();
@@ -366,22 +367,26 @@ public class ServiceHandler {
     }
 
     public QueueListReply queueListResponse(QueueList queueListReq){
-        logger.debug("queueListResponse called at "+ new Date() + "..................");
+        logger.debug("queueListResponse called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
         amadeusLogger.debug("queueListReq" + new Date() + " ---->" + new XStream().toXML(queueListReq));
+        XMLFileUtility.createXMLFile(queueListReq, "queueListReq.xml");
         QueueListReply queueListReply = mPortType.queueList(queueListReq,mSession.getSession());
         amadeusLogger.debug("queueListRes" + new Date() + " ---->" + new XStream().toXML(queueListReply));
+        XMLFileUtility.createXMLFile(queueListReply, "queueListRes.xml");
         return queueListReply;
     }
 
     public TicketDisplayTSTReply ticketDisplayTST(){
-        logger.debug("queueListResponse called at " + new Date() + "..................");
+        logger.debug("ticketDisplayTST called at " +  new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
 
         mSession.incrementSequenceNumber();
         TicketDisplayTST ticketDisplayTST  = new CreateTST().createTicketDisplayTSTReq();
+        amadeusLogger.debug("ticketDisplayTSTReq" + new Date() + " ---->" + new XStream().toXML(ticketDisplayTST));
         XMLFileUtility.createXMLFile(ticketDisplayTST, "ticketDisplayTSTReq.xml");
 
         TicketDisplayTSTReply ticketDisplayTSTReply = mPortType.ticketDisplayTST(ticketDisplayTST, mSession.getSession());
 
+        amadeusLogger.debug("ticketDisplayTSTRes" + new Date() + " ---->" + new XStream().toXML(ticketDisplayTSTReply));
         XMLFileUtility.createXMLFile(ticketDisplayTSTReply, "ticketDisplayTSTRes.xml");
 
         return ticketDisplayTSTReply;
