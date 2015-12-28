@@ -117,6 +117,14 @@ public class BookFlights {
         //flightIdentification.setBookingClass("Y");
         flightIdentification.setBookingClass(fareSegment.getBookingClass());
 
+        if(airSegmentInformation.getContextType() != null && airSegmentInformation.getContextType().length() > 0){
+            FlightTypeDetails flightTypeDetails = new FlightTypeDetails();
+            flightTypeDetails.getFlightIndicator().add(airSegmentInformation.getContextType());
+            travelProductInformation.setFlightTypeDetails(flightTypeDetails);
+        }
+
+
+
         RelatedproductInformation relatedproductInformation=new RelatedproductInformation();
         relatedproductInformation.getStatusCode().add("NN");
         relatedproductInformation.setQuantity(new BigDecimal(noOfTravellers));

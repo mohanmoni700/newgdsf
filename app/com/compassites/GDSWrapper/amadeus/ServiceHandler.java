@@ -360,8 +360,15 @@ public class ServiceHandler {
         cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ITINERARY_TYPE);
         pnrCancel.getCancelElements().add(cancelPNRElementType);
 
+
+        XMLFileUtility.createXMLFile(pnrCancel, "pnrCancelReq.xml");
+        amadeusLogger.debug("pnrCancelReq " + new Date() + " ---->" + new XStream().toXML(pnrCancel));
+
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, mSession.getSession());
 
+
+        XMLFileUtility.createXMLFile(pnrReply, "pnrCancelRes.xml");
+        amadeusLogger.debug("pnrCancelRes " + new Date() + " ---->" + new XStream().toXML(pnrReply));
         return pnrReply;
 
     }

@@ -81,6 +81,8 @@ public class AirSegmentInformation implements Serializable{
 
     private String fareBasis;
 
+    private String contextType;
+
     public String getFromLocation() {
         return fromLocation;
     }
@@ -368,5 +370,13 @@ public class AirSegmentInformation implements Serializable{
 
     public void setFareBasis(String fareBasis) {
         this.fareBasis = fareBasis;
+    }
+
+    public String getContextType() {
+        return contextType;
+    }
+
+    public void setContextType(String contextType) {
+        this.contextType = contextType;
     }
 }

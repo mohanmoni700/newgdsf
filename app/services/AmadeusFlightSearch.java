@@ -1,12 +1,15 @@
 package services;
 
 import com.amadeus.xml.fmptbr_14_2_1a.*;
+import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
+import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails;
 import com.compassites.GDSWrapper.amadeus.SearchFlights;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
+import com.compassites.model.ErrorMessage;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
@@ -22,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
+import sun.security.util.BigInt;
 import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
 import utils.XMLFileUtility;
@@ -31,13 +35,17 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.*;
+
+import static com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.*;
+import static com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.FlightIndex;
+import static com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation;
 
 /**
  * Created with IntelliJ IDEA.
@@ -162,103 +170,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         return "Amadeus";
     }
 
-    //earlier without refactoring
-    /*private AirSolution createAirSolutionFromRecommendations(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
-        AirSolution airSolution = new AirSolution();
-        List<FlightItinerary> flightItineraries = new ArrayList<FlightItinerary>();
-        String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
 
-        //each flightindex has one itinerary
-        //each itinerary has multiple segments each corresponding to one flight in the itinerary in the airSegmentInformation
-        for (FareMasterPricerTravelBoardSearchReply.Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
-
-            BigDecimal totalAmount = BigDecimal.valueOf(0);
-            BigDecimal taxAmount = BigDecimal.valueOf(0);
-            BigDecimal baseAmount = BigDecimal.valueOf(0);
-            for (FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
-                taxAmount = taxAmount.add(paxFareProduct.getPaxFareDetail().getTotalTaxAmount());
-                totalAmount = totalAmount.add(paxFareProduct.getPaxFareDetail().getTotalFareAmount());
-                baseAmount = baseAmount.add(totalAmount.subtract(taxAmount));
-
-            }
-
-            //String cabinClass = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getMajCabin().get(0).getBookingClassDetails().get(0).getDesignator();
-
-            for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
-                int returnCounter = 0;
-                FlightItinerary flightItinerary = new FlightItinerary();
-                flightItinerary.setProvider("Amadeus");
-                for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
-                    int multiStopCounter = 0;
-                    int journeyStopCounter = -1;
-                    BigInteger flightDetailReference = referencingDetailsType.getRefNumber();
-
-                    List<FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares> groupOfFaresList = recommendation.getPaxFareProduct().get(0).getFareDetails().get(0).getGroupOfFares();
-                    FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlights = fareMasterPricerTravelBoardSearchReply.getFlightIndex().get(multiStopCounter).getGroupOfFlights().get(flightDetailReference.intValue() - 1);
-                    String prevArrivalTime = "";
-                    int segmentIndex = 0;
-                    List<FareJourney> fareJourneyList = new ArrayList<>();
-                    List<FareSegment> fareSegmentList = new ArrayList<>();
-                    for (FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlights.getFlightDetails()) {
-                        String rbd = groupOfFaresList.get(segmentIndex).getProductInformation().getCabinProduct().getRbd();
-                        FareSegment fareSegment = new FareSegment();
-                        fareSegment.setBookingClass(rbd);
-                        fareSegmentList.add(fareSegment);
-                        AirSegmentInformation airSegmentInformation = createSegment(flightDetails.getFlightInformation(), prevArrivalTime);
-                        airSegmentInformation.setBookingClass(rbd);
-                        if (journeyStopCounter > -1) {
-                            flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().get(journeyStopCounter).setConnectionTime(airSegmentInformation.getConnectionTime());
-                            airSegmentInformation.setConnectionTime(0);
-                        }
-
-                        flightItinerary.AddBlankJourney();
-                        flightItinerary.getPricingInformation().addBlankFareJourney();
-                        flightItinerary.getPricingInformation().getFareJourneyList().get(multiStopCounter).getFareSegmentList().add(fareSegment);
-                        flightItinerary.getJourneyList().get(multiStopCounter).getAirSegmentList().add(airSegmentInformation);
-                        flightItinerary.getJourneyList().get(multiStopCounter).setAirlinesStrForFilter(" " + airSegmentInformation.getCarrierCode() + " " + airSegmentInformation.getAirline().airline);
-                        prevArrivalTime = airSegmentInformation.getArrivalTime();
-                        journeyStopCounter++;
-                        segmentIndex++;
-                    }
-
-                    flightItinerary.getJourneyList().get(multiStopCounter).setNoOfStops(journeyStopCounter);
-
-                    for (ProposedSegmentDetailsType proposedSegmentDetailsTypes : groupOfFlights.getPropFlightGrDetail().getFlightProposal()) {
-                        if ("EFT".equals(proposedSegmentDetailsTypes.getUnitQualifier())) {
-                            Journey journey = flightItinerary.getJourneyList().get(0);
-                            String elapsedTime = proposedSegmentDetailsTypes.getRef();
-                            String strHours = elapsedTime.substring(0, 2);
-                            String strMinutes = elapsedTime.substring(2);
-                            Duration duration = null;
-                            Integer hours = new Integer(strHours);
-                            int days = hours / 24;
-                            int dayHours = hours - (days * 24);
-                            try {
-                                duration = DatatypeFactory.newInstance().newDuration(true, 0, 0, days, dayHours, new Integer(strMinutes), 0);
-                            } catch (DatatypeConfigurationException e) {
-                                e.printStackTrace();
-                            }
-                            journey.setTravelTime(duration);
-                            break;
-                        }
-                    }
-                    multiStopCounter++;
-
-                }
-                flightItinerary.getPricingInformation().setBasePrice(baseAmount.toString());
-                flightItinerary.getPricingInformation().setTax(taxAmount.toString());
-                flightItinerary.getPricingInformation().setTotalPrice(totalAmount.toString());
-                flightItinerary.getPricingInformation().setTotalPriceValue(totalAmount.longValue());
-                flightItinerary.getPricingInformation().setCurrency(currency);
-                flightItineraries.add(flightItinerary);
-            }
-
-
-        }
-
-        airSolution.setFlightItineraryList(flightItineraries);
-        return airSolution;
-    }*/
 
     //for round trip and refactored
     private AirSolution createAirSolutionFromRecommendation(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
@@ -278,38 +190,51 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
         List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
-        for (FareMasterPricerTravelBoardSearchReply.Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
+        for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                 FlightItinerary flightItinerary = new FlightItinerary();
                 flightItinerary.setPricingInformation(getPricingInformation(recommendation));
                 flightItinerary.getPricingInformation().setGdsCurrency(currency);
-                flightItinerary = createJourneyInformation(segmentRef,flightItinerary, flightIndexList, recommendation);
+                List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
+                flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList);
                 flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
                 flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
             }
         }
+
         return flightItineraryHashMap;
     }
 
-    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef,FlightItinerary flightItinerary, List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList, FareMasterPricerTravelBoardSearchReply.Recommendation recommendation){
-        /*Journey forwardJourney=new Journey();
-        Journey returnJourney=new Journey();*/
-        int flightIndexNumber=0;
+    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList){
+        int flightIndexNumber = 0;
+        int segmentIndex = 0;
         for(ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
             //0 is for forward journey and refQualifier should be S for segment
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
                 Journey journey = new Journey();
                 journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1),recommendation);
+                if(contextList.size() > 0 ){
+                    setContextInformation(contextList, journey, segmentIndex);
+                }
                 flightItinerary.getJourneyList().add(journey);
                 flightItinerary.getNonSeamenJourneyList().add(journey);
                 //flightItinerary.getJourneyList().add(setJourney(flightIndexNumber == 0 ? forwardJourney : returnJourney, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
                 //flightIndexNumber = ++flightIndexNumber % 2;
                 ++flightIndexNumber;
             }
+
+
         }
         return flightItinerary;
     }
 
+
+    public  void setContextInformation(List<String> contextList, Journey journey, int segmentIndex){
+        for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
+            airSegmentInformation.setContextType(contextList.get(segmentIndex));
+            segmentIndex = segmentIndex + 1;
+        }
+    }
     private Duration setTravelDuraion(String totalElapsedTime){
         String strHours = totalElapsedTime.substring(0, 2);
         String strMinutes = totalElapsedTime.substring(2);
@@ -325,19 +250,19 @@ public class AmadeusFlightSearch implements FlightSearch{
         return duration;
     }
 
-    private Journey setJourney(Journey journey,FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights groupOfFlight, FareMasterPricerTravelBoardSearchReply.Recommendation recommendation){
+    private Journey setJourney(Journey journey,FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation){
         //no of stops
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
         //set travel time
-        for(ProposedSegmentDetailsType proposedSegmentDetailsType:groupOfFlight.getPropFlightGrDetail().getFlightProposal()){
-            if(proposedSegmentDetailsType.getUnitQualifier()!=null&&proposedSegmentDetailsType.getUnitQualifier().equals("EFT")){
+        for(ProposedSegmentDetailsType proposedSegmentDetailsType : groupOfFlight.getPropFlightGrDetail().getFlightProposal()){
+            if(proposedSegmentDetailsType.getUnitQualifier() != null && proposedSegmentDetailsType.getUnitQualifier().equals("EFT")){
                 journey.setTravelTime(setTravelDuraion(proposedSegmentDetailsType.getRef()));
             }
         }
         //get farebases
         String fareBasis = getFareBasis(recommendation.getPaxFareProduct().get(0).getFareDetails().get(0));
         //set segments information
-        for(FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails:groupOfFlight.getFlightDetails()){
+        for(FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlight.getFlightDetails()){
             journey.getAirSegmentList().add(setSegmentInformation(flightDetails, fareBasis));
             journey.setProvider("Amadeus");
         }
@@ -367,7 +292,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 		}
 	}
     
-    private AirSegmentInformation setSegmentInformation(FareMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis){
+    private AirSegmentInformation setSegmentInformation(FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis){
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         TravelProductType flightInformation=flightDetails.getFlightInformation();
 
@@ -426,7 +351,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         return airSegmentInformation;
     }
 
-    private PricingInformation getPricingInformation(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation) {
+    private PricingInformation getPricingInformation(Recommendation recommendation) {
         PricingInformation pricingInformation = new PricingInformation();
         pricingInformation.setProvider("Amadeus");
         List<MonetaryInformationDetailsType> monetaryDetails = recommendation.getRecPriceInfo().getMonetaryDetail();
@@ -437,7 +362,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         pricingInformation.setTotalPrice(totalFare);
         pricingInformation.setTotalPriceValue(totalFare);
         List<PassengerTax> passengerTaxes= new ArrayList<>();
-        for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
+        for(Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
         	PassengerTax passengerTax = new PassengerTax();
         	int paxCount = paxFareProduct.getPaxReference().get(0).getTraveller().size();
         	String paxType = paxFareProduct.getPaxReference().get(0).getPtc().get(0);
@@ -565,15 +490,16 @@ public class AmadeusFlightSearch implements FlightSearch{
     }
 
 
-    private List<PAXFareDetails> createFareDetails(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation, List<Journey> journeys){
+    private List<PAXFareDetails> createFareDetails(Recommendation recommendation, List<Journey> journeys){
         List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
-        for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct :recommendation.getPaxFareProduct()){
+        for(Recommendation.PaxFareProduct paxFareProduct :recommendation.getPaxFareProduct()){
             PAXFareDetails paxFareDetails = new PAXFareDetails();
-            for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails :paxFareProduct.getFareDetails()){
+            for(Recommendation.PaxFareProduct.FareDetails fareDetails :paxFareProduct.getFareDetails()){
                 FareJourney fareJourney = new FareJourney();
-                for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares: fareDetails.getGroupOfFares()){
+                for(Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares: fareDetails.getGroupOfFares()){
                     FareSegment fareSegment = new FareSegment();
                     fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
+                    fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
                     paxFareDetails.setPassengerTypeCode(PassengerTypeCode.valueOf(groupOfFares.getProductInformation().getFareProductDetail().getPassengerType()));
 
                     fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
@@ -586,11 +512,38 @@ public class AmadeusFlightSearch implements FlightSearch{
         return paxFareDetailsList;
     }
 
-    public String getFareBasis(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails){
+    public String getFareBasis(Recommendation.PaxFareProduct.FareDetails fareDetails){
         for(PaxFareProduct.FareDetails.GroupOfFares groupOfFares : fareDetails.getGroupOfFares()){
             return groupOfFares.getProductInformation().getFareProductDetail().getFareBasis();
 
         }
         return  null;
     }
+
+    public List getAvailabilityCtx(ReferenceInfoType segmentRef, List<SpecificRecDetails> specificRecDetails){
+        List<String> contextList = new ArrayList<>();
+        for(ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
+
+
+            if(referencingDetailsType.getRefQualifier().equalsIgnoreCase("A")){
+                BigInteger refNumber = referencingDetailsType.getRefNumber();
+                for(SpecificRecDetails specificRecDetail : specificRecDetails){
+                    if(refNumber.equals(specificRecDetail.getSpecificRecItem().getRefNumber())){
+                        for(SpecificRecDetails.SpecificProductDetails specificProductDetails : specificRecDetail.getSpecificProductDetails()){
+                            for(SpecificRecDetails.SpecificProductDetails.FareContextDetails fareContextDetails : specificProductDetails.getFareContextDetails()){
+                                for(SpecificRecDetails.SpecificProductDetails.FareContextDetails.CnxContextDetails cnxContextDetails : fareContextDetails.getCnxContextDetails()){
+                                    contextList.addAll(cnxContextDetails.getFareCnxInfo().getContextDetails().getAvailabilityCnxType());
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return contextList;
+    }
+
 }

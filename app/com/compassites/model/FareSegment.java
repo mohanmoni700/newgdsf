@@ -5,16 +5,18 @@ package com.compassites.model;
  */
 public class FareSegment {
 
-    private String BookingClass;
+    private String bookingClass;
 
     private String fareBasis;
 
+    private String cabinClass;
+
     public String getBookingClass() {
-        return BookingClass;
+        return bookingClass;
     }
 
     public void setBookingClass(String bookingClass) {
-        BookingClass = bookingClass;
+        this.bookingClass = bookingClass;
     }
 
     public String getFareBasis() {
@@ -23,5 +25,13 @@ public class FareSegment {
 
     public void setFareBasis(String fareBasis) {
         this.fareBasis = fareBasis;
+    }
+
+    public String getCabinClass() {
+        return cabinClass;
+    }
+
+    public void setCabinClass(String cabinClass) {
+        this.cabinClass = cabinClass;
     }
 }
