@@ -21,6 +21,7 @@ import javax.xml.datatype.Duration;
 import java.math.BigDecimal;
 import java.rmi.RemoteException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -240,6 +241,13 @@ public class MystiflyFlightSearch implements FlightSearch {
 		Calendar departureDate = flightSegment.getDepartureDateTime();
 		airSegment.setDepartureDate(departureDate.getTime());
 		airSegment.setDepartureTime(departureDate.toString());
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+		airSegment.setDepartureTime(sdf.format(departureDate.getTime()));
+		airSegment.setArrivalTime(sdf.format(flightSegment.getArrivalDateTime().getTime()));
+
+
+
 		OperatingAirline airline = flightSegment.getOperatingAirline();
 		airSegment.setFlightNumber(airline.getFlightNumber());
 		airSegment.setEquipment(airline.getEquipment());
