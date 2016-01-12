@@ -36,6 +36,8 @@ public class TravellerMasterInfo {
     private String sessionIdRef;
 
     private Date validTillDate;
+    
+    private String journeyType;
 
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
@@ -129,7 +131,16 @@ public class TravellerMasterInfo {
         this.validTillDate = validTillDate;
     }
 
-    @JsonIgnore
+    
+    public String getJourneyType() {
+		return journeyType;
+	}
+
+	public void setJourneyType(String journeyType) {
+		this.journeyType = journeyType;
+	}
+
+	@JsonIgnore
     public int getAdultChildPaxCount(){
         int count = 0;
 
