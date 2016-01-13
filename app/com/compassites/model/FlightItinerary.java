@@ -42,6 +42,10 @@ public class FlightItinerary implements Serializable{
 
     private List<Journey> nonSeamenJourneyList;
 
+    private Long totalTravelTime;
+
+    private String totalTravelTimeStr;
+
     public PricingMessage getPricingMessage() {
         return pricingMessage;
     }
@@ -138,7 +142,7 @@ public class FlightItinerary implements Serializable{
 
 	@Override
     public boolean equals(Object obj) {
-        return Pojomatic.equals(this,obj);
+        return Pojomatic.equals(this, obj);
     }
 
     @Override
@@ -178,5 +182,27 @@ public class FlightItinerary implements Serializable{
            return journeyList;
         }
         return nonSeamenJourneyList;
+    }
+
+    public Long getTotalTravelTime() {
+        Long totalTravelTime = new Long(0);
+
+        for(Journey journey : journeyList){
+            totalTravelTime = totalTravelTime + journey.getTravelTimeMillis();
+        }
+        return totalTravelTime;
+    }
+
+    public void setTotalTravelTime(Long totalTravelTime) {
+        this.totalTravelTime = totalTravelTime;
+    }
+
+
+    public String getTotalTravelTimeStr() {
+        return totalTravelTimeStr;
+    }
+
+    public void setTotalTravelTimeStr(String totalTravelTimeStr) {
+        this.totalTravelTimeStr = totalTravelTimeStr;
     }
 }
