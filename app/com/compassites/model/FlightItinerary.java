@@ -7,6 +7,8 @@ import org.pojomatic.annotations.Property;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Renu
@@ -188,7 +190,9 @@ public class FlightItinerary implements Serializable{
         Long totalTravelTime = new Long(0);
 
         for(Journey journey : journeyList){
-            totalTravelTime = totalTravelTime + journey.getTravelTimeMillis();
+            if(journey != null && journey.getTravelTimeMillis() != null){
+                totalTravelTime = totalTravelTime + journey.getTravelTimeMillis();
+            }
         }
         return totalTravelTime;
     }
@@ -199,7 +203,13 @@ public class FlightItinerary implements Serializable{
 
 
     public String getTotalTravelTimeStr() {
-        return totalTravelTimeStr;
+        Long totalTravelTime = getTotalTravelTime();
+        if(totalTravelTime != null) {
+            String hms = String.format("%02d, Hour(s)%02d Minutes", TimeUnit.MILLISECONDS.toHours(totalTravelTime),
+                    TimeUnit.MILLISECONDS.toMinutes(totalTravelTime) % TimeUnit.HOURS.toMinutes(1));
+            return  hms;
+        }
+        return "";
     }
 
     public void setTotalTravelTimeStr(String totalTravelTimeStr) {
