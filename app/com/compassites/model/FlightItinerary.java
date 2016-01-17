@@ -205,7 +205,7 @@ public class FlightItinerary implements Serializable{
     public String getTotalTravelTimeStr() {
         Long totalTravelTime = getTotalTravelTime();
         if(totalTravelTime != null) {
-            String hms = String.format("%02d, Hour(s)%02d Minutes", TimeUnit.MILLISECONDS.toHours(totalTravelTime),
+            String hms = String.format("%02d Hour(s)%02d Minutes", TimeUnit.MILLISECONDS.toHours(totalTravelTime),
                     TimeUnit.MILLISECONDS.toMinutes(totalTravelTime) % TimeUnit.HOURS.toMinutes(1));
             return  hms;
         }
