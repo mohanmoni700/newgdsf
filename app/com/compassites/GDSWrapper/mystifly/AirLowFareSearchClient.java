@@ -8,6 +8,9 @@ import onepoint.mystifly.AirLowFareSearchResponseDocument;
 import onepoint.mystifly.OnePointStub;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripType.Enum;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -83,7 +86,9 @@ public class AirLowFareSearchClient {
 			for (SearchJourney searchJourney : searchParams.getJourneyList()) {
 				OriginDestinationInformation firstLeg = originDestinationInformations
 						.addNewOriginDestinationInformation();
-				calendar.setTime(searchJourney.getTravelDate());
+				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+				DateTime dateTime = fmt.parseDateTime(searchJourney.getTravelDateStr());
+				calendar.setTime(dateTime.toDate());
 				firstLeg.setDepartureDateTime(calendar);
 				firstLeg.setOriginLocationCode(searchJourney.getOrigin());
 				firstLeg.setDestinationLocationCode(searchParams.getTransit());

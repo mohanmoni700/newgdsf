@@ -31,6 +31,12 @@ public class AmadeusConstants {
 
     public static final String SERVICE_TAX_COUNTRY = "India";
 
+    public static final String AMADEUS_FLIGHT_AVAILIBILITY_CODE = "OK";
+
+    public static final String ISSUANCE_OK_STATUS = "O";
+
+    public static final String CAPPING_LIMIT_STRING = "CT RJT";
+
 
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");

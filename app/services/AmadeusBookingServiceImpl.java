@@ -8,7 +8,6 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.Itinerar
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.pnracc_11_3_1a.TravellerDetailsTypeI;
-import com.amadeus.xml.pnracc_11_3_1a.TravellerInformationTypeI6097S;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
@@ -17,7 +16,6 @@ import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
-import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
@@ -28,8 +26,6 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.thoughtworks.xstream.XStream;
-import models.AmadeusSessionWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
@@ -50,13 +46,7 @@ import java.util.*;
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
 
-	private final String amadeusFlightAvailibilityCode = "OK";
 
-	private final String totalFareIdentifier = "712";
-
-	private final String issuenceOkStatus = "O";
-
-	private final String cappingLimitString = "CT RJT";
 
     static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
@@ -88,7 +78,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             session = amadeusSessionManager.getActiveSession(travellerMasterInfo.getSessionIdRef());
             serviceHandler.setSession(session);
 
-            int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getPassengerTypeCount(travellerMasterInfo.getTravellersList());
+            int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
 
             TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst);
             if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
@@ -211,6 +201,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 		return ;
 	}
+
+
 	public void checkFlightAvailibility(TravellerMasterInfo travellerMasterInfo,ServiceHandler serviceHandler, PNRResponse pnrResponse) {
         logger.debug("checkFlightAvailibility called ........");
 		AirSellFromRecommendationReply sellFromRecommendation = serviceHandler
@@ -226,11 +218,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		boolean flightAvailable = AmadeusBookingHelper
 				.validateFlightAvailability(sellFromRecommendation,
-						amadeusFlightAvailibilityCode);
+                        AmadeusConstants.AMADEUS_FLIGHT_AVAILIBILITY_CODE);
         /*if(!flightAvailable){
             serviceHandler.logOut();
         }*/
-        pnrResponse.setSessionIdRef(amadeusSessionManager.storeActiveSession(serviceHandler.getSession()));
+        pnrResponse.setSessionIdRef(amadeusSessionManager.storeActiveSession(serviceHandler.getSession(), null));
 		pnrResponse.setFlightAvailable(flightAvailable);
 	}
 
@@ -255,7 +247,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			return pricePNRReply;
 		}
 		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,
-				travellerMasterInfo, totalFareIdentifier);
+                travellerMasterInfo);
 //        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
 		return pricePNRReply;
 	}
@@ -326,135 +318,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     }
 
-    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
-		ServiceHandler serviceHandler = null;
-		IssuanceResponse issuanceResponse = new IssuanceResponse();
-		issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
-		AmadeusSessionWrapper amadeusSessionWrapper = null;
-		try {
-			serviceHandler = new ServiceHandler();
-			serviceHandler.logIn();
-			PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest
-					.getGdsPNR());
-			String carrierCode = "";
-			List<Journey> journeys = null;
-			if (issuanceRequest.isSeamen()) {
-				carrierCode = issuanceRequest.getFlightItinerary()
-						.getJourneyList().get(0).getAirSegmentList().get(0)
-						.getCarrierCode();
-				journeys = issuanceRequest.getFlightItinerary().getJourneyList();
-			} else {
-				carrierCode = issuanceRequest.getFlightItinerary()
-						.getNonSeamenJourneyList().get(0).getAirSegmentList()
-						.get(0).getCarrierCode();
-				journeys = issuanceRequest.getFlightItinerary().getNonSeamenJourneyList();
-			}
-			//todo isDomesticFlight variable in call to priciPNR is hard coded
-			com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler
-					.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), false, issuanceRequest.getFlightItinerary());
 
-			int numberOfTst = (issuanceRequest.isSeamen()) ? 1
-					: getPassengerTypeCount(issuanceRequest.getTravellerList());
-
-			TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler
-					.createTST(numberOfTst);
-
-			if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
-				String errorCode = ticketCreateTSTFromPricingReply
-						.getApplicationError().getApplicationErrorInfo()
-						.getApplicationErrorDetail().getApplicationErrorCode();
-
-				ErrorMessage errorMessage = ErrorMessageHelper
-						.createErrorMessage("error",
-								ErrorMessage.ErrorType.ERROR, "Amadeus");
-				issuanceResponse.setErrorMessage(errorMessage);
-				issuanceResponse.setSuccess(false);
-				return issuanceResponse;
-			}
-			gdsPNRReply = serviceHandler.savePNR();
-
-			gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
-
-//			XMLFileUtility.createXMLFile(gdsPNRReply, "retrievePNRRes1.xml");
-            amadeusLogger.debug("retrievePNRRes1 "+ new Date()+" ------->>"+ new XStream().toXML(gdsPNRReply));
-			/*DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket();
-			if (issuenceOkStatus.equals(issuanceIssueTicketReply
-					.getProcessingStatus().getStatusCode())) {
-				gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest
-						.getGdsPNR());
-				// getCancellationFee(issuanceRequest, issuanceResponse,
-				// serviceHandler);
-				AmadeusBookingHelper.createTickets(issuanceResponse,
-						issuanceRequest, gdsPNRReply);
-			} else {
-				String errorDescription = issuanceIssueTicketReply
-						.getErrorGroup().getErrorWarningDescription()
-						.getFreeText();
-				if (errorDescription.contains(cappingLimitString)) {
-					logger.debug("Send Email to operator saying capping limit is reached");
-					issuanceResponse.setCappingLimitReached(true);
-				}
-			}
-*/
-			issuanceResponse = docIssuance(serviceHandler, issuanceRequest, issuanceResponse);
-
-            logger.debug("=======================  Issuance end =========================");
-		} catch (Exception e) {
-			XMLFileUtility.createXMLFile(e, "PNRRetrieveException.xml");
-			e.printStackTrace();
-		}finally {
-			serviceHandler.logOut();
-//			amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
-		}
-		return issuanceResponse;
-	}
-
-
-	public IssuanceResponse docIssuance(ServiceHandler serviceHandler, IssuanceRequest issuanceRequest, IssuanceResponse issuanceResponse) throws InterruptedException {
-		Date pnrResponseReceivedAt = new Date();
-		DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket();
-		if (issuenceOkStatus.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())) {
-			Thread.sleep(3000L);
-			PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
-			boolean allTicketsReceived = AmadeusBookingHelper.createTickets(issuanceResponse,issuanceRequest, gdsPNRReply);
-            if(allTicketsReceived){
-				issuanceResponse.setSuccess(true);
-				return issuanceResponse;
-			}else {
-				issuanceResponse = ignoreAndRetrievePNR(serviceHandler, issuanceRequest, issuanceResponse , pnrResponseReceivedAt);
-			}
-		} else {
-
-			String errorDescription = issuanceIssueTicketReply
-					.getErrorGroup().getErrorWarningDescription()
-					.getFreeText();
-			if (errorDescription.contains(cappingLimitString)) {
-				logger.debug("Send Email to operator saying capping limit is reached");
-				issuanceResponse.setCappingLimitReached(true);
-			}
-		}
-
-		return issuanceResponse;
-	}
-
-	public IssuanceResponse ignoreAndRetrievePNR(ServiceHandler serviceHandler, IssuanceRequest issuanceRequest, IssuanceResponse issuanceResponse,  Date pnrResponseReceivedAt) throws InterruptedException {
-		Thread.sleep(3000L);
-		PNRReply gdsPNRReply = serviceHandler.ignoreAndRetrievePNR();
-		boolean allTicketsReceived = AmadeusBookingHelper.createTickets(issuanceResponse, issuanceRequest, gdsPNRReply);
-
-		if(allTicketsReceived){
-			issuanceResponse.setSuccess(true);
-			return issuanceResponse;
-		}else{
-			Period p = new Period(new DateTime(pnrResponseReceivedAt), new DateTime(), PeriodType.minutes());
-			if(p.getMinutes() >= 2){
-				issuanceResponse.setSuccess(false);
-				return issuanceResponse;
-			}
-			ignoreAndRetrievePNR(serviceHandler, issuanceRequest, issuanceResponse, pnrResponseReceivedAt);
-		}
-		return issuanceResponse;
-	}
 
 	public void getCancellationFee(IssuanceRequest issuanceRequest,
 			IssuanceResponse issuanceResponse, ServiceHandler serviceHandler) {
@@ -611,7 +475,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			MonetaryInformationType157202S monetaryinfo = fareList.getFareDataInformation();
 			BigDecimal totalFare = null;
 			for(MonetaryInformationDetailsType223844C monetaryDetails : monetaryinfo.getFareDataSupInformation()) {
-				if(totalFareIdentifier.equals(monetaryDetails.getFareDataQualifier())) {
+				if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(monetaryDetails.getFareDataQualifier())) {
 					totalFare = new BigDecimal(monetaryDetails.getFareAmount());
 					break;
 				}
@@ -638,7 +502,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return lowestFare;
 	}
 
-    public static int getPassengerTypeCount(List<Traveller> travellerList){
+    public static int getNumberOfTST(List<Traveller> travellerList){
 
         int adultCount = 0, childCount = 0, infantCount = 0;
         int totalCount = 0;

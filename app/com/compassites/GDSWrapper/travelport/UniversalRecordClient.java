@@ -15,6 +15,7 @@ import com.travelport.service.universal_v26_0.UniversalRecordService;
 import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import java.io.File;
@@ -78,11 +79,11 @@ public class UniversalRecordClient extends TravelPortClient {
 		recordRetrieveReq.setProviderReservationInfo(reservationInfo);
 		try {
 			init();
-//			XMLFileUtility.createXMLFile(recordRetrieveReq,"UniversalRecordRetrieveReq.xml");
-            travelportLogger.debug("UniversalRecordRetrieveReq " + new Date() +" ------>> "+ new XStream().toXML(recordRetrieveReq));
+			XMLFileUtility.createXMLFile(recordRetrieveReq, "UniversalRecordRetrieveReq.xml");
+            travelportLogger.debug("UniversalRecordRetrieveReq " + new Date() + " ------>> " + new XStream().toXML(recordRetrieveReq));
 			recordRetrieveRsp = universalRecordRetrieveServicePortType.service(
 					recordRetrieveReq, null);
-//			XMLFileUtility.createXMLFile(recordRetrieveRsp,"UniversalRecordRetrieveRes.xml");
+			XMLFileUtility.createXMLFile(recordRetrieveRsp, "UniversalRecordRetrieveRes.xml");
             travelportLogger.debug("UniversalRecordRetrieveRes " + new Date() +" ------>> "+ new XStream().toXML(recordRetrieveRsp));
 		} catch (UniversalRecordFaultMessage universalRecordFaultMessage) {
 			universalRecordFaultMessage.printStackTrace();

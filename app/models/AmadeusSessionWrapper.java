@@ -42,6 +42,9 @@ public class AmadeusSessionWrapper extends Model{
     @Column(name="session_uuid")
     private String sessionUUID;
 
+    @Column(name = "gds_pnr")
+    private String gdsPNR;
+
     @Transient
     private Holder<Session> mSession;
 
@@ -144,6 +147,21 @@ public class AmadeusSessionWrapper extends Model{
 
     public static AmadeusSessionWrapper findBySessionId(String sessionId){
         AmadeusSessionWrapper amadeusSessions = find.where().eq("session_id", sessionId).findUnique();
+
+        return amadeusSessions;
+    }
+
+    public String getGdsPNR() {
+        return gdsPNR;
+    }
+
+    public void setGdsPNR(String gdsPNR) {
+        this.gdsPNR = gdsPNR;
+    }
+
+
+    public static AmadeusSessionWrapper findByPNR(String gdsPNR){
+        AmadeusSessionWrapper amadeusSessions = find.where().eq("gds_pnr", gdsPNR).orderBy("lastQueryDate desc").findList().get(0);
 
         return amadeusSessions;
     }

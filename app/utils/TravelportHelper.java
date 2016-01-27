@@ -84,8 +84,15 @@ public class TravelportHelper {
                 for (AirPricingInfo airPricingInfo : airReservation.getAirPricingInfo()) {
                     com.compassites.model.FlightInfo flightInfo = new com.compassites.model.FlightInfo();
                     for (FareInfo fareInfo : airPricingInfo.getFareInfo()) {
-                        flightInfo.setBaggageUnit(fareInfo.getBaggageAllowance().getMaxWeight().getUnit().toString());
-                        flightInfo.setBaggageAllowance(fareInfo.getBaggageAllowance().getMaxWeight().getValue());
+                        if(fareInfo.getBaggageAllowance().getMaxWeight() != null && fareInfo.getBaggageAllowance().getMaxWeight().getUnit() != null){
+                            flightInfo.setBaggageUnit(fareInfo.getBaggageAllowance().getMaxWeight().getUnit().toString());
+                            flightInfo.setBaggageAllowance(fareInfo.getBaggageAllowance().getMaxWeight().getValue());
+                        }
+                        if(fareInfo.getBaggageAllowance().getNumberOfPieces() != null){
+                            flightInfo.setBaggageAllowance(fareInfo.getBaggageAllowance().getNumberOfPieces());
+                            flightInfo.setBaggageUnit("Number of pieces");
+                        }
+
                     }
                     airSegmentInformation.setFlightInfo(flightInfo);
                 }
@@ -104,7 +111,7 @@ public class TravelportHelper {
         
         AirPricingInfo airPriceInfo = airPricingInfoList.get(0);
         if("SEA".equalsIgnoreCase(airPriceInfo.getPassengerType().get(0).getCode())) {
-        	pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPriceInfo.getBasePrice()));
+//        	pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPriceInfo.getBasePrice()));
         	PassengerTax passengerTax = new PassengerTax();
         	passengerTax.setPassengerType("ADT");
         	Map<String, BigDecimal> taxes = new HashMap<>();
@@ -130,13 +137,13 @@ public class TravelportHelper {
                 PassengerType paxType = airPricingInfo.getPassengerType().get(0);
                 String paxCode = null;
                 if(paxType.getCode().equalsIgnoreCase("ADT")) {
-                    pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+//                    pricingInfo.setAdtBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
                     paxCode = "ADT";
                 } else if(paxType.getCode().equalsIgnoreCase("CHD") || paxType.getCode().equalsIgnoreCase("CNN")) {
-                    pricingInfo.setChdBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+//                    pricingInfo.setChdBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
                     paxCode = "CHD";
                 } else if(paxType.getCode().equalsIgnoreCase("INF")) {
-                    pricingInfo.setInfBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
+//                    pricingInfo.setInfBasePrice(StringUtility.getDecimalFromString(airPricingInfo.getBasePrice()));
                     paxCode = "INF";
                 }
                 passengerTax.setPassengerType(paxCode);
@@ -157,4 +164,21 @@ public class TravelportHelper {
     }
 
 
+
+    public static PassengerTax getTaxDetailsList(List<TypeTaxInfo> typeTaxInfoList, String paxType, int passengerCount){
+        PassengerTax passengerTax = new PassengerTax();
+        Map<String,BigDecimal> taxes = new HashMap<>();
+        for(TypeTaxInfo taxInfo : typeTaxInfoList){
+            BigDecimal amount = StringUtility.getDecimalFromString(taxInfo.getAmount());
+            if(taxes.containsKey(taxInfo.getCategory())) {
+                taxes.put(taxInfo.getCategory(), taxes.get(taxInfo.getCategory()).add(amount));
+            } else {
+                taxes.put(taxInfo.getCategory(), amount);
+            }
+        }
+        passengerTax.setPassengerCount(passengerCount);
+        passengerTax.setPassengerType(paxType);
+        passengerTax.setTaxes(taxes);
+        return passengerTax;
+    }
 }

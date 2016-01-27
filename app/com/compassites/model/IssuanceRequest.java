@@ -28,6 +28,8 @@ public class IssuanceRequest implements Serializable{
 
     private List<Traveller> travellerList;
 
+    private String sessionIdRef;
+
     public int getAdultCount() {
         return adultCount;
     }
@@ -98,5 +100,13 @@ public class IssuanceRequest implements Serializable{
 
     public void setCabinClass(CabinClass cabinClass) {
         this.cabinClass = cabinClass;
+    }
+
+    public String getSessionIdRef() {
+        return sessionIdRef;
+    }
+
+    public void setSessionIdRef(String sessionIdRef) {
+        this.sessionIdRef = sessionIdRef;
     }
 }

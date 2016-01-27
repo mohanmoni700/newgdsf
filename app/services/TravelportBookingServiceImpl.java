@@ -1,5 +1,7 @@
 package services;
 
+import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
+import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.compassites.GDSWrapper.travelport.*;
 import com.compassites.model.*;
 import com.compassites.model.Journey;
@@ -351,6 +353,15 @@ public class TravelportBookingServiceImpl implements BookingService {
 		masterInfo.setCabinClass(com.compassites.model.CabinClass.fromValue(cabinClass.name()));
 		
 		List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(univRecRetrRsp);
+		Map<String,String> airSegmentRefMap = new HashMap<>();
+
+		for (AirReservation airReservation : univRec.getAirReservation()) {
+			for (TypeBaseAirSegment airSegment : airReservation.getAirSegment()) {
+				airSegmentRefMap.put(airSegment.getKey(), (airSegment.getOrigin() + airSegment.getDestination()).toLowerCase());
+			}
+		}
+
+
 		FlightItinerary flightItinerary = new FlightItinerary();
         PricingInformation pricingInfo = new PricingInformation();
         List<AirPricingInfo> airPricingInfoList = univRec.getAirReservation().get(0).getAirPricingInfo();
@@ -358,6 +369,18 @@ public class TravelportBookingServiceImpl implements BookingService {
         BigDecimal totalFare = new BigDecimal(0);
         BigDecimal totalBaseFare = new BigDecimal(0);
         BigDecimal totalTax = new BigDecimal(0);
+
+		BigDecimal adtBaseFare = new BigDecimal(0);
+		BigDecimal chdBaseFare = new BigDecimal(0);
+		BigDecimal infBaseFare = new BigDecimal(0);
+		BigDecimal adtTotalFare = new BigDecimal(0);
+		BigDecimal chdTotalFare = new BigDecimal(0);
+		BigDecimal infTotalFare = new BigDecimal(0);
+		boolean segmentWisePricing = false;
+
+		List<SegmentPricing> segmentPricingList = new ArrayList<>();
+		List<PassengerTax> passengerTaxList = new ArrayList<>();
+
         for(AirPricingInfo airPricingInfo : airPricingInfoList) {
         	BigDecimal total = StringUtility.getDecimalFromString(airPricingInfo.getApproximateTotalPrice());
         	BigDecimal base = StringUtility.getDecimalFromString(airPricingInfo.getApproximateBasePrice());
@@ -372,19 +395,58 @@ public class TravelportBookingServiceImpl implements BookingService {
         	totalTax = totalTax.add(tax.multiply(new BigDecimal(paxCount)));
         	
         	if("CHD".equalsIgnoreCase(paxType) || "CNN".equalsIgnoreCase(paxType)) {
-				pricingInfo.setChdBasePrice(base);
+//				pricingInfo.setChdBasePrice(base);
+				chdBaseFare = chdBaseFare.add(base);
+				chdTotalFare = chdTotalFare.add(total);
 			} else if("INF".equalsIgnoreCase(paxType)) {
-				pricingInfo.setInfBasePrice(base);
+//				pricingInfo.setInfBasePrice(base);
+				infBaseFare = infBaseFare.add(base);
+				infTotalFare = infTotalFare.add(total);
 			} else {
-				pricingInfo.setAdtBasePrice(base);
+//				pricingInfo.setAdtBasePrice(base);
+				adtBaseFare = adtBaseFare.add(base);
+				adtTotalFare = adtTotalFare.add(total);
 			}
+
+			if(airSegmentRefMap.size() != airPricingInfo.getBookingInfo().size()){
+				segmentWisePricing = true;
+			}
+
+			List<String> segmentKeys = new ArrayList<>();
+			SegmentPricing segmentPricing = new SegmentPricing();
+			if(segmentWisePricing){
+				for(BookingInfo bookingInfo : airPricingInfo.getBookingInfo()){
+					String key = airSegmentRefMap.get(bookingInfo.getSegmentRef());
+					segmentKeys.add(key);
+				}
+				PassengerTax passengerTax = TravelportHelper.getTaxDetailsList(airPricingInfo.getTaxInfo(), paxType, paxCount);
+				segmentPricing.setSegmentKeysList(segmentKeys);
+				segmentPricing.setTotalPrice(total.multiply(new BigDecimal(paxCount)));
+				segmentPricing.setBasePrice(base.multiply(new BigDecimal(paxCount)));
+				segmentPricing.setPassengerType(paxType);
+				segmentPricing.setPassengerTax(passengerTax);
+				segmentPricing.setPassengerCount(new Long(paxCount));
+				segmentPricingList.add(segmentPricing);
+			}
+
         }
+
         pricingInfo.setTax(totalTax);
-        pricingInfo.setBasePrice(totalBaseFare);
-        pricingInfo.setTotalPrice(totalFare);
+		pricingInfo.setBasePrice(totalBaseFare);
+		pricingInfo.setTotalPrice(totalFare);
         pricingInfo.setTotalPriceValue(totalFare);
-        pricingInfo.setProvider("Travelport");
-        TravelportHelper.getPassengerTaxes(pricingInfo, airPricingInfoList);
+		pricingInfo.setProvider("Travelport");
+
+		pricingInfo.setSegmentWisePricing(segmentWisePricing);
+		pricingInfo.setAdtBasePrice(adtBaseFare);
+		pricingInfo.setAdtTotalPrice(adtTotalFare);
+		pricingInfo.setChdBasePrice(chdBaseFare);
+		pricingInfo.setChdTotalPrice(chdTotalFare);
+		pricingInfo.setInfBasePrice(infBaseFare);
+		pricingInfo.setInfTotalPrice(infTotalFare);
+		pricingInfo.setSegmentPricingList(segmentPricingList);
+
+		TravelportHelper.getPassengerTaxes(pricingInfo, airPricingInfoList);
 		if (isSeamen) {
 			flightItinerary.setJourneyList(journeyList);
             flightItinerary.setSeamanPricingInformation(pricingInfo);

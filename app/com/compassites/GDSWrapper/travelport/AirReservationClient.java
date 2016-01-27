@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import utils.DateUtility;
 import utils.StringUtility;
+import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -211,7 +212,7 @@ public class AirReservationClient  extends TravelPortClient {
 		 */
 
 
-//        XMLFileUtility.createXMLFile(request, "AirReserveRequest.xml");
+        XMLFileUtility.createXMLFile(request, "AirReserveRequest.xml");
         travelportLogger.debug("AirReserveRequest " + new Date() +" ------>> "+ new XStream().toXML(request));
         try {
             init();
@@ -224,18 +225,18 @@ public class AirReservationClient  extends TravelPortClient {
         catch (com.travelport.service.universal_v26_0.AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             airFaultMessage.getFaultInfo().getDescription();
-//            XMLFileUtility.createXMLFile(airFaultMessage, "AirReserveResponseException.xml");
+            XMLFileUtility.createXMLFile(airFaultMessage, "AirReserveResponseException.xml");
             travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(airFaultMessage));
         } catch (AvailabilityFaultMessage availabilityFaultMessage) {
             availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             availabilityFaultMessage.getFaultInfo().getDescription();
-//            XMLFileUtility.createXMLFile(availabilityFaultMessage, "AirReserveResponseException.xml");
+            XMLFileUtility.createXMLFile(availabilityFaultMessage, "AirReserveResponseException.xml");
             travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(availabilityFaultMessage));
 
         }
 
-//        XMLFileUtility.createXMLFile(request, "AirReserveResponse.xml");
+        XMLFileUtility.createXMLFile(response, "AirReserveResponse.xml");
         travelportLogger.debug("AirReserveResponse " + new Date() +" ------>> "+ new XStream().toXML(response));
         return response;
 

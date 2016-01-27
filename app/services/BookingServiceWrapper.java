@@ -31,6 +31,9 @@ public class BookingServiceWrapper {
 	@Autowired
 	private MystiflyBookingServiceImpl mystiflyBookingService;
 
+	@Autowired
+	private AmadeusIssuanceServiceImpl amadeusIssuanceService;
+
 	public AmadeusBookingServiceImpl getAmadeusBookingService() {
 		return amadeusBookingService;
 	}
@@ -78,7 +81,7 @@ public class BookingServiceWrapper {
 			issuanceResponse = travelPortBookingService
 					.issueTicket(issuanceRequest);
 		} else if ("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
-			issuanceResponse = amadeusBookingService
+			issuanceResponse = amadeusIssuanceService
 					.issueTicket(issuanceRequest);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(issuanceRequest
 				.getProvider())) {
@@ -117,7 +120,7 @@ public class BookingServiceWrapper {
     	if("Travelport".equalsIgnoreCase(provider)){
     		masterInfo = travelPortBookingService.allPNRDetails(issuanceRequest, gdsPNR);
     	} else if("Amadeus".equalsIgnoreCase(provider)){
-    		masterInfo = amadeusBookingService.allPNRDetails(issuanceRequest,gdsPNR);
+    		masterInfo = amadeusBookingService.allPNRDetails(issuanceRequest, gdsPNR);
     	} else if(Mystifly.PROVIDER.equalsIgnoreCase(provider)){
     		masterInfo = mystiflyBookingService.allPNRDetails(gdsPNR);
     	}
@@ -168,4 +171,10 @@ public class BookingServiceWrapper {
 //        System.out.println(" HashMap ==============>>>>>>\n"+Json.toJson(jsonMap));
         return jsonMap;
     }
+
+	public IssuanceResponse priceBookedPNR(IssuanceRequest issuanceRequest){
+
+		IssuanceResponse issuanceResponse = amadeusIssuanceService.priceBookedPNR(issuanceRequest);
+		return issuanceResponse;
+	}
 }

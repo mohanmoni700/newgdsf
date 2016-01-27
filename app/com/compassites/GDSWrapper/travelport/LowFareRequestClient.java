@@ -12,6 +12,9 @@ import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirLowFareSearchPortType;
 import com.travelport.service.air_v26_0.AirService;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -146,7 +149,10 @@ public class LowFareRequestClient extends TravelPortClient {
         for(SearchJourney journey:searchParameters.getJourneyList()) {
             TypeCabinClass cabinClass = TypeCabinClass.valueOf(searchParameters.getCabinClass().upperValue());
             TypeSearchAirLeg airLeg = createLeg(journey.getOrigin(), journey.getDestination(), cabinClass, searchParameters.getDirectFlights(), searchParameters.getPreferredAirlines(), searchParameters.getTransit());
-            String journeyDate = searchFormat.format(journey.getTravelDate());
+
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+            DateTime dateTime = fmt.parseDateTime(journey.getTravelDateStr());
+            String journeyDate = searchFormat.format(dateTime.toDate());
             if (searchParameters.getDateType() == DateType.ARRIVAL)
                 addArrivalDate(airLeg, journeyDate);
             else

@@ -14,6 +14,7 @@ import com.travelport.service.air_v26_0.AirService;
 import com.travelport.service.air_v26_0.AirTicketingPortType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import java.net.MalformedURLException;
@@ -86,15 +87,16 @@ public class AirTicketClient extends TravelPortClient {
 		AirReservationLocatorCode airResLocatorCode = new AirReservationLocatorCode();
 		airResLocatorCode.setValue(airReservation.getLocatorCode());
 		request.setAirReservationLocatorCode(airResLocatorCode);
-//		XMLFileUtility.createXMLFile(request, "AirTicketingReq.xml");
+		XMLFileUtility.createXMLFile(request, "AirTicketingReq.xml");
         travelportLogger.debug("AirTicketingReq " + new Date() +" ------>> "+ new XStream().toXML(request));
 		try {
 			response = airTicketingPortType.service(request);
 		} catch (AirFaultMessage e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error("Error in AirTicketClient issueTicket : ", e);
 		}
-//		XMLFileUtility.createXMLFile(response, "AirTicketingRsp.xml");
+		XMLFileUtility.createXMLFile(response, "AirTicketingRsp.xml");
         travelportLogger.debug("AirTicketingRsp " + new Date() +" ------>> "+ new XStream().toXML(response));
 		return response;
 	}

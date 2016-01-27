@@ -198,8 +198,19 @@ public class Application {
     public Result displayTST(String pnr){
         AmadeusBookingServiceImpl amadeusBookingService = new AmadeusBookingServiceImpl();
 //        amadeusBookingService.getDisplayTicketDetails(pnr);
+        TravelportBookingServiceImpl travelportBookingService = new TravelportBookingServiceImpl();
+//        JsonNode jsonNode = amadeusBookingService.getBookingDetails(pnr);
+        JsonNode jsonNode =  travelportBookingService.getBookingDetails(pnr);
 
-        JsonNode jsonNode = amadeusBookingService.getBookingDetails(pnr);
         return ok(jsonNode);
+
+    }
+
+    public Result priceBookedPNR(){
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        IssuanceResponse issuanceResponse = bookingService.priceBookedPNR(issuanceRequest);
+        logger.debug("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
+        return ok(Json.toJson(issuanceResponse));
     }
 }

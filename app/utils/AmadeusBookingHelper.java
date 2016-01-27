@@ -66,7 +66,7 @@ public class AmadeusBookingHelper {
         return errors;
     }
 
-    public static void checkFare(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo,String totalFareIdentifier){
+    public static void checkFare(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
     	
     	// TODO: re-factor
     	int adultCount = 0, childCount = 0, infantCount = 0;
@@ -109,7 +109,7 @@ public class AmadeusBookingHelper {
         	}
         }*/
 
-        PricingInformation pricingInformation = getPricingInfo(pricePNRReply, totalFareIdentifier, adultCount, childCount, infantCount);
+        PricingInformation pricingInformation = getPricingInfo(pricePNRReply, adultCount, childCount, infantCount);
         totalFare = pricingInformation.getTotalPrice();
         baseFare = pricingInformation.getBasePrice();
         pnrResponse.setPricingInfo(pricingInformation);
@@ -365,7 +365,7 @@ public class AmadeusBookingHelper {
 
 	public static PricingInformation getPricingInfo(
 			FarePricePNRWithBookingClassReply pricePNRReply,
-			String totalFareIdentifier, int adultCount, int childCount,
+			int adultCount, int childCount,
 			int infantCount) {
 		BigDecimal totalFare = new BigDecimal(0);
         BigDecimal totalBaseFare = new BigDecimal(0);
@@ -393,7 +393,7 @@ public class AmadeusBookingHelper {
             BigDecimal baseFare = new BigDecimal(0);
             for(MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
-                if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
+                if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
                     totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
                 }
                 if("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
@@ -702,5 +702,26 @@ public class AmadeusBookingHelper {
         passengerTax.setTaxes(taxes);
 
         return passengerTax;
+    }
+
+
+    public static int getNumberOfTST(List<Traveller> travellerList){
+
+        int adultCount = 0, childCount = 0, infantCount = 0;
+        int totalCount = 0;
+        for(Traveller traveller : travellerList){
+            PassengerTypeCode passengerTypeCode =DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            if(passengerTypeCode.name().equals(PassengerTypeCode.ADT.name())){
+                adultCount = 1;
+            }else if(passengerTypeCode.name().equals(PassengerTypeCode.CHD.name()))  {
+                childCount = 1;
+            }else {
+                infantCount = 1;
+            }
+
+            totalCount = adultCount + childCount + infantCount;
+
+        }
+        return  totalCount;
     }
 }

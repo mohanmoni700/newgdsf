@@ -103,12 +103,13 @@ public class AmadeusSessionManager {
         amadeusSessionWrapper.update();
     }
 
-    public String storeActiveSession(Session session){
+    public String storeActiveSession(Session session, String pnr){
 
         String uuid = UUID.randomUUID().toString();
         AmadeusSessionWrapper amadeusSessionWrapper = createSessionWrapper(session);
         amadeusSessionWrapper.setSessionUUID(uuid);
         amadeusSessionWrapper.setActiveContext(true);
+        amadeusSessionWrapper.setGdsPNR(pnr);
         amadeusSessionWrapper.save();
         return uuid;
     }
@@ -121,5 +122,10 @@ public class AmadeusSessionManager {
     public void removeActiveSession(Session session){
         AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findBySessionId(session.getSessionId());
         amadeusSessionWrapper.delete();
+    }
+
+    public Session getActiveSessionByGdsPNR(String pnr){
+        AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findByPNR(pnr);
+        return amadeusSessionWrapper.getmSession().value;
     }
 }

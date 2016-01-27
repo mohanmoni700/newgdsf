@@ -31,6 +31,9 @@ public class IssuanceResponse implements Serializable{
 
     private String bookingStatus;
 
+    private String sessionIdRef;
+
+    private boolean priceChanged;
 
     public boolean isCappingLimitReached() {
         return isCappingLimitReached;
@@ -110,5 +113,21 @@ public class IssuanceResponse implements Serializable{
 
     public void setBookingStatus(String bookingStatus) {
         this.bookingStatus = bookingStatus;
+    }
+
+    public String getSessionIdRef() {
+        return sessionIdRef;
+    }
+
+    public void setSessionIdRef(String sessionIdRef) {
+        this.sessionIdRef = sessionIdRef;
+    }
+
+    public boolean isPriceChanged() {
+        return priceChanged;
+    }
+
+    public void setIsPriceChanged(boolean isPriceChanged) {
+        this.priceChanged = isPriceChanged;
     }
 }

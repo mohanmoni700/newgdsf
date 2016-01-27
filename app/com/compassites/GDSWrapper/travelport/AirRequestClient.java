@@ -21,6 +21,7 @@ import org.joda.time.Years;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.DateUtility;
+import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import java.io.IOException;
@@ -521,12 +522,12 @@ public class AirRequestClient extends TravelPortClient {
         priceRequest.setAirPricingModifiers(airPricingModifiers);
 
 
-//        XMLFileUtility.createXMLFile(priceRequest,"AirpriceReq.xml" );
+        XMLFileUtility.createXMLFile(priceRequest, "AirpriceReq.xml");
         travelportLogger.debug("AirpriceReq " + new Date() +" ------>> "+ new XStream().toXML(priceRequest));
         initPricePort();
         AirPriceRsp airPriceRsp = airPricePortType.service(priceRequest);
 
-//        XMLFileUtility.createXMLFile(airPriceRsp,"AirpriceRes.xml" );
+        XMLFileUtility.createXMLFile(airPriceRsp, "AirpriceRes.xml");
         travelportLogger.debug("AirpriceRes " + new Date() +" ------>> "+ new XStream().toXML(airPriceRsp));
         return airPriceRsp;
     }
