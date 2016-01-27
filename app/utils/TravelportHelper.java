@@ -8,6 +8,8 @@ import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import models.Airline;
 import models.Airport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -22,6 +24,7 @@ import java.util.Map;
  */
 public class TravelportHelper {
 
+    static Logger logger = LoggerFactory.getLogger("gds");
 
     public static List<Journey> getJourneyListFromPNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp){
         List<Journey> journeyList = new ArrayList<>();
@@ -62,6 +65,7 @@ public class TravelportHelper {
                     airSegmentInformation.setDepartureDate(format.parse(departureDateTime));
                     airSegmentInformation.setArrivalDate(format.parse(arrivalDateTime));
                 } catch (ParseException e) {
+                    logger.error("TravelportHelper getJourneyListFromPNR" ,e);
                     e.printStackTrace();
                 }
 

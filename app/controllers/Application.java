@@ -128,6 +128,7 @@ public class Application {
     public Result issueTicket(){
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        logger.debug("issueTicket request : " + json);
         IssuanceResponse issuanceResponse = bookingService.issueTicket(issuanceRequest);
         logger.debug("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
@@ -209,6 +210,7 @@ public class Application {
     public Result priceBookedPNR(){
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        logger.debug("priceBookedPNR issuance Request : " + json);
         IssuanceResponse issuanceResponse = bookingService.priceBookedPNR(issuanceRequest);
         logger.debug("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));

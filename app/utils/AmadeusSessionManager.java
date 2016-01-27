@@ -82,6 +82,7 @@ public class AmadeusSessionManager {
             SessionHandler sessionHandler = serviceHandler.logIn(new SessionHandler());
             return createSessionWrapper(sessionHandler.getSession().value);
         } catch (Exception e) {
+            logger.error("Amadeus createSession error " ,e);
             e.printStackTrace();
         }
         return null;

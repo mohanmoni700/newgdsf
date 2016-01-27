@@ -196,18 +196,19 @@ public class TravelPortFlightSearch implements FlightSearch {
             }
         } catch (AirFaultMessage airFaultMessage) {
             //throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
-
+            logger.error("Travelport search error  ", airFaultMessage);
             airFaultMessage.printStackTrace();
             ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
             searchResponse.getErrorMessageList().add(errMessage);
             return searchResponse;
         }catch (ClientTransportException clientTransportException){
-
+            logger.error("Travelport search error  ", clientTransportException);
             clientTransportException.printStackTrace();
             throw new RetryException(clientTransportException.getMessage());
         }catch (Exception e){
             //throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
             e.printStackTrace();
+            logger.error("Travelport search error  ", e);
             ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
             searchResponse.getErrorMessageList().add(errMessage);
             return searchResponse;

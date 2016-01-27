@@ -184,6 +184,7 @@ public class AmadeusBookingHelper {
                                     itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId();
                             ticketMap.put(key.toLowerCase(),ticketNumber);
                             ticketsCount++;
+                            logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
                         }
                         traveller1.setTicketNumberMap(ticketMap);
                     }
@@ -199,7 +200,8 @@ public class AmadeusBookingHelper {
         }else {
             passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount();
         }
-        if(ticketsCount == passengerCount){
+        logger.debug("ticketCount : " + ticketsCount + " passengerCount " + passengerCount);
+        if(ticketsCount >= passengerCount){
             return true;
         }
 

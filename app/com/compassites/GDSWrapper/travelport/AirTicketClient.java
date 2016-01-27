@@ -69,8 +69,7 @@ public class AirTicketClient extends TravelPortClient {
 		billInfo.setOriginApplication(UAPI);
 		request.setBillingPointOfSaleInfo(billInfo);
 
-		UniversalRecord uniRcd = UniversalRecordClient.retrievePNR(pnrNumber)
-				.getUniversalRecord();
+		UniversalRecord uniRcd = UniversalRecordClient.retrievePNR(pnrNumber).getUniversalRecord();
 		AirReservation airReservation = uniRcd.getAirReservation().get(0);
 
 		AirPricingInfoRef airPricingInfoRef = new AirPricingInfoRef();

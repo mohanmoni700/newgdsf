@@ -72,11 +72,13 @@ public class TravelportBookingServiceImpl implements BookingService {
 			airFaultMessage.printStackTrace(); // To change body of catch
 												// statement use File | Settings
 												// | File Templates.
+			logger.error("Travelport generatePNR error ", airFaultMessage);
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "TravelPort");
 			pnrResponse.setErrorMessage(errorMessage);
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("Travelport generatePNR error ", e);
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "TravelPort");
 			pnrResponse.setErrorMessage(errorMessage);
@@ -507,7 +509,7 @@ public class TravelportBookingServiceImpl implements BookingService {
             }
         } catch (AirFaultMessage airFaultMessage) {
             airFaultMessage.printStackTrace();
-            logger.error("Error in getting cancel Fee text for travelport "+ airFaultMessage.getMessage());
+            logger.error("Error in getting cancel Fee text for travelport "+ airFaultMessage);
         }
 
         return cancelFeeText.toString();

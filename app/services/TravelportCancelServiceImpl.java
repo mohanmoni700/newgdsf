@@ -8,6 +8,8 @@ import com.compassites.model.ErrorMessage;
 import com.compassites.model.PROVIDERS;
 import com.travelport.schema.universal_v26_0.AirCancelRsp;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import utils.ErrorMessageHelper;
 
@@ -16,6 +18,8 @@ import utils.ErrorMessageHelper;
  */
 @Service
 public class TravelportCancelServiceImpl implements CancelService {
+
+    static Logger logger = LoggerFactory.getLogger("gds");
 
     @Override
     public CancelPNRResponse cancelPNR(String pnr) {
@@ -31,6 +35,7 @@ public class TravelportCancelServiceImpl implements CancelService {
             cancelPNRResponse.setSuccess(true);
         } catch (BaseCompassitesException e) {
             e.printStackTrace();
+            logger.error("Travelport cancelPNR ", e);
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(e.getErrorCode(), ErrorMessage.ErrorType.ERROR, PROVIDERS.TRAVELPORT.toString());
             cancelPNRResponse.setSuccess(false);
             cancelPNRResponse.setErrorMessage(errorMessage);

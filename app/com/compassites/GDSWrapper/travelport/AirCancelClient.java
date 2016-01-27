@@ -77,12 +77,12 @@ public class AirCancelClient extends TravelPortClient{
         try {
 //            init();
             XMLFileUtility.createXMLFile(airCancelReq, "airCancelReq.xml");
-            travelportLogger.debug("airCancelReq " + new Date() +" ------>> "+ new XStream().toXML(airCancelReq));
+            travelportLogger.debug("airCancelReq " + new Date() + " ------>> " + new XStream().toXML(airCancelReq));
             airCancelRsp =  airCancelPortType.service(airCancelReq, null);
             XMLFileUtility.createXMLFile(airCancelRsp, "airCancelRsp.xml");
             travelportLogger.debug("airCancelRes " + new Date() +" ------>> "+ new XStream().toXML(airCancelRsp));
         } catch (AirFaultMessage airFaultMessage) {
-            logger.debug("error in AirCancelClient cancelPNR" + airFaultMessage.getFaultInfo().toString());
+            logger.error("error in AirCancelClient cancelPNR", airFaultMessage);
             airFaultMessage.printStackTrace();
             XMLFileUtility.createXMLFile(airFaultMessage, "AirReserveResponseException.xml");
             travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(airFaultMessage));
