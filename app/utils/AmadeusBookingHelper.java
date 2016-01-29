@@ -164,16 +164,29 @@ public class AmadeusBookingHelper {
                         segmentRefList.add(travellerKey);
                     }
                 }
-                PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(travellerKey);
+                PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
                 String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
                 String name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
-                String[] nameArray = name.split(" ");
+               /* String[] nameArray = name.split(" ");
                 String firstName = nameArray[0];
-                String middleName = (nameArray.length > 1)? nameArray[1]: "";
+                String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
+
+                name = name.replaceAll("\\s+", "");
+                lastName = lastName.replaceAll("\\s+", "");
 
                 for(Traveller traveller1 : issuanceRequest.getTravellerList()){
-                    if(firstName.equalsIgnoreCase(traveller1.getPersonalDetails().getFirstName())
-                            && lastName.equalsIgnoreCase(traveller1.getPersonalDetails().getLastName())){
+                    String contactName = "";
+                    if(traveller1.getPersonalDetails().getMiddleName() != null){
+                        contactName = traveller1.getPersonalDetails().getFirstName() + traveller1.getPersonalDetails().getMiddleName();
+
+                    }else {{
+                        contactName = traveller1.getPersonalDetails().getFirstName();
+                    }}
+                    contactName = contactName.replaceAll("\\s+", "");
+                    String contactLastName = traveller1.getPersonalDetails().getLastName();
+                    contactLastName  = contactLastName.replaceAll("\\s+", "");
+                    if(name.equalsIgnoreCase(contactName)
+                            && lastName.equalsIgnoreCase(contactLastName)){
                     	String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         String[] freeTextArr = freeText.split("/");
                         String ticketNumber = freeTextArr[0].substring(3);
@@ -183,12 +196,12 @@ public class AmadeusBookingHelper {
                             String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
                                     itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId();
                             ticketMap.put(key.toLowerCase(),ticketNumber);
-                            ticketsCount++;
                             logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
                         }
                         traveller1.setTicketNumberMap(ticketMap);
                     }
                 }
+                ticketsCount++;
                 issuanceResponse.setTravellerList(issuanceRequest.getTravellerList());
                 issuanceResponse.setSuccess(true);
             }
