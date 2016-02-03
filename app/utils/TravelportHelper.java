@@ -1,9 +1,7 @@
 package utils;
 
-import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.*;
 import com.compassites.model.Journey;
-import com.compassites.model.PassengerTax;
-import com.compassites.model.PricingInformation;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import models.Airline;
@@ -184,5 +182,62 @@ public class TravelportHelper {
         passengerTax.setPassengerType(paxType);
         passengerTax.setTaxes(taxes);
         return passengerTax;
+    }
+
+    public static PricingInformation getPriceDetails(PricingInformation pricingInfo, List<AirPricingInfo> airPricingInfoList){
+        BigDecimal totalFare = new BigDecimal(0);
+        BigDecimal totalBaseFare = new BigDecimal(0);
+        BigDecimal totalTax = new BigDecimal(0);
+
+        BigDecimal adtBaseFare = new BigDecimal(0);
+        BigDecimal chdBaseFare = new BigDecimal(0);
+        BigDecimal infBaseFare = new BigDecimal(0);
+        BigDecimal adtTotalFare = new BigDecimal(0);
+        BigDecimal chdTotalFare = new BigDecimal(0);
+        BigDecimal infTotalFare = new BigDecimal(0);
+
+
+        for(AirPricingInfo airPricingInfo : airPricingInfoList) {
+            BigDecimal total = StringUtility.getDecimalFromString(airPricingInfo.getApproximateTotalPrice());
+            BigDecimal base = StringUtility.getDecimalFromString(airPricingInfo.getApproximateBasePrice());
+            BigDecimal tax = StringUtility.getDecimalFromString(airPricingInfo.getTaxes());
+            pricingInfo.setGdsCurrency(StringUtility.getCurrencyFromString(airPricingInfo.getTotalPrice()));
+            List<PassengerType> passegerTypes = airPricingInfo.getPassengerType();
+            String paxType = passegerTypes.get(0).getCode();
+
+            int paxCount = passegerTypes.size();
+            totalFare = totalFare.add(total.multiply(new BigDecimal(paxCount)));
+            totalBaseFare = totalBaseFare.add(base.multiply(new BigDecimal(paxCount)));
+            totalTax = totalTax.add(tax.multiply(new BigDecimal(paxCount)));
+
+            if("CHD".equalsIgnoreCase(paxType) || "CNN".equalsIgnoreCase(paxType)) {
+//				pricingInfo.setChdBasePrice(base);
+                chdBaseFare = chdBaseFare.add(base);
+                chdTotalFare = chdTotalFare.add(total);
+            } else if("INF".equalsIgnoreCase(paxType)) {
+//				pricingInfo.setInfBasePrice(base);
+                infBaseFare = infBaseFare.add(base);
+                infTotalFare = infTotalFare.add(total);
+            } else {
+//				pricingInfo.setAdtBasePrice(base);
+                adtBaseFare = adtBaseFare.add(base);
+                adtTotalFare = adtTotalFare.add(total);
+            }
+        }
+
+        pricingInfo.setTax(totalTax);
+        pricingInfo.setBasePrice(totalBaseFare);
+        pricingInfo.setTotalPrice(totalFare);
+        pricingInfo.setTotalPriceValue(totalFare);
+        pricingInfo.setProvider("Travelport");
+
+        pricingInfo.setAdtBasePrice(adtBaseFare);
+        pricingInfo.setAdtTotalPrice(adtTotalFare);
+        pricingInfo.setChdBasePrice(chdBaseFare);
+        pricingInfo.setChdTotalPrice(chdTotalFare);
+        pricingInfo.setInfBasePrice(infBaseFare);
+        pricingInfo.setInfTotalPrice(infTotalFare);
+
+        return pricingInfo;
     }
 }

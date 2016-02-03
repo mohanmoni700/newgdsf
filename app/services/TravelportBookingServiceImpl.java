@@ -103,15 +103,18 @@ public class TravelportBookingServiceImpl implements BookingService {
 			issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
 			List<Traveller> travellerList = issuanceRequest.getTravellerList();
 			for (Traveller traveller : travellerList) {
+                String contactFirstName = traveller.getPersonalDetails().getFirstName().replaceAll("\\s+", "");;
+                String contactLastName = traveller.getPersonalDetails().getLastName().replaceAll("\\s+", "");;
+
 				List<Ticket> tickets = null;
 				for (ETR etr : airTicketingRsp.getETR()) {
 					BookingTravelerName name = etr.getBookingTraveler()
 							.getBookingTravelerName();
-					if (traveller.getPersonalDetails().getFirstName()
-							.equalsIgnoreCase(name.getFirst())
-							&& traveller.getPersonalDetails().getLastName()
-									.equalsIgnoreCase(name.getLast())) {
-						tickets = etr.getTicket();
+                    String firstName = name.getFirst().replaceAll("\\s+", "");
+                    String lastName = name.getLast().replaceAll("\\s+", "");
+					if (contactFirstName.equalsIgnoreCase(firstName)
+							&& contactLastName.equalsIgnoreCase(lastName)) {
+                        tickets = etr.getTicket();
 						break;
 					}
 				}
@@ -153,7 +156,14 @@ public class TravelportBookingServiceImpl implements BookingService {
 		BigDecimal changedBasePrice = new BigDecimal(
 				StringUtility.getPriceFromString(priceRsp.getAirPriceResult()
 						.get(0).getAirPricingSolution().get(0).getBasePrice()));
-		
+
+		PricingInformation pricingInformation = new PricingInformation();
+		pricingInformation = TravelportHelper.getPriceDetails(pricingInformation,priceRsp.getAirPriceResult()
+				.get(0).getAirPricingSolution().get(0).getAirPricingInfo());
+		pnrResponse.setPricingInfo(pricingInformation);
+
+		travellerMasterInfo.getItinerary().setPricingInformation(travellerMasterInfo.isSeamen(), pricingInformation);
+
 		pnrResponse.setChangedPrice(totalPrice);
 		pnrResponse.setChangedBasePrice(changedBasePrice);
 		pnrResponse.setOriginalPrice(searchPrice);

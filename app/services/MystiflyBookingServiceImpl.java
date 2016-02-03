@@ -221,13 +221,16 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					travellerMasterInfo.getItinerary().setFareSourceCode(
 							newFareSourceCode);
 					pnrRS.setFlightAvailable(true);
+					pnrRS.setPricingInfo(travellerMasterInfo.getItinerary()
+							.getPricingInformation(travellerMasterInfo.isSeamen()));
 				} else if (revalidateRS.getPricedItineraries() == null
 						|| revalidateRS.getPricedItineraries()
 								.getPricedItineraryArray() == null
 						|| revalidateRS.getPricedItineraries()
-								.getPricedItineraryArray().length == 0) {
+						.getPricedItineraryArray().length == 0) {
 					pnrRS.setPriceChanged(false);
 					pnrRS.setFlightAvailable(false);
+
 				} else {
 
 					AirItineraryPricingInfo pricingInfo = revalidateRS
@@ -239,6 +242,8 @@ public class MystiflyBookingServiceImpl implements BookingService {
 							.getItinTotalFare().getBaseFare().getAmount()));
 					pnrRS.setOriginalPrice(travellerMasterInfo.getItinerary()
 							.getPricingInformation().getTotalPrice());
+					pnrRS.setPricingInfo(travellerMasterInfo.getItinerary()
+							.getPricingInformation(travellerMasterInfo.isSeamen()));
 					pnrRS.setFlightAvailable(true);
 					pnrRS.setPriceChanged(true);
 				}
