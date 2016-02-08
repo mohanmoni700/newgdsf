@@ -9,6 +9,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import models.Airline;
 import models.Airport;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -247,6 +251,10 @@ public class MystiflyFlightSearch implements FlightSearch {
 		airSegment.setArrivalTime(sdf.format(flightSegment.getArrivalDateTime().getTime()));
 
 
+		Airport fromAirport = new Airport();
+		Airport toAirport = new Airport();
+		fromAirport = Airport.getAiport(flightSegment.getDepartureAirportLocationCode());
+		toAirport = Airport.getAiport(flightSegment.getArrivalAirportLocationCode());
 
 		OperatingAirline airline = flightSegment.getOperatingAirline();
 		airSegment.setFlightNumber(airline.getFlightNumber());
@@ -269,6 +277,19 @@ public class MystiflyFlightSearch implements FlightSearch {
 			airSegment.setOperatingAirline(Airline.getAirlineByCode(airline.getCode()));
 		airSegment.setToLocation(flightSegment.getArrivalAirportLocationCode());
 		airSegment.setTravelTime("" + flightSegment.getJourneyDuration());
+
+		//added to fix timezone bug for departureDate
+		String DATE_FORMAT = "yyyy-MM-dd 'HH:mm:ss";
+		DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat.forPattern(DATE_FORMAT);
+		DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport.getTime_zone());
+		DateTime departureDateTime = DateTime.parse(departureDate.toString()).withZone(dateTimeZone);
+		dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+		DateTime arrivalDate = DateTime.parse(flightSegment.getArrivalDateTime().toString()).withZone(dateTimeZone);
+		airSegment.setDepartureDate(departureDateTime.toDate());
+		airSegment.setDepartureTime(departureDateTime.toString());
+		airSegment.setArrivalTime(arrivalDate.toString());
+		airSegment.setArrivalDate(arrivalDate.toDate());
+
 		return airSegment;
 	}
 
