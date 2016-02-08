@@ -56,6 +56,9 @@ public class TravelportHelper {
                     airSegmentInformation.setDistanceTravelled(airSegment.getDistance().toString());
                 }
 
+                airSegmentInformation.setDepartureTime(departureDateTime);
+                airSegmentInformation.setArrivalTime(arrivalDateTime);
+
                 airSegmentInformation.setFromDate(arrivalDateTime);
                 airSegmentInformation.setToDate(departureDateTime);
 
