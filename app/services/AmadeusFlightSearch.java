@@ -6,6 +6,7 @@ import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Rec
 import com.compassites.GDSWrapper.amadeus.SearchFlights;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
+import com.compassites.constants.AmadeusConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
@@ -77,6 +78,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         searchResponse.setProvider("Amadeus");
         FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply = null;
         FareMasterPricerTravelBoardSearchReply seamenReply = null;
+
         try {
             amadeusSessionWrapper = amadeusSessionManager.getSession();
             ServiceHandler serviceHandler = new ServiceHandler();
@@ -131,22 +133,25 @@ public class AmadeusFlightSearch implements FlightSearch{
         AirSolution airSolution = new AirSolution();
         if (errorMessage != null) {
             String errorCode = errorMessage.getApplicationError().getApplicationErrorDetail().getError();
-            InputStream input = null;
-            try {
+            if(!AmadeusConstants.NO_ITINERARY_ERROR_CODE.contains(errorCode)){
+                InputStream input = null;
+                try {
 
-                errorCode = "amadeus." + errorCode;
-                boolean errorCodeExist = ErrorMessageHelper.checkErrorCodeExist(errorCode);
-                if (errorCodeExist) {
+                    errorCode = "amadeus." + errorCode;
+                    boolean errorCodeExist = ErrorMessageHelper.checkErrorCodeExist(errorCode);
+                    if (errorCodeExist) {
+                        ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage(errorCode, ErrorMessage.ErrorType.WARNING, "Amadeus");
+                        throw new RetryException(errMessage.getMessage());
+                    }
                     ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage(errorCode, ErrorMessage.ErrorType.WARNING, "Amadeus");
-                    throw new RetryException(errMessage.getMessage());
+
+                    searchResponse.getErrorMessageList().add(errMessage);
+                } catch (Exception e) {
+
+                    e.printStackTrace();
                 }
-                ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage(errorCode, ErrorMessage.ErrorType.WARNING, "Amadeus");
-
-                searchResponse.getErrorMessageList().add(errMessage);
-            } catch (Exception e) {
-
-                e.printStackTrace();
             }
+
         } else {
             //return flight
             airSolution = createAirSolutionFromRecommendation(fareMasterPricerTravelBoardSearchReply);
@@ -159,6 +164,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             }
         }
         searchResponse.setAirSolution(airSolution);
+
         return searchResponse;
     }
 

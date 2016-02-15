@@ -37,6 +37,8 @@ public class AmadeusConstants {
 
     public static final String CAPPING_LIMIT_STRING = "CT RJT";
 
+    public static final String NO_ITINERARY_ERROR_CODE = "931,977";
+
 
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");

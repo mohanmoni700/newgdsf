@@ -246,8 +246,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pnrResponse.setFlightAvailable(false);
 			return pricePNRReply;
 		}
-		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,
-                travellerMasterInfo);
+		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,travellerMasterInfo);
 //        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
 		return pricePNRReply;
 	}

@@ -2,6 +2,7 @@ package services;
 
 import com.compassites.GDSWrapper.travelport.Helper;
 import com.compassites.GDSWrapper.travelport.LowFareRequestClient;
+import com.compassites.constants.TravelportConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
@@ -185,7 +186,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             response = lowFareRequestClient.search(searchParameters);
             logger.debug("[TravelPort] FlightSearch search response at " + new Date());
             List<ResponseMessage> responseMessageList = response.getResponseMessage();
-            errorExist = ((response.getAirPricingSolution() ==null) || ( response.getAirPricingSolution().size() == 0)) ;
+            errorExist = ((response.getAirPricingSolution() == null) || ( response.getAirPricingSolution().size() == 0)) ;
             for (ResponseMessage responseMessage : responseMessageList){
                if("Error".equalsIgnoreCase(responseMessage.getType())){
                     logger.debug("[Travelport] Error received from Travel port : " + responseMessage.getValue());
@@ -198,8 +199,11 @@ public class TravelPortFlightSearch implements FlightSearch {
             //throw new IncompleteDetailsMessage(airFaultMessage.getMessage(), airFaultMessage.getCause());
             logger.error("Travelport search error  ", airFaultMessage);
             airFaultMessage.printStackTrace();
-            ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
-            searchResponse.getErrorMessageList().add(errMessage);
+            String code = airFaultMessage.getFaultInfo().getCode();
+            if(!TravelportConstants.NO_ITINERARY_ERROR_CODE.contains(code)){
+                ErrorMessage errMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Travelport");
+                searchResponse.getErrorMessageList().add(errMessage);
+            }
             return searchResponse;
         }catch (ClientTransportException clientTransportException){
             logger.error("Travelport search error  ", clientTransportException);

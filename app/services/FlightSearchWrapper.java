@@ -122,10 +122,11 @@ public class FlightSearchWrapper {
                             logger.debug("["+redisKey+"]All providers gave error");
                             //send email to IT admin
                         }
+                        logger.error("retrialError in FlightSearchWrapper : ", retryOnFailure);
                         ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("retrialError",ErrorMessage.ErrorType.ERROR,"Application");
                         errorMessageList.add(errorMessage);
                     }catch (Exception e){
-
+                        logger.error("Exception in FlightSearchWrapper : ", e);
                         ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults",ErrorMessage.ErrorType.WARNING,"Application");
                         errorMessageList.add(errorMessage);
                         e.printStackTrace();
@@ -187,6 +188,7 @@ public class FlightSearchWrapper {
                         AirSolution airSolution = new AirSolution();
                         airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
                         searchResponseCache.setAirSolution(airSolution);
+
                         searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
 
 

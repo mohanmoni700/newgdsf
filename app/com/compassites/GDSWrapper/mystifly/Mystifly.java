@@ -59,4 +59,7 @@ public class Mystifly {
 					PassengerTypeCode.CHD, PassengerType.CHD,
 					PassengerTypeCode.INF, PassengerType.INF);
 
+
+	public static final String NO_ITINERARY_ERROR_CODE = "ERSER021";
+
 }
