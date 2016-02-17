@@ -555,7 +555,7 @@ public class AmadeusBookingHelper {
     }
 
 
-    public static PricingInformation getPricingInfoFromTST(PNRReply gdsPNRReply, TicketDisplayTSTReply ticketDisplayTSTReply, boolean isSeamen) {
+    public static PricingInformation getPricingInfoFromTST(PNRReply gdsPNRReply, TicketDisplayTSTReply ticketDisplayTSTReply, boolean isSeamen, List<Journey> journeyList) {
 
         BigDecimal totalPriceOfBooking = new BigDecimal(0);
         BigDecimal basePriceOfBooking = new BigDecimal(0);
@@ -602,6 +602,14 @@ public class AmadeusBookingHelper {
                 }
             }else {
                 passengerType.put(key, "ADT");
+            }
+        }
+
+        Map<String, AirSegmentInformation> segmentMap = new HashMap<>();
+        for (Journey journey : journeyList){
+            for(AirSegmentInformation airSegment : journey.getAirSegmentList()){
+                String key = airSegment.getFromLocation() +  airSegment.getToLocation();
+                segmentMap.put(key, airSegment);
             }
         }
 
@@ -676,6 +684,19 @@ public class AmadeusBookingHelper {
             }
             totalPriceOfBooking = totalPriceOfBooking.add(totalFarePerPaxType);
             basePriceOfBooking = basePriceOfBooking.add(baseFareOfPerPaxType);
+
+            for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
+                for (String key : segmentMap.keySet()) {
+                    for(Object airSegVal : airSegmentRefMap.values()) {
+                        if (key.equals(airSegVal)) {
+                            String farebasis = segmentInformation.getFareQualifier().get(0).getFareBasisDetails().getPrimaryCode()
+                                    + segmentInformation.getFareQualifier().get(0).getFareBasisDetails().getFareBasisCode();
+                            segmentMap.get(key).setFareBasis(farebasis);
+                        }
+                    }
+                }
+            }
+
         }
 
         pricingInformation.setSegmentWisePricing(segmentWisePricing);

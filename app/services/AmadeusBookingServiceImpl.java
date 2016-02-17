@@ -437,7 +437,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 
 			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST();
-			PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen);
+			PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 
             if(isSeamen){
                 flightItinerary.setSeamanPricingInformation(pricingInformation);
@@ -598,7 +598,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 //			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
 //							paxTypeCount.get("adultCount"),	paxTypeCount.get("childCount"),	paxTypeCount.get("infantCount"));
 
-			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen);
+			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 			if (isSeamen) {
 				flightItinerary.setSeamanPricingInformation(pricingInfo);
 			} else {
