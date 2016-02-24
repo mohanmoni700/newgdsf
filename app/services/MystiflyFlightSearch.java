@@ -279,12 +279,13 @@ public class MystiflyFlightSearch implements FlightSearch {
 		airSegment.setTravelTime("" + flightSegment.getJourneyDuration());
 
 		//added to fix timezone bug for departureDate
-		String DATE_FORMAT = "yyyy-MM-dd 'HH:mm:ss";
+		String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 		DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat.forPattern(DATE_FORMAT);
 		DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport.getTime_zone());
-		DateTime departureDateTime = DateTime.parse(departureDate.toString()).withZone(dateTimeZone);
+		DateTime departureDateTime = DATETIME_FORMATTER.withZone(dateTimeZone).parseDateTime(flightSegment.getDepartureDateTime().toString());
+
 		dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
-		DateTime arrivalDate = DateTime.parse(flightSegment.getArrivalDateTime().toString()).withZone(dateTimeZone);
+		DateTime arrivalDate = DATETIME_FORMATTER.withZone(dateTimeZone).parseDateTime(flightSegment.getArrivalDateTime().toString());
 		airSegment.setDepartureDate(departureDateTime.toDate());
 		airSegment.setDepartureTime(departureDateTime.toString());
 		airSegment.setArrivalTime(arrivalDate.toString());

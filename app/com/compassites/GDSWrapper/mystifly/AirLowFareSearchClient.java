@@ -79,7 +79,10 @@ public class AirLowFareSearchClient {
 
 				journey.setDestinationLocationCode(searchJourney
 						.getDestination());
-				calendar.setTime(searchJourney.getTravelDate());
+				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+				DateTime dateTime = fmt.parseDateTime(searchJourney.getTravelDateStr());
+//				calendar.setTime(searchJourney.getTravelDate());
+				calendar.setTime(dateTime.toDate());
 				journey.setDepartureDateTime(calendar);
 			}
 		} else {

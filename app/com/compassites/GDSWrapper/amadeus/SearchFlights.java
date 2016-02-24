@@ -284,11 +284,20 @@ public class SearchFlights {
 
     private void setCabinClass(CabinClass cabinClass, TravelFlightInformationType165052S fi){
         String cabinQualifier="";
-        switch (cabinClass){
+        if(CabinClass.BUSINESS.equals(cabinClass)){
+            cabinQualifier = "C";
+        }else if(CabinClass.FIRST.equals(cabinClass)){
+            cabinQualifier = "F";
+        }else if(CabinClass.PREMIUM_ECONOMY.equals(cabinClass)){
+            cabinQualifier = "W";
+        }else{
+            cabinQualifier = "Y";
+        }
+        /*switch (cabinClass){
             case BUSINESS:cabinQualifier="C";
             case FIRST:cabinQualifier="F";
             default:cabinQualifier="Y";
-        }
+        }*/
         CabinIdentificationType233500C cit=new CabinIdentificationType233500C();
         cit.getCabin().add(cabinQualifier);
         fi.setCabinId(cit);
