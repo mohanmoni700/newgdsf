@@ -35,6 +35,8 @@ public class SegmentPricing {
 
     private PassengerTax passengerTax;
 
+    private Long bookingVerificationContactMappingId;
+
     public Long getId() {
         return id;
     }
@@ -129,5 +131,13 @@ public class SegmentPricing {
 
     public void setPassengerTax(PassengerTax passengerTax) {
         this.passengerTax = passengerTax;
+    }
+
+    public Long getBookingVerificationContactMappingId() {
+        return bookingVerificationContactMappingId;
+    }
+
+    public void setBookingVerificationContactMappingId(Long bookingVerificationContactMappingId) {
+        this.bookingVerificationContactMappingId = bookingVerificationContactMappingId;
     }
 }
