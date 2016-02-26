@@ -6,4 +6,6 @@ package com.compassites.constants;
 public class TravelportConstants {
 
     public static final String NO_ITINERARY_ERROR_CODE = "3037";
+
+    public static final String SEGMENT_CANCELLED = "HX";
 }

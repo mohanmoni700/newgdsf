@@ -1,11 +1,8 @@
 package com.compassites.GDSWrapper.travelport;
 
 import com.thoughtworks.xstream.XStream;
-import com.travelport.schema.air_v26_0.AirReservation;
-import com.travelport.schema.air_v26_0.AirReservationLocatorCode;
-import com.travelport.schema.air_v26_0.AirTicketingReq;
+import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.air_v26_0.AirTicketingReq.AirPricingInfoRef;
-import com.travelport.schema.air_v26_0.AirTicketingRsp;
 import com.travelport.schema.common_v26_0.BillingPointOfSaleInfo;
 import com.travelport.schema.common_v26_0.BookingTravelerRef;
 import com.travelport.schema.universal_v26_0.UniversalRecord;
@@ -72,14 +69,18 @@ public class AirTicketClient extends TravelPortClient {
 		UniversalRecord uniRcd = UniversalRecordClient.retrievePNR(pnrNumber).getUniversalRecord();
 		AirReservation airReservation = uniRcd.getAirReservation().get(0);
 
-		AirPricingInfoRef airPricingInfoRef = new AirPricingInfoRef();
+		AirPricingInfoRef airPricingInfoRef = null;
 
         if(airReservation.getAirPricingInfo() != null && airReservation.getAirPricingInfo().size() > 0){
-            airPricingInfoRef.setKey(airReservation.getAirPricingInfo().get(0)
-                    .getKey());
-            for (BookingTravelerRef btr : airReservation.getBookingTravelerRef())
-                airPricingInfoRef.getBookingTravelerRef().add(btr);
-            request.getAirPricingInfoRef().add(airPricingInfoRef);
+			for(AirPricingInfo airPricingInfo: airReservation.getAirPricingInfo()){
+				airPricingInfoRef = new AirPricingInfoRef();
+				airPricingInfoRef.setKey(airPricingInfo.getKey());
+				for (BookingTravelerRef btr : airPricingInfo.getBookingTravelerRef()){
+					airPricingInfoRef.getBookingTravelerRef().add(btr);
+				}
+				request.getAirPricingInfoRef().add(airPricingInfoRef);
+			}
+
         }
 
 

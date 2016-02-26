@@ -12,11 +12,13 @@ import java.text.SimpleDateFormat;
  */
 public class TravelPortClient {
     static final String REMOTE_HOST = "https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI";
+//    static final String REMOTE_HOST = "https://twsprofiler.travelport.com/Service/Default.ashx";
     static final String USERNAME = "Universal API/uAPI2652954893-bf4f2606";
     static final String PASSWORD = "9n-L=Zg87i";
     static final String BRANCH = "P7024203";
     static final String GDS ="1G";
     static final String UAPI = "UAPI";
+    static final String AUTHORIZEDBY = "TEST";
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 

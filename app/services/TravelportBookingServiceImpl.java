@@ -48,12 +48,12 @@ public class TravelportBookingServiceImpl implements BookingService {
 			// AirRequestClient.getItinerary(responseTwo,
 			// responseTwo.getAirPricingSolution().get(0));
 			AirItinerary airItinerary = AirRequestClient
-					.buildAirItinerary(travellerMasterInfo);
+					.buildAirItinerary(travellerMasterInfo.getItinerary(), travellerMasterInfo.isSeamen());
 			TypeCabinClass typeCabinClass = TypeCabinClass
 					.valueOf(travellerMasterInfo.getCabinClass().upperValue());
 
 			AirPriceRsp priceRsp = AirRequestClient.priceItinerary(
-					airItinerary, "INR", typeCabinClass, travellerMasterInfo);
+					airItinerary, "INR", typeCabinClass, travellerMasterInfo.getTravellersList(), travellerMasterInfo.isSeamen());
 			pnrResponse = checkFare(priceRsp, travellerMasterInfo);
 			if (!pnrResponse.isPriceChanged()) {
 				// AirPricingSolution airPriceSolution =
@@ -90,53 +90,6 @@ public class TravelportBookingServiceImpl implements BookingService {
 	@Override
 	public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
 		return generatePNR(travellerMasterInfo);
-	}
-
-	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
-
-		IssuanceResponse issuanceResponse = new IssuanceResponse();
-		AirTicketClient airTicketClient = new AirTicketClient();
-		AirTicketingRsp airTicketingRsp = airTicketClient
-				.issueTicket(issuanceRequest.getGdsPNR());
-		if (airTicketingRsp.getETR().size() > 0) {
-			issuanceResponse.setSuccess(true);
-			issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
-			List<Traveller> travellerList = issuanceRequest.getTravellerList();
-			for (Traveller traveller : travellerList) {
-                String contactFirstName = traveller.getPersonalDetails().getFirstName().replaceAll("\\s+", "");;
-                String contactLastName = traveller.getPersonalDetails().getLastName().replaceAll("\\s+", "");;
-
-				List<Ticket> tickets = null;
-				for (ETR etr : airTicketingRsp.getETR()) {
-					BookingTravelerName name = etr.getBookingTraveler()
-							.getBookingTravelerName();
-                    String firstName = name.getFirst().replaceAll("\\s+", "");
-                    String lastName = name.getLast().replaceAll("\\s+", "");
-					if (contactFirstName.equalsIgnoreCase(firstName)
-							&& contactLastName.equalsIgnoreCase(lastName)) {
-                        tickets = etr.getTicket();
-						break;
-					}
-				}
-				Map<String, String> ticketMap = new HashMap<>();
-				for (Ticket ticket : tickets) {
-					for (Coupon coupon : ticket.getCoupon()) {
-						String key = coupon.getOrigin()
-								+ coupon.getDestination()
-								+ traveller.getContactId();
-						ticketMap.put(key.toLowerCase(),
-								ticket.getTicketNumber());
-					}
-				}
-				traveller.setTicketNumberMap(ticketMap);
-			}
-			issuanceResponse.setTravellerList(travellerList);
-		} else {
-			issuanceResponse.setSuccess(false);
-		}
-
-        getCancellationFee(issuanceRequest);
-		return issuanceResponse;
 	}
 
 	public PNRResponse checkFare(AirPriceRsp priceRsp,
@@ -253,10 +206,10 @@ public class TravelportBookingServiceImpl implements BookingService {
 			// AirItinerary airItinerary =
 			// AirRequestClient.getItinerary(responseTwo,
 			// responseTwo.getAirPricingSolution().get(0));
-			AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo);
+			AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo.getItinerary(), travellerMasterInfo.isSeamen());
 			TypeCabinClass typeCabinClass = TypeCabinClass.valueOf(travellerMasterInfo.getCabinClass().upperValue());
 
-			AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, "INR",typeCabinClass, travellerMasterInfo);
+			AirPriceRsp priceRsp = AirRequestClient.priceItinerary(airItinerary, "INR",typeCabinClass, travellerMasterInfo.getTravellersList(), travellerMasterInfo.isSeamen());
 			pnrResponse = checkFare(priceRsp, travellerMasterInfo);
 
 		} catch (AirFaultMessage airFaultMessage) {
@@ -503,9 +456,9 @@ public class TravelportBookingServiceImpl implements BookingService {
         StringBuilder cancelFeeText = new StringBuilder();
         AirPriceRsp priceRsp = null;
         try {
-            AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo);
+            AirItinerary airItinerary = AirRequestClient.buildAirItinerary(travellerMasterInfo.getItinerary(), travellerMasterInfo.isSeamen());
             TypeCabinClass typeCabinClass = TypeCabinClass.valueOf(issuanceRequest.getCabinClass().upperValue());
-            priceRsp = AirRequestClient.priceItinerary(airItinerary, "INR", typeCabinClass, travellerMasterInfo);
+            priceRsp = AirRequestClient.priceItinerary(airItinerary, "INR", typeCabinClass, travellerMasterInfo.getTravellersList(), travellerMasterInfo.isSeamen());
             for(AirPriceResult airPriceResult : priceRsp.getAirPriceResult()){
                 FareRuleKey fareRuleKey = airPriceResult.getAirPricingSolution().get(0).getAirPricingInfo().get(0).getFareInfo().get(0).getFareRuleKey();
                 FareRulesClient fareRulesClient =  new FareRulesClient();

@@ -349,7 +349,7 @@ public class AirReservationClient  extends TravelPortClient {
 //            String travelerType = travellerMasterInfo.isSeamen() ? PassengerTypeCode.SEA.name() : DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).name();
             
             long age = DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth());
-            String travelerType = age <= 12 ? "CNN" : "ADT";
+            String travelerType = (age <= 12) ? ((age <= 2 ) ? "INF" : "CNN") : "ADT";
             bookingTraveler.setTravelerType(travelerType);
             bookingTraveler.setKey(i++ + "");
 

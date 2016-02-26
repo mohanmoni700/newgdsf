@@ -34,6 +34,9 @@ public class BookingServiceWrapper {
 	@Autowired
 	private AmadeusIssuanceServiceImpl amadeusIssuanceService;
 
+	@Autowired
+	private TravelportIssuanceServiceImpl travelportIssuanceService;
+
 	public AmadeusBookingServiceImpl getAmadeusBookingService() {
 		return amadeusBookingService;
 	}
@@ -78,8 +81,7 @@ public class BookingServiceWrapper {
 	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
 		IssuanceResponse issuanceResponse = null;
 		if ("Travelport".equalsIgnoreCase(issuanceRequest.getProvider())) {
-			issuanceResponse = travelPortBookingService
-					.issueTicket(issuanceRequest);
+			issuanceResponse = travelportIssuanceService.issueTicket(issuanceRequest);
 		} else if ("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
 			issuanceResponse = amadeusIssuanceService
 					.issueTicket(issuanceRequest);
@@ -174,7 +176,13 @@ public class BookingServiceWrapper {
 
 	public IssuanceResponse priceBookedPNR(IssuanceRequest issuanceRequest){
 
-		IssuanceResponse issuanceResponse = amadeusIssuanceService.priceBookedPNR(issuanceRequest);
+		IssuanceResponse issuanceResponse = null;
+		if(PROVIDERS.TRAVELPORT.toString().equalsIgnoreCase(issuanceRequest.getProvider()) || "Galileo".equalsIgnoreCase(issuanceRequest.getProvider())){
+			issuanceResponse = travelportIssuanceService.priceBookedPNR(issuanceRequest);
+		}else if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(issuanceRequest.getProvider())){
+			issuanceResponse = amadeusIssuanceService.priceBookedPNR(issuanceRequest);
+		}
+
 		return issuanceResponse;
 	}
 }

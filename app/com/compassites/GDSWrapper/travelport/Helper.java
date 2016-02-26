@@ -32,6 +32,10 @@ public class Helper {
         public TypeBaseAirSegment getByRef(AirSegmentRef ref) {
             return super.get(ref.getKey());
         }
+
+        public TypeBaseAirSegment getByKey(String key){
+            return super.get(key);
+        }
     }
 
     /**

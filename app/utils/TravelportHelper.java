@@ -2,6 +2,7 @@ package utils;
 
 import com.compassites.model.*;
 import com.compassites.model.Journey;
+import com.compassites.model.traveller.Traveller;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import models.Airline;
@@ -33,6 +34,7 @@ public class TravelportHelper {
 
             for (TypeBaseAirSegment airSegment : airReservation.getAirSegment()) {
                 AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+                airSegmentInformation.setAirSegmentKey(airSegment.getKey());
                 String carrierCode = airSegment.getCarrier();
                 airSegmentInformation.setCarrierCode(carrierCode);
                 airSegmentInformation.setFlightNumber(airSegment.getFlightNumber());
@@ -77,6 +79,8 @@ public class TravelportHelper {
                 airSegmentInformation.setBookingClass(airSegment.getCabinClass().toString());
 
                 for (FlightDetails flightDetails : airSegment.getFlightDetails()) {
+                    airSegmentInformation.setFlightDetailsKey(flightDetails.getKey());
+
                     if (flightDetails.getOriginTerminal() != null) {
                         airSegmentInformation.setFromTerminal(flightDetails.getOriginTerminal());
                     }
@@ -168,8 +172,6 @@ public class TravelportHelper {
         pricingInfo.setPassengerTaxes(passengerTaxes);
     }
 
-
-
     public static PassengerTax getTaxDetailsList(List<TypeTaxInfo> typeTaxInfoList, String paxType, int passengerCount){
         PassengerTax passengerTax = new PassengerTax();
         Map<String,BigDecimal> taxes = new HashMap<>();
@@ -187,6 +189,9 @@ public class TravelportHelper {
         return passengerTax;
     }
 
+    /*
+        This is old method which does not take multiple pricing into account
+    */
     public static PricingInformation getPriceDetails(PricingInformation pricingInfo, List<AirPricingInfo> airPricingInfoList){
         BigDecimal totalFare = new BigDecimal(0);
         BigDecimal totalBaseFare = new BigDecimal(0);
@@ -242,5 +247,111 @@ public class TravelportHelper {
         pricingInfo.setInfTotalPrice(infTotalFare);
 
         return pricingInfo;
+    }
+
+
+    /**
+     * This is the new method which also calculates segment wise pricing
+     * @param airPricingInfoList
+     * @param airSegmentRefMap
+     * @return
+     */
+    public static PricingInformation getPricingFromPNR(List<AirPricingInfo> airPricingInfoList, Map<String,String> airSegmentRefMap){
+        PricingInformation pricingInfo = new PricingInformation();
+
+        BigDecimal totalFare = new BigDecimal(0);
+        BigDecimal totalBaseFare = new BigDecimal(0);
+        BigDecimal totalTax = new BigDecimal(0);
+
+        BigDecimal adtBaseFare = new BigDecimal(0);
+        BigDecimal chdBaseFare = new BigDecimal(0);
+        BigDecimal infBaseFare = new BigDecimal(0);
+        BigDecimal adtTotalFare = new BigDecimal(0);
+        BigDecimal chdTotalFare = new BigDecimal(0);
+        BigDecimal infTotalFare = new BigDecimal(0);
+        boolean segmentWisePricing = false;
+
+        List<SegmentPricing> segmentPricingList = new ArrayList<>();
+        List<PassengerTax> passengerTaxList = new ArrayList<>();
+
+        for(AirPricingInfo airPricingInfo : airPricingInfoList) {
+            BigDecimal total = StringUtility.getDecimalFromString(airPricingInfo.getApproximateTotalPrice());
+            BigDecimal base = StringUtility.getDecimalFromString(airPricingInfo.getApproximateBasePrice());
+            BigDecimal tax = StringUtility.getDecimalFromString(airPricingInfo.getTaxes());
+            pricingInfo.setGdsCurrency(StringUtility.getCurrencyFromString(airPricingInfo.getTotalPrice()));
+            List<PassengerType> passegerTypes = airPricingInfo.getPassengerType();
+            String paxType = passegerTypes.get(0).getCode();
+
+            int paxCount = passegerTypes.size();
+            totalFare = totalFare.add(total.multiply(new BigDecimal(paxCount)));
+            totalBaseFare = totalBaseFare.add(base.multiply(new BigDecimal(paxCount)));
+            totalTax = totalTax.add(tax.multiply(new BigDecimal(paxCount)));
+
+            if("CHD".equalsIgnoreCase(paxType) || "CNN".equalsIgnoreCase(paxType)) {
+                chdBaseFare = chdBaseFare.add(base);
+                chdTotalFare = chdTotalFare.add(total);
+            } else if("INF".equalsIgnoreCase(paxType)) {
+                infBaseFare = infBaseFare.add(base);
+                infTotalFare = infTotalFare.add(total);
+            } else {
+                adtBaseFare = adtBaseFare.add(base);
+                adtTotalFare = adtTotalFare.add(total);
+            }
+
+            if(airSegmentRefMap.size() != airPricingInfo.getBookingInfo().size()){
+                segmentWisePricing = true;
+            }
+
+            List<String> segmentKeys = new ArrayList<>();
+            SegmentPricing segmentPricing = new SegmentPricing();
+            if(segmentWisePricing){
+                for(BookingInfo bookingInfo : airPricingInfo.getBookingInfo()){
+                    String key = airSegmentRefMap.get(bookingInfo.getSegmentRef());
+                    segmentKeys.add(key);
+                }
+                PassengerTax passengerTax = TravelportHelper.getTaxDetailsList(airPricingInfo.getTaxInfo(), paxType, paxCount);
+                segmentPricing.setSegmentKeysList(segmentKeys);
+                segmentPricing.setTotalPrice(total.multiply(new BigDecimal(paxCount)));
+                segmentPricing.setBasePrice(base.multiply(new BigDecimal(paxCount)));
+                segmentPricing.setPassengerType(paxType);
+                segmentPricing.setPassengerTax(passengerTax);
+                segmentPricing.setPassengerCount(new Long(paxCount));
+                segmentPricingList.add(segmentPricing);
+            }
+
+        }
+
+        pricingInfo.setTax(totalTax);
+        pricingInfo.setBasePrice(totalBaseFare);
+        pricingInfo.setTotalPrice(totalFare);
+        pricingInfo.setTotalPriceValue(totalFare);
+        pricingInfo.setProvider(PROVIDERS.TRAVELPORT.toString());
+
+        pricingInfo.setSegmentWisePricing(segmentWisePricing);
+        pricingInfo.setAdtBasePrice(adtBaseFare);
+        pricingInfo.setAdtTotalPrice(adtTotalFare);
+        pricingInfo.setChdBasePrice(chdBaseFare);
+        pricingInfo.setChdTotalPrice(chdTotalFare);
+        pricingInfo.setInfBasePrice(infBaseFare);
+        pricingInfo.setInfTotalPrice(infTotalFare);
+        pricingInfo.setSegmentPricingList(segmentPricingList);
+
+        return pricingInfo;
+    }
+
+
+    public static List<Traveller> filterTravellerListByType(List<Traveller> travellerList, String type, boolean isSeamen){
+        if(isSeamen){
+            return travellerList;
+        }
+        List<Traveller> filteredList = new ArrayList<>();
+        for(Traveller traveller : travellerList){
+            String travellerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString();
+            if(type.equalsIgnoreCase(travellerType)){
+                filteredList.add(traveller);
+            }
+        }
+
+        return filteredList;
     }
 }

@@ -5,4 +5,6 @@ package com.compassites.constants;
  */
 public class CacheConstants {
     public static final Integer CACHE_TIMEOUT_IN_SECS = 600;
+
+    public static final Integer TEMP_CACHE_TIMEOUT_IN_SECS = 600;
 }

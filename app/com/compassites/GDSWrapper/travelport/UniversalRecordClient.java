@@ -33,6 +33,8 @@ public class UniversalRecordClient extends TravelPortClient {
     static UniversalRecordRetrieveServicePortType universalRecordRetrieveServicePortType = null;
     static Logger travelportLogger = LoggerFactory.getLogger("travelport");
 
+    static Logger logger = LoggerFactory.getLogger("gds");
+
     static void  init(){
         if (universalRecordService == null){
             try {
@@ -65,6 +67,7 @@ public class UniversalRecordClient extends TravelPortClient {
     }
 
 	public static UniversalRecordRetrieveRsp retrievePNR(String locatorCode) {
+        logger.debug("Travelport UniversalRecordClient.retrievePNR called :" );
 		UniversalRecordRetrieveReq recordRetrieveReq = new UniversalRecordRetrieveReq();
 		recordRetrieveReq.setAuthorizedBy("TEST");
 		recordRetrieveReq.setTargetBranch(BRANCH);
@@ -84,10 +87,16 @@ public class UniversalRecordClient extends TravelPortClient {
 			recordRetrieveRsp = universalRecordRetrieveServicePortType.service(
 					recordRetrieveReq, null);
 			XMLFileUtility.createXMLFile(recordRetrieveRsp, "UniversalRecordRetrieveRes.xml");
-            travelportLogger.debug("UniversalRecordRetrieveRes " + new Date() +" ------>> "+ new XStream().toXML(recordRetrieveRsp));
-		} catch (UniversalRecordFaultMessage universalRecordFaultMessage) {
+            travelportLogger.debug("UniversalRecordRetrieveRes " + new Date() + " ------>> " + new XStream().toXML(recordRetrieveRsp));
+            logger.debug("Travelport UniversalRecordClient.retrievePNR response received :" );
+
+        } catch (UniversalRecordFaultMessage universalRecordFaultMessage) {
+            logger.debug("Error in UniversalRecordClient.retrievePNR " + universalRecordFaultMessage.getMessage());
+            logger.error("Error in UniversalRecordClient.retrievePNR ", universalRecordFaultMessage);
 			universalRecordFaultMessage.printStackTrace();
 		} catch (UniversalRecordArchivedFaultMessage universalRecordArchivedFaultMessage) {
+            logger.debug("Error in UniversalRecordClient.retrievePNR " + universalRecordArchivedFaultMessage.getMessage());
+            logger.error("Error in UniversalRecordClient.retrievePNR ", universalRecordArchivedFaultMessage);
 			universalRecordArchivedFaultMessage.printStackTrace();
 		}
 		return recordRetrieveRsp;
