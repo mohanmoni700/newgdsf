@@ -12,6 +12,7 @@ import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.Main
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass.PricingFareBase;
 import com.amadeus.xml.tpcbrq_12_4_1a.*;
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
+import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.FareJourney;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
@@ -25,7 +26,10 @@ import java.util.List;
  * @author mahendra-singh
  */
 public class PricePNR {
-    public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply,boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary){
+    public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply,boolean isSeamen,
+                                                            boolean isDomesticFlight, FlightItinerary flightItinerary,
+                                                            List<AirSegmentInformation> airSegmentList){
+
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
         CodedAttributeType overrideInformation = new CodedAttributeType();
         ReferenceInformationTypeI94605S paxSegReference = new ReferenceInformationTypeI94605S();
@@ -34,7 +38,8 @@ public class PricePNR {
 
         if(isDomesticFlight){
             int i = 1;
-            for(Journey journey : flightItinerary.getJourneys(isSeamen))  {
+//            for(Journey journey : flightItinerary.getJourneys(isSeamen))  {
+            for(AirSegmentInformation airSegment : airSegmentList)  {
                 refDetails = new ReferencingDetailsTypeI142222C();
                 refDetails.setRefQualifier("S");
                 refDetails.setRefNumber(BigInteger.valueOf(i));
