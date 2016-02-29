@@ -7,10 +7,7 @@ import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.PricingInformation;
+import com.compassites.model.*;
 import com.thoughtworks.xstream.XStream;
 import models.AmadeusSessionWrapper;
 import org.joda.time.DateTime;
@@ -19,10 +16,11 @@ import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import utils.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.*;
 /*
 *
  * Created by yaseen on 19-01-2016.*/
@@ -57,8 +55,40 @@ public class AmadeusIssuanceServiceImpl {
             carrierCode = issuanceRequest.getFlightItinerary().getJourneys(isSeamen).get(0).getAirSegmentList().get(0).getCarrierCode();
 
             boolean isDomestic = AmadeusHelper.checkAirportCountry("India", issuanceRequest.getFlightItinerary().getJourneys(isSeamen));
-            FarePricePNRWithBookingClassReply pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
-                    issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary());
+            FarePricePNRWithBookingClassReply pricePNRReply = new FarePricePNRWithBookingClassReply();
+
+            List<AirSegmentInformation> airSegmentList = new ArrayList<>();
+            for(Journey journey : issuanceRequest.getFlightItinerary().getJourneys(issuanceRequest.isSeamen())){
+                for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
+                    airSegmentList.add(airSegmentInformation);
+                }
+            }
+
+            if(issuanceRequest.getFlightItinerary().getPricingInformation().isSegmentWisePricing()){
+                List<SegmentPricing> segmentPricingList = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getSegmentPricingList();
+
+                Map<String,AirSegmentInformation> segmentsInfo = new HashMap<>();
+                for(Journey journey : issuanceRequest.getFlightItinerary().getJourneys(issuanceRequest.isSeamen())){
+                    for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
+                        String key = airSegmentInformation.getFromLocation() + airSegmentInformation.getToLocation();
+                        segmentsInfo.put(key, airSegmentInformation);
+                    }
+                }
+
+                for(SegmentPricing segmentPricing : segmentPricingList) {
+                    List<String> segmentKeysList = segmentPricing.getSegmentKeysList();
+                    List<AirSegmentInformation> airSegment = new ArrayList<>();
+                    for(String segmentKey : segmentKeysList){
+                        airSegment.add(segmentsInfo.get(segmentKey));
+                    }
+                    pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
+                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment);
+                }
+
+            } else {
+                pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
+                        issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList);
+            }
 
             PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReply, issuanceRequest.getAdultCount(),
                     issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());

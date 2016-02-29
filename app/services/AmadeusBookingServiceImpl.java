@@ -230,6 +230,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						PNRReply gdsPNRReply, FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse) {
 		String carrierCode = "";
 		List<Journey> journeys;
+		List<AirSegmentInformation> airSegmentList = new ArrayList<>();
+
 		if (travellerMasterInfo.isSeamen()) {
 			carrierCode = travellerMasterInfo.getItinerary().getJourneyList()
 					.get(0).getAirSegmentList().get(0).getCarrierCode();
@@ -240,8 +242,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					.get(0).getCarrierCode();
 			journeys = travellerMasterInfo.getItinerary().getNonSeamenJourneyList();
 		}
+
+		for(Journey journey : journeys){
+			for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
+				airSegmentList.add(airSegmentInformation);
+			}
+		}
 		boolean isDomestic = AmadeusHelper.checkAirportCountry("India", journeys);
-		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, travellerMasterInfo.getItinerary());
+		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, travellerMasterInfo.getItinerary(), airSegmentList);
 		if(pricePNRReply.getApplicationError() != null) {
 			pnrResponse.setFlightAvailable(false);
 			return pricePNRReply;

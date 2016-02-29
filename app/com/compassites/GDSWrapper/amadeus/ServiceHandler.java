@@ -171,10 +171,10 @@ public class ServiceHandler {
     }
 
     //pricing transaction
-    public FarePricePNRWithBookingClassReply pricePNR(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary) {
+    public FarePricePNRWithBookingClassReply pricePNR(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary, List<AirSegmentInformation> airSegmentList) {
         mSession.incrementSequenceNumber();
         logger.debug("amadeus pricePNR called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
-        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary);
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary, airSegmentList);
 
         XMLFileUtility.createXMLFile(pricePNRWithBookingClass, "pricePNRWithBookingClassReq.xml");
         amadeusLogger.debug("pricePNRWithBookingClassReq " + new Date() + " ---->" + new XStream().toXML(pricePNRWithBookingClass));
