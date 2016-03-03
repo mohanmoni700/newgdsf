@@ -320,7 +320,7 @@ public class AirReservationClient  extends TravelPortClient {
             //name
             BookingTravelerName name = new BookingTravelerName();
 
-            name.setPrefix(traveller.getPersonalDetails().getGender());
+            name.setPrefix(traveller.getPersonalDetails().getSalutation());
             name.setFirst(traveller.getPersonalDetails().getFirstName());
             if(traveller.getPersonalDetails().getMiddleName() != null && StringUtils.hasText(traveller.getPersonalDetails().getMiddleName())){
                 name.setMiddle(traveller.getPersonalDetails().getMiddleName());

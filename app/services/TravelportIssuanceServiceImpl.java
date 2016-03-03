@@ -60,9 +60,12 @@ public class TravelportIssuanceServiceImpl {
         try {
             if(airReservation.getAirPricingInfo() != null && airReservation.getAirPricingInfo().size() > 0){
                 List<AirPricingInfo> airPricingInfoList = airReservation.getAirPricingInfo();
-                    UniversalRecordModifyRsp universalRecordModifyRsp = UniversalRecordModifyClient.cancelPricing(issuanceRequest.getGdsPNR(),
-                            reservationLocatorCode, universalRecordLocatorCode, version, airPricingInfoList);
-                    version = version.add(BigInteger.valueOf(1));
+                    for(AirPricingInfo airPricingInfo : airPricingInfoList){
+                        UniversalRecordModifyRsp universalRecordModifyRsp = UniversalRecordModifyClient.cancelPricing(issuanceRequest.getGdsPNR(),
+                                reservationLocatorCode, universalRecordLocatorCode, version, airPricingInfo);
+                        version = version.add(BigInteger.valueOf(1));
+                    }
+
             }
 
             Map<String,String> airSegmentRefMap = new HashMap<>();
@@ -72,6 +75,7 @@ public class TravelportIssuanceServiceImpl {
                 }
             }
             PricingInformation pricingInformation = null;
+
             priceAndModifyPNR(issuanceRequest, reservationLocatorCode, universalRecordLocatorCode, airReservation, version, uniRcd.getBookingTraveler());
 
             uniRcd = UniversalRecordClient.retrievePNR(issuanceRequest.getGdsPNR()).getUniversalRecord();
@@ -116,7 +120,7 @@ public class TravelportIssuanceServiceImpl {
         AirPriceRsp priceRsp = null;
         if(segmentPricingList.size() > 0 ){
             System.out.println("Multi pricing code will be written here");
-            List<AirPricingInfo> airPricingInfoList = new ArrayList<>();
+//            List<AirPricingInfo> airPricingInfoList = new ArrayList<>();
             for(SegmentPricing segmentPricing : segmentPricingList){
                 List<String> segmentKeysList = segmentPricing.getSegmentKeysList();
                 List<AirSegmentInformation> pricedSegments = new ArrayList<>();
@@ -129,7 +133,7 @@ public class TravelportIssuanceServiceImpl {
                 priceRsp = AirRequestClient.priceItinerary(airItinerary, StaticConstatnts.DEFAULT_CURRENCY, null, segmentTravellers,
                         issuanceRequest.isSeamen());
 
-                airPricingInfoList.addAll(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getAirPricingInfo());
+//                airPricingInfoList.addAll(priceRsp.getAirPriceResult().get(0).getAirPricingSolution().get(0).getAirPricingInfo());
                 Map<String,List<BookingTraveler>> bookingTravellerMap = TravelportBookingHelper.getTravellerTypeMap(segmentTravellers,bookingTravelerList, issuanceRequest.isSeamen());
                 UniversalRecordModifyClient.addPricingToPNR(issuanceRequest.getGdsPNR(),reservationLocatorCode,universalRecordLocatorCode,
                         AirRequestClient.getPriceSolutionForRePrice(priceRsp, airReservation, bookingTravellerMap), version);

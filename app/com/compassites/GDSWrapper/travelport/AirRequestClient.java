@@ -350,6 +350,7 @@ public class AirRequestClient extends TravelPortClient {
             soln.getAirSegment().add(allSegs.getByRef(ref));
         }
 
+        Map<String, String> usedTravellerRef = new HashMap<>();
         for(AirPricingInfo airPricingInfo : soln.getAirPricingInfo()){
 
 
@@ -367,6 +368,16 @@ public class AirRequestClient extends TravelPortClient {
                     code = "CHD";
                 }
                 String key = travelerMapByType.get(code).get(i).getKey();
+                if(usedTravellerRef.containsKey(key)){
+                    for(int j = i + 1 ; j < travelerMapByType.get(code).size(); j++){
+                        key = travelerMapByType.get(code).get(j).getKey();
+                        if(!usedTravellerRef.containsKey(key)){
+                            break;
+                        }
+                    }
+
+                }
+                usedTravellerRef.put(key, key);
                 passengerType.setBookingTravelerRef(key);
             }
         }
@@ -543,9 +554,9 @@ public class AirRequestClient extends TravelPortClient {
 			String paxType = isSeamen ? "SEA"
 					: DateUtility.getPassengerTypeFromDOB(dob).name();
 			searchPassenger.setCode(paxType);
-			searchPassenger.setKey("" + i);
-			searchPassenger.setPricePTCOnly(true);
-			searchPassenger.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(dob)));
+//			searchPassenger.setKey("" + i);
+//			searchPassenger.setPricePTCOnly(true);
+//			searchPassenger.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(dob)));
 			searchPassenger.setBookingTravelerRef("" + i);
             request.getSearchPassenger().add(searchPassenger);
 		}
@@ -662,6 +673,7 @@ public class AirRequestClient extends TravelPortClient {
             }
             typeBaseAirSegment.setProviderCode(GDS);
             typeBaseAirSegment.setKey(airSegmentInformation.getAirSegmentKey());
+            typeBaseAirSegment.setClassOfService(airSegmentInformation.getBookingClass());
             FlightDetails flightDetails = new FlightDetails();
             flightDetails.setOrigin(airSegmentInformation.getFromLocation());
             flightDetails.setDestination(airSegmentInformation.getToLocation());

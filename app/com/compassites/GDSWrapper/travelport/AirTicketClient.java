@@ -5,6 +5,7 @@ import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.air_v26_0.AirTicketingReq.AirPricingInfoRef;
 import com.travelport.schema.common_v26_0.BillingPointOfSaleInfo;
 import com.travelport.schema.common_v26_0.BookingTravelerRef;
+import com.travelport.schema.common_v26_0.FormOfPayment;
 import com.travelport.schema.universal_v26_0.UniversalRecord;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import com.travelport.service.air_v26_0.AirService;
@@ -87,6 +88,13 @@ public class AirTicketClient extends TravelPortClient {
 		AirReservationLocatorCode airResLocatorCode = new AirReservationLocatorCode();
 		airResLocatorCode.setValue(airReservation.getLocatorCode());
 		request.setAirReservationLocatorCode(airResLocatorCode);
+
+		FormOfPayment fop = new FormOfPayment();
+		fop.setType("Cash");
+		AirTicketingModifiers airTicketingModifiers = new AirTicketingModifiers();
+		airTicketingModifiers.setFormOfPayment(fop);
+		request.getAirTicketingModifiers().add(airTicketingModifiers);
+
 		XMLFileUtility.createXMLFile(request, "AirTicketingReq.xml");
         travelportLogger.debug("AirTicketingReq " + new Date() +" ------>> "+ new XStream().toXML(request));
 		try {

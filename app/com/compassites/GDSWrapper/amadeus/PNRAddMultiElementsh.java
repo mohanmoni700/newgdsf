@@ -91,7 +91,7 @@ public class PNRAddMultiElementsh {
             gdsTraveller.setQuantity(new BigInteger("1"));
 
             TravellerDetailsTypeI passenger = new TravellerDetailsTypeI();
-            passenger.setFirstName(traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName());
+            passenger.setFirstName(traveller.getPersonalDetails().getSalutation() + " "+ traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName());
 
             if(travellerMasterInfo.isSeamen()){
                 passenger.setType(PassengerTypeCode.SEA.toString());

@@ -93,7 +93,7 @@ public class UniversalRecordModifyClient extends TravelPortClient {
     }
 
     public static UniversalRecordModifyRsp cancelPricing(String gdsPNR,String reservationLocatorCode, String universalRecordLocatorCode,
-                                                         BigInteger version, List<AirPricingInfo> airPricingInfoList) throws BaseCompassitesException {
+                                                         BigInteger version, AirPricingInfo airPricingInfo) throws BaseCompassitesException {
         logger.debug("cancelPricing called .............");
         UniversalRecordModifyReq universalRecordModifyReq = creatModifyRequestObject(version);
         universalRecordModifyReq.setReturnRecord(true);
@@ -105,7 +105,7 @@ public class UniversalRecordModifyClient extends TravelPortClient {
         universalRecordModifyReq.setRecordIdentifier(recordIdentifier);
 
         int i = 0;
-        for(AirPricingInfo airPricingInfo : airPricingInfoList){
+//        for(AirPricingInfo airPricingInfo : airPricingInfoList){
             UniversalModifyCmd universalModifyCmd = new UniversalModifyCmd();
             universalModifyCmd.setKey(""+ i++);
             AirDelete airDelete = new AirDelete();
@@ -115,7 +115,7 @@ public class UniversalRecordModifyClient extends TravelPortClient {
 
             universalModifyCmd.setAirDelete(airDelete);
             universalRecordModifyReq.getUniversalModifyCmd().add(universalModifyCmd);
-        }
+//        }
 
         UniversalRecordModifyRsp universalRecordModifyRsp = null;
         try {
@@ -129,7 +129,7 @@ public class UniversalRecordModifyClient extends TravelPortClient {
             logger.error("Error in cancelPricing",universalModifyFaultMessage);
             XMLFileUtility.createXMLFile(universalModifyFaultMessage, "universlModfiyException.xml");
             universalModifyFaultMessage.printStackTrace();
-            throw new BaseCompassitesException(universalModifyFaultMessage.getMessage());
+//            throw new BaseCompassitesException(universalModifyFaultMessage.getMessage());
         }
 
         return universalRecordModifyRsp;

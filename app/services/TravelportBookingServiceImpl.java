@@ -11,10 +11,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
-import com.travelport.schema.universal_v26_0.AirCreateReservationRsp;
-import com.travelport.schema.universal_v26_0.ProviderReservationInfo;
-import com.travelport.schema.universal_v26_0.UniversalRecord;
-import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
+import com.travelport.schema.universal_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +60,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 								travellerMasterInfo);
 				UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
 						.retrievePNR(reservationRsp);
-				pnrResponse = retrievePNR(universalRecordRetrieveRsp,
+				pnrResponse = retrievePNR(universalRecordRetrieveRsp.getUniversalRecord(),
 						pnrResponse,travellerMasterInfo);
 			}
             setTaxBreakup(pnrResponse, travellerMasterInfo, priceRsp);
@@ -138,15 +135,13 @@ public class TravelportBookingServiceImpl implements BookingService {
         pnrResponse.setPricingInfo(pricingInfo);
     }
 
-	public PNRResponse retrievePNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp,PNRResponse pnrResponse,TravellerMasterInfo travellerMasterInfo) {
+	public PNRResponse retrievePNR(UniversalRecord universalRecord,PNRResponse pnrResponse,TravellerMasterInfo travellerMasterInfo) {
 		
 		Helper.ReservationInfoMap reservationInfoMap = Helper
-				.createReservationInfoMap(universalRecordRetrieveRsp
-						.getUniversalRecord().getProviderReservationInfo());
+				.createReservationInfoMap(universalRecord.getProviderReservationInfo());
 		Date lastDate = null;
 		Calendar calendar = Calendar.getInstance();
-		for (AirReservation airReservation : universalRecordRetrieveRsp
-				.getUniversalRecord().getAirReservation()) {
+		for (AirReservation airReservation : universalRecord.getAirReservation()) {
 			for (ProviderReservationInfoRef reservationInfoRef : airReservation
 					.getProviderReservationInfoRef()) {
 				ProviderReservationInfo reservationInfo = reservationInfoMap
@@ -160,7 +155,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				pnrResponse.setPnrNumber(reservationInfo.getLocatorCode());
 			}
 		}
-		List<AirReservation> airResList = universalRecordRetrieveRsp.getUniversalRecord().getAirReservation();
+		List<AirReservation> airResList = universalRecord.getAirReservation();
 		if(airResList.size() > 0) {
 			AirReservation airResInfo = airResList.get(0);
 			List<SupplierLocator> supplierLocators = airResInfo.getSupplierLocator();
@@ -171,7 +166,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		}
         Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
 		try {
-			List<GeneralRemark> generalRemarks = universalRecordRetrieveRsp.getUniversalRecord().getGeneralRemark();
+			List<GeneralRemark> generalRemarks = universalRecord.getGeneralRemark();
 			if(generalRemarks != null && generalRemarks.size() > 0) {
 				String remarkData = generalRemarks.get(0).getRemarkData();
 				int i = remarkData.lastIndexOf("BY");
@@ -256,7 +251,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 
             masterInfo.setTravellersList(travellerList); // traveller is
 
-            List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(universalRecordRetrieveRsp);
+            List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(universalRecordRetrieveRsp.getUniversalRecord());
 			FlightItinerary flightItinerary = new FlightItinerary();
             PricingInformation pricingInformation = new PricingInformation();
 
@@ -292,7 +287,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 	
 	public JsonNode getBookingDetails(String gdsPNR) {
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
-		UniversalRecordRetrieveRsp univRecRetrRsp = UniversalRecordClient.retrievePNR(gdsPNR);
+		UniversalRecordImportRsp univRecRetrRsp = UniversalRecordImportClient.importPNR(gdsPNR);
 		UniversalRecord univRec = univRecRetrRsp.getUniversalRecord();
 		
 		List<Traveller> travellersList = new ArrayList<>();
@@ -317,7 +312,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		TypeCabinClass cabinClass = univRec.getAirReservation().get(0).getAirSegment().get(0).getCabinClass();
 		masterInfo.setCabinClass(com.compassites.model.CabinClass.fromValue(cabinClass.name()));
 		
-		List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(univRecRetrRsp);
+		List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(univRecRetrRsp.getUniversalRecord());
 		Map<String,String> airSegmentRefMap = new HashMap<>();
 
 		for (AirReservation airReservation : univRec.getAirReservation()) {
@@ -423,7 +418,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 
 		PNRResponse pnrResponse = new PNRResponse();
 		pnrResponse.setPricingInfo(pricingInfo);
-		retrievePNR(univRecRetrRsp, pnrResponse, masterInfo);
+		retrievePNR(univRecRetrRsp.getUniversalRecord(), pnrResponse, masterInfo);
 		
 		Map<String, Object> json = new HashMap<>();
 		json.put("travellerMasterInfo", masterInfo);

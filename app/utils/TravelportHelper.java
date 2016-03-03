@@ -4,6 +4,7 @@ import com.compassites.model.*;
 import com.compassites.model.Journey;
 import com.compassites.model.traveller.Traveller;
 import com.travelport.schema.air_v26_0.*;
+import com.travelport.schema.universal_v26_0.UniversalRecord;
 import com.travelport.schema.universal_v26_0.UniversalRecordRetrieveRsp;
 import models.Airline;
 import models.Airport;
@@ -25,11 +26,12 @@ public class TravelportHelper {
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
-    public static List<Journey> getJourneyListFromPNR(UniversalRecordRetrieveRsp universalRecordRetrieveRsp){
+
+    public static List<Journey> getJourneyListFromPNR(UniversalRecord universalRecord){
         List<Journey> journeyList = new ArrayList<>();
         List<AirSegmentInformation> airSegmentList = new ArrayList<>();
         Journey journey = new Journey();
-        for (AirReservation airReservation : universalRecordRetrieveRsp.getUniversalRecord().getAirReservation()) {
+        for (AirReservation airReservation : universalRecord.getAirReservation()) {
 
 
             for (TypeBaseAirSegment airSegment : airReservation.getAirSegment()) {
@@ -76,6 +78,7 @@ public class TravelportHelper {
 
                 airSegmentInformation.setFromAirport(Airport.getAiport(fromLoc));
                 airSegmentInformation.setToAirport(Airport.getAiport(toLoc));
+
                 airSegmentInformation.setBookingClass(airSegment.getCabinClass().toString());
 
                 for (FlightDetails flightDetails : airSegment.getFlightDetails()) {
