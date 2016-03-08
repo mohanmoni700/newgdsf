@@ -179,10 +179,11 @@ public class AmadeusBookingHelper {
                     if(traveller1.getPersonalDetails().getMiddleName() != null){
                         contactName = traveller1.getPersonalDetails().getFirstName() + traveller1.getPersonalDetails().getMiddleName();
 
-                    }else {{
+                    }else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
-                    }}
-                    contactName = contactName.replaceAll("\\s+", "");
+                    }
+                    contactName = contactName + traveller1.getPersonalDetails().getSalutation();
+                    contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
                     contactLastName  = contactLastName.replaceAll("\\s+", "");
                     if(name.equalsIgnoreCase(contactName)

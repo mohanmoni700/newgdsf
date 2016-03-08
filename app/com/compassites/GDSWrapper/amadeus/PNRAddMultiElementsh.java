@@ -1,7 +1,9 @@
 package com.compassites.GDSWrapper.amadeus;
 
 
+import com.amadeus.xml.pnradd_10_1_1a.*;
 import com.amadeus.xml.pnradd_11_3_1a.*;
+import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
@@ -20,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.*;
 
 public class PNRAddMultiElementsh {
 
@@ -91,7 +95,13 @@ public class PNRAddMultiElementsh {
             gdsTraveller.setQuantity(new BigInteger("1"));
 
             TravellerDetailsTypeI passenger = new TravellerDetailsTypeI();
-            passenger.setFirstName(traveller.getPersonalDetails().getSalutation() + " "+ traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName());
+            String salutation = "";
+
+            if(traveller.getPersonalDetails().getSalutation() != null){
+                salutation = traveller.getPersonalDetails().getSalutation().replace(".","");
+            }
+
+            passenger.setFirstName(traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName() + " " + salutation );
 
             if(travellerMasterInfo.isSeamen()){
                 passenger.setType(PassengerTypeCode.SEA.toString());
@@ -392,13 +402,13 @@ public class PNRAddMultiElementsh {
         ftdt.setSubjectQualifier("3");
         ftdt.setType("3");
         ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext("Emergency Contact Number "+personalDetails.getEmergencyContactNumber());
+        ftd.setLongFreetext("Emergency Contact Number "+ personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber());
         dataElementsDivList.add(de);
         return dataElementsDivList;
     }
     //credit card info
-    public DataElementsMaster.DataElementsIndiv addCreditCardData(int qualifierNumber) {
-        DataElementsMaster.DataElementsIndiv de = new DataElementsMaster.DataElementsIndiv();
+    public DataElementsIndiv addCreditCardData(int qualifierNumber) {
+        DataElementsIndiv de = new DataElementsIndiv();
         ElementManagementSegmentType emd = new ElementManagementSegmentType();
         emd.setSegmentName("FP");
         ReferencingDetailsType rf = new ReferencingDetailsType();
@@ -424,8 +434,8 @@ public class PNRAddMultiElementsh {
         return de;
     }
     //info for ticketing agent
-    public DataElementsMaster.DataElementsIndiv addReceivedFrom(int qualifierNumber) {
-        DataElementsMaster.DataElementsIndiv de = new DataElementsMaster.DataElementsIndiv();
+    public DataElementsIndiv addReceivedFrom(int qualifierNumber) {
+        DataElementsIndiv de = new DataElementsIndiv();
         ElementManagementSegmentType emd = new ElementManagementSegmentType();
         emd.setSegmentName("RF");
 
@@ -497,6 +507,9 @@ public class PNRAddMultiElementsh {
             if(StringUtils.hasText(preferences.getFrequentFlyerAirlines()) &&  StringUtils.hasText(preferences.getFrequentFlyerNumber())){
                 dataElementsDivList.add(addFrequentFlyerNumber(traveller, qualifierNumber, passengerReference));
             }
+            if(StringUtils.hasText(preferences.getSeatPreference())){
+                dataElementsDivList.add(addSeatPreference(traveller, passengerReference));
+            }
             passengerReference++;
         }
         return dataElementsDivList;
@@ -538,13 +551,14 @@ public class PNRAddMultiElementsh {
         SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
         ssr.setType("FQTV");
         ssr.setCompanyId(traveller.getPreferences().getFrequentFlyerAirlines());
+        ssr.setIndicator("P01");
         serviceRequest.setSsr(ssr);
         de.setServiceRequest(serviceRequest);
 
         FrequentTravellerInformationTypeU frequentTravellerData = new FrequentTravellerInformationTypeU();
         FrequentTravellerIdentificationTypeU frequentTraveller = new FrequentTravellerIdentificationTypeU();
         frequentTraveller.setCompanyId(traveller.getPreferences().getFrequentFlyerAirlines());
-        frequentTraveller.setMembershipNumber(traveller.getPreferences().getFrequentFlyerNumber());
+        frequentTraveller.setMembershipNumber(traveller.getPreferences().getFrequentFlyerAirlines() + traveller.getPreferences().getFrequentFlyerNumber());
         frequentTravellerData.setFrequentTraveller(frequentTraveller);
         de.setFrequentTravellerData(frequentTravellerData);
 
@@ -558,6 +572,7 @@ public class PNRAddMultiElementsh {
 
         return de;
     }
+
     public DataElementsIndiv addPassportDetails(com.compassites.model.traveller.Traveller traveller, int qualifierNumber, int passengerRefNumber){
         DataElementsIndiv de = new DataElementsIndiv();
         PassportDetails passportDetails = traveller.getPassportDetails();
@@ -582,13 +597,45 @@ public class PNRAddMultiElementsh {
         // Sample text P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON
 
         String freeText = "P-IND-" +passportDetails.getPassportNumber()+"-IND-"+ ddMMMyyFormat.format(passportDetails.getDateOfBirth())
-                +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getGender())+"-"+ddMMMyyFormat.format(passportDetails.getDateOfExpiry())+"-"+
-                traveller.getPersonalDetails().getFirstName()+"-"+traveller.getPersonalDetails().getLastName();
+                +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getSalutation())+"-"+ddMMMyyFormat.format(passportDetails.getDateOfExpiry())+"-"+
+                traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName();
         //String freeText = "P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON";
         freeTextList.add(freeText);
 
         serviceRequest.setSsr(ssr);
         de.setServiceRequest(serviceRequest);
+
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
+        rf.setQualifier("PR");
+        rf.setNumber("" + (passengerRefNumber));
+        referenceList.add(rf);
+        de.setReferenceForDataElement(referenceForDataElement);
+
+        return de;
+    }
+
+    public DataElementsIndiv addSeatPreference(Traveller traveller, int passengerRefNumber){
+        DataElementsIndiv de = new DataElementsIndiv();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+        elementManagementData.setSegmentName("STR");
+        de.setElementManagementData(elementManagementData);
+
+        SeatEntityType seatGroup = new SeatEntityType();
+        SeatRequestType seatRequestType =  new SeatRequestType();
+        seatGroup.setSeatRequest(seatRequestType);
+        SeatRequierementsDataType seatRequierementsDataType = new SeatRequierementsDataType();
+        seatRequestType.getSpecial().add(seatRequierementsDataType);
+        String seatType = null;
+        if("aisle".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
+           seatType = AmadeusConstants.SEAT_TYPE.AISLE.getSeatType();
+        }else if("aisle".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
+            seatType = AmadeusConstants.SEAT_TYPE.WIDOW.getSeatType();
+        }
+        seatRequierementsDataType.getSeatType().add(seatType);
+
+        de.setSeatGroup(seatGroup);
 
         ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
         List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();

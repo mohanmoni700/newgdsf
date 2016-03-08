@@ -108,4 +108,19 @@ public class AmadeusConstants {
         }
 
     }
+
+    public enum SEAT_TYPE{
+
+        WIDOW("W"),AISLE("A");
+
+        private final String seatType;
+
+        SEAT_TYPE(String seatType){
+            this.seatType =  seatType;
+        }
+
+        public String getSeatType(){
+            return seatType;
+        }
+    }
 }
