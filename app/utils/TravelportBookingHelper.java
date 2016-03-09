@@ -7,6 +7,7 @@ import com.compassites.model.traveller.Traveller;
 import com.travelport.schema.air_v26_0.AirPricingInfo;
 import com.travelport.schema.air_v26_0.BookingInfo;
 import com.travelport.schema.air_v26_0.PassengerType;
+import com.travelport.schema.air_v26_0.TypeBaseAirSegment;
 import com.travelport.schema.common_v26_0.BookingTraveler;
 import com.travelport.schema.common_v26_0.BookingTravelerName;
 import com.travelport.schema.universal_v26_0.UniversalRecord;
@@ -141,5 +142,14 @@ public class TravelportBookingHelper {
             bookingTravellerTypeMap.put(paxType, travelerList);
         }
         return bookingTravellerTypeMap;
+    }
+
+
+    public static boolean checkSegmentStatus(List<TypeBaseAirSegment> typeBaseAirSegments){
+
+        for(TypeBaseAirSegment airSegment : typeBaseAirSegments){
+            airSegment.getStatus();
+        }
+        return false;
     }
 }

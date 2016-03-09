@@ -58,6 +58,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				AirCreateReservationRsp reservationRsp = AirReservationClient
 						.reserve(AirRequestClient.getPriceSolution(priceRsp),
 								travellerMasterInfo);
+				//todo check status of each segment
 				UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
 						.retrievePNR(reservationRsp);
 				pnrResponse = retrievePNR(universalRecordRetrieveRsp.getUniversalRecord(),

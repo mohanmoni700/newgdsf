@@ -109,13 +109,14 @@ public class TravelportIssuanceServiceImpl {
                                   AirReservation airReservation,BigInteger version, List<BookingTraveler> bookingTravelerList) throws AirFaultMessage, BaseCompassitesException {
         List<SegmentPricing> segmentPricingList = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getSegmentPricingList();
 
-        Map<String,AirSegmentInformation> bookedSegments = new HashMap<>();
-        for(com.compassites.model.Journey journey : issuanceRequest.getFlightItinerary().getJourneys(issuanceRequest.isSeamen())){
-            for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
-                String key = airSegmentInformation.getFromLocation() + airSegmentInformation.getToLocation();
+        Map<String,TypeBaseAirSegment> bookedSegments = new HashMap<>();
+//        for(com.compassites.model.Journey journey : issuanceRequest.getFlightItinerary().getJourneys(issuanceRequest.isSeamen())){
+            for(TypeBaseAirSegment airSegmentInformation : airReservation.getAirSegment()){
+                String key = airSegmentInformation.getOrigin() + airSegmentInformation.getDestination();
+                airSegmentInformation.setProviderReservationInfoRef(null);
                 bookedSegments.put(key, airSegmentInformation);
             }
-        }
+//        }
 
         AirPriceRsp priceRsp = null;
         if(segmentPricingList.size() > 0 ){
@@ -123,13 +124,15 @@ public class TravelportIssuanceServiceImpl {
 //            List<AirPricingInfo> airPricingInfoList = new ArrayList<>();
             for(SegmentPricing segmentPricing : segmentPricingList){
                 List<String> segmentKeysList = segmentPricing.getSegmentKeysList();
-                List<AirSegmentInformation> pricedSegments = new ArrayList<>();
+                List<TypeBaseAirSegment> pricedSegments = new ArrayList<>();
                 for(String segmentKey : segmentKeysList)
                 {
                     pricedSegments.add(bookedSegments.get(segmentKey));
                 }
                 List<Traveller> segmentTravellers = TravelportHelper.filterTravellerListByType(issuanceRequest.getTravellerList(), segmentPricing.getPassengerType(), issuanceRequest.isSeamen());
-                AirItinerary airItinerary = AirRequestClient.buildAirItinerary(pricedSegments);
+//                AirItinerary airItinerary = AirRequestClient.buildAirItinerary(pricedSegments);
+                AirItinerary airItinerary = new AirItinerary();
+                airItinerary.getAirSegment().addAll(pricedSegments);
                 priceRsp = AirRequestClient.priceItinerary(airItinerary, StaticConstatnts.DEFAULT_CURRENCY, null, segmentTravellers,
                         issuanceRequest.isSeamen());
 
@@ -140,7 +143,10 @@ public class TravelportIssuanceServiceImpl {
                 version = version.add(BigInteger.valueOf(1));
             }
         }else {
-            AirItinerary airItinerary = AirRequestClient.buildAirItinerary(issuanceRequest.getFlightItinerary(), issuanceRequest.isSeamen());
+//            AirItinerary airItinerary = AirRequestClient.buildAirItinerary(issuanceRequest.getFlightItinerary(), issuanceRequest.isSeamen());
+            AirItinerary airItinerary = new AirItinerary();
+            airItinerary.getAirSegment().addAll(bookedSegments.values());
+
             priceRsp = AirRequestClient.priceItinerary(airItinerary, StaticConstatnts.DEFAULT_CURRENCY, null, issuanceRequest.getTravellerList(), issuanceRequest.isSeamen());
             Map<String,List<BookingTraveler>> bookingTravellerMap = TravelportBookingHelper.getTravellerTypeMap(issuanceRequest.getTravellerList(), bookingTravelerList, issuanceRequest.isSeamen());
             UniversalRecordModifyClient.addPricingToPNR(issuanceRequest.getGdsPNR(),reservationLocatorCode,universalRecordLocatorCode,

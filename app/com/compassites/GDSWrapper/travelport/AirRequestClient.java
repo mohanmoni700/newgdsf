@@ -554,9 +554,9 @@ public class AirRequestClient extends TravelPortClient {
 			String paxType = isSeamen ? "SEA"
 					: DateUtility.getPassengerTypeFromDOB(dob).name();
 			searchPassenger.setCode(paxType);
-//			searchPassenger.setKey("" + i);
-//			searchPassenger.setPricePTCOnly(true);
-//			searchPassenger.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(dob)));
+			searchPassenger.setKey("" + i);
+			searchPassenger.setPricePTCOnly(true);
+			searchPassenger.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(dob)));
 			searchPassenger.setBookingTravelerRef("" + i);
             request.getSearchPassenger().add(searchPassenger);
 		}
