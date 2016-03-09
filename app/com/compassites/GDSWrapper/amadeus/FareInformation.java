@@ -1,7 +1,9 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
@@ -83,7 +85,13 @@ public class FareInformation {
 			segmentInfo.setBoardPointDetails(boardingDetails);
 			segmentInfo.setOffpointDetails(offpointDetails);
 			FlightDate flightDate = new FlightDate();
-			flightDate.setDepartureDate(airSegment.getFromDate());
+			SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
+			try {
+				System.out.println("date****"+dateFormat.format(airSegment.getDepartureDate()));
+				flightDate.setDepartureDate(dateFormat.format(airSegment.getDepartureDate()));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			segmentInfo.setFlightDate(flightDate);
 			CompanyDetails companyDetails = new CompanyDetails();
 			companyDetails.setMarketingCompany(airSegment.getCarrierCode());

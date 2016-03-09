@@ -59,6 +59,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList);
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
+			
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
 		} catch (Exception e) {
@@ -126,6 +127,9 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
             StringBuilder fareRule = new StringBuilder();
 			if(fareCheckRulesReply.getErrorInfo() != null){
+				if(fareCheckRulesReply.getErrorInfo().getErrorFreeText()!=null){
+					System.out.println("No fare rules:\n"+fareCheckRulesReply.getErrorInfo().getErrorFreeText().getFreeText());
+				}
 				return "No Fare Rules";
 			}
 			if(fareCheckRulesReply.getTariffInfo() == null || fareCheckRulesReply.getTariffInfo().size() == 0){
@@ -168,27 +172,32 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	}
 
 	private void addBaggageInfo(FlightItinerary itinerary, List<PricingGroupLevelGroup> pricingLevelGroup, boolean seamen) {
-		List<SegmentLevelGroup> segmentGrpList = new ArrayList<>();
-		for(PricingGroupLevelGroup pricingLevelGrp : pricingLevelGroup) {
-			for(SegmentLevelGroup segment : pricingLevelGrp.getFareInfoGroup().getSegmentLevelGroup()) {
-				segmentGrpList.add(segment);
+		try {
+			List<SegmentLevelGroup> segmentGrpList = new ArrayList<>();
+			for(PricingGroupLevelGroup pricingLevelGrp : pricingLevelGroup) {
+				for(SegmentLevelGroup segment : pricingLevelGrp.getFareInfoGroup().getSegmentLevelGroup()) {
+					segmentGrpList.add(segment);
+				}
 			}
-		}
-		for (Journey journey : seamen ? itinerary.getJourneyList() : itinerary.getNonSeamenJourneyList()) {
-			for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
-				for (SegmentLevelGroup segmentGrp : segmentGrpList) {
-					String from  = segmentGrp.getSegmentInformation().getBoardPointDetails().getTrueLocationId();
-					String to = segmentGrp.getSegmentInformation().getOffpointDetails().getTrueLocationId();
-					if(airSegment.getFromLocation().equalsIgnoreCase(from) && airSegment.getToLocation().equalsIgnoreCase(to)) {
-						FlightInfo baggageInfo = new FlightInfo();
-						BaggageDetails baggageDetails = segmentGrp.getBaggageAllowance().getBaggageDetails();
-						baggageInfo.setBaggageAllowance(baggageDetails.getFreeAllowance().toBigInteger());
-						baggageInfo.setBaggageUnit(baggageCodes.get(baggageDetails.getQuantityCode()));
-						airSegment.setFlightInfo(baggageInfo);
+			for (Journey journey : seamen ? itinerary.getJourneyList() : itinerary.getNonSeamenJourneyList()) {
+				for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+					for (SegmentLevelGroup segmentGrp : segmentGrpList) {
+						String from  = segmentGrp.getSegmentInformation().getBoardPointDetails().getTrueLocationId();
+						String to = segmentGrp.getSegmentInformation().getOffpointDetails().getTrueLocationId();
+						if(airSegment.getFromLocation().equalsIgnoreCase(from) && airSegment.getToLocation().equalsIgnoreCase(to)) {
+							FlightInfo baggageInfo = new FlightInfo();
+							BaggageDetails baggageDetails = segmentGrp.getBaggageAllowance().getBaggageDetails();
+							baggageInfo.setBaggageAllowance(baggageDetails.getFreeAllowance().toBigInteger());
+							baggageInfo.setBaggageUnit(baggageCodes.get(baggageDetails.getQuantityCode()));
+							airSegment.setFlightInfo(baggageInfo);
+						}
 					}
 				}
 			}
+		
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		
 	}
-
 }

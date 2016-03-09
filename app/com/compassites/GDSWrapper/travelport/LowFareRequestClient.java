@@ -69,11 +69,7 @@ public class LowFareRequestClient extends TravelPortClient {
                 airService = new AirService(url);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-
-
         }
         if (airLowFareSearchPortTypePort == null) {
             airLowFareSearchPortTypePort = airService.getAirLowFareSearchPort();

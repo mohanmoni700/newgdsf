@@ -26,7 +26,9 @@ public class FlightInfoServiceWrapper {
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary,
 			SearchParameters searchParams, String provider, boolean seamen) {
 		FlightItinerary response = null;
+		System.out.println("provider is:"+provider);
 		if ("Travelport".equalsIgnoreCase(provider)) {
+			
 			response = flightItinerary;
 			// Baggage info is available in search response
 		} else if ("Amadeus".equalsIgnoreCase(provider)) {
