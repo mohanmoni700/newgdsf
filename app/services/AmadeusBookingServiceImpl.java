@@ -337,7 +337,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			boolean seamen = issuanceRequest.isSeamen();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-			FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler.getFareInfo(journeyList, issuanceRequest.getAdultCount(),
+			FareInformativePricingWithoutPNRReply fareInfoReply = serviceHandler.getFareInfo(journeyList, seamen, issuanceRequest.getAdultCount(),
 							issuanceRequest.getChildCount(), issuanceRequest
 									.getInfantCount(), paxFareDetailsList);
 

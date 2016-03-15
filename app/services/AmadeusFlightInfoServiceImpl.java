@@ -57,7 +57,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList);
+			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList);
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 			
 		} catch (ServerSOAPFaultException ssf) {
@@ -120,15 +120,16 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, searchParams.getAdultCount(), searchParams.getChildCount(),
+			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
 							searchParams.getInfantCount(), paxFareDetailsList);
 //            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
             amadeusLogger.debug("FareInformativePricingWithoutPNRReply "+ new Date()+" ------->>"+ new XStream().toXML(pricingReply));
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
+			//System.out.println("fareCheckRulesReply ***"+fareCheckRulesReply);
             StringBuilder fareRule = new StringBuilder();
 			if(fareCheckRulesReply.getErrorInfo() != null){
 				if(fareCheckRulesReply.getErrorInfo().getErrorFreeText()!=null){
-					System.out.println("No fare rules:\n"+fareCheckRulesReply.getErrorInfo().getErrorFreeText().getFreeText());
+					//System.out.println("No fare rules:\n"+fareCheckRulesReply.getErrorInfo().getErrorFreeText().getFreeText());
 				}
 				return "No Fare Rules";
 			}
@@ -148,7 +149,9 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			}
 
             fareRules = fareRule.toString();
+            //System.out.println("fareRule.toString()!!!"+fareRule.toString());
         } catch (Exception e) {
+        	//System.out.println("getCancellationFee fare rule exception..........");        	
             e.printStackTrace();
         }finally {
 			if(amadeusSessionWrapper != null) {

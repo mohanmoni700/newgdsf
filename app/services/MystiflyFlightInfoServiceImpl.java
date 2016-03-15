@@ -21,7 +21,7 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 	@Override
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary,
 			SearchParameters searchParam, boolean seamen) {
-		System.out.println("getBaggageInfo MystiflyFlightInfoServiceImpl entry");
+		//System.out.println("getBaggageInfo MystiflyFlightInfoServiceImpl entry");
 		AirRulesClient airRulesClient = new AirRulesClient();
 		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary
 				.getFareSourceCode());
@@ -50,7 +50,7 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 				}
 			}
 		}
-		System.out.println("getBaggageInfo MystiflyFlightInfoServiceImpl exit");
+		//System.out.println("getBaggageInfo MystiflyFlightInfoServiceImpl exit");
 		return flightItinerary;
 	}
 	

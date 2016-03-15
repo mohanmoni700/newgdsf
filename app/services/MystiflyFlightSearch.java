@@ -87,6 +87,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 			itineraryHashMap.put(itinerary.hashCode(), itinerary);
 		}
 		airSolution.setNonSeamenHashMap(itineraryHashMap);
+		//System.out.println("itineraryHashMap Mystify:\n"+itineraryHashMap);
 		return airSolution;
 	}
 

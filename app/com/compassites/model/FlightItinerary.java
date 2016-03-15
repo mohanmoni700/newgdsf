@@ -215,4 +215,6 @@ public class FlightItinerary implements Serializable{
     public void setTotalTravelTimeStr(String totalTravelTimeStr) {
         this.totalTravelTimeStr = totalTravelTimeStr;
     }
+    
+    
 }

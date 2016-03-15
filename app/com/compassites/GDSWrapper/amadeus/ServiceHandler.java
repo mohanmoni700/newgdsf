@@ -279,10 +279,10 @@ public class ServiceHandler {
         return docIssuanceIssueTicketReply;
     }
     
-	public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList) {
+	public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, boolean seamen, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList) {
 		mSession.incrementSequenceNumber();
         logger.debug("amadeus getFareInfo called at " + new Date() + "....................Session Id: " + mSession.getSession().value.getSessionId());
-		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys, adultCount, childCount, infantCount, paxFareDetailsList);
+		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys,seamen, adultCount, childCount, infantCount, paxFareDetailsList);
         XMLFileUtility.createXMLFile(farePricingWithoutPNR, "farePricingWithoutPNRReq.xml");
         amadeusLogger.debug("farePricingWithoutPNRReq " + new Date() + " ---->" + new XStream().toXML(farePricingWithoutPNR));
         FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, mSession.getSession());

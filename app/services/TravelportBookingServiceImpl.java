@@ -433,7 +433,7 @@ public class TravelportBookingServiceImpl implements BookingService {
         LowFareResponse lowFareRS = new LowFareResponse();
         String token = terminalRequestClient.createTerminalSession();
         List<String> lowestFareTextList= terminalRequestClient.getLowestFare(token, isSeamen, pnr);
-        System.out.println("==========>> Lowest Fare "+ lowestFareTextList);
+        //System.out.println("==========>> Lowest Fare "+ lowestFareTextList);
         String lowestPriceText = lowestFareTextList.get(5);
         BigDecimal lowestFarePrice = StringUtility.getLowestFareFromString(lowestPriceText);
         lowFareRS.setAmount(lowestFarePrice);

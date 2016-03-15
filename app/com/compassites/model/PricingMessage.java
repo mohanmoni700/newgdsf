@@ -9,7 +9,12 @@ public class PricingMessage implements Serializable{
     private String textSubjectQualifier;
     private String description;
 
-    public String getTextSubjectQualifier() {
+    @Override
+	public String toString() {
+		return "PricingMessage [textSubjectQualifier=" + textSubjectQualifier + ", description=" + description + "]";
+	}
+
+	public String getTextSubjectQualifier() {
         return textSubjectQualifier;
     }
 

@@ -264,4 +264,20 @@ public class PricingInformation {
 	public void setSegmentPricingList(List<SegmentPricing> segmentPricingList) {
 		this.segmentPricingList = segmentPricingList;
 	}
+
+	@Override
+	public String toString() {
+		return "PricingInformation [isLCC=" + isLCC + ", basePrice=" + basePrice + ", adtBasePrice=" + adtBasePrice
+				+ ", chdBasePrice=" + chdBasePrice + ", infBasePrice=" + infBasePrice + ", adtTotalPrice="
+				+ adtTotalPrice + ", chdTotalPrice=" + chdTotalPrice + ", infTotalPrice=" + infTotalPrice + ", tax="
+				+ tax + ", totalPrice=" + totalPrice + ", currency=" + currency + ", gdsCurrency=" + gdsCurrency
+				+ ", totalPriceValue=" + totalPriceValue + ", passengerTaxes=" + passengerTaxes
+				+ ", paxFareDetailsList=" + paxFareDetailsList + ", taxMap=" + taxMap + ", totalBasePrice="
+				+ totalBasePrice + ", totalTax=" + totalTax + ", discount=" + discount + ", totalCalculatedValue="
+				+ totalCalculatedValue + ", cancelFee=" + cancelFee + ", fareRules=" + fareRules + ", provider="
+				+ provider + ", segmentWisePricing=" + segmentWisePricing + ", segmentPricingList=" + segmentPricingList
+				+ "]";
+	}
+	
+	
 }

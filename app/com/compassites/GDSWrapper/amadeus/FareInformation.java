@@ -34,7 +34,7 @@ import com.compassites.model.*;
 public class FareInformation {
 
 	public FareInformativePricingWithoutPNR getFareInfo(
-			List<Journey> journeys, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList) {
+			List<Journey> journeys, boolean seamen, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList) {
 
 		FareInformativePricingWithoutPNR fareInfo = new FareInformativePricingWithoutPNR();
 
@@ -47,13 +47,25 @@ public class FareInformation {
 		fareInfo.setMessageDetails(messageDetails);
 
 		List<PassengersGroup> passengers = fareInfo.getPassengersGroup();
-		passengers.add(getPassengerGroup(PassengerTypeCode.ADT,adultCount));
-        if(childCount > 0){
-            passengers.add(getPassengerGroup(PassengerTypeCode.CHD,childCount));
-        }
-		if(infantCount > 0){
-            passengers.add(getPassengerGroup(PassengerTypeCode.INF,infantCount));
-        }
+		//System.out.println("seamen value inside getFareInfo"+seamen);
+		if(seamen){
+			passengers.add(getPassengerGroup(PassengerTypeCode.SEA,adultCount));
+	        if(childCount > 0){
+	            passengers.add(getPassengerGroup(PassengerTypeCode.SEA,childCount));
+	        }
+			if(infantCount > 0){
+	            passengers.add(getPassengerGroup(PassengerTypeCode.SEA,infantCount));
+	        }
+		}else{
+			passengers.add(getPassengerGroup(PassengerTypeCode.ADT,adultCount));
+	        if(childCount > 0){
+	            passengers.add(getPassengerGroup(PassengerTypeCode.CHD,childCount));
+	        }
+			if(infantCount > 0){
+	            passengers.add(getPassengerGroup(PassengerTypeCode.INF,infantCount));
+	        }
+		}
+		
 
 
 		TripsGroup tripsGroup = new TripsGroup();
@@ -87,7 +99,7 @@ public class FareInformation {
 			FlightDate flightDate = new FlightDate();
 			SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
 			try {
-				System.out.println("date****"+dateFormat.format(airSegment.getDepartureDate()));
+				//System.out.println("date****"+dateFormat.format(airSegment.getDepartureDate()));
 				flightDate.setDepartureDate(dateFormat.format(airSegment.getDepartureDate()));
 			} catch (Exception e) {
 				e.printStackTrace();

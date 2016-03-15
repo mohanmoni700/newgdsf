@@ -41,4 +41,12 @@ public class SearchResponse {
     public List<ErrorMessage> getErrorMessageList() { return errorMessageList; }
 
     public void setErrorMessageList(List<ErrorMessage> errorMessageList) { this.errorMessageList = errorMessageList; }
+
+	@Override
+	public String toString() {
+		return "SearchResponse [airSolution=" + airSolution + ", provider=" + provider + ", errorMessageList="
+				+ errorMessageList + "]";
+	}
+    
+    
 }

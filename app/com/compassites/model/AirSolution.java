@@ -53,4 +53,12 @@ public class AirSolution {
     public void setNonSeamenHashMap(ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap) {
         this.nonSeamenHashMap = nonSeamenHashMap;
     }
+
+	@Override
+	public String toString() {
+		return "AirSolution [flightItineraryList=" + flightItineraryList + ", seamenHashMap=" + seamenHashMap
+				+ ", nonSeamenHashMap=" + nonSeamenHashMap + "]";
+	}
+    
+    
 }

@@ -90,16 +90,24 @@ public class Journey
         return Pojomatic.hashCode(this);
     }
 
-    @Override
+   /* @Override
     public String toString() {
         return Pojomatic.toString(this);
-    }
+    }*/
 
+    
     public Long getTravelTimeMillis() {
         return travelTimeMillis;
     }
 
-    public void setTravelTimeMillis(Long travelTimeMillis) {
+    @Override
+	public String toString() {
+		return "Journey [travelTime=" + travelTime + ", travelTimeStr=" + travelTimeStr + ", travelTimeMillis="
+				+ travelTimeMillis + ", airlinesStrForFilter=" + airlinesStrForFilter + ", noOfStops=" + noOfStops
+				+ ", hashCode=" + hashCode + ", provider=" + provider + ", airSegmentList=" + airSegmentList + "]";
+	}
+
+	public void setTravelTimeMillis(Long travelTimeMillis) {
         this.travelTimeMillis = travelTimeMillis;
     }
 
