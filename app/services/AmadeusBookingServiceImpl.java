@@ -249,7 +249,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		}
 		boolean isDomestic = AmadeusHelper.checkAirportCountry("India", journeys);
-		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, travellerMasterInfo.getItinerary(), airSegmentList);
+		boolean isSegmentWisePricing = false;
+		if(travellerMasterInfo.getItinerary().getPricingInformation()!=null) {
+			isSegmentWisePricing = travellerMasterInfo.getItinerary().getPricingInformation().isSegmentWisePricing();
+		}
+		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, travellerMasterInfo.getItinerary(), airSegmentList, isSegmentWisePricing);
 		if(pricePNRReply.getApplicationError() != null) {
 			pnrResponse.setFlightAvailable(false);
 			return pricePNRReply;

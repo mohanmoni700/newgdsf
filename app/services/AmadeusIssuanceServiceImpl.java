@@ -2,6 +2,7 @@ package services;
 
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
+import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
@@ -9,14 +10,12 @@ import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.thoughtworks.xstream.XStream;
-import models.AmadeusSessionWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import utils.*;
 
 import java.math.BigDecimal;
@@ -64,7 +63,10 @@ public class AmadeusIssuanceServiceImpl {
                 }
             }
 
-            if(issuanceRequest.getFlightItinerary().getPricingInformation().isSegmentWisePricing()){
+            List<FareList> pricePNRReplyFareList = new ArrayList<>();
+            boolean isSegmentWisePricing = issuanceRequest.getFlightItinerary().getPricingInformation().isSegmentWisePricing();
+
+            if(isSegmentWisePricing){
                 List<SegmentPricing> segmentPricingList = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getSegmentPricingList();
 
                 Map<String,AirSegmentInformation> segmentsInfo = new HashMap<>();
@@ -82,15 +84,40 @@ public class AmadeusIssuanceServiceImpl {
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
-                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment);
+                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing);
+                    List<FareList> tempPricePNRReplyFareList = pricePNRReply.getFareList();
+
+                    int numberOfTst = (issuanceRequest.isSeamen()) ? 1
+                            : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
+
+                    for(int i = 0; i< numberOfTst ; i++){
+                        pricePNRReplyFareList.add(tempPricePNRReplyFareList.get(i));
+                    }
+
+                    TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler
+                            .createTST(numberOfTst);
+
+                    if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
+                        String errorCode = ticketCreateTSTFromPricingReply
+                                .getApplicationError().getApplicationErrorInfo()
+                                .getApplicationErrorDetail().getApplicationErrorCode();
+                        logger.debug("Amadeus Issuance TST creation error " + errorCode);
+                        ErrorMessage errorMessage = ErrorMessageHelper
+                                .createErrorMessage("error",
+                                        ErrorMessage.ErrorType.ERROR, "Amadeus");
+                        issuanceResponse.setErrorMessage(errorMessage);
+                        issuanceResponse.setSuccess(false);
+                        return issuanceResponse;
+                    }
                 }
 
             } else {
                 pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
-                        issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList);
+                        issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing);
+                pricePNRReplyFareList = pricePNRReply.getFareList();
             }
 
-            PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReply, issuanceRequest.getAdultCount(),
+            PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
                     issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
 
             BigDecimal bookedPrice = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getTotalPriceValue();
@@ -136,24 +163,7 @@ public class AmadeusIssuanceServiceImpl {
             session = amadeusSessionManager.getActiveSessionByGdsPNR(issuanceRequest.getGdsPNR());
             serviceHandler.setSession(session);
 
-            int numberOfTst = (issuanceRequest.isSeamen()) ? 1
-                    : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
 
-            TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler
-                    .createTST(numberOfTst);
-
-            if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
-                String errorCode = ticketCreateTSTFromPricingReply
-                        .getApplicationError().getApplicationErrorInfo()
-                        .getApplicationErrorDetail().getApplicationErrorCode();
-                logger.debug("Amadeus Issuance TST creation error " + errorCode);
-                ErrorMessage errorMessage = ErrorMessageHelper
-                        .createErrorMessage("error",
-                                ErrorMessage.ErrorType.ERROR, "Amadeus");
-                issuanceResponse.setErrorMessage(errorMessage);
-                issuanceResponse.setSuccess(false);
-                return issuanceResponse;
-            }
             PNRReply gdsPNRReply = serviceHandler.savePNR();
 
             gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());

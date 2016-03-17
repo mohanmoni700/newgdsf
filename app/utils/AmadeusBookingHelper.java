@@ -109,7 +109,7 @@ public class AmadeusBookingHelper {
         	}
         }*/
 
-        PricingInformation pricingInformation = getPricingInfo(pricePNRReply, adultCount, childCount, infantCount);
+        PricingInformation pricingInformation = getPricingInfo(pricePNRReply.getFareList(), adultCount, childCount, infantCount);
         totalFare = pricingInformation.getTotalPrice();
         baseFare = pricingInformation.getBasePrice();
         pnrResponse.setPricingInfo(pricingInformation);
@@ -375,12 +375,12 @@ public class AmadeusBookingHelper {
         Map<String, Integer> passengerTypeMap = new HashMap<>();
 
         passengerTypeMap.put("adultCount", adultCount);
-        pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReply, passengerTypeMap));
+        pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReply.getFareList(), passengerTypeMap));
         return pricingInformation;
     }
 
 	public static PricingInformation getPricingInfo(
-			FarePricePNRWithBookingClassReply pricePNRReply,
+			List<FareList> pricePNRReplyFareList,
 			int adultCount, int childCount,
 			int infantCount) {
 		BigDecimal totalFare = new BigDecimal(0);
@@ -390,9 +390,9 @@ public class AmadeusBookingHelper {
         BigDecimal infBaseFare = new BigDecimal(0);
         String currency = null;
         
-        List<FareList> fareList = pricePNRReply.getFareList();
+//        List<FareList> fareList = pricePNRReplyFareList;
         PricingInformation pricingInformation = new PricingInformation();
-        for(FareList fare : fareList) {
+        for(FareList fare : pricePNRReplyFareList) {
             int paxCount = 0;
             String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
             if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
@@ -447,7 +447,7 @@ public class AmadeusBookingHelper {
         passengerTypeMap.put("childCount", childCount);
         passengerTypeMap.put("infantCount", infantCount);
         pricingInformation.setProvider("Amadeus");
-        pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReply, passengerTypeMap));
+        pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReplyFareList, passengerTypeMap));
         return pricingInformation;
 	}
 
@@ -456,14 +456,14 @@ public class AmadeusBookingHelper {
         PricingInformation pricingInfo = travellerMasterInfo.isSeamen() ? travellerMasterInfo
                 .getItinerary().getSeamanPricingInformation() : travellerMasterInfo
                 .getItinerary().getPricingInformation();
-        List<PassengerTax> passengerTaxes = getTaxBreakup(pricePNRReply, passengerTypeMap);
+        List<PassengerTax> passengerTaxes = getTaxBreakup(pricePNRReply.getFareList(), passengerTypeMap);
         pricingInfo.setPassengerTaxes(passengerTaxes);
         pnrResponse.setPricingInfo(pricingInfo);
     }
 
-    public static List<PassengerTax> getTaxBreakup(FarePricePNRWithBookingClassReply pricePNRReply, Map<String, Integer> passengerTypeMap){
+    public static List<PassengerTax> getTaxBreakup(List<FareList> pricePNRReplyFareList, Map<String, Integer> passengerTypeMap){
         List<PassengerTax> passengerTaxes = new ArrayList<>();
-        for (FareList fare : pricePNRReply.getFareList()) {
+        for (FareList fare : pricePNRReplyFareList) {
             FareList.SegmentInformation segmentInfo = fare.getSegmentInformation().get(0);
             List<TaxInformation> taxInfos = fare.getTaxInformation();
             if (segmentInfo != null && taxInfos.size() > 0) {
