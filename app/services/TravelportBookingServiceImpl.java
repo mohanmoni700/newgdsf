@@ -15,13 +15,11 @@ import com.travelport.schema.universal_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import play.libs.Json;
-import utils.ErrorMessageHelper;
-import utils.HoldTimeUtility;
-import utils.StringUtility;
-import utils.TravelportHelper;
+import utils.*;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -37,7 +35,18 @@ public class TravelportBookingServiceImpl implements BookingService {
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
-    @Override
+	private TravelportCancelServiceImpl cancelService;
+
+	public TravelportCancelServiceImpl getCancelService() {
+		return cancelService;
+	}
+
+	@Autowired
+	public void setCancelService(TravelportCancelServiceImpl cancelService) {
+		this.cancelService = cancelService;
+	}
+
+	@Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
 		PNRResponse pnrResponse = new PNRResponse();
 		try {
@@ -59,6 +68,13 @@ public class TravelportBookingServiceImpl implements BookingService {
 						.reserve(AirRequestClient.getPriceSolution(priceRsp),
 								travellerMasterInfo);
 				//todo check status of each segment
+				boolean anyUnConfirmedSegments = TravelportBookingHelper.checkSegmentStatus(reservationRsp.getUniversalRecord().getAirReservation().get(0).getAirSegment());
+				if(anyUnConfirmedSegments){
+					logger.debug("Unconfirmed segments received cancelling the booking");
+					pnrResponse.setFlightAvailable(false);
+					cancelService.cancelPNR(reservationRsp.getUniversalRecord().getAirReservation().get(0).getLocatorCode());
+					return pnrResponse;
+				}
 				UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient
 						.retrievePNR(reservationRsp);
 				pnrResponse = retrievePNR(universalRecordRetrieveRsp.getUniversalRecord(),

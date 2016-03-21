@@ -630,7 +630,7 @@ public class PNRAddMultiElementsh {
         String seatType = null;
         if("aisle".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
            seatType = AmadeusConstants.SEAT_TYPE.AISLE.getSeatType();
-        }else if("aisle".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
+        }else if("window".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
             seatType = AmadeusConstants.SEAT_TYPE.WIDOW.getSeatType();
         }
         seatRequierementsDataType.getSeatType().add(seatType);

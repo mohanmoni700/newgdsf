@@ -1,17 +1,18 @@
 package com.compassites.GDSWrapper.mystifly;
 
+import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.FlightItinerary;
-import com.compassites.model.traveller.PassportDetails;
-import com.compassites.model.traveller.PersonalDetails;
-import com.compassites.model.traveller.Traveller;
-import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.traveller.*;
+import com.travelport.schema.common_v26_0.LoyaltyCard;
 import onepoint.mystifly.BookFlightDocument;
 import onepoint.mystifly.BookFlightResponseDocument;
 import onepoint.mystifly.OnePointStub;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 import utils.DateUtility;
+import utils.XMLFileUtility;
 
 import java.rmi.RemoteException;
 import java.util.Calendar;
@@ -50,11 +51,11 @@ public class BookFlightClient {
 		// TODO: Set dynamic values
 		// travelerInfo.setAreaCode("809");
 		// travelerInfo.setCountryCode("91");
-//		XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
+		XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
         mystiflyLogger.debug("AirBookRQ "+ new Date() +" ----->>" + airBookRQ.xmlText());
 		BookFlightResponseDocument rsDoc = onePointStub
 				.bookFlight(bookFlightDocument);
-//		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
+		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
         mystiflyLogger.debug("AirBookRS "+ new Date() +" ----->>" + rsDoc.getBookFlightResponse().getBookFlightResult().xmlText());
 		return rsDoc.getBookFlightResponse().getBookFlightResult();
 	}
@@ -65,6 +66,7 @@ public class BookFlightClient {
 			AirTraveler airTraveler = arrayOfTravelers.addNewAirTraveler();
 			setPersonalDetails(airTraveler, traveler.getPersonalDetails());
 			setPassportDetails(airTraveler, traveler.getPassportDetails());
+			setSeatAndFrequentFlyerNumber(airTraveler, traveler.getPreferences());
 		}
 	}
 
@@ -96,5 +98,28 @@ public class BookFlightClient {
 		airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
 				.getPassengerTypeFromDOB(dob)));
 	}
+
+
+	private void setSeatAndFrequentFlyerNumber(AirTraveler airTraveler,
+												  Preferences preferences){
+		SpecialServiceRequest specialServiceRequest = SpecialServiceRequest.Factory.newInstance();
+
+		if(StringUtils.hasText(preferences.getSeatPreference()) && !"any".equalsIgnoreCase(preferences.getSeatPreference())){
+			SeatPreference seatPreference = SeatPreference.Factory.newInstance();
+			if("aisle".equalsIgnoreCase(preferences.getSeatPreference())){
+				specialServiceRequest.setSeatPreference(SeatPreference.A);
+			}else if("window".equalsIgnoreCase(preferences.getSeatPreference())){
+				specialServiceRequest.setSeatPreference(SeatPreference.W);
+			}
+			airTraveler.setSpecialServiceRequest(specialServiceRequest);
+		}
+
+		if(preferences != null &&
+				StringUtils.hasText(preferences.getFrequentFlyerNumber())){
+			airTraveler.setFrequentFlyerNumber(preferences.getFrequentFlyerNumber());
+		}
+	}
+
+
 
 }

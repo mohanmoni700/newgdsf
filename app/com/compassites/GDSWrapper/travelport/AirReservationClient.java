@@ -1,10 +1,13 @@
 package com.compassites.GDSWrapper.travelport;
 
+import com.compassites.constants.AmadeusConstants;
+import com.compassites.constants.TravelportConstants;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.PassportDetails;
 import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
@@ -229,11 +232,13 @@ public class AirReservationClient  extends TravelPortClient {
             travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(airFaultMessage));
         } catch (AvailabilityFaultMessage availabilityFaultMessage) {
             availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            availabilityFaultMessage.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             availabilityFaultMessage.getFaultInfo().getDescription();
             XMLFileUtility.createXMLFile(availabilityFaultMessage, "AirReserveResponseException.xml");
-            travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(availabilityFaultMessage));
+            travelportLogger.error("AirReserveResponseException " + new Date() +" ------>> ", availabilityFaultMessage);
 
+        }catch (ServerSOAPFaultException exception){
+            XMLFileUtility.createXMLFile(exception.getFault(), "AirReserveResponseException.xml");
+            travelportLogger.error("AirReserveResponseException " + new Date() +" ------>> ", exception);
         }
 
         XMLFileUtility.createXMLFile(response, "AirReserveResponse.xml");
@@ -366,8 +371,40 @@ public class AirReservationClient  extends TravelPortClient {
             //String freeText = "P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON";
             ssr.setFreeText(freeText);
             bookingTraveler.getSSR().add(ssr);
+
+            if(traveller.getPreferences() != null &&
+                    StringUtils.hasText(traveller.getPreferences().getFrequentFlyerAirlines()) &&
+                    StringUtils.hasText(traveller.getPreferences().getFrequentFlyerNumber())){
+                LoyaltyCard loyaltyCard = addFrequentFlierNumber(traveller);
+                bookingTraveler.getLoyaltyCard().add(loyaltyCard);
+            }
+            if(StringUtils.hasText(traveller.getPreferences().getSeatPreference()) && !"any".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
+                bookingTraveler.getAirSeatAssignment().add(addSeatPreference(traveller));
+            }
             bookingTravelerList.add(bookingTraveler);
         }
         return bookingTravelerList;
+    }
+
+    public static LoyaltyCard addFrequentFlierNumber(Traveller traveller){
+
+        LoyaltyCard loyaltyCard = new LoyaltyCard();
+        loyaltyCard.setSupplierCode(traveller.getPreferences().getFrequentFlyerAirlines());
+        loyaltyCard.setCardNumber(traveller.getPreferences().getFrequentFlyerNumber());
+        return loyaltyCard;
+
+    }
+
+    public static AirSeatAssignment addSeatPreference(Traveller traveller){
+        AirSeatAssignment airSeatAssignment = new AirSeatAssignment();
+        String seatType = "";
+        if("aisle".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
+            seatType = TravelportConstants.SEAT_TYPE.AISLE.getSeatType();
+        }else if("window".equalsIgnoreCase(traveller.getPreferences().getSeatPreference())){
+            seatType = TravelportConstants.SEAT_TYPE.WIDOW.getSeatType();
+        }
+        airSeatAssignment.setStatus("NN");
+        airSeatAssignment.setSeatTypeCode(seatType);
+        return airSeatAssignment;
     }
 }

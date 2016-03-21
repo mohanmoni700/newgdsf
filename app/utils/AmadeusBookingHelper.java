@@ -82,34 +82,16 @@ public class AmadeusBookingHelper {
 		}
 		BigDecimal totalFare = new BigDecimal(0);
 		BigDecimal baseFare = new BigDecimal(0);
-        /*List<FareList> fareList = pricePNRReply.getFareList();
-        for(FareList fare : fareList) {
-        	int paxCount = 0;
-        	String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
-        	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
-                logger.debug("adultCount : " + adultCount);
-                paxCount = adultCount;
-        	} else if(paxType.equalsIgnoreCase("CHD") || paxType.equalsIgnoreCase("CH")) {
-        		paxCount = childCount;
-                logger.debug("adultCount : " + childCount);
-        	} else if(paxType.equalsIgnoreCase("INF") || paxType.equalsIgnoreCase("IN")) {
-        		paxCount = infantCount;
-                logger.debug("adultCount : " + infantCount);
-        	}
-            logger.debug("passenger counts : " + paxCount);
-            logger.debug("size of fareData : " + fare.getFareDataInformation().getFareDataSupInformation().size());
-            for(FareDataSupInformation fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
-        		BigDecimal amount = new BigDecimal(fareData.getFareAmount());
-        		if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
-        			totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
-                    logger.debug("=======================>> Setting new total fare: " + totalFare);
-                } else {
-                    baseFare = baseFare.add(amount.multiply(new BigDecimal(paxCount)));
-        		}
-        	}
-        }*/
+        int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1
+                : AmadeusBookingHelper.getNumberOfTST(travellerMasterInfo.getTravellersList());
+        List<FarePricePNRWithBookingClassReply.FareList> fareList = new ArrayList<>();
+        if(pricePNRReply.getFareList().size() != numberOfTst){
+            fareList = pricePNRReply.getFareList().subList(0, numberOfTst);
+        }else {
+            fareList = pricePNRReply.getFareList();
+        }
+        PricingInformation pricingInformation = getPricingInfo(fareList, adultCount, childCount, infantCount);
 
-        PricingInformation pricingInformation = getPricingInfo(pricePNRReply.getFareList(), adultCount, childCount, infantCount);
         totalFare = pricingInformation.getTotalPrice();
         baseFare = pricingInformation.getBasePrice();
         pnrResponse.setPricingInfo(pricingInformation);

@@ -1,5 +1,6 @@
 package utils;
 
+import com.compassites.constants.TravelportConstants;
 import com.compassites.model.PassengerTax;
 import com.compassites.model.PricingInformation;
 import com.compassites.model.SegmentPricing;
@@ -148,7 +149,10 @@ public class TravelportBookingHelper {
     public static boolean checkSegmentStatus(List<TypeBaseAirSegment> typeBaseAirSegments){
 
         for(TypeBaseAirSegment airSegment : typeBaseAirSegments){
-            airSegment.getStatus();
+            String status = airSegment.getStatus();
+            if(TravelportConstants.UNCONFIRMED_SEGMENT.equalsIgnoreCase(status)){
+                return false;
+            }
         }
         return false;
     }
