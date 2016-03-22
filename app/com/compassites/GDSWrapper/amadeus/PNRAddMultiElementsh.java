@@ -14,6 +14,8 @@ import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.springframework.util.StringUtils;
+
+import utils.DateUtility;
 import utils.StringUtility;
 
 import java.math.BigInteger;
@@ -344,66 +346,88 @@ public class PNRAddMultiElementsh {
     //contact information
     public List<DataElementsIndiv> addContactInfo(TravellerMasterInfo travellerMasterInfo, int qualifierNumber) {
         //email info
-        PersonalDetails personalDetails = travellerMasterInfo.getTravellersList().get(0).getPersonalDetails();
-        List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
-        DataElementsIndiv de = new DataElementsIndiv();
-        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
-
-        elementManagementData.setSegmentName("AP");
-        ReferencingDetailsType rf = new ReferencingDetailsType();
-        rf.setQualifier("OT");
-        rf.setNumber((++qualifierNumber)+"");
-        elementManagementData.setReference(rf);
-        de.setElementManagementData(elementManagementData);
-
-        LongFreeTextType ftd = new LongFreeTextType();
-        de.setFreetextData(ftd);
-        FreeTextQualificationType ftdt = new FreeTextQualificationType();
-        ftdt.setSubjectQualifier("3");
-        ftdt.setType("P02");
-        ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext(personalDetails.getEmail());
-        dataElementsDivList.add(de);
-
-        //home contact number
-        de = new DataElementsIndiv();
-        elementManagementData = new ElementManagementSegmentType();
-
-        elementManagementData.setSegmentName("AP");
-        rf = new ReferencingDetailsType();
-        rf.setQualifier("OT");
-        rf.setNumber(++qualifierNumber+"");
-        elementManagementData.setReference(rf);
-        de.setElementManagementData(elementManagementData);
-
-        ftd = new LongFreeTextType();
-        de.setFreetextData(ftd);
-        ftdt = new FreeTextQualificationType();
-        ftdt.setSubjectQualifier("3");
-        ftdt.setType("3");
-        ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext(personalDetails.getMobileNumber());
-        dataElementsDivList.add(de);
-
-        //emergency contact number
-        de = new DataElementsIndiv();
-        elementManagementData = new ElementManagementSegmentType();
-
-        elementManagementData.setSegmentName("OS");
-        rf = new ReferencingDetailsType();
-        rf.setQualifier("OT");
-        rf.setNumber((++qualifierNumber)+"");
-        elementManagementData.setReference(rf);
-        de.setElementManagementData(elementManagementData);
-
-        ftd = new LongFreeTextType();
-        de.setFreetextData(ftd);
-        ftdt = new FreeTextQualificationType();
-        ftdt.setSubjectQualifier("3");
-        ftdt.setType("3");
-        ftd.setFreetextDetail(ftdt);
-        ftd.setLongFreetext("Emergency Contact Number "+ personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber());
-        dataElementsDivList.add(de);
+    	int passengerRefnumber = 0;
+    	List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
+    	try {
+    		for(Traveller traveller :travellerMasterInfo.getTravellersList()){
+        		
+       		 PersonalDetails personalDetails = traveller.getPersonalDetails();
+       		
+       		 if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF
+ 					.equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
+       			
+       			passengerRefnumber = passengerRefnumber+1;
+       			 System.out.println("************passengerRefnumber"+passengerRefnumber);
+           		 DataElementsIndiv de1 = new DataElementsIndiv();
+       	    		 LongFreeTextType ftd1 = new LongFreeTextType();
+       	    		 ftd1.setLongFreetext(personalDetails.getEmail());
+       		    		 FreeTextQualificationType ftdt1 = new FreeTextQualificationType();
+       		    	     ftdt1.setSubjectQualifier("3");
+       		    	     ftdt1.setType("P02");
+       		    	 ftd1.setFreetextDetail(ftdt1);
+       		     de1.setFreetextData(ftd1);
+       	    		 ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
+       	    		 elementManagementData1.setSegmentName("AP");    		 
+       		    		 ReferencingDetailsType rf1 = new ReferencingDetailsType();
+       		    		 rf1.setQualifier("OT");
+       		    	     rf1.setNumber((++qualifierNumber)+"");
+       		    	 elementManagementData1.setReference(rf1);
+           	     de1.setElementManagementData(elementManagementData1);
+           	     
+           	    ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+         	        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+         	        ReferencingDetailsType rf = new ReferencingDetailsType();
+         	        rf.setQualifier("PR");
+         	        rf.setNumber("" + (passengerRefnumber));
+         	        referenceList.add(rf);
+         	        de1.setReferenceForDataElement(referenceForDataElement);
+           	     
+           	     dataElementsDivList.add(de1);
+           	     
+           	     //home contact number
+           	     DataElementsIndiv de2 = new DataElementsIndiv();
+           	     	ElementManagementSegmentType elementManagementData2 = new ElementManagementSegmentType();
+           	     	elementManagementData2.setSegmentName("AP");
+       	    	     	ReferencingDetailsType rf2 = new ReferencingDetailsType();
+       	    	     	rf2.setQualifier("OT");
+       	    	        rf2.setNumber(++qualifierNumber+"");
+           	        elementManagementData2.setReference(rf2);
+           	     de2.setElementManagementData(elementManagementData2);
+       	    	     LongFreeTextType ftd2 = new LongFreeTextType();
+       	    	     	FreeTextQualificationType ftdt2 = new FreeTextQualificationType();
+       	    	     	ftdt2.setSubjectQualifier("3");
+       	    	        ftdt2.setType("3");
+       	    	     ftd2.setFreetextDetail(ftdt2);
+       	    	     ftd2.setLongFreetext(personalDetails.getMobileNumber());
+           	     de2.setFreetextData(ftd2);
+           	     de2.setReferenceForDataElement(referenceForDataElement);
+           	     dataElementsDivList.add(de2);
+           	     
+           	     //emergency contact number
+           	     DataElementsIndiv de3 = new DataElementsIndiv();
+       	    	     ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
+       	    	     elementManagementData3.setSegmentName("OS");
+       		    	     ReferencingDetailsType rf3 = new ReferencingDetailsType();
+       		    	     rf3.setQualifier("OT");
+       		    	     rf3.setNumber((++qualifierNumber)+"");
+       		    	     elementManagementData3.setReference(rf3);
+           	     de3.setElementManagementData(elementManagementData3);
+           	     	LongFreeTextType ftd3 = new LongFreeTextType();
+           	     		FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
+       		 	     	ftdt3.setSubjectQualifier("3");
+       		 	        ftdt3.setType("3");
+       		 	    ftd3.setFreetextDetail(ftdt3);
+        	            ftd3.setLongFreetext("Emergency Contact Number "+ personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber());
+        	         de3.setFreetextData(ftd3);
+        	         de3.setReferenceForDataElement(referenceForDataElement);
+        	         
+        	         dataElementsDivList.add(de3);
+    			}
+       			        
+       	}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         return dataElementsDivList;
     }
     //credit card info
