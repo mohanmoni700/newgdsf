@@ -177,10 +177,18 @@ public class Application {
     }
 
     public Result cancelPNR(){
+        logger.info("cancelPNR called ");
         JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
-        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
+        logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
+
+        //hadrd coded  for testing need to remove
+        CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
+        cancelPNRResponse.setSuccess(true);
+//        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
+
+        logger.debug("cancel pnr response " + Json.toJson(cancelPNRResponse));
         return ok(Json.toJson(cancelPNRResponse));
     }
 
@@ -204,12 +212,19 @@ public class Application {
 
 
     //todo-- added for testing need to remove
-    public Result displayTST(String pnr){
-        AmadeusBookingServiceImpl amadeusBookingService = new AmadeusBookingServiceImpl();
+    public Result displayTST(String pnr,String provider){
+        JsonNode jsonNode = null;
+        if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
+            AmadeusBookingServiceImpl amadeusBookingService = new AmadeusBookingServiceImpl();
 //        amadeusBookingService.getDisplayTicketDetails(pnr);
-        TravelportBookingServiceImpl travelportBookingService = new TravelportBookingServiceImpl();
-//        JsonNode jsonNode = amadeusBookingService.getBookingDetails(pnr);
-        JsonNode jsonNode =  travelportBookingService.getBookingDetails(pnr);
+            jsonNode = amadeusBookingService.getBookingDetails(pnr);
+
+        }else {
+            TravelportBookingServiceImpl travelportBookingService = new TravelportBookingServiceImpl();
+            jsonNode =  travelportBookingService.getBookingDetails(pnr);
+        }
+
+
 
         return ok(jsonNode);
 

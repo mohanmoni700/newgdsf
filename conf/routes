@@ -18,7 +18,7 @@ POST    /getBookingDetailsForPNR                   @controllers.Application.getB
 
 GET     /getQueueListInfo                       @controllers.Application.getQueueListInfo()
 
-GET     /displayTST/:pnr                       @controllers.Application.displayTST(pnr:String)
+GET     /displayTST/:pnr/:provider                       @controllers.Application.displayTST(pnr:String, provider:String)
 
 POST    /priceBookedPNR                         @controllers.Application.priceBookedPNR()
 
