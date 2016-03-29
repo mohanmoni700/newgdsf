@@ -20,10 +20,7 @@ import utils.StringUtility;
 
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.*;
 
@@ -53,17 +50,17 @@ public class PNRAddMultiElementsh {
         return element;
     }
 
-    public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo) {
+    public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo, List<String> segmentNumbers, Map<String,String> travellerMap) {
         PNRAddMultiElements element = new PNRAddMultiElements();
         OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
         pnrActions.getOptionCode().add(new BigInteger("0"));
         element.setPnrActions(pnrActions);
 
-        element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
+//        element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
         DataElementsMaster dem = new DataElementsMaster();
         dem.setMarker1(new DummySegmentTypeI());
         int qualifierNumber = 0;
-        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber));
+        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber, segmentNumbers, travellerMap));
         element.setDataElementsMaster(dem);
         return element;
     }
@@ -385,43 +382,64 @@ public class PNRAddMultiElementsh {
            	     dataElementsDivList.add(de1);
            	     
            	     //home contact number
-           	     DataElementsIndiv de2 = new DataElementsIndiv();
-           	     	ElementManagementSegmentType elementManagementData2 = new ElementManagementSegmentType();
-           	     	elementManagementData2.setSegmentName("AP");
-       	    	     	ReferencingDetailsType rf2 = new ReferencingDetailsType();
-       	    	     	rf2.setQualifier("OT");
-       	    	        rf2.setNumber(++qualifierNumber+"");
-           	        elementManagementData2.setReference(rf2);
-           	     de2.setElementManagementData(elementManagementData2);
-       	    	     LongFreeTextType ftd2 = new LongFreeTextType();
-       	    	     	FreeTextQualificationType ftdt2 = new FreeTextQualificationType();
-       	    	     	ftdt2.setSubjectQualifier("3");
-       	    	        ftdt2.setType("3");
-       	    	     ftd2.setFreetextDetail(ftdt2);
-       	    	     ftd2.setLongFreetext(personalDetails.getMobileNumber());
-           	     de2.setFreetextData(ftd2);
-           	     de2.setReferenceForDataElement(referenceForDataElement);
-           	     dataElementsDivList.add(de2);
+           	    DataElementsIndiv de2 = new DataElementsIndiv();
+                ElementManagementSegmentType elementManagementData2 = new ElementManagementSegmentType();
+                elementManagementData2.setSegmentName("AP");
+                ReferencingDetailsType rf2 = new ReferencingDetailsType();
+                rf2.setQualifier("OT");
+                rf2.setNumber(++qualifierNumber+"");
+                elementManagementData2.setReference(rf2);
+                de2.setElementManagementData(elementManagementData2);
+                LongFreeTextType ftd2 = new LongFreeTextType();
+                FreeTextQualificationType ftdt2 = new FreeTextQualificationType();
+                ftdt2.setSubjectQualifier("3");
+                ftdt2.setType("7");
+                ftd2.setFreetextDetail(ftdt2);
+       	    	ftd2.setLongFreetext(personalDetails.getMobileNumber());
+           	    de2.setFreetextData(ftd2);
+           	    de2.setReferenceForDataElement(referenceForDataElement);
+           	    dataElementsDivList.add(de2);
            	     
            	     //emergency contact number
-           	     DataElementsIndiv de3 = new DataElementsIndiv();
-       	    	     ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
-       	    	     elementManagementData3.setSegmentName("OS");
-       		    	     ReferencingDetailsType rf3 = new ReferencingDetailsType();
-       		    	     rf3.setQualifier("OT");
-       		    	     rf3.setNumber((++qualifierNumber)+"");
-       		    	     elementManagementData3.setReference(rf3);
-           	     de3.setElementManagementData(elementManagementData3);
-           	     	LongFreeTextType ftd3 = new LongFreeTextType();
-           	     		FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
-       		 	     	ftdt3.setSubjectQualifier("3");
-       		 	        ftdt3.setType("3");
-       		 	    ftd3.setFreetextDetail(ftdt3);
-        	            ftd3.setLongFreetext("Emergency Contact Number "+ personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber());
-        	         de3.setFreetextData(ftd3);
-        	         de3.setReferenceForDataElement(referenceForDataElement);
-        	         
-        	         dataElementsDivList.add(de3);
+                 DataElementsIndiv de3 = new DataElementsIndiv();
+                 ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
+                 elementManagementData3.setSegmentName("OS");
+                /* ReferencingDetailsType rf3 = new ReferencingDetailsType();
+                 rf3.setQualifier("OT");
+                 rf3.setNumber((++qualifierNumber) + "");
+                 elementManagementData3.setReference(rf3);*/
+                 de3.setElementManagementData(elementManagementData3);
+                 LongFreeTextType ftd3 = new LongFreeTextType();
+                 FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
+                 ftdt3.setSubjectQualifier("3");
+                 ftdt3.setType("3");
+                 ftd3.setFreetextDetail(ftdt3);
+                 String emergencyContactNo = personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber();
+                 emergencyContactNo = emergencyContactNo.replaceAll("\\+", "");
+                 ftd3.setLongFreetext("Emergency Contact Number " + emergencyContactNo);
+                 de3.setFreetextData(ftd3);
+                 de3.setReferenceForDataElement(referenceForDataElement);
+
+                 dataElementsDivList.add(de3);
+
+                 DataElementsIndiv businessNoDiv = new DataElementsIndiv();
+                 ElementManagementSegmentType businessNoelementManagement = new ElementManagementSegmentType();
+                 businessNoelementManagement.setSegmentName("AP");
+                 ReferencingDetailsType rf4 = new ReferencingDetailsType();
+                 rf4.setQualifier("OT");
+                 rf4.setNumber((++qualifierNumber) + "");
+                 businessNoelementManagement.setReference(rf4);
+                 businessNoDiv.setElementManagementData(businessNoelementManagement);
+                 LongFreeTextType businessNoLongFreeText = new LongFreeTextType();
+                 FreeTextQualificationType freeTextQualificationType = new FreeTextQualificationType();
+                 freeTextQualificationType.setSubjectQualifier("3");
+                 freeTextQualificationType.setType("3");
+                 businessNoLongFreeText.setFreetextDetail(freeTextQualificationType);
+                 businessNoLongFreeText.setLongFreetext(personalDetails.getOfficeNoCode() + personalDetails.getOfficeNumber());
+                 businessNoDiv.setFreetextData(businessNoLongFreeText);
+                 businessNoDiv.setReferenceForDataElement(referenceForDataElement);
+                 dataElementsDivList.add(businessNoDiv);
+
     			}
        			        
        	}
@@ -517,29 +535,46 @@ public class PNRAddMultiElementsh {
         de.setElementManagementData(emd);
         return de;
     }
-    public List<DataElementsIndiv> addAdditionalPassengerDetails(TravellerMasterInfo travellerMasterInfo, int qualifierNumber){
+    public List<DataElementsIndiv> addAdditionalPassengerDetails(TravellerMasterInfo travellerMasterInfo,
+                                     int qualifierNumber, List<String> segmentNumbers, Map<String,String> travellerMap){
         int passengerReference = 1;
+        String contactName = "";
         List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
         for(com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()){
+            if(traveller.getPersonalDetails().getMiddleName() != null){
+                contactName = traveller.getPersonalDetails().getFirstName() + traveller.getPersonalDetails().getMiddleName();
+
+            }else {
+                contactName = traveller.getPersonalDetails().getFirstName();
+            }
+            contactName = contactName + traveller.getPersonalDetails().getSalutation();
+            contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
+            String contactLastName = traveller.getPersonalDetails().getLastName();
+            contactLastName  = contactLastName.replaceAll("\\s+", "");
+            String contactFullName = contactName + contactLastName;
+            contactFullName = contactFullName.toLowerCase();
+            passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
+
             if(StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
                 dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference));
             }
             Preferences preferences = traveller.getPreferences();
             if(StringUtils.hasText(preferences.getMeal())){
-                dataElementsDivList.add(addMealPreference(traveller, qualifierNumber, passengerReference));
+                dataElementsDivList.add(addMealPreference(traveller, qualifierNumber, passengerReference, segmentNumbers));
             }
             if(StringUtils.hasText(preferences.getFrequentFlyerAirlines()) &&  StringUtils.hasText(preferences.getFrequentFlyerNumber())){
                 dataElementsDivList.add(addFrequentFlyerNumber(traveller, qualifierNumber, passengerReference));
             }
-            if(StringUtils.hasText(preferences.getSeatPreference())){
+            if(StringUtils.hasText(preferences.getSeatPreference()) && !"any".equalsIgnoreCase(preferences.getSeatPreference())){
                 dataElementsDivList.add(addSeatPreference(traveller, passengerReference));
             }
-            passengerReference++;
+//            passengerReference++;
         }
         return dataElementsDivList;
     }
 
-    public DataElementsIndiv addMealPreference(com.compassites.model.traveller.Traveller traveller, int qualifierNumber, int passengerRefNumber){
+    public DataElementsIndiv addMealPreference(com.compassites.model.traveller.Traveller traveller, int qualifierNumber,
+                                               int passengerRefNumber, List<String> segmentNumbers){
         DataElementsIndiv de = new DataElementsIndiv();
         ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
         elementManagementData.setSegmentName("SSR");
@@ -557,9 +592,19 @@ public class PNRAddMultiElementsh {
         ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
         List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
         ReferencingDetailsType rf = new ReferencingDetailsType();
-        rf.setQualifier("PR");
-        rf.setNumber("" + (passengerRefNumber));
+        rf.setQualifier("PT");
+//        rf.setNumber("" + (passengerRefNumber));
+        //// TODO: 28-03-2016  removed added for testing
+        rf.setNumber("" + (2));
         referenceList.add(rf);
+
+        for(String segment : segmentNumbers){
+            ReferencingDetailsType segmentRef = new ReferencingDetailsType();
+            segmentRef.setQualifier(AmadeusConstants.SEGMENT_REFERENCE_STRING);
+            segmentRef.setNumber("" + (segment));
+            referenceList.add(segmentRef);
+        }
+
         de.setReferenceForDataElement(referenceForDataElement);
 
         return de;
@@ -567,7 +612,14 @@ public class PNRAddMultiElementsh {
 
     public DataElementsIndiv addFrequentFlyerNumber(com.compassites.model.traveller.Traveller traveller, int qualifierNumber, int passengerRefNumber){
         DataElementsIndiv de = new DataElementsIndiv();
+
+
+        ReferencingDetailsType rfSSR = new ReferencingDetailsType();
+        rfSSR.setQualifier(AmadeusConstants.PASSENGER_REFERENCE_STRING);
+        rfSSR.setNumber("" + (passengerRefNumber));
+
         ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+        elementManagementData.setReference(rfSSR);
         elementManagementData.setSegmentName("SSR");
         de.setElementManagementData(elementManagementData);
 
@@ -586,10 +638,11 @@ public class PNRAddMultiElementsh {
         frequentTravellerData.setFrequentTraveller(frequentTraveller);
         de.setFrequentTravellerData(frequentTravellerData);
 
+
         ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
         List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
         ReferencingDetailsType rf = new ReferencingDetailsType();
-        rf.setQualifier("PR");
+        rf.setQualifier(AmadeusConstants.PASSENGER_REFERENCE_STRING);
         rf.setNumber("" + (passengerRefNumber));
         referenceList.add(rf);
         de.setReferenceForDataElement(referenceForDataElement);
@@ -618,10 +671,10 @@ public class PNRAddMultiElementsh {
         ssr.setCompanyId("YY");
         List<String> freeTextList = ssr.getFreetext();
         SimpleDateFormat ddMMMyyFormat = new SimpleDateFormat("ddMMMyy");
-        // Sample text P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON
+        // Sample text P-IND-H12232323-IND-3    0JUN73-M-14APR09-JOHNSON-SIMON
 
         String freeText = "P-IND-" +passportDetails.getPassportNumber()+"-IND-"+ ddMMMyyFormat.format(passportDetails.getDateOfBirth())
-                +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getSalutation())+"-"+ddMMMyyFormat.format(passportDetails.getDateOfExpiry())+"-"+
+                +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getGender())+"-"+ddMMMyyFormat.format(passportDetails.getDateOfExpiry())+"-"+
                 traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName();
         //String freeText = "P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON";
         freeTextList.add(freeText);
@@ -632,7 +685,7 @@ public class PNRAddMultiElementsh {
         ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
         List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
         ReferencingDetailsType rf = new ReferencingDetailsType();
-        rf.setQualifier("PR");
+        rf.setQualifier("PT");
         rf.setNumber("" + (passengerRefNumber));
         referenceList.add(rf);
         de.setReferenceForDataElement(referenceForDataElement);
@@ -664,9 +717,11 @@ public class PNRAddMultiElementsh {
         ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
         List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
         ReferencingDetailsType rf = new ReferencingDetailsType();
-        rf.setQualifier("PR");
+        rf.setQualifier(AmadeusConstants.PASSENGER_REFERENCE_STRING);
         rf.setNumber("" + (passengerRefNumber));
         referenceList.add(rf);
+
+
         de.setReferenceForDataElement(referenceForDataElement);
 
         return de;

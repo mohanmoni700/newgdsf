@@ -104,8 +104,24 @@ public class AmadeusBookingServiceImpl implements BookingService {
             gdsPNRReply = readAirlinePNR(serviceHandler,gdsPNRReply,lastPNRAddMultiElements,pnrResponse);
 
 			checkSegmentStatus(gdsPNRReply);
+			List<String> segmentNumbers = new ArrayList<>();
+			for(PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()){
+				for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
+					segmentNumbers.add(""+itineraryInfo.getElementManagementItinerary().getReference().getNumber());
+				}
+			}
+			Map<String,String> travellerMap = new HashMap<>();
+			for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+				String keyNo =  "" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
+				String lastName = travellerInfo.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
+				String name = travellerInfo.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
+				String travellerName = name + lastName;
+				travellerName = travellerName.replaceAll("\\s+", "");
+				travellerName = travellerName.toLowerCase();
+				travellerMap.put(travellerName,keyNo);
+			}
 
-			addSSRDetailsToPNR(serviceHandler, travellerMasterInfo, 1, lastPNRAddMultiElements);
+			addSSRDetailsToPNR(serviceHandler, travellerMasterInfo, 1, lastPNRAddMultiElements, segmentNumbers, travellerMap);
 			Thread.sleep(5000);
             gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
 
@@ -154,12 +170,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
         return pnrReply;
 	}
 
-	private void addSSRDetailsToPNR(ServiceHandler serviceHandler, TravellerMasterInfo travellerMasterInfo, int iteration, Date lastPNRAddMultiElements) throws BaseCompassitesException, InterruptedException {
+	private void addSSRDetailsToPNR(ServiceHandler serviceHandler, TravellerMasterInfo travellerMasterInfo, int iteration, Date lastPNRAddMultiElements,
+									List<String> segmentNumbers, Map<String,String> travellerMap) throws BaseCompassitesException, InterruptedException {
 		if(iteration <= 3){
-			PNRReply addSSRResponse = serviceHandler.addSSRDetailsToPNR(travellerMasterInfo);
-			simultaneousChangeAction(addSSRResponse, serviceHandler, lastPNRAddMultiElements, travellerMasterInfo, iteration);
+			PNRReply addSSRResponse = serviceHandler.addSSRDetailsToPNR(travellerMasterInfo, segmentNumbers, travellerMap);
+			simultaneousChangeAction(addSSRResponse, serviceHandler, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap);
 			PNRReply savePNRReply = serviceHandler.savePNR();
-			simultaneousChangeAction(savePNRReply, serviceHandler, lastPNRAddMultiElements, travellerMasterInfo, iteration);
+			simultaneousChangeAction(savePNRReply, serviceHandler, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap);
 		}else {
 			serviceHandler.ignorePNRAddMultiElement();
 			throw new BaseCompassitesException("Simultaneous changes Error");
@@ -168,7 +185,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
 	private void simultaneousChangeAction(PNRReply  addSSRResponse, ServiceHandler serviceHandler,
-										  Date lastPNRAddMultiElements, TravellerMasterInfo travellerMasterInfo, int iteration) throws InterruptedException, BaseCompassitesException {
+										  Date lastPNRAddMultiElements, TravellerMasterInfo travellerMasterInfo, int iteration,
+										  List<String> segmentNumbers, Map<String,String> travellerMap) throws InterruptedException, BaseCompassitesException {
 
 		boolean simultaneousChangeToPNR  = AmadeusBookingHelper.checkForSimultaneousChange(addSSRResponse);
 		if(simultaneousChangeToPNR) {
@@ -181,7 +199,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				PNRReply pnrReply = serviceHandler.ignoreAndRetrievePNR();
 				lastPNRAddMultiElements = new Date();
 				iteration = iteration + 1;
-				addSSRDetailsToPNR(serviceHandler, travellerMasterInfo, iteration, lastPNRAddMultiElements);
+				addSSRDetailsToPNR(serviceHandler, travellerMasterInfo, iteration, lastPNRAddMultiElements, segmentNumbers, travellerMap);
 			}
 		}
 

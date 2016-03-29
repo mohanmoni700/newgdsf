@@ -237,7 +237,7 @@ public class AirReservationClient  extends TravelPortClient {
             travelportLogger.error("AirReserveResponseException " + new Date() +" ------>> ", availabilityFaultMessage);
 
         }catch (ServerSOAPFaultException exception){
-            XMLFileUtility.createXMLFile(exception.getFault(), "AirReserveResponseException.xml");
+            XMLFileUtility.createXMLFile(exception, "AirReserveResponseException.xml");
             travelportLogger.error("AirReserveResponseException " + new Date() +" ------>> ", exception);
         }
 
@@ -322,6 +322,15 @@ public class AirReservationClient  extends TravelPortClient {
             phone.setNumber(personalDetails.getEmergencyContactNumber());
             phone.setType("Home");
             bookingTraveler.getPhoneNumber().add(phone);
+
+            phone = new PhoneNumber();
+            phone.setCountryCode(personalDetails.getOfficeNoCode());
+            //phone.setAreaCode("6");
+            phone.setNumber(personalDetails.getOfficeNumber());
+            phone.setType("Business");
+            bookingTraveler.getPhoneNumber().add(phone);
+
+
             //name
             BookingTravelerName name = new BookingTravelerName();
 

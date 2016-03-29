@@ -41,6 +41,8 @@ public class AmadeusConstants {
 
     public static final String PASSENGER_REFERENCE_STRING = "PT";
 
+    public static final String SEGMENT_REFERENCE_STRING = "ST";
+
 
     public static enum SEGMENT_STATUS {
         CONFIRMAT_WAITLIST("KL"), SCHEDULE_CHANGE("TK"), EXPIRED_TIME_LIMIT("HX");
