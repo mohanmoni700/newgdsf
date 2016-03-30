@@ -183,10 +183,7 @@ public class Application {
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
 
-        //hadrd coded  for testing need to remove
-        CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
-        cancelPNRResponse.setSuccess(true);
-//        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
 
         logger.debug("cancel pnr response " + Json.toJson(cancelPNRResponse));
         return ok(Json.toJson(cancelPNRResponse));
