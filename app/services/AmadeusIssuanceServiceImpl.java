@@ -115,6 +115,11 @@ public class AmadeusIssuanceServiceImpl {
                 pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
                         issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing);
                 pricePNRReplyFareList = pricePNRReply.getFareList();
+                if(pricePNRReplyFareList.isEmpty()){
+                    issuanceResponse.setSuccess(false);
+                    logger.error("Fare list is null : ", pricePNRReplyFareList);
+                    return issuanceResponse;
+                }
             }
 
             PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
