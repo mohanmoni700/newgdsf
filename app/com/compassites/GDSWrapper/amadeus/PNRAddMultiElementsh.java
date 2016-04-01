@@ -146,8 +146,7 @@ public class PNRAddMultiElementsh {
         DateAndTimeDetailsTypeI56946C dateAndTimeDetails = new DateAndTimeDetailsTypeI56946C();
         dateAndTimeDetails.setQualifier(AmadeusConstants.DOB_QUALIFIER);
         SimpleDateFormat sdf = new SimpleDateFormat("dMMMyy");
-//        dateAndTimeDetails.setDate(sdf.format(traveller.getPassportDetails().getDateOfBirth()));
-        dateAndTimeDetails.setDate("08Feb14");
+        dateAndTimeDetails.setDate(sdf.format(traveller.getPassportDetails().getDateOfBirth()));
         dateAndTimeInformationType.setDateAndTimeDetails(dateAndTimeDetails);
         passengerData.setDateOfBirth(dateAndTimeInformationType);
 
@@ -541,32 +540,36 @@ public class PNRAddMultiElementsh {
         String contactName = "";
         List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
         for(com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()){
-            if(traveller.getPersonalDetails().getMiddleName() != null){
-                contactName = traveller.getPersonalDetails().getFirstName() + traveller.getPersonalDetails().getMiddleName();
 
-            }else {
-                contactName = traveller.getPersonalDetails().getFirstName();
-            }
-            contactName = contactName + traveller.getPersonalDetails().getSalutation();
-            contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
-            String contactLastName = traveller.getPersonalDetails().getLastName();
-            contactLastName  = contactLastName.replaceAll("\\s+", "");
-            String contactFullName = contactName + contactLastName;
-            contactFullName = contactFullName.toLowerCase();
-            passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
+            if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF
+                    .equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
+                if (traveller.getPersonalDetails().getMiddleName() != null) {
+                    contactName = traveller.getPersonalDetails().getFirstName() + traveller.getPersonalDetails().getMiddleName();
 
-            if(StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
-                dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference));
-            }
-            Preferences preferences = traveller.getPreferences();
-            if(StringUtils.hasText(preferences.getMeal())){
-                dataElementsDivList.add(addMealPreference(traveller, qualifierNumber, passengerReference, segmentNumbers));
-            }
-            if(StringUtils.hasText(preferences.getFrequentFlyerAirlines()) &&  StringUtils.hasText(preferences.getFrequentFlyerNumber())){
-                dataElementsDivList.add(addFrequentFlyerNumber(traveller, qualifierNumber, passengerReference));
-            }
-            if(StringUtils.hasText(preferences.getSeatPreference()) && !"any".equalsIgnoreCase(preferences.getSeatPreference())){
-                dataElementsDivList.add(addSeatPreference(traveller, passengerReference));
+                } else {
+                    contactName = traveller.getPersonalDetails().getFirstName();
+                }
+                contactName = contactName + traveller.getPersonalDetails().getSalutation();
+                contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
+                String contactLastName = traveller.getPersonalDetails().getLastName();
+                contactLastName = contactLastName.replaceAll("\\s+", "");
+                String contactFullName = contactName + contactLastName;
+                contactFullName = contactFullName.toLowerCase();
+                passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
+
+                if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
+                    dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference));
+                }
+                Preferences preferences = traveller.getPreferences();
+                if (StringUtils.hasText(preferences.getMeal())) {
+                    dataElementsDivList.add(addMealPreference(traveller, qualifierNumber, passengerReference, segmentNumbers));
+                }
+                if (StringUtils.hasText(preferences.getFrequentFlyerAirlines()) && StringUtils.hasText(preferences.getFrequentFlyerNumber())) {
+                    dataElementsDivList.add(addFrequentFlyerNumber(traveller, qualifierNumber, passengerReference));
+                }
+                if (StringUtils.hasText(preferences.getSeatPreference()) && !"any".equalsIgnoreCase(preferences.getSeatPreference())) {
+                    dataElementsDivList.add(addSeatPreference(traveller, passengerReference));
+                }
             }
 //            passengerReference++;
         }

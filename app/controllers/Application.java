@@ -195,15 +195,9 @@ public class Application {
 
     public Result getBookingDetailsForPNR(){
         JsonNode json = request().body().asJson();
-/*        String pretty = null;
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        System.out.println(" ---------------- JSON " + pretty);*/
+        logger.debug("getBookingDetailsForPNR request : "+ json);
         HashMap<String, Object> jsonMap = bookingService.getBookingDetailsForPNR(json);
+        logger.debug("getBookingDetailsForPNR response : "+ jsonMap);
         return ok(Json.toJson(jsonMap));
     }
 

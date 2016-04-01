@@ -627,7 +627,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 //			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
 //							paxTypeCount.get("adultCount"),	paxTypeCount.get("childCount"),	paxTypeCount.get("infantCount"));
-
+			PNRResponse pnrResponse = new PNRResponse();
+			if(ticketDisplayTSTReply.getFareList() == null &&  ticketDisplayTSTReply.getFareList().size() == 0){
+//			if(true){
+				ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("priceNotAvailable", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+				pnrResponse.setErrorMessage(errorMessage);
+				json.put("pnrResponse", pnrResponse);
+				return Json.toJson(json);
+			}
 			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 			if (isSeamen) {
 				flightItinerary.setSeamanPricingInformation(pricingInfo);
@@ -640,7 +647,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
             // TODO: change hardcoded value
             masterInfo.setCabinClass(CabinClass.ECONOMY);
 
-            PNRResponse pnrResponse = new PNRResponse();
             pnrResponse.setPnrNumber(gdsPNR);
             pricingInfo.setProvider("Amadeus");
             pnrResponse.setPricingInfo(pricingInfo);
