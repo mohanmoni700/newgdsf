@@ -169,7 +169,8 @@ public class SearchFlights {
         nudt.setTypeOfUnit("PX");
 
         NumberOfUnitDetailsType191580C nudt1 = new NumberOfUnitDetailsType191580C();
-        nudt1.setNumberOfUnits(new BigInteger("30"));
+        String noOfSearchResults =  play.Play.application().configuration().getString("amadeus.noOfSearchResults");
+        nudt1.setNumberOfUnits(new BigInteger(noOfSearchResults));
         nudt1.setTypeOfUnit("RC");
         nu.getUnitNumberDetail().add(nudt);
         nu.getUnitNumberDetail().add(nudt1);

@@ -103,7 +103,8 @@ public class LowFareRequestClient extends TravelPortClient {
         SearchPassenger searchPassenger = new SearchPassenger();
         searchPassenger.setCode(passengerType);
         searchPassenger.setKey("COMPASS");
-        searchPassenger.setAge(new BigInteger(String.valueOf(30)));
+        String noOfSearchResults =  play.Play.application().configuration().getString("travelport.noOfSearchResults");
+        searchPassenger.setAge(new BigInteger(noOfSearchResults));
         request.getSearchPassenger().add(searchPassenger);
         List<TypeSearchAirLeg> legs = request.getSearchAirLeg();
         legs.add(outbound);

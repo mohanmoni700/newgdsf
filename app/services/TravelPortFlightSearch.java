@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Time: 3:43 PM
  * To change this template use File | Settings | File Templates.
  */
-@Service
+//@Service
 public class TravelPortFlightSearch implements FlightSearch {
 
     static Logger logger = LoggerFactory.getLogger("gds");
