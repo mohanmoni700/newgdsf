@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
+import utils.MystiflyHelper;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -99,7 +100,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 			FlightItinerary flightItinerary = new FlightItinerary();
 			AirItineraryPricingInfo airlinePricingInfo = pricedItinerary
 					.getAirItineraryPricingInfo();
-			PricingInformation pricingInfo = setPricingInformtions(airlinePricingInfo);
+			PricingInformation pricingInfo = MystiflyHelper.setPricingInformtions(airlinePricingInfo);
 			flightItinerary.setPricingInformation(pricingInfo);
 			ArrayOfOriginDestinationOption arrayOfOriginDestinationOptions = pricedItinerary
 					.getOriginDestinationOptions();
@@ -113,67 +114,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 		return flightItineraryList;
 	}
 
-	private PricingInformation setPricingInformtions(
-			AirItineraryPricingInfo airlinePricingInfo) {
-		ItinTotalFare itinTotalFare = airlinePricingInfo.getItinTotalFare();
-		PricingInformation pricingInfo = new PricingInformation();
-		pricingInfo.setProvider(Mystifly.PROVIDER);
-		pricingInfo
-				.setLCC(airlinePricingInfo.getFareType() == FareType.WEB_FARE);
-		pricingInfo.setCurrency(itinTotalFare.getBaseFare().getCurrencyCode());
-		String baseFare = itinTotalFare.getEquivFare().getAmount();
-		pricingInfo.setBasePrice(new BigDecimal(baseFare));
-		String totalTax = itinTotalFare.getTotalTax().getAmount();
-		pricingInfo.setTax(new BigDecimal(totalTax));
-		String total = itinTotalFare.getTotalFare().getAmount();
-		pricingInfo.setTotalPrice(new BigDecimal(total));
-		pricingInfo.setGdsCurrency("INR");
-		pricingInfo.setTotalPriceValue(pricingInfo.getTotalPrice());
-		setFareBeakup(pricingInfo, airlinePricingInfo);
-		return pricingInfo;
-	}
 
-	private void setFareBeakup(PricingInformation pricingInfo,
-			AirItineraryPricingInfo airlinePricingInfo) {
-		List<PassengerTax> passengerTaxes = new ArrayList<>();
-		for (PTCFareBreakdown ptcFareBreakdown : airlinePricingInfo
-				.getPTCFareBreakdowns().getPTCFareBreakdownArray()) {
-
-			PassengerTax passengerTax = new PassengerTax();
-			PassengerFare paxFare = ptcFareBreakdown.getPassengerFare();
-			// passengerTax.setBaseFare(new BigDecimal(paxFare.getBaseFare()
-			// .getAmount()));
-			PassengerTypeQuantity passenger = ptcFareBreakdown
-					.getPassengerTypeQuantity();
-			passengerTax.setPassengerCount(passenger.getQuantity());
-			passengerTax.setPassengerType(passenger.getCode().toString());
-
-			Map<String, BigDecimal> taxes = new HashMap<>();
-			for (Tax tax : ptcFareBreakdown.getPassengerFare().getTaxes()
-					.getTaxArray()) {
-				if (taxes.containsKey(tax.getTaxCode())) {
-					taxes.put(tax.getTaxCode(), taxes.get(tax.getTaxCode())
-							.add(new BigDecimal(tax.getAmount())));
-				} else {
-					taxes.put(tax.getTaxCode(), new BigDecimal(tax.getAmount()));
-				}
-			}
-			passengerTax.setTaxes(taxes);
-			passengerTaxes.add(passengerTax);
-			String paxCode = ptcFareBreakdown.getPassengerTypeQuantity()
-					.getCode().toString();
-			BigDecimal amount = new BigDecimal(paxFare.getBaseFare()
-					.getAmount());
-			if (paxCode.equalsIgnoreCase("ADT")) {
-				pricingInfo.setAdtBasePrice(amount);
-			} else if (paxCode.equalsIgnoreCase("CHD")) {
-				pricingInfo.setChdBasePrice(amount);
-			} else if (paxCode.equalsIgnoreCase("INF")) {
-				pricingInfo.setInfBasePrice(amount);
-			}
-		}
-		pricingInfo.setPassengerTaxes(passengerTaxes);
-	}
 
 	private List<Journey> getJourneys(
 			ArrayOfOriginDestinationOption originDestinationOptions) {

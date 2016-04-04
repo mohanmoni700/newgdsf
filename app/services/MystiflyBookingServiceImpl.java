@@ -8,18 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirBookRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirItineraryPricingInfo;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirOrderTicketRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirRevalidateRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.CustomerInfo;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ETicket;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ItineraryInfo;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.PricedItinerary;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.ReservationItem;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.TravelItinerary;
 import org.springframework.stereotype.Service;
 
 import utils.ErrorMessageHelper;
@@ -37,6 +27,7 @@ import com.compassites.model.PNRResponse;
 import com.compassites.model.PricingInformation;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import utils.MystiflyHelper;
 
 /**
  * @author Santhosh
@@ -145,6 +136,18 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		String airlinePNR = itinerary.getItineraryInfo().getReservationItems()
 				.getReservationItemArray(0).getAirlinePNR();
 		pnrResponse.setAirlinePNR(airlinePNR);
+		ArrayOfReservationItem arrayOfReservationItems = itinerary.getItineraryInfo().getReservationItems();
+
+		Map<String, String> airlinePNRMap = new HashMap<>();
+		int segmentSequence = 1;
+		for(int i =0; i < arrayOfReservationItems.sizeOfReservationItemArray(); i++){
+			airlinePNR = "";
+			ReservationItem reservationItem = arrayOfReservationItems.getReservationItemArray(i);
+			String segments = reservationItem.getDepartureAirportLocationCode() + reservationItem.getArrivalAirportLocationCode() + segmentSequence;
+			airlinePNRMap.put(segments.toLowerCase(), airlinePNR);
+			segmentSequence++;
+		}
+
 		// SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
 		// Map<String, String> airlinePNRMap = new HashMap<>();
 		// for (ReservationItem resItem : itinerary.getItineraryInfo()
@@ -244,8 +247,12 @@ public class MystiflyBookingServiceImpl implements BookingService {
 							.getPricingInformation().getTotalPrice());
 					pnrRS.setPricingInfo(travellerMasterInfo.getItinerary()
 							.getPricingInformation(travellerMasterInfo.isSeamen()));
+
 					pnrRS.setFlightAvailable(true);
 					pnrRS.setPriceChanged(true);
+
+					PricingInformation newPriceInfo = MystiflyHelper.setPricingInformtions(pricingInfo);
+					pnrRS.setPricingInfo(newPriceInfo);
 				}
 			} else {
 				pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(

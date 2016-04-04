@@ -153,7 +153,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 }
             }
             pnrResponse.setAirlinePNR(airlinePnr);
-
+			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(pnrReply));
 		}
         if(airlinePnr == null){
             Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
@@ -656,7 +656,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
                 pnrResponse.setAirlinePNR(airlinePnr);
             }
-            gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo().get(0).getItineraryReservationInfo().getReservation().getControlNumber();
+			AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply);
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
 
             json.put("travellerMasterInfo", masterInfo);

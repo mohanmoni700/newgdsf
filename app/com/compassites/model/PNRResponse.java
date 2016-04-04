@@ -2,6 +2,7 @@ package com.compassites.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by user on 18-08-2014.
@@ -35,6 +36,10 @@ public class PNRResponse {
     private boolean holdTime;
 
     private String sessionIdRef;
+
+    private Map<String, String> airlinePNRMap;
+
+    private Map<String, FlightInfo> flightInfoMap;
 
     public String getPnrNumber() {
         return pnrNumber;
@@ -146,6 +151,22 @@ public class PNRResponse {
 
     public void setSessionIdRef(String sessionIdRef) {
         this.sessionIdRef = sessionIdRef;
+    }
+
+    public Map<String, String> getAirlinePNRMap() {
+        return airlinePNRMap;
+    }
+
+    public void setAirlinePNRMap(Map<String, String> airlinePNRMap) {
+        this.airlinePNRMap = airlinePNRMap;
+    }
+
+    public Map<String, FlightInfo> getFlightInfoMap() {
+        return flightInfoMap;
+    }
+
+    public void setFlightInfoMap(Map<String, FlightInfo> flightInfoMap) {
+        this.flightInfoMap = flightInfoMap;
     }
 }
 
