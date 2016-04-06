@@ -92,7 +92,7 @@ public class Application {
     
     @BodyParser.Of(BodyParser.Json.class)
     public Result getBaggageInfo() {
-    	System.out.println("inside getBaggageInfo Application");
+    	
     	JsonNode json = request().body().asJson();
     	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
@@ -104,7 +104,7 @@ public class Application {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    	System.out.println("response*******\n"+response);
+    	
     	return Controller.ok(Json.toJson(response));
     }
     
@@ -115,9 +115,7 @@ public class Application {
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
     	String provider = json.get("provider").asText();
     	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-    	System.out.println("********getCancellationFee...\n");
-    	System.out.println("json\n"+json);
-    	System.out.println("json\n"+json.toString());
+    	
     	String fareRules = flightInfoService.getCancellationFee(flightItinerary, searchParams, provider, seamen);
     	return Controller.ok(Json.toJson(fareRules));
     }

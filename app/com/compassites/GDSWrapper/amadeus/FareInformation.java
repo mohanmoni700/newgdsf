@@ -1,6 +1,7 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +28,9 @@ import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGrou
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.SegmentInformation.OffpointDetails;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.Trigger;
 import com.compassites.model.*;
+
+import play.libs.Json;
+import views.html.main;
 
 /**
  * @author Santhosh
@@ -85,7 +89,7 @@ public class FareInformation {
 			}
             i++;
 		}
-
+		//System.out.println("airSegments json\n"+Json.toJson(airSegments));
         i = 0;
 		for (AirSegmentInformation airSegment : airSegments) {
 			SegmentGroup segmentGroup = new SegmentGroup();
@@ -97,13 +101,17 @@ public class FareInformation {
 			segmentInfo.setBoardPointDetails(boardingDetails);
 			segmentInfo.setOffpointDetails(offpointDetails);
 			FlightDate flightDate = new FlightDate();
-			SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
+			SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"); 
+			Date date = null;
 			try {
-				//System.out.println("date****"+dateFormat.format(airSegment.getDepartureDate()));
-				flightDate.setDepartureDate(dateFormat.format(airSegment.getDepartureDate()));
-			} catch (Exception e) {
+				date = dateParser.parse((airSegment.getDepartureTime()));
+			} catch (ParseException e) {
 				e.printStackTrace();
 			}
+			SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
+			String dateString = dateFormat.format(date);
+			flightDate.setDepartureDate(dateString);
+			
 			segmentInfo.setFlightDate(flightDate);
 			CompanyDetails companyDetails = new CompanyDetails();
 			companyDetails.setMarketingCompany(airSegment.getCarrierCode());
@@ -129,6 +137,7 @@ public class FareInformation {
 		return fareInfo;
 	}
 
+	
 	private PassengersGroup getPassengerGroup(PassengerTypeCode passengerType,
 			int passengerQuantity) {
 		PassengersGroup passengerGroup = new PassengersGroup();

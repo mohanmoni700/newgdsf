@@ -245,4 +245,6 @@ public class SearchParameters implements Serializable,Cloneable{
         }
         return null;
     }
+    
+    
 }

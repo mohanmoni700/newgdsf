@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utils.AmadeusSessionManager;
+import utils.XMLFileUtility;
 
 import java.util.*;
 
@@ -122,7 +123,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
 							searchParams.getInfantCount(), paxFareDetailsList);
-//            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
+            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
             amadeusLogger.debug("FareInformativePricingWithoutPNRReply "+ new Date()+" ------->>"+ new XStream().toXML(pricingReply));
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
 			//System.out.println("fareCheckRulesReply ***"+fareCheckRulesReply);

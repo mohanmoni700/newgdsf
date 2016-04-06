@@ -71,8 +71,9 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
-        logger.debug("AmadeusFlightSearch started  : ");
-        SearchFlights searchFlights = new SearchFlights();
+        logger.debug("#####################AmadeusFlightSearch started  : ");
+        logger.debug("#####################SearchParameters: \n"+Json.toJson(searchParameters));
+        //SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         searchResponse.setProvider("Amadeus");
@@ -88,17 +89,22 @@ public class AmadeusFlightSearch implements FlightSearch{
 //            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
                 seamenReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
+                
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
+                
                 searchParameters.setBookingType(BookingType.SEAMEN);
                 XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
-                amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
-                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+                
+               // amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
+               // amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
                 XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
                 XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
-                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+               // amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
 
 //            serviceHandler.logOut();
@@ -123,7 +129,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
         }
 
-        logger.debug("AmadeusFlightSearch search reponse at : " + new Date());
+       // logger.debug("AmadeusFlightSearch search reponse at : " + new Date());
         FareMasterPricerTravelBoardSearchReply.ErrorMessage seamenErrorMessage = null;
         FareMasterPricerTravelBoardSearchReply.ErrorMessage errorMessage = fareMasterPricerTravelBoardSearchReply.getErrorMessage();
         if (seamenReply != null) {
@@ -132,6 +138,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         AirSolution airSolution = new AirSolution();
         if (errorMessage != null) {
+        	logger.debug("#####################errorMessage is not null");
             String errorCode = errorMessage.getApplicationError().getApplicationErrorDetail().getError();
             if(!AmadeusConstants.NO_ITINERARY_ERROR_CODE.contains(errorCode)){
                 InputStream input = null;
@@ -154,6 +161,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         } else {
             //return flight
+        	logger.debug("#####################errorMessage is null");
             airSolution = createAirSolutionFromRecommendation(fareMasterPricerTravelBoardSearchReply);
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 AirSolution seamenSolution = new AirSolution();
@@ -187,7 +195,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 //    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
     private ConcurrentHashMap<Integer, FlightItinerary> createFlightItineraryList(AirSolution airSolution, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
-        List<FlightItinerary> flightItineraryList = new ArrayList<>();
+        //List<FlightItinerary> flightItineraryList = new ArrayList<>();
 
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
 
@@ -256,6 +264,7 @@ public class AmadeusFlightSearch implements FlightSearch{
     private Journey setJourney(Journey journey,FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation){
         //no of stops
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
+       
         //set travel time
         for(ProposedSegmentDetailsType proposedSegmentDetailsType : groupOfFlight.getPropFlightGrDetail().getFlightProposal()){
             if(proposedSegmentDetailsType.getUnitQualifier() != null && proposedSegmentDetailsType.getUnitQualifier().equals("EFT")){
@@ -298,7 +307,7 @@ public class AmadeusFlightSearch implements FlightSearch{
     private AirSegmentInformation setSegmentInformation(FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis){
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         TravelProductType flightInformation=flightDetails.getFlightInformation();
-
+        
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
         if(flightInformation.getCompanyId().getOperatingCarrier() != null)
         	airSegmentInformation.setOperatingCarrierCode(flightInformation.getCompanyId().getOperatingCarrier());
@@ -351,6 +360,36 @@ public class AmadeusFlightSearch implements FlightSearch{
             airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
             airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier()));
         }
+       
+        //hopping
+        if(flightDetails.getTechnicalStop()!=null){
+        	List<HoppingFlightInformation> hoppingFlightInformations = null;
+    		for (DateAndTimeInformationType dateAndTimeInformationType :flightDetails.getTechnicalStop()){
+	        	//Arrival
+    			HoppingFlightInformation hop =new HoppingFlightInformation();
+	        	hop.setLocation(dateAndTimeInformationType.getStopDetails().get(0).getLocationId());
+	        	hop.setStartTime(dateAndTimeInformationType.getStopDetails().get(0).getFirstTime());
+	        	SimpleDateFormat dateParser = new SimpleDateFormat("ddMMyy");
+	    		Date startDate = null;
+	    		Date endDate = null;
+				try {
+					startDate = dateParser.parse(dateAndTimeInformationType.getStopDetails().get(0).getDate());
+					endDate = dateParser.parse(dateAndTimeInformationType.getStopDetails().get(1).getDate());
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+	    		SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMMyy");
+	    		hop.setStartDate(dateFormat.format(startDate));
+	        	//Departure
+	        	hop.setEndTime(dateAndTimeInformationType.getStopDetails().get(1).getFirstTime());
+	        	hop.setEndDate(dateFormat.format(endDate));
+	        	if(hoppingFlightInformations==null){ 
+	        		hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+	        	}
+	        	hoppingFlightInformations.add(hop);
+	        }
+    		airSegmentInformation.setHoppingFlightInformations(hoppingFlightInformations);
+    	}
         return airSegmentInformation;
     }
 
