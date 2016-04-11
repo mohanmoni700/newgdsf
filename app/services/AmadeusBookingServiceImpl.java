@@ -656,7 +656,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
                 pnrResponse.setAirlinePNR(airlinePnr);
             }
-			AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply);
+			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
 
             json.put("travellerMasterInfo", masterInfo);
