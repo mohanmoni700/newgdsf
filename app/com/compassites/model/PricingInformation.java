@@ -64,6 +64,9 @@ public class PricingInformation {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
 		segmentPricingList = new ArrayList<>();
+		adtBasePrice = new BigDecimal(0);
+		chdBasePrice = new BigDecimal(0);
+		infBasePrice = new BigDecimal(0);
 	}
 
 	public boolean isLCC() {

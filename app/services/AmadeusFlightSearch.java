@@ -415,18 +415,21 @@ public class AmadeusFlightSearch implements FlightSearch{
         	if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA")) {
 //        		pricingInformation.setAdtBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
         		pricingInformation.setAdtBasePrice(baseFare);
+                pricingInformation.setAdtTotalPrice(amount);
         		passengerTax.setPassengerType("ADT");
         		passengerTax.setTotalTax(tax);
         		passengerTax.setPassengerCount(paxCount);
  			} else if(paxType.equalsIgnoreCase("CHD")) {
 //				pricingInformation.setChdBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
 				pricingInformation.setChdBasePrice(baseFare);
+                pricingInformation.setChdTotalPrice(amount);
         		passengerTax.setPassengerType("CHD");
         		passengerTax.setTotalTax(tax);
         		passengerTax.setPassengerCount(paxCount);
 			} else if(paxType.equalsIgnoreCase("INF")) {
 //				pricingInformation.setInfBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
 				pricingInformation.setInfBasePrice(baseFare);
+                pricingInformation.setInfTotalPrice(amount);
         		passengerTax.setPassengerType("INF");
         		passengerTax.setTotalTax(tax);
         		passengerTax.setPassengerCount(paxCount);

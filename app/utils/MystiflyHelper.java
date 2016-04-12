@@ -65,14 +65,18 @@ public class MystiflyHelper {
             passengerTaxes.add(passengerTax);
             String paxCode = ptcFareBreakdown.getPassengerTypeQuantity()
                     .getCode().toString();
-            BigDecimal amount = new BigDecimal(paxFare.getBaseFare()
+            BigDecimal amount = new BigDecimal(paxFare.getEquivFare()
                     .getAmount());
+            BigDecimal totalAmount = new BigDecimal(paxFare.getTotalFare().getAmount());
             if (paxCode.equalsIgnoreCase("ADT")) {
                 pricingInfo.setAdtBasePrice(amount);
+                pricingInfo.setAdtTotalPrice(totalAmount);
             } else if (paxCode.equalsIgnoreCase("CHD")) {
                 pricingInfo.setChdBasePrice(amount);
+                pricingInfo.setChdTotalPrice(totalAmount);
             } else if (paxCode.equalsIgnoreCase("INF")) {
                 pricingInfo.setInfBasePrice(amount);
+                pricingInfo.setInfTotalPrice(totalAmount);
             }
         }
         pricingInfo.setPassengerTaxes(passengerTaxes);

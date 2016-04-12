@@ -71,10 +71,11 @@ public class PNRAddMultiElementsh {
         List<TravellerInfo> travellerInfoList = new ArrayList<>();
         boolean isSeamen = travellerMasterInfo.isSeamen();
 
-        List<Traveller> travellers = travellerMasterInfo.getTravellersList();
+        List<Traveller> travellers = new ArrayList<>();
+        travellers.addAll(travellerMasterInfo.getTravellersList()); //copying travellers as the list would be modified
         List<Traveller> infantTravellerList = new ArrayList<>();
         if(!isSeamen) {
-            infantTravellerList = getInfantTravellerList(travellerMasterInfo.getTravellersList());  //also removes the infant from traveller
+            infantTravellerList = getInfantTravellerList(travellers);  //also removes the infant from traveller
         }
         int infantIndex = 0;
         for (com.compassites.model.traveller.Traveller traveller : travellers){
