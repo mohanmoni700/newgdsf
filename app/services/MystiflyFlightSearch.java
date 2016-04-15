@@ -233,6 +233,32 @@ public class MystiflyFlightSearch implements FlightSearch {
 		airSegment.setArrivalTime(arrivalDate.toString());
 		airSegment.setArrivalDate(arrivalDate.toDate());
 
+		//hopping
+		List<HoppingFlightInformation> hoppingFlightInformations = null;
+        if(flightSegment.getStopQuantityInfo()!=null){
+        	
+    			HoppingFlightInformation hop =new HoppingFlightInformation();
+	        	hop.setLocation(flightSegment.getStopQuantityInfo().getLocationCode());
+	        	
+				Date aDate = flightSegment.getStopQuantityInfo().getArrivalDateTime().getTime();
+				Date dDate = flightSegment.getStopQuantityInfo().getDepartureDateTime().getTime();
+				
+				SimpleDateFormat dateFormater = new SimpleDateFormat("ddMMMyy");
+				SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm");
+				
+				//Arrival
+	        	hop.setStartTime(timeFormater.format(aDate));
+	    		hop.setStartDate(dateFormater.format(aDate));
+	        	//Departure
+	        	hop.setEndTime(timeFormater.format(dDate));
+	        	hop.setEndDate(dateFormater.format(dDate));
+	        	
+	        	if(hoppingFlightInformations==null){ 
+	        		hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+	        	}
+	        	hoppingFlightInformations.add(hop);
+	        }
+        airSegment.setHoppingFlightInformations(hoppingFlightInformations);
 		return airSegment;
 	}
 
