@@ -99,7 +99,7 @@ public class BookFlights {
 
         FlightDate flightDate=new FlightDate();
         DateTimeFormatter fmt = DateTimeFormat.forPattern("ddMMyy");
-        String date = fmt.print(new DateTime(airSegmentInformation.getDepartureDate()));
+        String date = fmt.print(new DateTime(airSegmentInformation.getDepartureTime()));
         //flightDate.setDepartureDate("300614");
         flightDate.setDepartureDate(date);
 
