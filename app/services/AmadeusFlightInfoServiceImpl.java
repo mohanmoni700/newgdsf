@@ -63,7 +63,9 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
+			amadeusLogger.error("Error in getBaggageInfo SOAP ", ssf);
 		} catch (Exception e) {
+			amadeusLogger.error("Error in getBaggageInfo", e);
 			e.printStackTrace();
 		}finally {
 			if(amadeusSessionWrapper != null) {
@@ -200,6 +202,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			}
 		
 		} catch (Exception e) {
+			amadeusLogger.error("Error in addBaggageInfo" , e);
 			e.printStackTrace();
 		}
 		

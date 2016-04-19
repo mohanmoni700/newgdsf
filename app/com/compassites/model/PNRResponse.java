@@ -41,6 +41,8 @@ public class PNRResponse {
 
     private Map<String, FlightInfo> flightInfoMap;
 
+    private Map<String, String> segmentBaggageMap;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -167,6 +169,14 @@ public class PNRResponse {
 
     public void setFlightInfoMap(Map<String, FlightInfo> flightInfoMap) {
         this.flightInfoMap = flightInfoMap;
+    }
+
+    public Map<String, String> getSegmentBaggageMap() {
+        return segmentBaggageMap;
+    }
+
+    public void setSegmentBaggageMap(Map<String, String> segmentBaggageMap) {
+        this.segmentBaggageMap = segmentBaggageMap;
     }
 }
 

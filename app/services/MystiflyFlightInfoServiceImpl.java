@@ -21,14 +21,13 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 	@Override
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary,
 			SearchParameters searchParam, boolean seamen) {
-		//System.out.println("getBaggageInfo MystiflyFlightInfoServiceImpl entry");
 		AirRulesClient airRulesClient = new AirRulesClient();
 		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary
 				.getFareSourceCode());
 
 		BaggageInfo[] baggageInfos = airRulesRS.getBaggageInfos()
 				.getBaggageInfoArray();
-		for (Journey journey : flightItinerary.getJourneyList()) {
+		for (Journey journey : seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList()) {
 			for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
 				for (BaggageInfo baggageInfo : baggageInfos) {
 					if (baggageInfo.getArrival().equalsIgnoreCase(
@@ -50,7 +49,6 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 				}
 			}
 		}
-		//System.out.println("getBaggageInfo MystiflyFlightInfoServiceImpl exit");
 		return flightItinerary;
 	}
 	

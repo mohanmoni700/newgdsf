@@ -54,6 +54,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     private AmadeusSessionManager amadeusSessionManager;
 
+	@Autowired
+	AmadeusFlightInfoServiceImpl amadeusFlightInfoService;
+
     public AmadeusBookingServiceImpl() {
     }
 
@@ -104,6 +107,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
             gdsPNRReply = readAirlinePNR(serviceHandler,gdsPNRReply,lastPNRAddMultiElements,pnrResponse);
 
 			checkSegmentStatus(gdsPNRReply);
+
+			pnrResponse = readBaggageInfo(pnrResponse, travellerMasterInfo);
+
 			List<String> segmentNumbers = new ArrayList<>();
 			for(PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()){
 				for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
@@ -684,6 +690,43 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			e.printStackTrace();
 		}
 
+	}
+
+	private PNRResponse readBaggageInfo(PNRResponse  pnrResponse, TravellerMasterInfo travellerMasterInfo) {
+		int adultCount = 0, childCount = 0, infantCount = 0;
+		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
+			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+			if (passengerType.equals(PassengerTypeCode.ADT) || passengerType.equals(PassengerTypeCode.SEA)) {
+				adultCount++;
+			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
+				childCount++;
+			} else {
+				infantCount++;
+			}
+		}
+		SearchParameters parameters = new SearchParameters();
+		parameters.setAdultCount(adultCount);
+		parameters.setChildCount(childCount);
+		parameters.setInfantCount(infantCount);
+		HashMap<String, String> map = new HashMap<>();
+		FlightItinerary flightItinerary = amadeusFlightInfoService.getBaggageInfo(travellerMasterInfo.getItinerary(), parameters, travellerMasterInfo.isSeamen());
+		amadeusLogger.debug("Read Baggage Info........");
+		try {
+			for (Journey journey : travellerMasterInfo.isSeamen() ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList()){
+				for (AirSegmentInformation segmentInformation : journey.getAirSegmentList()) {
+					String key = segmentInformation.getFromLocation().concat(segmentInformation.getToLocation());
+					String baggage = segmentInformation.getFlightInfo().getBaggageAllowance() + "	"
+							+ segmentInformation.getFlightInfo().getBaggageUnit();
+					map.put(key, baggage);
+					segmentInformation.getAirSegmentKey();
+				}
+			}
+		} catch (Exception e){
+			amadeusLogger.error("Error in readBaggageInfo " , e);
+			e.printStackTrace();
+		}
+		pnrResponse.setSegmentBaggageMap(map);
+		return pnrResponse;
 	}
 
 }

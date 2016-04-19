@@ -10,8 +10,12 @@ import java.util.Map;
 
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import utils.DateUtility;
 import utils.ErrorMessageHelper;
 import utils.HoldTimeUtility;
 
@@ -28,12 +32,18 @@ import com.compassites.model.PricingInformation;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import utils.MystiflyHelper;
+import com.compassites.model.*;
 
 /**
  * @author Santhosh
  */
 @Service
 public class MystiflyBookingServiceImpl implements BookingService {
+
+	@Autowired
+	MystiflyFlightInfoServiceImpl mystiflyFlightInfoService;
+
+	static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
 	@Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
@@ -73,6 +83,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
                             pnrRS.setHoldTime(false);
 						}
 						setAirlinePNR(pnrRS);
+						readBaggageInfo(pnrRS, travellerMasterInfo);
 					} else {
 						ErrorMessage error = new ErrorMessage();
 						Error[] errors = airbookRS.getErrors().getErrorArray();
@@ -141,23 +152,13 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		Map<String, String> airlinePNRMap = new HashMap<>();
 		int segmentSequence = 1;
 		for(int i =0; i < arrayOfReservationItems.sizeOfReservationItemArray(); i++){
-			airlinePNR = "";
 			ReservationItem reservationItem = arrayOfReservationItems.getReservationItemArray(i);
 			String segments = reservationItem.getDepartureAirportLocationCode() + reservationItem.getArrivalAirportLocationCode() + segmentSequence;
+			airlinePNR = reservationItem.getAirlinePNR();
 			airlinePNRMap.put(segments.toLowerCase(), airlinePNR);
 			segmentSequence++;
 		}
-
-		// SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
-		// Map<String, String> airlinePNRMap = new HashMap<>();
-		// for (ReservationItem resItem : itinerary.getItineraryInfo()
-		// .getReservationItems().getReservationItemArray()) {
-		// String key = resItem.getDepartureAirportLocationCode()
-		// + resItem.getArrivalAirportLocationCode()
-		// + sdf.format(resItem.getDepartureDateTime().getTime());
-		// airlinePNRMap.put(key, resItem.getAirlinePNR());
-		// }
-		// pnrResponse.setAirlinePNRMap(airlinePNRMap);
+		 pnrResponse.setAirlinePNRMap(airlinePNRMap);
 	}
 
 	private void setTravellerTickets(List<Traveller> travellerList, String pnr)
@@ -270,6 +271,43 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		return masterInfo;
+	}
+
+	private PNRResponse readBaggageInfo(PNRResponse  pnrResponse, TravellerMasterInfo travellerMasterInfo) {
+		int adultCount = 0, childCount = 0, infantCount = 0;
+		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
+			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+			if (passengerType.equals(PassengerTypeCode.ADT) || passengerType.equals(PassengerTypeCode.SEA)) {
+				adultCount++;
+			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
+				childCount++;
+			} else {
+				infantCount++;
+			}
+		}
+		SearchParameters parameters = new SearchParameters();
+		parameters.setAdultCount(adultCount);
+		parameters.setChildCount(childCount);
+		parameters.setInfantCount(infantCount);
+		HashMap<String, String> map = new HashMap<>();
+		FlightItinerary flightItinerary = mystiflyFlightInfoService.getBaggageInfo(travellerMasterInfo.getItinerary(), parameters, travellerMasterInfo.isSeamen());
+		mystiflyLogger.debug("Read Baggage Info........");
+		try {
+			for (Journey journey : travellerMasterInfo.isSeamen() ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList()){
+				for (AirSegmentInformation segmentInformation : journey.getAirSegmentList()) {
+					String key = segmentInformation.getFromLocation().concat(segmentInformation.getToLocation());
+					String baggage = segmentInformation.getFlightInfo().getBaggageAllowance() + "	"
+							+ segmentInformation.getFlightInfo().getBaggageUnit();
+					map.put(key, baggage);
+					segmentInformation.getAirSegmentKey();
+				}
+			}
+		} catch (Exception e){
+			mystiflyLogger.error("Error in readBaggageInfo " , e);
+			e.printStackTrace();
+		}
+		pnrResponse.setSegmentBaggageMap(map);
+		return pnrResponse;
 	}
 
 }
