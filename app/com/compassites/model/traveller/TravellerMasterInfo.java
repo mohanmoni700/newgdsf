@@ -9,6 +9,7 @@ import utils.DateUtility;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by user on 06-08-2014.
@@ -38,6 +39,8 @@ public class TravellerMasterInfo {
     private Date validTillDate;
     
     private String journeyType;
+
+    private Map<String, String> segmentBaggageMap;
 
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
@@ -140,7 +143,15 @@ public class TravellerMasterInfo {
 		this.journeyType = journeyType;
 	}
 
-	@JsonIgnore
+    public Map<String, String> getSegmentBaggageMap() {
+        return segmentBaggageMap;
+    }
+
+    public void setSegmentBaggageMap(Map<String, String> segmentBaggageMap) {
+        this.segmentBaggageMap = segmentBaggageMap;
+    }
+
+    @JsonIgnore
     public int getAdultChildPaxCount(){
         int count = 0;
 
