@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.MystiflyHelper;
+import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -71,6 +72,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 					"partialResults", ErrorMessage.ErrorType.ERROR, provider());
 			searchResponse.getErrorMessageList().add(errorMsg);
 		}
+		XMLFileUtility.createXMLFile(searchResponse, "MystifySearchRes.xml");
 		return searchResponse;
 	}
 
@@ -235,29 +237,30 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 		//hopping
 		List<HoppingFlightInformation> hoppingFlightInformations = null;
-        if(flightSegment.getStopQuantityInfo()!=null){
-        	
-    			HoppingFlightInformation hop =new HoppingFlightInformation();
-	        	hop.setLocation(flightSegment.getStopQuantityInfo().getLocationCode());
-	        	
-				Date aDate = flightSegment.getStopQuantityInfo().getArrivalDateTime().getTime();
-				Date dDate = flightSegment.getStopQuantityInfo().getDepartureDateTime().getTime();
-				
-				SimpleDateFormat dateFormater = new SimpleDateFormat("ddMMMyy");
-				SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm");
-				
-				//Arrival
-	        	hop.setStartTime(timeFormater.format(aDate));
-	    		hop.setStartDate(dateFormater.format(aDate));
-	        	//Departure
-	        	hop.setEndTime(timeFormater.format(dDate));
-	        	hop.setEndDate(dateFormater.format(dDate));
-	        	
-	        	if(hoppingFlightInformations==null){ 
-	        		hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
-	        	}
-	        	hoppingFlightInformations.add(hop);
-	        }
+		if(flightSegment.getStopQuantity()!=0 ){
+	        if(flightSegment.getStopQuantityInfo()!=null){
+	        		HoppingFlightInformation hop =new HoppingFlightInformation();
+		        	hop.setLocation(flightSegment.getStopQuantityInfo().getLocationCode());
+		        	
+					Date aDate = flightSegment.getStopQuantityInfo().getArrivalDateTime().getTime();
+					Date dDate = flightSegment.getStopQuantityInfo().getDepartureDateTime().getTime();
+					
+					SimpleDateFormat dateFormater = new SimpleDateFormat("ddMMMyy");
+					SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm");
+					
+					//Arrival
+		        	hop.setStartTime(timeFormater.format(aDate));
+		    		hop.setStartDate(dateFormater.format(aDate));
+		        	//Departure
+		        	hop.setEndTime(timeFormater.format(dDate));
+		        	hop.setEndDate(dateFormater.format(dDate));
+		        	
+		        	if(hoppingFlightInformations==null){ 
+		        		hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+		        	}
+		        	hoppingFlightInformations.add(hop);
+		        }
+		}
         airSegment.setHoppingFlightInformations(hoppingFlightInformations);
 		return airSegment;
 	}
