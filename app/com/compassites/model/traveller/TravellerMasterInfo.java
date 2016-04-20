@@ -42,6 +42,8 @@ public class TravellerMasterInfo {
 
     private Map<String, String> segmentBaggageMap;
 
+    private String userTimezone;
+
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
     }
@@ -149,6 +151,14 @@ public class TravellerMasterInfo {
 
     public void setSegmentBaggageMap(Map<String, String> segmentBaggageMap) {
         this.segmentBaggageMap = segmentBaggageMap;
+    }
+
+    public String getUserTimezone() {
+        return userTimezone;
+    }
+
+    public void setUserTimezone(String userTimezone) {
+        this.userTimezone = userTimezone;
     }
 
     @JsonIgnore

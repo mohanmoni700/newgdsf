@@ -10,9 +10,9 @@ import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.*;
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
+import org.joda.time.*;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.util.StringUtils;
 
 import utils.DateUtility;
@@ -101,7 +101,15 @@ public class PNRAddMultiElementsh {
                 salutation = traveller.getPersonalDetails().getSalutation().replace(".","");
             }
 
-            passenger.setFirstName(traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName() + " " + salutation );
+            String name = "";
+            if(traveller.getPersonalDetails().getMiddleName() != null){
+                name = traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName() + " " + salutation;
+            }else {
+                name = traveller.getPersonalDetails().getFirstName() + " " + salutation;
+            }
+
+
+            passenger.setFirstName(name);
 
             if(travellerMasterInfo.isSeamen()){
                 passenger.setType(PassengerTypeCode.SEA.toString());
@@ -140,6 +148,7 @@ public class PNRAddMultiElementsh {
 
 
         TravellerDetailsTypeI passenger = new TravellerDetailsTypeI();
+
         passenger.setFirstName(traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName());
         passenger.setType(getPassengerType(traveller.getPassportDetails().getDateOfBirth()));
 
@@ -559,7 +568,7 @@ public class PNRAddMultiElementsh {
                 passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
 
                 if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
-                    dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference));
+                    dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference, travellerMasterInfo.getUserTimezone()));
                 }
                 Preferences preferences = traveller.getPreferences();
                 if (StringUtils.hasText(preferences.getMeal())) {
@@ -654,7 +663,8 @@ public class PNRAddMultiElementsh {
         return de;
     }
 
-    public DataElementsIndiv addPassportDetails(com.compassites.model.traveller.Traveller traveller, int qualifierNumber, int passengerRefNumber){
+    public DataElementsIndiv addPassportDetails(com.compassites.model.traveller.Traveller traveller, int qualifierNumber,
+                                                int passengerRefNumber, String userTimezone){
         DataElementsIndiv de = new DataElementsIndiv();
         PassportDetails passportDetails = traveller.getPassportDetails();
 
@@ -677,8 +687,14 @@ public class PNRAddMultiElementsh {
         SimpleDateFormat ddMMMyyFormat = new SimpleDateFormat("ddMMMyy");
         // Sample text P-IND-H12232323-IND-3    0JUN73-M-14APR09-JOHNSON-SIMON
 
-        String freeText = "P-IND-" +passportDetails.getPassportNumber()+"-IND-"+ ddMMMyyFormat.format(passportDetails.getDateOfBirth())
-                +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getGender())+"-"+ddMMMyyFormat.format(passportDetails.getDateOfExpiry())+"-"+
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("ddMMMyy");
+        DateTimeZone dateTimeZone  = DateTimeZone.forID(userTimezone);
+
+        DateTime dob = new DateTime(passportDetails.getDateOfBirth()).withZone(dateTimeZone);
+        DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
+
+        String freeText = "P-IND-" +passportDetails.getPassportNumber()+"-IND-"+ fmt.print(dob)
+                +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getGender())+"-"+fmt.print(dateOfExpiry)+"-"+
                 traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName();
         //String freeText = "P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON";
         freeTextList.add(freeText);

@@ -64,6 +64,7 @@ public class Application {
 
     public Result generatePNR(){
         JsonNode json = request().body().asJson();
+        logger.debug("----------------- generatePNR PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.generatePNR(travellerMasterInfo);
         logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
@@ -72,8 +73,9 @@ public class Application {
 
     public Result checkFareChangeAndAvailability(){
         JsonNode json = request().body().asJson();
-
+        logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        
         PNRResponse pnrResponse = bookingService.checkFareChangeAndAvailability(travellerMasterInfo);
 
         logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
@@ -83,7 +85,7 @@ public class Application {
     @BodyParser.Of(BodyParser.Json.class)
     public Result priceChangePNR(){
         JsonNode json = request().body().asJson();
-
+        logger.debug("----------------- priceChangePNR PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.priceChangePNR(travellerMasterInfo);
         logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
