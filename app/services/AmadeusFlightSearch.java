@@ -378,7 +378,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
-	    		SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMMyy");
+	    		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
 	    		hop.setStartDate(dateFormat.format(startDate));
 	        	//Departure
 	        	hop.setEndTime(dateAndTimeInformationType.getStopDetails().get(1).getFirstTime());

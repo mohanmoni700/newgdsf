@@ -245,7 +245,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 					Date aDate = flightSegment.getStopQuantityInfo().getArrivalDateTime().getTime();
 					Date dDate = flightSegment.getStopQuantityInfo().getDepartureDateTime().getTime();
 					
-					SimpleDateFormat dateFormater = new SimpleDateFormat("ddMMMyy");
+					SimpleDateFormat dateFormater = new SimpleDateFormat("dd-MMM-yyyy");
 					SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm");
 					
 					//Arrival
