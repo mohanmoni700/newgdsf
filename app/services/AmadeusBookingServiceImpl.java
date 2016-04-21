@@ -56,12 +56,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	private static Map<String, String> baggageCodes = new HashMap<>();
 
 	static {
-		baggageCodes.put("700", "Kilos");
-		baggageCodes.put("K", "Kilos");
-		baggageCodes.put("701", "Pounds");
-		baggageCodes.put("L", "Pounds");
+		baggageCodes.put("700", "KG");
+		baggageCodes.put("K", "KG");
+		baggageCodes.put("701", "Lb");
+		baggageCodes.put("L", "Lb");
 		baggageCodes.put("C", "Special Charge");
-		baggageCodes.put("N", "Number of pieces");
+		baggageCodes.put("N", "PC");
 		baggageCodes.put("S", "Size");
 		baggageCodes.put("V", "Value");
 		baggageCodes.put("W", "Weight");
@@ -745,8 +745,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						String temp = "S" + segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber();
 						if (airSegmentRefMap.get(temp) != null && !map.containsKey(temp)) {
 							String key = airSegmentRefMap.get(temp).toString();
-							String baggage = segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageWeight()
-									+ "	" + baggageCodes.get(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getMeasureUnit());
+							String baggage = null;
+							if(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageQuantity()==null) {
+								baggage = segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageWeight()
+										+ " " +baggageCodes.get(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getMeasureUnit());
+							} else {
+								baggage = segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageQuantity()
+										+ " " +baggageCodes.get(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageType());
+							}
 							map.put(key, baggage);
 						}
 					}
