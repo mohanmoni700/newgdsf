@@ -368,7 +368,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 	        	//Arrival
     			HoppingFlightInformation hop =new HoppingFlightInformation();
 	        	hop.setLocation(dateAndTimeInformationType.getStopDetails().get(0).getLocationId());
-	        	hop.setStartTime(dateAndTimeInformationType.getStopDetails().get(0).getFirstTime());
+	        	hop.setStartTime(new StringBuilder(dateAndTimeInformationType.getStopDetails().get(0).getFirstTime()).insert(2, ":").toString());
 	        	SimpleDateFormat dateParser = new SimpleDateFormat("ddMMyy");
 	    		Date startDate = null;
 	    		Date endDate = null;
@@ -381,7 +381,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 	    		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
 	    		hop.setStartDate(dateFormat.format(startDate));
 	        	//Departure
-	        	hop.setEndTime(dateAndTimeInformationType.getStopDetails().get(1).getFirstTime());
+	    		hop.setEndTime(new StringBuilder(dateAndTimeInformationType.getStopDetails().get(1).getFirstTime()).insert(2, ":").toString());
 	        	hop.setEndDate(dateFormat.format(endDate));
 	        	if(hoppingFlightInformations==null){ 
 	        		hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
