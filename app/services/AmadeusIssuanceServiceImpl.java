@@ -120,6 +120,25 @@ public class AmadeusIssuanceServiceImpl {
                     logger.error("Fare list is null : ", pricePNRReplyFareList);
                     return issuanceResponse;
                 }
+
+                int numberOfTst = (issuanceRequest.isSeamen()) ? 1
+                        : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
+
+                TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler
+                        .createTST(numberOfTst);
+
+                if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
+                    String errorCode = ticketCreateTSTFromPricingReply
+                            .getApplicationError().getApplicationErrorInfo()
+                            .getApplicationErrorDetail().getApplicationErrorCode();
+                    logger.debug("Amadeus Issuance TST creation error " + errorCode);
+                    ErrorMessage errorMessage = ErrorMessageHelper
+                            .createErrorMessage("error",
+                                    ErrorMessage.ErrorType.ERROR, "Amadeus");
+                    issuanceResponse.setErrorMessage(errorMessage);
+                    issuanceResponse.setSuccess(false);
+                    return issuanceResponse;
+                }
             }
 
             PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
