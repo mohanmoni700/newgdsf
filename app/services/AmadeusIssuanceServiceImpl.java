@@ -139,7 +139,13 @@ public class AmadeusIssuanceServiceImpl {
                     issuanceResponse.setSuccess(false);
                     return issuanceResponse;
                 }
+
+                if(pricePNRReply.getFareList().size() != numberOfTst){
+                    pricePNRReplyFareList = pricePNRReplyFareList.subList(0, numberOfTst);
+                }
             }
+
+
 
             PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
                     issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
