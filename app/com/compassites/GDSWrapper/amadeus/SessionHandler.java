@@ -36,5 +36,9 @@ public class SessionHandler {
 		sequenceNumber++;
 		mSession.value.setSequenceNumber(sequenceNumber.toString());
 	}
+
+	public String getSessionId() {
+		return mSession.value.getSessionId();
+	}
 	
 }
