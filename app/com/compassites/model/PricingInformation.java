@@ -60,6 +60,8 @@ public class PricingInformation {
 
 	private List<SegmentPricing> segmentPricingList;
 
+	private boolean isTotalAmountConverted;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
@@ -281,6 +283,12 @@ public class PricingInformation {
 				+ provider + ", segmentWisePricing=" + segmentWisePricing + ", segmentPricingList=" + segmentPricingList
 				+ "]";
 	}
-	
-	
+
+	public boolean isTotalAmountConverted() {
+		return isTotalAmountConverted;
+	}
+
+	public void setTotalAmountConverted(boolean totalAmountConverted) {
+		isTotalAmountConverted = totalAmountConverted;
+	}
 }

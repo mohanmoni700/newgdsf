@@ -123,10 +123,14 @@ public class AmadeusBookingHelper {
         int ticketsCount = 0;
         Map<String,Object> airSegmentRefMap = new HashMap<>();
         Map<String,Object> travellerMap = new HashMap<>();
+        Map<String, String> segmentSequenceMap = new HashMap<>();
+        int segmentSequence = 1;
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
                 String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
                 airSegmentRefMap.put(segmentRef,itineraryInfo);
+                segmentSequenceMap.put(segmentRef, segmentSequence+"");
+                segmentSequence++;
             }
         }
         for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
@@ -177,7 +181,8 @@ public class AmadeusBookingHelper {
                         for(String segmentRef : segmentRefList){
                             PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
                             String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
-                                    itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId();
+                                    itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
+                                    + segmentSequenceMap.get(segmentRef);
                             ticketMap.put(key.toLowerCase(),ticketNumber);
                             logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
                         }
@@ -643,9 +648,12 @@ public class AmadeusBookingHelper {
             List<String> segmentKeys = new ArrayList<>();
             if(segmentWisePricing){
                 for(TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()){
-                    ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
-                    String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
-                    segmentKeys.add(airSegmentRefMap.get(key).toString().toLowerCase());
+                    if(segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null){
+                        ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
+                        String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
+                        segmentKeys.add(airSegmentRefMap.get(key).toString().toLowerCase());
+                    }
+
                 }
             }
             segmentPricing.setSegmentKeysList(segmentKeys);

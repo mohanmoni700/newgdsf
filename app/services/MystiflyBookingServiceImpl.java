@@ -181,7 +181,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 						reservationItems, eTicket.getItemRPH());
 				String key = reservationItem.getDepartureAirportLocationCode()
 						+ reservationItem.getArrivalAirportLocationCode()
-						+ traveller.getContactId();
+						+ traveller.getContactId() + eTicket.getItemRPH();
 				ticketMap.put(key.toLowerCase(), eTicket.getETicketNumber());
 			}
 			traveller.setTicketNumberMap(ticketMap);
