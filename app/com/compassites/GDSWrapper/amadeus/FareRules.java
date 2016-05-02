@@ -26,13 +26,13 @@ public class FareRules {
 
         FareCheckRules.FareRule fareRule = new FareCheckRules.FareRule();
         FareCheckRules.FareRule.TarifFareRule tarifFareRule = new FareCheckRules.FareRule.TarifFareRule();
-        tarifFareRule.getRuleSectionId().add("RU");
-        tarifFareRule.getRuleSectionId().add("HI");
         tarifFareRule.getRuleSectionId().add("PE");
+        /*tarifFareRule.getRuleSectionId().add("RU");
+        tarifFareRule.getRuleSectionId().add("HI");
         tarifFareRule.getRuleSectionId().add("CO");
         tarifFareRule.getRuleSectionId().add("SU");
         tarifFareRule.getRuleSectionId().add("TR");
-        tarifFareRule.getRuleSectionId().add("OD");
+        tarifFareRule.getRuleSectionId().add("OD");*/
         fareRule.setTarifFareRule(tarifFareRule);
         fareCheckRules.setFareRule(fareRule);
 
