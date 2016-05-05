@@ -294,7 +294,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			return pricePNRReply;
 		}
 		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,travellerMasterInfo);
-		readBaggageInfo(gdsPNRReply, pricePNRReply, pnrResponse);
+		readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
 //        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
 		return pricePNRReply;
 	}
@@ -676,7 +676,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
-
+			readBaggageInfoFromTST(gdsPNRReply, ticketDisplayTSTReply.getFareList(), pnrResponse);
             json.put("travellerMasterInfo", masterInfo);
             json.put("pnrResponse", pnrResponse);
 
@@ -704,36 +704,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 	}
 
-	private void readBaggageInfo(PNRReply gdsPNRReply, FarePricePNRWithBookingClassReply pnrReply, PNRResponse pnrResponse) {
+	private void readBaggageInfoFromPnrReply(PNRReply gdsPNRReply, FarePricePNRWithBookingClassReply pnrReply, PNRResponse pnrResponse) {
 		amadeusLogger.debug("Read Baggage Info........");
 
-		Map<String,Object> airSegmentRefMap = new HashMap<>();
-		Map<String, String> passengerType = new HashMap<>();
-
-		for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
-			for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-				String segmentRef = "S"+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-				String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
-				airSegmentRefMap.put(segmentRef,segments);
-			}
-		}
-		for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
-			String key = "P" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
-			PassengerData paxData = travellerInfo.getPassengerData().get(0);
-			String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
-			String infantIndicator = paxData.getTravellerInformation().getPassenger().get(0).getInfantIndicator();
-			if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
-				passengerType.put(key,"CHD");
-			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
-				passengerType.put(key,"INF");
-			}else {
-				passengerType.put(key,"ADT");
-			}
-
-			if(infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)){
-				passengerType.put("PI"+ travellerInfo.getElementManagementPassenger().getReference().getNumber(), "INF");
-			}
-		}
+		Map<String,Object> airSegmentRefMap = airSegmentRefMap(gdsPNRReply);
+		Map<String, String> passengerType = passengerTypeMap(gdsPNRReply);
 
 		HashMap<String, String> map = new HashMap<>();
 		List<FarePricePNRWithBookingClassReply.FareList> fareList = pnrReply.getFareList();
@@ -765,4 +740,74 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		pnrResponse.setSegmentBaggageMap(map);
 	}
 
+	private Map<String,Object> airSegmentRefMap(PNRReply gdsPNRReply){
+		logger.debug(" AirSegment Reference Map creation. ");
+		Map<String,Object> airSegmentRefMap = new HashMap<>();
+		for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
+			for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
+				String segmentRef = "S"+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+				String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+				airSegmentRefMap.put(segmentRef,segments);
+			}
+		}
+		return  airSegmentRefMap;
+	}
+
+	private Map<String, String> passengerTypeMap(PNRReply gdsPNRReply){
+		logger.debug(" Passenger Type Map creation. ");
+		Map<String, String> passengerType = new HashMap<>();
+		for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+			String key = "P" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
+			PassengerData paxData = travellerInfo.getPassengerData().get(0);
+			String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
+			String infantIndicator = paxData.getTravellerInformation().getPassenger().get(0).getInfantIndicator();
+			if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+				passengerType.put(key,"CHD");
+			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+				passengerType.put(key,"INF");
+			}else {
+				passengerType.put(key,"ADT");
+			}
+
+			if(infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)){
+				passengerType.put("PI"+ travellerInfo.getElementManagementPassenger().getReference().getNumber(), "INF");
+			}
+		}
+		return passengerType;
+	}
+
+	private void readBaggageInfoFromTST(PNRReply gdsPNRReply, List<TicketDisplayTSTReply.FareList> fareList, PNRResponse pnrResponse) {
+		amadeusLogger.debug("Read Baggage Info........");
+
+		Map<String,Object> airSegmentRefMap = airSegmentRefMap(gdsPNRReply);
+		Map<String, String> passengerType = passengerTypeMap(gdsPNRReply);
+
+		HashMap<String, String> map = new HashMap<>();
+		try {
+			for (TicketDisplayTSTReply.FareList fare : fareList) {
+				if (!fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier().equals("PI")
+						&& passengerType.get("P" + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber()).equals(PassengerTypeCode.ADT.toString())) {
+					for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
+						String temp = "S" + segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber();
+						if (airSegmentRefMap.get(temp) != null && !map.containsKey(temp)) {
+							String key = airSegmentRefMap.get(temp).toString();
+							String baggage = null;
+							if(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageQuantity()==null) {
+								baggage = segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageWeight()
+										+ " " +baggageCodes.get(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getMeasureUnit());
+							} else {
+								baggage = segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageQuantity()
+										+ " " +baggageCodes.get(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageType());
+							}
+							map.put(key, baggage);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			amadeusLogger.error("Error in readBaggageInfo " , e);
+			e.printStackTrace();
+		}
+		pnrResponse.setSegmentBaggageMap(map);
+	}
 }
