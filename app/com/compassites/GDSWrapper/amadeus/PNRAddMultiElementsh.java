@@ -155,7 +155,7 @@ public class PNRAddMultiElementsh {
         DateAndTimeInformationType dateAndTimeInformationType = new DateAndTimeInformationType();
         DateAndTimeDetailsTypeI56946C dateAndTimeDetails = new DateAndTimeDetailsTypeI56946C();
         dateAndTimeDetails.setQualifier(AmadeusConstants.DOB_QUALIFIER);
-        SimpleDateFormat sdf = new SimpleDateFormat("dMMMyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("ddMMMyy");
         dateAndTimeDetails.setDate(sdf.format(traveller.getPassportDetails().getDateOfBirth()));
         dateAndTimeInformationType.setDateAndTimeDetails(dateAndTimeDetails);
         passengerData.setDateOfBirth(dateAndTimeInformationType);
