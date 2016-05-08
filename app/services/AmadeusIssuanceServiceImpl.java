@@ -64,7 +64,7 @@ public class AmadeusIssuanceServiceImpl {
             }
 
             List<FareList> pricePNRReplyFareList = new ArrayList<>();
-            boolean isSegmentWisePricing = issuanceRequest.getFlightItinerary().getPricingInformation().isSegmentWisePricing();
+            boolean isSegmentWisePricing = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).isSegmentWisePricing();
 
             if(isSegmentWisePricing){
                 List<SegmentPricing> segmentPricingList = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getSegmentPricingList();
@@ -200,7 +200,7 @@ public class AmadeusIssuanceServiceImpl {
 
             amadeusLogger.debug("retrievePNRRes1 "+ new Date()+" ------->>"+ new XStream().toXML(gdsPNRReply));
 
-            issuanceResponse = docIssuance(serviceHandler, issuanceRequest, issuanceResponse);
+            issuanceResponse = docIssuance(serviceHandler, issuanceRequest, issuanceResponse, gdsPNRReply);
 
             logger.debug("=======================  Issuance end =========================");
         } catch (Exception e) {
@@ -215,12 +215,43 @@ public class AmadeusIssuanceServiceImpl {
         return issuanceResponse;
     }
 
+    public boolean checkForMultipleValidatingCarriers(PNRReply gdsPNRReply){
+        Set<String> carrierSet = new HashSet<>();
+        for(PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()){
+            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
+                String validatingCarrier = itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification();
+                carrierSet.add(validatingCarrier);
+            }
+        }
 
-    public IssuanceResponse docIssuance(ServiceHandler serviceHandler, IssuanceRequest issuanceRequest, IssuanceResponse issuanceResponse) throws InterruptedException {
+        if(carrierSet.size() > 1){
+            return true;
+        }
+
+        return false;
+
+    }
+
+    public List<String> getTSTList(PNRReply gdsPNRReply){
+        List<String> tstReferenceList = new ArrayList<>();
+        for(PNRReply.TstData tstData : gdsPNRReply.getTstData()){
+           String tstReference =  tstData.getTstGeneralInformation().getGeneralInformation().getTstReferenceNumber();
+            tstReferenceList.add(tstReference);
+        }
+
+        return tstReferenceList;
+    }
+    public IssuanceResponse docIssuance(ServiceHandler serviceHandler, IssuanceRequest issuanceRequest,
+                                        IssuanceResponse issuanceResponse, PNRReply gdsPNRReply1) throws InterruptedException {
         String pnr = issuanceRequest.getGdsPNR();
         logger.debug(pnr + " amadeus docIssuance called " );
         Date pnrResponseReceivedAt = new Date();
-        DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket();
+        boolean sendTSTDataForIssuance = checkForMultipleValidatingCarriers(gdsPNRReply1);
+        List<String> tstReferenceList = new ArrayList<>();
+        if(sendTSTDataForIssuance){
+            tstReferenceList = getTSTList(gdsPNRReply1);
+        }
+        DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket(sendTSTDataForIssuance, tstReferenceList);
         if (AmadeusConstants.ISSUANCE_OK_STATUS.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())) {
             Thread.sleep(3000L);
             PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());

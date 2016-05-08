@@ -71,12 +71,10 @@ public class CronJobs {
         }
     }
 
-    @Scheduled(fixedRate = 3600000)
+//    @Scheduled(cron="0 0 0/1 * * ?")
     public void queueJobs(){
-        queueListService.getWaitListConfirmRequest();
-        queueListService.getScheduleChange();
-        queueListService.getExpiryTimeQueueRequest();
-        queueListService.getWaitListConfirmRequest();
+        logger.info("queueJobs called");
+
     }
 
 

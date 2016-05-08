@@ -146,6 +146,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("error in generatePNR : ", e);
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
 			pnrResponse.setErrorMessage(errorMessage);
@@ -349,6 +350,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			try {
 				lastTicketingDate = sdf.parse(day + month + year);
 			} catch (ParseException e) {
+				logger.debug("error in setLastTicketingDate", e);
 				e.printStackTrace();
 			}
 		}
@@ -423,6 +425,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("Error in checkFareChangeAndAvailability", e);
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "Amadeus");
 			pnrResponse.setErrorMessage(errorMessage);
@@ -503,6 +506,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			// Json.toJson(masterInfo));
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("Error in allPNRDetails", e);
 		}finally {
             serviceHandler.logOut();
         }
@@ -545,6 +549,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler.logOut();
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("Error in getLowestFare", e);
 		}
 		return lowestFare;
 	}
@@ -570,6 +575,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
     
 	public JsonNode getBookingDetails(String gdsPNR) {
+		logger.debug("Amadeus getBookingDetails called .......");
 		PNRReply gdsPNRReply = null;
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;

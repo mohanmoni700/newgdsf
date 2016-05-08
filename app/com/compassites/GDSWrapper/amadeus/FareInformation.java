@@ -29,6 +29,8 @@ import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGrou
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup.Trigger;
 import com.compassites.model.*;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import play.libs.Json;
 import views.html.main;
 
@@ -101,15 +103,15 @@ public class FareInformation {
 			segmentInfo.setBoardPointDetails(boardingDetails);
 			segmentInfo.setOffpointDetails(offpointDetails);
 			FlightDate flightDate = new FlightDate();
-			SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"); 
-			Date date = null;
-			try {
-				date = dateParser.parse((airSegment.getDepartureTime()));
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
+			SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+			String departureDateStr = airSegment.getDepartureTime();
+			String departureZone = airSegment.getFromAirport().getTime_zone();
+			DateTimeZone dateTimeZone  = DateTimeZone.forID(departureZone);
+			DateTime departureTime = new DateTime(departureDateStr).withZone(dateTimeZone);
+
 			SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
-			String dateString = dateFormat.format(date);
+			String dateString = dateFormat.format(departureTime.toDate());
 			flightDate.setDepartureDate(dateString);
 			
 			segmentInfo.setFlightDate(flightDate);

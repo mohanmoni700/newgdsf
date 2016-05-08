@@ -19,8 +19,10 @@ import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation.MessageActionDet
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,6 +33,8 @@ import java.util.List;
  * @author yaseen
  */
 public class BookFlights {
+
+    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
 	public AirSellFromRecommendation sellFromRecommendation(TravellerMasterInfo travellerMasterInfo) {
 		AirSellFromRecommendation sfr = new AirSellFromRecommendation();
@@ -99,7 +103,15 @@ public class BookFlights {
 
         FlightDate flightDate=new FlightDate();
         DateTimeFormatter fmt = DateTimeFormat.forPattern("ddMMyy");
-        String date = fmt.print(new DateTime(airSegmentInformation.getDepartureTime()));
+
+        String departureDateStr = airSegmentInformation.getDepartureTime();
+        String departureZone = airSegmentInformation.getFromAirport().getTime_zone();
+        DateTimeZone dateTimeZone  = DateTimeZone.forID(departureZone);
+        DateTime departureTime = new DateTime(departureDateStr).withZone(dateTimeZone);
+        logger.debug("Departure date =========>>>>>>>> " + departureTime + " : " + new DateTime(departureTime)
+            + " : " + fmt.print(new DateTime(departureTime)));
+
+        String date = fmt.print(departureTime);
         //flightDate.setDepartureDate("300614");
         flightDate.setDepartureDate(date);
 

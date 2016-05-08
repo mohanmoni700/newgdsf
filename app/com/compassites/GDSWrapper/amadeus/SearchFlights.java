@@ -110,7 +110,7 @@ public class SearchFlights {
         se.setFareOptions(fareOptions);*/
 //        XMLFileUtility.createXMLFile(se, "AmadeusSearchReq.xml");
 
-        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " ---->" + new XStream().toXML(se));
+//        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " ---->" + new XStream().toXML(se));
         return se;
     }
 

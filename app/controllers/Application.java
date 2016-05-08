@@ -75,7 +75,7 @@ public class Application {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
-        
+
         PNRResponse pnrResponse = bookingService.checkFareChangeAndAvailability(travellerMasterInfo);
 
         logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
@@ -158,9 +158,9 @@ public class Application {
     	JsonNode json = request().body().asJson();
     	String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
-
+        logger.debug("getBookingDetails request : "+ json);
         JsonNode res = bookingService.getBookingDetails(provider, pnr);
-        logger.debug("PNRReply =>>>>>>>>>>>> " + res);
+        logger.debug("getBookingDetails response =>>>>>>>>>>>> " + res);
 		return ok(res);
     }
     

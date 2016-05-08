@@ -250,10 +250,10 @@ public class ServiceHandler {
         return  pnrReply;
     }
 
-    public DocIssuanceIssueTicketReply issueTicket(){
+    public DocIssuanceIssueTicketReply issueTicket(boolean sendTSTDataForIssuance, List<String> tstReferenceList){
         mSession.incrementSequenceNumber();
         logger.debug("amadeus issueTicket called at " + new Date() + "....................Session Id: "+ mSession.getSessionId());
-        DocIssuanceIssueTicket docIssuanceIssueTicket = new IssueTicket().issue();
+        DocIssuanceIssueTicket docIssuanceIssueTicket = new IssueTicket().issue(sendTSTDataForIssuance, tstReferenceList);
         amadeusLogger.debug("docIssuanceReq " + new Date()  + " SessionId: " + mSession.getSessionId() + " ---->" + new XStream().toXML(docIssuanceIssueTicket));
         DocIssuanceIssueTicketReply docIssuanceIssueTicketReply = mPortType.docIssuanceIssueTicket(docIssuanceIssueTicket, mSession.getSession());
         amadeusLogger.debug("docIssuanceRes " + new Date()  + " SessionId: " + mSession.getSessionId() + " ---->" + new XStream().toXML(docIssuanceIssueTicketReply));

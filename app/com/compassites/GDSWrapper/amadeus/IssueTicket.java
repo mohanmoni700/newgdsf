@@ -13,12 +13,14 @@ import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.OptionGroup;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.OptionGroup.Switches;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket.OptionGroup.Switches.StatusDetails;
 
+import java.util.List;
+
 /**
  *
  * @author mahendra-singh
  */
 public class IssueTicket {
-    public DocIssuanceIssueTicket issue(){
+    public DocIssuanceIssueTicket issue(boolean sendTSTDataForIssuance, List<String> tstReferenceList){
         DocIssuanceIssueTicket tck = new DocIssuanceIssueTicket();
         OptionGroup op = new OptionGroup();
         Switches sw = new Switches();
@@ -31,17 +33,36 @@ public class IssueTicket {
         InfantOrAdultAssociation infantOrAdultAssociation = new InfantOrAdultAssociation();
         PaxDetails paxDetails = new PaxDetails();
         paxDetails.setType("A");
-
         infantOrAdultAssociation.setPaxDetails(paxDetails);
+        //commented the association as we may not need it
+//        tck.setInfantOrAdultAssociation(infantOrAdultAssociation);
+
+
         /*PaxSelection ps=new PaxSelection();
         PassengerReference pr=new PassengerReference();
         pr.setType("PAX");
         pr.setValue("1");
         ps.setPassengerReference(pr);      */
-        tck.setInfantOrAdultAssociation(infantOrAdultAssociation);
+
+
+
+        if(sendTSTDataForIssuance){
+            tck.getSelection().add(createTSTReferences(tstReferenceList));
+        }
         return tck;
     }
-    
+
+    public DocIssuanceIssueTicket.Selection createTSTReferences(List<String> tstReferenceList){
+        DocIssuanceIssueTicket.Selection selection = new DocIssuanceIssueTicket.Selection();
+        for(String tstReference : tstReferenceList){
+            DocIssuanceIssueTicket.Selection.ReferenceDetails referenceDetails = new DocIssuanceIssueTicket.Selection.ReferenceDetails();
+            referenceDetails.setType("TS");
+            referenceDetails.setValue(tstReference);
+            selection.getReferenceDetails().add(referenceDetails);
+        }
+
+        return selection;
+    }
     public DocIssuanceIssueTicket issue1(){
         DocIssuanceIssueTicket tck=new DocIssuanceIssueTicket();
         InfantOrAdultAssociation asc=new InfantOrAdultAssociation();
