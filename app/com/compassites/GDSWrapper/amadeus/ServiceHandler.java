@@ -63,10 +63,12 @@ public class ServiceHandler {
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
-    public static final  String endPoint = "https://test.webservices.amadeus.com";
+    public static String endPoint = null;
+
     static {
         URL url = null;
         try{
+            endPoint = play.Play.application().configuration().getString("amadeus.endPointURL");
             url = ServiceHandler.class.getResource("/wsdl/amadeus/amadeus.wsdl");
         }catch (Exception e){
             logger.debug("Error in loading Amadeus URL : ", e);

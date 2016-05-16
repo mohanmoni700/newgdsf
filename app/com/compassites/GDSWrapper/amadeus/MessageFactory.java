@@ -12,21 +12,13 @@ import com.amadeus.xml.vlsslq_06_1_1a.SecurityAuthenticate.UserIdentifier;
 import com.amadeus.xml.vlsslq_06_1_1a.SecurityAuthenticate.DutyCode.DutyCodeDetails;
 import com.amadeus.xml.vlsslq_06_1_1a.SecurityAuthenticate.SystemDetails.OrganizationDetails;
 import com.amadeus.xml.vlsslq_06_1_1a.SecurityAuthenticate.UserIdentifier.OriginIdentification;
+import play.Play;
 
 public class MessageFactory {
 
 	public SecurityAuthenticate buildAuthenticationRequest() {
 
-        Properties prop = new Properties();
-        try {
-            //load a properties file from class path, inside static method
-            prop.load(getClass().getClassLoader().getResourceAsStream("amadeus_config.properties"));
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-		// object factory
+       		// object factory
 		com.amadeus.xml.vlsslq_06_1_1a.ObjectFactory factory = new com.amadeus.xml.vlsslq_06_1_1a.ObjectFactory();
 
 		// authenticate request
@@ -36,11 +28,11 @@ public class MessageFactory {
 		// userIdentifier
 		UserIdentifier userId = factory
 				.createSecurityAuthenticateUserIdentifier();
-		userId.setOriginator(prop.getProperty("ORIGINATOR"));
-		userId.setOriginatorTypeCode(prop.getProperty("ORIGINATOR_TYPE_CODE"));
+		userId.setOriginator(Play.application().configuration().getString("amadeus.ORIGINATOR"));
+		userId.setOriginatorTypeCode(Play.application().configuration().getString("amadeus.ORIGINATOR_TYPE_CODE"));
 		OriginIdentification origin = factory
 				.createSecurityAuthenticateUserIdentifierOriginIdentification();
-		origin.setSourceOffice(prop.getProperty("SOURCE_OFFICE"));
+		origin.setSourceOffice(Play.application().configuration().getString("amadeus.SOURCE_OFFICE"));
 		userId.setOriginIdentification(origin);
 		authenticateRequest.getUserIdentifier().add(userId);
 
@@ -48,8 +40,8 @@ public class MessageFactory {
 		DutyCode dutycode = factory.createSecurityAuthenticateDutyCode();
 		DutyCodeDetails dutyCodeDetails = factory
 				.createSecurityAuthenticateDutyCodeDutyCodeDetails();
-		dutyCodeDetails.setReferenceIdentifier(prop.getProperty("REFERENCE_IDENTIFIER"));
-		dutyCodeDetails.setReferenceQualifier(prop.getProperty("REFERENCE_QUALIFIER"));
+		dutyCodeDetails.setReferenceIdentifier(Play.application().configuration().getString("amadeus.REFERENCE_IDENTIFIER"));
+		dutyCodeDetails.setReferenceQualifier(Play.application().configuration().getString("amadeus.REFERENCE_QUALIFIER"));
 		dutycode.setDutyCodeDetails(dutyCodeDetails);
 		authenticateRequest.setDutyCode(dutycode);
 
@@ -58,16 +50,16 @@ public class MessageFactory {
 				.createSecurityAuthenticateSystemDetails();
 		OrganizationDetails organizationDetails = factory
 				.createSecurityAuthenticateSystemDetailsOrganizationDetails();
-		organizationDetails.setOrganizationId(prop.getProperty("ORGANISATION_ID"));
+		organizationDetails.setOrganizationId(Play.application().configuration().getString("amadeus.ORGANISATION_ID"));
 		systemDetails.setOrganizationDetails(organizationDetails);
 		authenticateRequest.setSystemDetails(systemDetails);
 
 		// passwordInfo
 		PasswordInfo passwordInfo = factory
 				.createSecurityAuthenticatePasswordInfo();
-		passwordInfo.setDataLength(new BigDecimal(prop.getProperty("DATA_LENGTH")));
-		passwordInfo.setDataType(prop.getProperty("DATA_TYPE"));
-		passwordInfo.setBinaryData(prop.getProperty("BINARY_DATA"));
+		passwordInfo.setDataLength(new BigDecimal(Play.application().configuration().getString("amadeus.DATA_LENGTH")));
+		passwordInfo.setDataType(Play.application().configuration().getString("amadeus.DATA_TYPE"));
+		passwordInfo.setBinaryData(Play.application().configuration().getString("amadeus.BINARY_DATA"));
 		authenticateRequest.getPasswordInfo().add(passwordInfo);
 
 		return authenticateRequest;
