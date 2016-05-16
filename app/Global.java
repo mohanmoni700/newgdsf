@@ -27,12 +27,4 @@ public class Global extends GlobalSettings {
         return ctx.getBean(clazz);
     }
 
-
-    public Configuration onLoadConfig(Configuration baseConfiguration, File f, ClassLoader loader) {
-        String playEnv = SystemUtility.getEnvironment();
-
-        Config additionalConfig = ConfigFactory.parseFile(new File(f,"conf/application."+playEnv+".conf"));
-        Config baseConfig = baseConfiguration.getWrappedConfiguration().underlying();
-        return new Configuration(baseConfig.withFallback(additionalConfig));
-    }
 }
