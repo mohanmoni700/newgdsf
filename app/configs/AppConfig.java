@@ -17,8 +17,10 @@ public class AppConfig {
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
         JedisConnectionFactory factory = new JedisConnectionFactory();
-        factory.setHostName("localhost");
-        factory.setPort(6379);
+        String hostName = play.Play.application().configuration().getString("redis.host");
+        Integer portNumber = play.Play.application().configuration().getInt("redis.port");
+        factory.setHostName(hostName);
+        factory.setPort(portNumber);
         factory.setUsePool(true);
         return factory;
     }
