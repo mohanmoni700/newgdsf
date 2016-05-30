@@ -24,6 +24,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -210,7 +211,7 @@ public class AmadeusBookingHelper {
     }
 
 
-    public static List<Journey> getJourneyListFromPNRResponse(PNRReply gdsPNRReply){
+    public static List<Journey> getJourneyListFromPNRResponse(PNRReply gdsPNRReply, RedisTemplate redisTemplate){
 
         List<Journey> journeyList = new ArrayList<>();
         List<AirSegmentInformation> airSegmentList = new ArrayList<>();
@@ -231,9 +232,9 @@ public class AmadeusBookingHelper {
                 airSegmentInformation.setToLocation(toLoc);
                 airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct().getProductDetails().getClassOfService());
                 Airport fromAirport = Airport
-                        .getAiport(airSegmentInformation.getFromLocation());
-                Airport toAirport = Airport.getAiport(airSegmentInformation
-                        .getToLocation());
+                        .getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
+                Airport toAirport = Airport.getAirport(airSegmentInformation
+                        .getToLocation(), redisTemplate);
 
                 SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
                 String DATE_FORMAT = "ddMMyyHHmm";
@@ -305,9 +306,9 @@ public class AmadeusBookingHelper {
                             .getDepartTerminal());
                 }
                 airSegmentInformation.setCarrierCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification());
-                airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification()));
-                airSegmentInformation.setFromAirport(Airport.getAiport(fromLoc));
-                airSegmentInformation.setToAirport(Airport.getAiport(toLoc));
+                airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification(), redisTemplate));
+                airSegmentInformation.setFromAirport(Airport.getAirport(fromLoc, redisTemplate));
+                airSegmentInformation.setToAirport(Airport.getAirport(toLoc, redisTemplate));
                 String responseEquipment = itineraryInfo.getFlightDetail()
                         .getProductDetails().getEquipment();
                 if (responseEquipment != null) {

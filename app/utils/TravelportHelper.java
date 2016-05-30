@@ -10,6 +10,7 @@ import models.Airline;
 import models.Airport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -27,7 +28,7 @@ public class TravelportHelper {
     static Logger logger = LoggerFactory.getLogger("gds");
 
 
-    public static List<Journey> getJourneyListFromPNR(UniversalRecord universalRecord){
+    public static List<Journey> getJourneyListFromPNR(UniversalRecord universalRecord, RedisTemplate redisTemplate){
         List<Journey> journeyList = new ArrayList<>();
         List<AirSegmentInformation> airSegmentList = new ArrayList<>();
         Journey journey = new Journey();
@@ -74,10 +75,10 @@ public class TravelportHelper {
                     e.printStackTrace();
                 }
 
-                airSegmentInformation.setAirline(Airline.getAirlineByCode(carrierCode));
+                airSegmentInformation.setAirline(Airline.getAirlineByCode(carrierCode, redisTemplate));
 
-                airSegmentInformation.setFromAirport(Airport.getAiport(fromLoc));
-                airSegmentInformation.setToAirport(Airport.getAiport(toLoc));
+                airSegmentInformation.setFromAirport(Airport.getAirport(fromLoc, redisTemplate));
+                airSegmentInformation.setToAirport(Airport.getAirport(toLoc, redisTemplate));
 
                 airSegmentInformation.setBookingClass(airSegment.getCabinClass().toString());
 

@@ -18,6 +18,8 @@ import models.Airline;
 import models.Airport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
@@ -41,6 +43,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TravelPortFlightSearch implements FlightSearch {
 
     static Logger logger = LoggerFactory.getLogger("gds");
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    public RedisTemplate getRedisTemplate() {
+        return redisTemplate;
+    }
+
+    public void setRedisTemplate(RedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
     public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException, IOException {
@@ -336,14 +349,14 @@ public class TravelPortFlightSearch implements FlightSearch {
                             String carrier = airSegment.getCarrier();
                             if(carrier != null) {
                             	airSegmentInformation.setCarrierCode(carrier);
-                                airSegmentInformation.setAirline(Airline.getAirlineByCode(carrier));
+                                airSegmentInformation.setAirline(Airline.getAirlineByCode(carrier, redisTemplate));
                             }
                         }
                         if(airSegment.getCodeshareInfo() != null) {
                         	String operatingCarrier = airSegment.getCodeshareInfo().getOperatingCarrier();
                         	if(operatingCarrier != null) {
         	                    airSegmentInformation.setOperatingCarrierCode(operatingCarrier);
-        	                    airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(operatingCarrier));
+        	                    airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(operatingCarrier, redisTemplate));
                             }
                         }
                         if (airSegment.getFlightNumber() != null)
@@ -363,8 +376,8 @@ public class TravelPortFlightSearch implements FlightSearch {
                     //System.out.print(" from " + o + " to " + d);
                     airSegmentInformation.setFromLocation(o);
                     airSegmentInformation.setToLocation(d);
-                    airSegmentInformation.setFromAirport(Airport.getAiport(o));
-                    airSegmentInformation.setToAirport(Airport.getAiport(d));
+                    airSegmentInformation.setFromAirport(Airport.getAirport(o, redisTemplate));
+                    airSegmentInformation.setToAirport(Airport.getAirport(d, redisTemplate));
                     if (airSegment.getConnection() != null)
                         airSegmentInformation.setConnectionTime(airSegment.getConnection().getDuration());
                     airSegmentInformation.setFlightInfo(baggageInfoMap.get(o));

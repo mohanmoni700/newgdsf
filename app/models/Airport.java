@@ -1,5 +1,6 @@
 package models;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import play.db.ebean.Model;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
@@ -195,7 +196,7 @@ public class Airport extends Model implements Serializable {
         this.cityCode = cityCode;
     }
 
-    public static Airport getAiport(String iataCode) {
+    private static Airport getAiport(String iataCode) {
 		Jedis j = new Jedis("localhost", 6379);
 		j.connect();
 		String airportJson = j.get(iataCode);
@@ -213,6 +214,27 @@ public class Airport extends Model implements Serializable {
 
 		}
 		j.disconnect();
+		return airport;
+	}
+
+	public static Airport getAirport(String iataCode, RedisTemplate redisTemplate){
+
+		String airportJson = null;
+
+		Airport airport = new Airport();
+		if (redisTemplate.opsForValue().get(iataCode) != null) {
+			airportJson = (String) redisTemplate.opsForValue().get(iataCode);
+			airport = Json.fromJson(Json.parse(airportJson), Airport.class);
+
+		} else {
+			List<Airport> airportList = Airport.find.where().eq("iata_code", iataCode).findList();
+			if(airportList != null && airportList.size() > 0){
+				airport = airportList.get(0);
+				redisTemplate.opsForValue().set(iataCode, Json.toJson(airport).toString());
+			}
+
+
+		}
 		return airport;
 	}
 

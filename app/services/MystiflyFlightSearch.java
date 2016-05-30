@@ -15,6 +15,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
@@ -40,6 +42,17 @@ public class MystiflyFlightSearch implements FlightSearch {
 	private SearchParameters searchParams;
 
 	static Logger logger = LoggerFactory.getLogger("gds");
+
+	@Autowired
+	private RedisTemplate redisTemplate;
+
+	public RedisTemplate getRedisTemplate() {
+		return redisTemplate;
+	}
+
+	public void setRedisTemplate(RedisTemplate redisTemplate) {
+		this.redisTemplate = redisTemplate;
+	}
 
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
 	public SearchResponse search(SearchParameters searchParameters)
@@ -197,28 +210,28 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 		Airport fromAirport = new Airport();
 		Airport toAirport = new Airport();
-		fromAirport = Airport.getAiport(flightSegment.getDepartureAirportLocationCode());
-		toAirport = Airport.getAiport(flightSegment.getArrivalAirportLocationCode());
+		fromAirport = Airport.getAirport(flightSegment.getDepartureAirportLocationCode(), redisTemplate);
+		toAirport = Airport.getAirport(flightSegment.getArrivalAirportLocationCode(), redisTemplate);
 
 		OperatingAirline airline = flightSegment.getOperatingAirline();
 		airSegment.setFlightNumber(airline.getFlightNumber());
 		airSegment.setEquipment(airline.getEquipment());
 		airSegment.setOperatingCarrierCode(airline.getCode());
 		airSegment.setCarrierCode(flightSegment.getMarketingAirlineCode());
-		airSegment.setFromAirport(Airport.getAiport(flightSegment
-				.getDepartureAirportLocationCode()));
+		airSegment.setFromAirport(Airport.getAirport(flightSegment
+				.getDepartureAirportLocationCode(), redisTemplate));
 		airSegment.setFromDate(flightSegment.getDepartureDateTime().getTime()
 				.toString());
 		airSegment.setFromLocation(flightSegment
 				.getDepartureAirportLocationCode());
-		airSegment.setToAirport(Airport.getAiport(flightSegment
-				.getArrivalAirportLocationCode()));
+		airSegment.setToAirport(Airport.getAirport(flightSegment
+				.getArrivalAirportLocationCode(), redisTemplate));
 		airSegment.setToDate(flightSegment.getArrivalDateTime().getTime()
 				.toString());
 		airSegment.setAirline(Airline.getAirlineByCode(flightSegment
-				.getMarketingAirlineCode()));
+				.getMarketingAirlineCode(), redisTemplate));
 		if(airline.getCode() != null)
-			airSegment.setOperatingAirline(Airline.getAirlineByCode(airline.getCode()));
+			airSegment.setOperatingAirline(Airline.getAirlineByCode(airline.getCode(), redisTemplate));
 		airSegment.setToLocation(flightSegment.getArrivalAirportLocationCode());
 		airSegment.setTravelTime("" + flightSegment.getJourneyDuration());
 

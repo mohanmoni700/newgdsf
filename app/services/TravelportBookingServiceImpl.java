@@ -16,6 +16,7 @@ import com.travelport.service.air_v26_0.AirFaultMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import play.libs.Json;
@@ -39,6 +40,17 @@ public class TravelportBookingServiceImpl implements BookingService {
 
 	public TravelportCancelServiceImpl getCancelService() {
 		return cancelService;
+	}
+
+	@Autowired
+	private RedisTemplate redisTemplate;
+
+	public RedisTemplate getRedisTemplate() {
+		return redisTemplate;
+	}
+
+	public void setRedisTemplate(RedisTemplate redisTemplate) {
+		this.redisTemplate = redisTemplate;
 	}
 
 	@Autowired
@@ -268,7 +280,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 
             masterInfo.setTravellersList(travellerList); // traveller is
 
-            List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(universalRecordRetrieveRsp.getUniversalRecord());
+            List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(universalRecordRetrieveRsp.getUniversalRecord(), redisTemplate);
 			FlightItinerary flightItinerary = new FlightItinerary();
             PricingInformation pricingInformation = new PricingInformation();
 
@@ -329,7 +341,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 		TypeCabinClass cabinClass = univRec.getAirReservation().get(0).getAirSegment().get(0).getCabinClass();
 		masterInfo.setCabinClass(com.compassites.model.CabinClass.fromValue(cabinClass.name()));
 		
-		List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(univRecRetrRsp.getUniversalRecord());
+		List<Journey> journeyList = TravelportHelper.getJourneyListFromPNR(univRecRetrRsp.getUniversalRecord(), redisTemplate);
 		Map<String,String> airSegmentRefMap = new HashMap<>();
 
 		for (AirReservation airReservation : univRec.getAirReservation()) {

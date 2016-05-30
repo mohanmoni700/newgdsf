@@ -4,12 +4,14 @@ import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 import com.compassites.constants.CacheConstants;
+import org.springframework.data.redis.core.RedisTemplate;
 import play.db.ebean.Model.Finder;
 import play.libs.Json;
 import redis.clients.jedis.Jedis;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.avaje.ebean.Expr.like;
 
@@ -47,7 +49,7 @@ public class Airline {
 	@Column(name = "airline_logo")
 	public byte[] airlineLogo;
 
-	private static Finder<Long, Airline> find = new Finder<Long, Airline>(
+	public static Finder<Long, Airline> find = new Finder<Long, Airline>(
 			Long.class, Airline.class);
 	
 	public long getId() {
@@ -162,7 +164,7 @@ public class Airline {
 	}
 	
 
-	public static Airline getAirlineByCode(String airlineCode) {
+	private static Airline getAirlineByCode(String airlineCode) {
 		String cacheKey = "Airline#" + airlineCode;
 		Jedis j = new Jedis("localhost", 6379);
 		j.connect();
@@ -181,6 +183,29 @@ public class Airline {
 			j.setex(cacheKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, Json.toJson(airline).toString());
 		}
 		j.disconnect();
+		return airline;
+	}
+
+	public static Airline getAirlineByCode(String airlineCode, RedisTemplate redisTemplate) {
+		String cacheKey = "Airline#" + airlineCode;
+		String airlineJson =  null;
+
+		Airline airline = null;
+		if (redisTemplate.opsForValue().get(cacheKey) != null) {
+			airlineJson =  (String) redisTemplate.opsForValue().get(cacheKey);
+			airline = Json.fromJson(Json.parse(airlineJson), Airline.class);
+		} else {
+			List<Airline> airlines = Airline.find.where().eq("iata_code", airlineCode).findList();
+			if (airlines.size() > 0) {
+				airline = Airline.find.where().eq("iata_code", airlineCode).findList().get(0);
+			} else {
+				airline = new Airline();
+				airline.setIataCode(airlineCode);
+			}
+			redisTemplate.opsForValue().set(cacheKey,Json.toJson(airline).toString());
+			redisTemplate.expire(cacheKey,CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
+
+		}
 		return airline;
 	}
 

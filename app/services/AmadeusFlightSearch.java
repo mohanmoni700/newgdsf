@@ -23,6 +23,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.AmadeusSessionManager;
@@ -62,6 +63,18 @@ public class AmadeusFlightSearch implements FlightSearch{
 //    private ServiceHandler serviceHandler;
 
     private AmadeusSessionManager amadeusSessionManager;
+
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    public RedisTemplate getRedisTemplate() {
+        return redisTemplate;
+    }
+
+    public void setRedisTemplate(RedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Autowired
     public AmadeusFlightSearch(ServiceHandler serviceHandler, AmadeusSessionManager amadeusSessionManager) {
@@ -324,8 +337,8 @@ public class AmadeusFlightSearch implements FlightSearch{
         airSegmentInformation.setFromLocation(flightInformation.getLocation().get(0).getLocationId());
         Airport fromAirport = new Airport();
         Airport toAirport = new Airport();
-        fromAirport = Airport.getAiport(airSegmentInformation.getFromLocation());
-        toAirport = Airport.getAiport(airSegmentInformation.getToLocation());
+        fromAirport = Airport.getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
+        toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
 
         SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
         String DATE_FORMAT = "ddMMyyHHmm";
@@ -357,8 +370,8 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         airSegmentInformation.setTravelTime("" + diff.getMinutes());
         if (flightInformation.getCompanyId() != null && flightInformation.getCompanyId().getMarketingCarrier() != null && flightInformation.getCompanyId().getMarketingCarrier().length() >= 2) {
-            airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
-            airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier()));
+            airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier(), redisTemplate));
+            airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier(), redisTemplate));
         }
        
         //hopping
@@ -460,8 +473,8 @@ public class AmadeusFlightSearch implements FlightSearch{
         airSegmentInformation.setFromLocation(flightInformation.getLocation().get(0).getLocationId());
         Airport fromAirport = new Airport();
         Airport toAirport = new Airport();
-        fromAirport = Airport.getAiport(airSegmentInformation.getFromLocation());
-        toAirport = Airport.getAiport(airSegmentInformation.getToLocation());
+        fromAirport = Airport.getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
+        toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
 
         SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
         String DATE_FORMAT = "ddMMyyHHmm";
@@ -491,8 +504,8 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         airSegmentInformation.setTravelTime("" + diff.getMinutes());
         if (flightInformation.getCompanyId() != null && flightInformation.getCompanyId().getMarketingCarrier() != null && flightInformation.getCompanyId().getMarketingCarrier().length() >= 2) {
-            airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier()));
-            airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier()));
+            airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier(), redisTemplate));
+            airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier(), redisTemplate));
         }
 
         return airSegmentInformation;

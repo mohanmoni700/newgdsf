@@ -32,6 +32,7 @@ import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.*;
@@ -54,6 +55,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
     private AmadeusSessionManager amadeusSessionManager;
 
 	private static Map<String, String> baggageCodes = new HashMap<>();
+
+	@Autowired
+	private RedisTemplate redisTemplate;
 
 	static {
 		baggageCodes.put("700", "KG");
@@ -78,9 +82,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
         this.amadeusSessionManager = amadeusSessionManager;
     }
 
+
+	public RedisTemplate getRedisTemplate() {
+		return redisTemplate;
+	}
+
+	public void setRedisTemplate(RedisTemplate redisTemplate) {
+		this.redisTemplate = redisTemplate;
+	}
+
 	/*
-		Generate PNR follows the Amadeus booking flow please refer tht flow provided by Amadeus for flow of this method
-	*/
+            Generate PNR follows the Amadeus booking flow please refer tht flow provided by Amadeus for flow of this method
+        */
     @Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
         logger.debug("generatePNR called ........");
@@ -479,7 +492,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
 							+ "\n" + Json.toJson(gdsPNRReply));*/
             FlightItinerary flightItinerary = new FlightItinerary();
-            List<Journey> journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply);
+            List<Journey> journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
 
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
@@ -635,7 +648,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				isSeamen = true;
 
 			FlightItinerary flightItinerary = new FlightItinerary();
-			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply);
+			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
 			String carrierCode = "";
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
