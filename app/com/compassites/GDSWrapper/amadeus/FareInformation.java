@@ -103,14 +103,14 @@ public class FareInformation {
 			segmentInfo.setBoardPointDetails(boardingDetails);
 			segmentInfo.setOffpointDetails(offpointDetails);
 			FlightDate flightDate = new FlightDate();
-			SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-
+			//SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 			String departureDateStr = airSegment.getDepartureTime();
 			String departureZone = airSegment.getFromAirport().getTime_zone();
 			DateTimeZone dateTimeZone  = DateTimeZone.forID(departureZone);
 			DateTime departureTime = new DateTime(departureDateStr).withZone(dateTimeZone);
 
 			SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyy");
+			dateFormat.setTimeZone(dateTimeZone.toTimeZone());
 			String dateString = dateFormat.format(departureTime.toDate());
 			flightDate.setDepartureDate(dateString);
 			
