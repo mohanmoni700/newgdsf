@@ -154,6 +154,30 @@ public class AmadeusBookingHelper {
                 PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
                 String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
                 String name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
+
+                String ticketText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                String infantIndicator = ticketText.substring(0,3);
+
+                //checking for infant passenger associated to adult
+                if("inf".equalsIgnoreCase(infantIndicator)){
+                    //passenger association when booked from online system
+                    if(traveller.getPassengerData().size() > 1){
+                        String type = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getType();
+                        if("inf".equalsIgnoreCase(type)){
+                            lastName = traveller.getPassengerData().get(1).getTravellerInformation().getTraveller().getSurname();
+                            name = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getFirstName();
+                        }
+                        //passenger association when booked from offline system
+                    }else if(traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().size() > 1){
+                        String type = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getType();
+                        if("inf".equalsIgnoreCase(type)){
+                            lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
+                            name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getFirstName();
+                        }
+                    }
+                }
+
+
                /* String[] nameArray = name.split(" ");
                 String firstName = nameArray[0];
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";*/

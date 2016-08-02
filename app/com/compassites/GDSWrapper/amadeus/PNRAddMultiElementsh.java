@@ -148,8 +148,17 @@ public class PNRAddMultiElementsh {
 
 
         TravellerDetailsTypeI passenger = new TravellerDetailsTypeI();
-
-        passenger.setFirstName(traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName());
+        String salutation = "";
+        if(traveller.getPersonalDetails().getSalutation() != null){
+            salutation = traveller.getPersonalDetails().getSalutation().replace(".","");
+        }
+        String name = "";
+        if(traveller.getPersonalDetails().getMiddleName() != null){
+            name = traveller.getPersonalDetails().getFirstName() + " " + traveller.getPersonalDetails().getMiddleName() + " " + salutation;
+        }else {
+            name = traveller.getPersonalDetails().getFirstName() + " " + salutation;
+        }
+        passenger.setFirstName(name);
         passenger.setType(getPassengerType(traveller.getPassportDetails().getDateOfBirth()));
 
         DateAndTimeInformationType dateAndTimeInformationType = new DateAndTimeInformationType();
