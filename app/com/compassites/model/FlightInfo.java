@@ -12,7 +12,7 @@ public class FlightInfo {
 	
 	private String baggageUnit;
 	
-	private List<String> amneties;
+	private List<String> amenities;
 
 	public BigInteger getBaggageAllowance() {
 		return baggageAllowance;
@@ -30,12 +30,12 @@ public class FlightInfo {
 		this.baggageUnit = unit;
 	}
 
-	public List<String> getAmneties() {
-		return amneties;
+	public List<String> getAmenities() {
+		return amenities;
 	}
 
-	public void setAmneties(List<String> amneties) {
-		this.amneties = amneties;
+	public void setAmenities(List<String> amenities) {
+		this.amenities = amenities;
 	}
 
 }

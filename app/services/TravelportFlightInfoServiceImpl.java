@@ -38,16 +38,16 @@ public class TravelportFlightInfoServiceImpl implements FlightInfoService {
 						flightDetailsRsp.getAirSegment(),
 						segment.getAirSegmentKey());
 
-				List<String> amneties = new ArrayList<>();
+				List<String> amenities = new ArrayList<>();
 				for (TypeInFlightService inFlightService : airsegment
 						.getFlightDetails().get(0).getInFlightServices()) {
-					amneties.add(inFlightService.name());
+					amenities.add(inFlightService.name());
 				}
 				if (segment.getFlightInfo() != null) {
-					segment.getFlightInfo().setAmneties(amneties);
+					segment.getFlightInfo().setAmenities(amenities);
 				} else {
 					FlightInfo flightInfo = new FlightInfo();
-					flightInfo.setAmneties(amneties);
+					flightInfo.setAmenities(amenities);
 					segment.setFlightInfo(flightInfo);
 				}
 			}

@@ -1,6 +1,8 @@
 package services;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.datacontract.schemas._2004._07.mystifly_onepoint_airrules1_1.AirRulesRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint_airrules1_1.BaggageInfo;
@@ -45,6 +47,10 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 								bagInfo.setBaggageUnit(baggageInfo.getBaggage());
 								airSegment.setFlightInfo(bagInfo);
 								// TODO: set airline based Standard Baggage
+							} else if(baggageInfo.getBaggage().endsWith("P")){
+								bagInfo.setBaggageAllowance(new BigInteger(baggageInfo.getBaggage().replaceAll("\\D+", "")));
+								bagInfo.setBaggageUnit("PC");
+								airSegment.setFlightInfo(bagInfo);
 							}
 							break;
 						}

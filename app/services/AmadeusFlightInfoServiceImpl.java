@@ -89,15 +89,15 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			for(Journey journey : journeyList) {
 				for(AirSegmentInformation segment : journey.getAirSegmentList()) {
 					AirFlightInfoReply flightInfoReply = serviceHandler.getFlightInfo(segment);
-					List<String> amneties = new ArrayList<>();
+					List<String> amenities = new ArrayList<>();
 					for(InteractiveFreeText freeText : flightInfoReply.getFlightScheduleDetails().getInteractiveFreeText()) {
-						amneties.add(freeText.getFreeText());
+						amenities.add(freeText.getFreeText());
 					}
 					if (segment.getFlightInfo() != null) {
-						segment.getFlightInfo().setAmneties(amneties);
+						segment.getFlightInfo().setAmenities(amenities);
 					} else {
 						FlightInfo flightInfo = new FlightInfo();
-						flightInfo.setAmneties(amneties);
+						flightInfo.setAmenities(amenities);
 						segment.setFlightInfo(flightInfo);
 					}
 				}
