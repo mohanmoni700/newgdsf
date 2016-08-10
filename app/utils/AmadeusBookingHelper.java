@@ -1,5 +1,6 @@
 package utils;
 
+import com.amadeus.xml.fmptbr_14_2_1a.DateAndTimeInformationType;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
@@ -27,9 +28,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -340,7 +344,45 @@ public class AmadeusBookingHelper {
                             .getEquipment();
                 }
                 airSegmentInformation.setEquipment(responseEquipment);
-
+                //hopping                
+                if(isHoppingStopExists(itineraryInfo)){
+                	if(itineraryInfo.getLegInfo()!=null && itineraryInfo.getLegInfo().size()>=2){
+                		itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate();
+                    	itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime();
+                    	
+                    	itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate();
+                    	itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime();
+                    	
+                    	itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId();
+                    	                    	
+                    	List<HoppingFlightInformation> hoppingFlightInformations = null;
+                		
+            	        	//Arrival
+                			HoppingFlightInformation hop =new HoppingFlightInformation();
+            	        	hop.setLocation(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId());
+            	        	hop.setStartTime(new StringBuilder(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime()).insert(2, ":").toString());
+            	        	SimpleDateFormat dateParser = new SimpleDateFormat("ddMMyy");
+            	    		Date startDate = null;
+            	    		Date endDate = null;
+            				try {
+            					startDate = dateParser.parse(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate());
+            					endDate = dateParser.parse(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate());
+            				} catch (ParseException e) {
+            					e.printStackTrace();
+            				}
+            	    		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+            	    		hop.setStartDate(dateFormat.format(startDate));
+            	        	//Departure
+            	    		hop.setEndTime(new StringBuilder(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime()).insert(2, ":").toString());
+            	        	hop.setEndDate(dateFormat.format(endDate));
+            	        	if(hoppingFlightInformations==null){ 
+            	        		hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+            	        	}
+            	        	hoppingFlightInformations.add(hop);
+            	        
+                		airSegmentInformation.setHoppingFlightInformations(hoppingFlightInformations);
+                	}                	
+                }
                 airSegmentList.add(airSegmentInformation);
             }
             journey.setAirSegmentList(airSegmentList);
@@ -349,6 +391,14 @@ public class AmadeusBookingHelper {
 
         return journeyList;
     }
+
+	private static boolean isHoppingStopExists(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo) {
+		boolean hoppingStopExits = false;
+		if(itineraryInfo.getFlightDetail()!=null && itineraryInfo.getFlightDetail().getProductDetails()!=null && itineraryInfo.getFlightDetail().getProductDetails().getNumOfStops()!=null && itineraryInfo.getFlightDetail().getProductDetails().getNumOfStops().intValue()>0){
+			hoppingStopExits = true;
+		}
+		return hoppingStopExits;
+	}
 
 
     public static  PricingInformation getPricingForDownsellAndConversion(FarePricePNRWithBookingClassReply pricePNRReply, String totalFareIdentifier, int adultCount){
