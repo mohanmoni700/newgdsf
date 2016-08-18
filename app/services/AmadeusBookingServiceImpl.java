@@ -241,7 +241,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
 				for(String status : itineraryInfo.getRelatedProduct().getStatus()){
 					if(!AmadeusConstants.SEGMENT_HOLDING_CONFIRMED.equalsIgnoreCase(status)){
-						throw new BaseCompassitesException("Status of the segment is not cofirmed");
+						throw new BaseCompassitesException("Status of the segment is not confirmed");
 					}
 
 				}

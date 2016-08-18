@@ -111,15 +111,16 @@ public class PNRAddMultiElementsh {
 
             passenger.setFirstName(name);
 
+            String passengerType = getPassengerType(traveller.getPassportDetails().getDateOfBirth());
             if(travellerMasterInfo.isSeamen()){
                 passenger.setType(PassengerTypeCode.SEA.toString());
 
             }else {
-                passenger.setType(getPassengerType(traveller.getPassportDetails().getDateOfBirth()));
+                passenger.setType(passengerType);
             }
 
             TravellerInfo.PassengerData infantPassengerData = null;
-            if(!isSeamen && infantTravellerList.size() >= 1){
+            if(!isSeamen && "ADT".equalsIgnoreCase(passengerType) && infantTravellerList.size() >= 1){
                 passenger.setInfantIndicator("3");
                 infantPassengerData = addInfantAssociation(infantTravellerList.get(infantIndex));
                 infantTravellerList.remove(infantIndex);
