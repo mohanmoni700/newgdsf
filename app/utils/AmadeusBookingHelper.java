@@ -22,6 +22,7 @@ import models.Airport;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
@@ -243,8 +244,7 @@ public class AmadeusBookingHelper {
 
         List<Journey> journeyList = new ArrayList<>();
         List<AirSegmentInformation> airSegmentList = new ArrayList<>();
-
-
+       
         Journey journey = new Journey();
         for (PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply
                 .getOriginDestinationDetails()) {
@@ -284,20 +284,11 @@ public class AmadeusBookingHelper {
                 DateTime arrivalDate = DATETIME_FORMATTER.withZone(
                         dateTimeZone).parseDateTime(fromDateTime);
 
-					/*
-					 * Date fromDate =
-					 * format.parse(itineraryInfo.getTravelProduct
-					 * ().getProduct().getArrDate()); Date toDate =
-					 * format.parse(
-					 * itineraryInfo.getTravelProduct().getProduct()
-					 * .getDepDate());
-					 */
-
                 airSegmentInformation.setFlightNumber(itineraryInfo
                         .getTravelProduct().getProductDetails()
                         .getIdentification());
 
-                // airSegmentInformation.setDepartureDate(toDate);
+                
                 airSegmentInformation.setDepartureDate(departureDate
                         .toDate());
                 airSegmentInformation.setDepartureTime(departureDate
@@ -306,19 +297,9 @@ public class AmadeusBookingHelper {
                         .setArrivalTime(arrivalDate.toString());
                 airSegmentInformation.setArrivalDate(arrivalDate.toDate());
 
-                // logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+fromDateTime);
-                // logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+toDateTime);
                 airSegmentInformation.setFromDate(fromDateTime);
                 airSegmentInformation.setToDate(toDateTime);
-					/*
-					 * airSegmentInformation.setFromDate(format.format(fromDateTime
-					 * ));
-					 * airSegmentInformation.setToDate(format.format(toDateTime
-					 * ));
-					 */
-
-                // String arrivalTer =
-                // itineraryInfo.getFlightDetail().getArrivalStationInfo().getTerminal();
+				
                 if (itineraryInfo.getFlightDetail() != null
                         && itineraryInfo.getFlightDetail()
                         .getArrivalStationInfo() != null) {
@@ -344,6 +325,23 @@ public class AmadeusBookingHelper {
                             .getEquipment();
                 }
                 airSegmentInformation.setEquipment(responseEquipment);
+                
+                //duration
+                DateTimeFormatter DATETIME_FORMATTER1 = DateTimeFormat.forPattern(DATE_FORMAT);
+                DateTimeZone dateTimeZone1 = DateTimeZone.forID(fromAirport.getTime_zone());
+                DateTime departureDate1 = DATETIME_FORMATTER1.withZone(dateTimeZone1).parseDateTime(toDateTime);
+                dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+                DateTime arrivalDate1 = DATETIME_FORMATTER1.withZone(dateTimeZone1).parseDateTime(fromDateTime);
+
+                airSegmentInformation.setDepartureDate(departureDate1.toDate());
+                airSegmentInformation.setDepartureTime(departureDate1.toString());
+                airSegmentInformation.setArrivalTime(arrivalDate1.toString());
+                airSegmentInformation.setArrivalDate(arrivalDate1.toDate());
+                airSegmentInformation.setFromAirport(fromAirport);
+                airSegmentInformation.setToAirport(toAirport);
+                Minutes diff = Minutes.minutesBetween(departureDate1, arrivalDate1);
+                airSegmentInformation.setTravelTime("" + diff.getMinutes());                
+                
                 //hopping                
                 if(isHoppingStopExists(itineraryInfo)){
                 	if(itineraryInfo.getLegInfo()!=null && itineraryInfo.getLegInfo().size()>=2){
