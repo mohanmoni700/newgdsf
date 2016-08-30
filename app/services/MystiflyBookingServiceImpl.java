@@ -45,6 +45,9 @@ public class MystiflyBookingServiceImpl implements BookingService {
 
 	static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
+	static Logger logger = LoggerFactory.getLogger("gds");
+
+
 	@Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
 		String fareSourceCode = travellerMasterInfo.getItinerary()
@@ -66,7 +69,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					BookFlightClient bookFlightClient = new BookFlightClient();
 					AirBookRS airbookRS = bookFlightClient.bookFlight(
 							travellerMasterInfo.getItinerary(),
-							travellerMasterInfo.getTravellersList());
+							travellerMasterInfo.getTravellersList(), travellerMasterInfo.getUserTimezone());
 					if (airbookRS.getSuccess()) {
 						pnrRS.setPnrNumber(airbookRS.getUniqueID());
 						pnrRS.setFlightAvailable(airbookRS.getSuccess());
@@ -103,6 +106,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		} catch (RemoteException e) {
 			pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, Mystifly.PROVIDER));
+			logger.error("Error in Mystifly generatePNR : ", e);
 		}
 		return pnrRS;
 	}
@@ -134,6 +138,8 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error("Error in Mystifly issueTicket : ", e);
+
 		}
 		return issuanceResponse;
 	}
@@ -263,6 +269,8 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		} catch (RemoteException e) {
 			pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, Mystifly.PROVIDER));
+			logger.error("Error in Mystifly checkFareChangeAndAvailability : ", e);
+
 		}
 		return pnrRS;
 	}
@@ -303,7 +311,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				}
 			}
 		} catch (Exception e){
-			mystiflyLogger.error("Error in readBaggageInfo " , e);
+			logger.error("Error in readBaggageInfo " , e);
 			e.printStackTrace();
 		}
 		pnrResponse.setSegmentBaggageMap(map);

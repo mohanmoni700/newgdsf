@@ -163,7 +163,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
 			pnrResponse.setErrorMessage(errorMessage);
-			XMLFileUtility.createXMLFile(e, "AmadeusException.xml");
 		}finally {
 			if(session != null){
 				serviceHandler.logOut();
@@ -719,6 +718,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler.ticketDisplayTST();
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("Error in Amadeus getDisplayTicketDetails", e);
 		}
 
 	}

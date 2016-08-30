@@ -7,7 +7,12 @@ import com.travelport.schema.common_v26_0.LoyaltyCard;
 import onepoint.mystifly.BookFlightDocument;
 import onepoint.mystifly.BookFlightResponseDocument;
 import onepoint.mystifly.OnePointStub;
+import org.apache.xmlbeans.XmlDateTime;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -15,6 +20,7 @@ import utils.DateUtility;
 import utils.XMLFileUtility;
 
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -26,7 +32,7 @@ public class BookFlightClient {
 
     static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
-	public AirBookRS bookFlight(FlightItinerary itinerary, List<Traveller> travellerList)
+	public AirBookRS bookFlight(FlightItinerary itinerary, List<Traveller> travellerList, String userTimezone)
 			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
 		SessionCreateRS sessionRS = sessionsHandler.login();
@@ -42,30 +48,29 @@ public class BookFlightClient {
 		airBookRQ.setFareSourceCode(fareSourceCode);
 		TravelerInfo travelerInfo = airBookRQ.addNewTravelerInfo();
 		ArrayOfAirTraveler arrayOfTravelers = travelerInfo.addNewAirTravelers();
-		setTravelers(arrayOfTravelers, travellerList);
+		setTravelers(arrayOfTravelers, travellerList, userTimezone);
 		PersonalDetails personalDetails = travellerList.get(0).getPersonalDetails();
-		travelerInfo.setPhoneNumber(personalDetails.getCountryCode()
-				+ personalDetails.getMobileNumber());
+		travelerInfo.setPhoneNumber(personalDetails.getMobileNumber());
+		travelerInfo.setCountryCode(personalDetails.getCountryCode());
+
 		travelerInfo.setEmail(personalDetails.getEmail());
 
 		// TODO: Set dynamic values
-		// travelerInfo.setAreaCode("809");
-		// travelerInfo.setCountryCode("91");
+//		 travelerInfo.setAreaCode("809");
 		XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
         mystiflyLogger.debug("AirBookRQ "+ new Date() +" ----->>" + airBookRQ.xmlText());
-		BookFlightResponseDocument rsDoc = onePointStub
-				.bookFlight(bookFlightDocument);
+		BookFlightResponseDocument rsDoc = onePointStub.bookFlight(bookFlightDocument);
 		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
         mystiflyLogger.debug("AirBookRS "+ new Date() +" ----->>" + rsDoc.getBookFlightResponse().getBookFlightResult().xmlText());
 		return rsDoc.getBookFlightResponse().getBookFlightResult();
 	}
 
 	private void setTravelers(ArrayOfAirTraveler arrayOfTravelers,
-			List<Traveller> travellers) {
+			List<Traveller> travellers, String userTimezone) {
 		for (Traveller traveler : travellers) {
 			AirTraveler airTraveler = arrayOfTravelers.addNewAirTraveler();
 			setPersonalDetails(airTraveler, traveler.getPersonalDetails());
-			setPassportDetails(airTraveler, traveler.getPassportDetails());
+			setPassportDetails(airTraveler, traveler.getPassportDetails(), userTimezone);
 			setSeatAndFrequentFlyerNumber(airTraveler, traveler.getPreferences());
 		}
 	}
@@ -77,26 +82,42 @@ public class BookFlightClient {
 		PassengerName passengerName = airTraveler.addNewPassengerName();
 		passengerName.setPassengerFirstName(personalDetails.getFirstName());
 		passengerName.setPassengerLastName(personalDetails.getLastName());
+		String title = personalDetails.getSalutation().toLowerCase();
+		if(!title.contains(".")){
+			title = title + ".";
+		}
 		passengerName.setPassengerTitle(Mystifly.PASSENGER_TITLE
-				.get(personalDetails.getSalutation().toLowerCase()));
+				.get(title));
 		airTraveler.setPassengerName(passengerName);
 	}
 
 	private void setPassportDetails(AirTraveler airTraveler,
-			PassportDetails passportDetails) {
+			PassportDetails passportDetails, String userTimezone) {
 		Passport passport = airTraveler.addNewPassport();
 
 		passport.setCountry(passportDetails.getNationality().getTwoLetterCode());
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(passportDetails.getDateOfExpiry());
-		passport.setExpiryDate(calendar);
 		passport.setPassportNumber(passportDetails.getPassportNumber());
+		DateTimeZone dateTimeZone  = DateTimeZone.forID(userTimezone);
 
-		Date dob = passportDetails.getDateOfBirth();
-		calendar.setTime(dob);
-		airTraveler.setDateOfBirth(calendar);
+		DateTime dob = new DateTime(passportDetails.getDateOfBirth()).withZone(dateTimeZone);
+		dob = dob.withHourOfDay(0);
+		dob = dob.withMinuteOfHour(0);
+		dob = dob.withSecondOfMinute(0);
+		Calendar calendar1 = dob.toGregorianCalendar();
+		calendar1.clear(Calendar.ZONE_OFFSET);
+		airTraveler.setDateOfBirth(calendar1);
+
+		DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
+		dateOfExpiry = dateOfExpiry.withHourOfDay(0);
+		dateOfExpiry = dateOfExpiry.withMinuteOfHour(0);
+		dateOfExpiry = dateOfExpiry.withSecondOfMinute(0);
+		Calendar calendar = dateOfExpiry.toGregorianCalendar();
+		calendar.clear(Calendar.ZONE_OFFSET);
+		passport.setExpiryDate(calendar);
+
+
 		airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
-				.getPassengerTypeFromDOB(dob)));
+				.getPassengerTypeFromDOB(dob.toDate())));
 	}
 
 

@@ -12,6 +12,8 @@ import org.apache.axis2.client.Options;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRQ;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Santhosh
@@ -19,6 +21,9 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
 public class SessionsHandler {
 
 	private OnePointStub onePointStub = null;
+
+	static Logger logger = LoggerFactory.getLogger("gds");
+
 
 	public SessionsHandler() {
 		try {
@@ -50,6 +55,7 @@ public class SessionsHandler {
 					.getCreateSessionResponse().getCreateSessionResult();
 		} catch (RemoteException e) {
 			e.printStackTrace();
+			logger.error("Error in Mystifly SessionsHandler",e);
 		}
 		return sessionRS;
 	}
