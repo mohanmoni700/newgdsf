@@ -10,6 +10,7 @@ import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.*;
+import models.NationalityDao;
 import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -703,10 +704,17 @@ public class PNRAddMultiElementsh {
         DateTime dob = new DateTime(passportDetails.getDateOfBirth()).withZone(dateTimeZone);
         DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
 
-        String freeText = "P-IND-" +passportDetails.getPassportNumber()+"-IND-"+ fmt.print(dob)
-                +"-"+ StringUtility.getGenderCode(traveller.getPersonalDetails().getGender())+"-"+fmt.print(dateOfExpiry)+"-"+
-                traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName();
-        //String freeText = "P-IND-H12232323-IND-30JUN73-M-14APR09-JOHNSON-SIMON";
+        String issuanceCountryCode = NationalityDao.getCodeForCountry(traveller.getPassportDetails().getPlaceOfIssue());
+        String freeText = "P-"+ issuanceCountryCode + "-" +
+                passportDetails.getPassportNumber() + "-" + traveller.getPassportDetails().getNationality().getThreeLetterCode()
+                + "-" + fmt.print(dob)
+                + "-" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "-" + fmt.print(dateOfExpiry)+"-";
+        String name = traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName();
+
+        if(freeText.length() + name.length() > 70){
+            name = traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName().charAt(0);
+        }
+        freeText = freeText + name;
         freeTextList.add(freeText);
 
         serviceRequest.setSsr(ssr);
