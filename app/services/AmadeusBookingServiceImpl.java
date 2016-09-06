@@ -188,6 +188,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
         if(airlinePnr == null){
             Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
             if (p.getSeconds() >= 12) {
+				pnrResponse.setAirlinePNRError(true);
+				for (PNRReply.PnrHeader pnrHeader : pnrReply.getPnrHeader()) {
+					pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
+							.getReservation().getControlNumber());
+				}
                 throw new BaseCompassitesException("Simultaneous changes Error");
             }else {
                 Thread.sleep(3000);
@@ -240,7 +245,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
 				for(String status : itineraryInfo.getRelatedProduct().getStatus()){
 					if(!AmadeusConstants.SEGMENT_HOLDING_CONFIRMED.equalsIgnoreCase(status)){
-						throw new BaseCompassitesException("Status of the segment is not confirmed");
+						throw new BaseCompassitesException("No seats available please try again later.s");
 					}
 
 				}
@@ -688,7 +693,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             pnrResponse.setPricingInfo(pricingInfo);
 
             List<ItineraryInfo> itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
-            if(itineraryInfos != null && itineraryInfos.size() > 0) {
+            if(itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getItineraryReservationInfo() != null) {
                 String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
                 pnrResponse.setAirlinePNR(airlinePnr);
             }

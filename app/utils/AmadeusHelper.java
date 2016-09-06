@@ -2,6 +2,7 @@ package utils;
 
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails;
+import com.amadeus.xml.pnracc_11_3_1a.ReservationControlInformationTypeI115879S;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
 import models.Airport;
@@ -33,10 +34,14 @@ public class AmadeusHelper {
         for(OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()){
 
             for(OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo() ){
-                String airlinePNR = itineraryInfo.getItineraryReservationInfo().getReservation().getControlNumber();
-                String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + segmentSequence;
-                airlinePNRMap.put(segments.toLowerCase(), airlinePNR);
-                segmentSequence++;
+                ReservationControlInformationTypeI115879S itineraryReservationInfo = itineraryInfo.getItineraryReservationInfo();
+                if(itineraryReservationInfo != null && itineraryReservationInfo.getReservation() != null){
+                    String airlinePNR = itineraryInfo.getItineraryReservationInfo().getReservation().getControlNumber();
+                    String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + segmentSequence;
+                    airlinePNRMap.put(segments.toLowerCase(), airlinePNR);
+                    segmentSequence++;
+                }
+
             }
         }
         return airlinePNRMap;

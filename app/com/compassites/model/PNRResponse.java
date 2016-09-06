@@ -37,6 +37,8 @@ public class PNRResponse {
 
     private String sessionIdRef;
 
+    private boolean airlinePNRError;
+
     private Map<String, String> airlinePNRMap;
 
     private Map<String, FlightInfo> flightInfoMap;
@@ -177,6 +179,14 @@ public class PNRResponse {
 
     public void setSegmentBaggageMap(Map<String, String> segmentBaggageMap) {
         this.segmentBaggageMap = segmentBaggageMap;
+    }
+
+    public boolean isAirlinePNRError() {
+        return airlinePNRError;
+    }
+
+    public void setAirlinePNRError(boolean airlinePNRError) {
+        this.airlinePNRError = airlinePNRError;
     }
 }
 
