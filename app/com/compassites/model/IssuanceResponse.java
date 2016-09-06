@@ -4,6 +4,7 @@ import com.compassites.model.traveller.Traveller;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,6 +34,10 @@ public class IssuanceResponse implements Serializable{
 
     private String sessionIdRef;
 
+    private String airlinePnr;
+
+    private Date validTillDate;
+
     private boolean priceChanged;
 
     private String errorCode;
@@ -53,6 +58,13 @@ public class IssuanceResponse implements Serializable{
         this.isCappingLimitReached = isCappingLimitReached;
     }
 
+    public Date getValidTillDate() {
+        return validTillDate;
+    }
+
+    public void setValidTillDate(Date validTillDate) {
+        this.validTillDate = validTillDate;
+    }
     public BigDecimal getCancellationFee() {
         return cancellationFee;
     }
@@ -91,6 +103,14 @@ public class IssuanceResponse implements Serializable{
 
     public void setPnrNumber(String pnrNumber) {
         this.pnrNumber = pnrNumber;
+    }
+
+    public String getAirlinePnr() {
+        return airlinePnr;
+    }
+
+    public void setAirlinePnr(String airlinePnr) {
+        this.airlinePnr = airlinePnr;
     }
 
     public boolean isSuccess() {

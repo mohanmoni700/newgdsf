@@ -30,6 +30,8 @@ public class IssuanceRequest implements Serializable{
 
     private String sessionIdRef;
 
+    private String jocPNR;
+
     public int getAdultCount() {
         return adultCount;
     }
@@ -108,5 +110,13 @@ public class IssuanceRequest implements Serializable{
 
     public void setSessionIdRef(String sessionIdRef) {
         this.sessionIdRef = sessionIdRef;
+    }
+
+    public String getJocPNR() {
+        return jocPNR;
+   }
+
+    public void setJocPNR(String jocPNR) {
+      this.jocPNR = jocPNR;
     }
 }

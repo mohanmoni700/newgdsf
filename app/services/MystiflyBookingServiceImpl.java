@@ -7,12 +7,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import com.compassites.constants.CacheConstants;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import utils.DateUtility;
@@ -21,7 +24,7 @@ import utils.HoldTimeUtility;
 
 import com.compassites.GDSWrapper.mystifly.AirOrderTicketClient;
 import com.compassites.GDSWrapper.mystifly.AirRevalidateClient;
-import com.compassites.GDSWrapper.mystifly.AirTripDetailsClient;
+import com.compassites.GDSWrapper.mystifly.*;
 import com.compassites.GDSWrapper.mystifly.BookFlightClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.ErrorMessage;
@@ -33,6 +36,7 @@ import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import utils.MystiflyHelper;
 import com.compassites.model.*;
+import play.libs.Json;
 
 /**
  * @author Santhosh
@@ -42,6 +46,9 @@ public class MystiflyBookingServiceImpl implements BookingService {
 
 	@Autowired
 	MystiflyFlightInfoServiceImpl mystiflyFlightInfoService;
+
+	@Autowired
+	private RedisTemplate redisTemplate;
 
 	static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
@@ -55,6 +62,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		AirRevalidateClient revalidateClient = new AirRevalidateClient();
 		PNRResponse pnrRS = new PNRResponse();
 		AirRevalidateRS revalidateRS;
+		//mystiflyLogger.debug("Issuance PNR "+issuanceRequest.getJocPNR());
 		try {
 			revalidateRS = revalidateClient.revalidate(fareSourceCode);
 			if (revalidateRS.getSuccess()) {
@@ -79,14 +87,14 @@ public class MystiflyBookingServiceImpl implements BookingService {
 									.getHoldTime(travellerMasterInfo);
 							calendar.setTime(holdDate);
 							pnrRS.setValidTillDate(calendar.getTime());
-                            pnrRS.setHoldTime(true);
+							pnrRS.setHoldTime(true);
 						} else {
 							pnrRS.setValidTillDate(airbookRS.getTktTimeLimit()
 									.getTime());
-                            pnrRS.setHoldTime(false);
+							pnrRS.setHoldTime(false);
 						}
 						setAirlinePNR(pnrRS);
-						readBaggageInfo(pnrRS, travellerMasterInfo);
+						//readBaggageInfo(pnrRS, travellerMasterInfo);
 					} else {
 						ErrorMessage error = new ErrorMessage();
 						Error[] errors = airbookRS.getErrors().getErrorArray();
@@ -117,22 +125,32 @@ public class MystiflyBookingServiceImpl implements BookingService {
 	}
 
 	public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
+		mystiflyLogger.debug(" issuanceRequest "+issuanceRequest);
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
-		PricingInformation pricingInfo = issuanceRequest.getFlightItinerary()
-				.getPricingInformation();
+		PricingInformation pricingInfo = issuanceRequest.getFlightItinerary().getPricingInformation();
 		try {
 			if (pricingInfo.isLCC()) {
+				PNRResponse pnrRS = new PNRResponse();
 				TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
 				travellerMasterInfo.setItinerary(issuanceRequest.getFlightItinerary());
 				travellerMasterInfo.setTravellersList(issuanceRequest.getTravellerList());
-				generatePNR(travellerMasterInfo);
+				pnrRS = generatePNR(travellerMasterInfo);
+				if(pnrRS.isFlightAvailable() && !pnrRS.isPriceChanged()) {
+					issuanceResponse.setSuccess(true);
+					issuanceResponse.setPnrNumber(pnrRS.getPnrNumber());
+					issuanceResponse.setAirlinePnr(pnrRS.getAirlinePNR());
+					issuanceRequest.setGdsPNR(pnrRS.getPnrNumber());
+					issuanceResponse.setValidTillDate(pnrRS.getValidTillDate());
+				}
 			} else {
 				AirOrderTicketClient orderTicketClient = new AirOrderTicketClient();
 				AirOrderTicketRS orderTicketRS = orderTicketClient
 						.issueTicket(issuanceRequest.getGdsPNR());
 				issuanceResponse.setPnrNumber(orderTicketRS.getUniqueID());
 			}
+
 			List<Traveller> travellerList = issuanceRequest.getTravellerList();
+			//mystiflyLogger.debug("travellerList  "+Json.toJson(travellerList));
 			setTravellerTickets(travellerList, issuanceRequest.getGdsPNR());
 			issuanceResponse.setTravellerList(travellerList);
 		} catch (RemoteException e) {
@@ -141,6 +159,8 @@ public class MystiflyBookingServiceImpl implements BookingService {
 			logger.error("Error in Mystifly issueTicket : ", e);
 
 		}
+		redisTemplate.opsForValue().set(issuanceRequest.getJocPNR()+":booking_status", Json.stringify(Json.toJson(issuanceResponse)));
+		redisTemplate.expire(issuanceRequest.getJocPNR()+":booking_status", CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
 		return issuanceResponse;
 	}
 
@@ -148,7 +168,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
 		AirTripDetailsRS tripDetailsRS = tripDetailsClient
 				.getAirTripDetails(pnrResponse.getPnrNumber());
-
+		mystiflyLogger.debug("Traveller Tickets "+tripDetailsRS);
 		TravelItinerary itinerary = tripDetailsRS.getTravelItinerary();
 		String airlinePNR = itinerary.getItineraryInfo().getReservationItems()
 				.getReservationItemArray(0).getAirlinePNR();
@@ -164,7 +184,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 			airlinePNRMap.put(segments.toLowerCase(), airlinePNR);
 			segmentSequence++;
 		}
-		 pnrResponse.setAirlinePNRMap(airlinePNRMap);
+		pnrResponse.setAirlinePNRMap(airlinePNRMap);
 	}
 
 	private void setTravellerTickets(List<Traveller> travellerList, String pnr)
@@ -172,7 +192,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
 		AirTripDetailsRS tripDetailsRS = tripDetailsClient
 				.getAirTripDetails(pnr);
-
+		mystiflyLogger.debug("Traveller Tickets "+tripDetailsRS);
 		ItineraryInfo itinerary = tripDetailsRS.getTravelItinerary()
 				.getItineraryInfo();
 		for (CustomerInfo customerInfo : itinerary.getCustomerInfos()
@@ -235,7 +255,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 							.getPricingInformation(travellerMasterInfo.isSeamen()));
 				} else if (revalidateRS.getPricedItineraries() == null
 						|| revalidateRS.getPricedItineraries()
-								.getPricedItineraryArray() == null
+						.getPricedItineraryArray() == null
 						|| revalidateRS.getPricedItineraries()
 						.getPricedItineraryArray().length == 0) {
 					pnrRS.setPriceChanged(false);

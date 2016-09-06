@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.rmi.RemoteException;
 import java.util.Date;
+import utils.XMLFileUtility;
 
 /**
  * @author Santhosh
@@ -35,22 +36,20 @@ public class AirRevalidateClient {
 		SessionCreateRS sessionRS = sessionsHandler.login();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
-		AirRevalidateDocument airRevalidateDoc = AirRevalidateDocument.Factory
-				.newInstance();
-		AirRevalidateRQ airRevalidateRQ = airRevalidateDoc
-				.addNewAirRevalidate().addNewRq();
+		AirRevalidateDocument airRevalidateDoc = AirRevalidateDocument.Factory.newInstance();
+		AirRevalidateRQ airRevalidateRQ = airRevalidateDoc.addNewAirRevalidate().addNewRq();
 		airRevalidateRQ.setTarget(Mystifly.TARGET);
 		airRevalidateRQ.setFareSourceCode(fareSourceCode);
 		airRevalidateRQ.setSessionId(sessionRS.getSessionId());
 
-//		XMLFileUtility.createFile(airRevalidateRQ.xmlText(), "AirRevalidateRQ.xml");
+		XMLFileUtility.createFile(airRevalidateRQ.xmlText(), "AirRevalidateRQ.xml");
         mystiflyLogger.debug("AirRevalidateRQ "+ new Date() +" ----->>" + airRevalidateRQ.xmlText());
 		AirRevalidateResponseDocument airRevalidateRSDoc = onePointStub
 				.airRevalidate(airRevalidateDoc);
 		AirRevalidateResponse airRevalidateResponse = airRevalidateRSDoc
 				.getAirRevalidateResponse();
 
-//		XMLFileUtility.createFile(airRevalidateResponse.getAirRevalidateResult().xmlText(), "AirRevalidateRS.xml");
+		XMLFileUtility.createFile(airRevalidateResponse.getAirRevalidateResult().xmlText(), "AirRevalidateRS.xml");
         mystiflyLogger.debug("AirRevalidateRS "+ new Date() +" ----->>" + airRevalidateResponse.getAirRevalidateResult().xmlText());
 		return airRevalidateResponse.getAirRevalidateResult();
 	}
