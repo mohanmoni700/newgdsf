@@ -86,6 +86,7 @@ public class TravelportBookingHelper {
                 segmentPricing.setSegmentKeysList(segmentKeys);
                 segmentPricing.setTotalPrice(total.multiply(new BigDecimal(paxCount)));
                 segmentPricing.setBasePrice(base.multiply(new BigDecimal(paxCount)));
+                segmentPricing.setTax(total.subtract(base).multiply(new BigDecimal(paxCount)));
                 segmentPricing.setPassengerType(paxType);
                 segmentPricing.setPassengerTax(passengerTax);
                 segmentPricing.setPassengerCount(new Long(paxCount));

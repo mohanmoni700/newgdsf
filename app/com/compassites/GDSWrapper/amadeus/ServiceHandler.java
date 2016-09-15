@@ -42,6 +42,7 @@ import com.thoughtworks.xstream.XStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import utils.XMLFileUtility;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
@@ -211,6 +212,8 @@ public class ServiceHandler {
         PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);
         amadeusLogger.debug("pnrRetrieveReq " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrRetrieve));
         PNRReply pnrReply = mPortType.pnrRetrieve(pnrRetrieve, mSession.getSession());
+        XMLFileUtility.createXMLFile(pnrReply, "pnrRetrieveRes.xml");
+
         amadeusLogger.debug("pnrRetrieveRes " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
         return pnrReply;
     }

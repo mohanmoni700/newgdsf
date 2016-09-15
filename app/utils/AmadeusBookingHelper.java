@@ -732,6 +732,7 @@ public class AmadeusBookingHelper {
             segmentPricing.setSegmentKeysList(segmentKeys);
             segmentPricing.setTotalPrice(totalFarePerPaxType);
             segmentPricing.setBasePrice(baseFareOfPerPaxType);
+            segmentPricing.setTax(totalFarePerPaxType.subtract(baseFareOfPerPaxType));
             segmentPricing.setPassengerType(paxType);
             segmentPricing.setPassengerTax(passengerTax);
             segmentPricing.setPassengerCount(new Long(paxCount));
