@@ -10,9 +10,11 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.pnracc_11_3_1a.TravellerDetailsTypeI;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
+import com.amadeus.xml.tpcbrq_12_4_1a.*;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.StructuredDateTimeType;
+import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
 import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
@@ -38,6 +40,7 @@ import play.libs.Json;
 import utils.*;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -531,47 +534,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return masterInfo;
 	}
 	
-	public LowFareResponse getLowestFare(String pnr, boolean isSeamen) {
-		LowFareResponse lowestFare = new LowFareResponse();
-		ServiceHandler serviceHandler = null;
-		try {
-			serviceHandler = new ServiceHandler();
-			serviceHandler.logIn();
-			serviceHandler.retrivePNR(pnr);
-			FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare(isSeamen);
-			com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList fareList = farePricePNRWithLowestFareReply.getFareList().get(0);
-			MonetaryInformationType157202S monetaryinfo = fareList.getFareDataInformation();
-			BigDecimal totalFare = null;
-			for(MonetaryInformationDetailsType223844C monetaryDetails : monetaryinfo.getFareDataSupInformation()) {
-				if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(monetaryDetails.getFareDataQualifier())) {
-					totalFare = new BigDecimal(monetaryDetails.getFareAmount());
-					break;
-				}
-			}
-			for(com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList.SegmentInformation segmentInfo : fareList.getSegmentInformation()) {
-				BaggageDetailsTypeI bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
-				if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
-					if(lowestFare.getMaxBaggageWeight() == 0 || lowestFare.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
-						lowestFare.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
-					}
-				} else {
-					if(lowestFare.getBaggageCount() == 0 || lowestFare.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
-						lowestFare.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
-					}
-				}
-			}
-			lowestFare.setGdsPnr(pnr);
-			lowestFare.setAmount(totalFare);
 
-			serviceHandler.logOut();
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error("Error in getLowestFare", e);
-		}
-		return lowestFare;
-	}
 
-    public static int getNumberOfTST(List<Traveller> travellerList){
+
+	public static int getNumberOfTST(List<Traveller> travellerList){
 
         int adultCount = 0, childCount = 0, infantCount = 0;
         int totalCount = 0;

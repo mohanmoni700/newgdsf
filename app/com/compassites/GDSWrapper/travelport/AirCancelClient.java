@@ -43,6 +43,7 @@ public class AirCancelClient extends TravelPortClient{
                 //url = new java.net.URL(baseUrl, "Air.wsdl");
                 airService = new AirService(url);
 			} catch (MalformedURLException e) {
+                logger.error("Error in Travelport AirCancelClient ", e);
 				e.printStackTrace();
 			}
 		}
@@ -84,7 +85,6 @@ public class AirCancelClient extends TravelPortClient{
         } catch (AirFaultMessage airFaultMessage) {
             logger.error("error in AirCancelClient cancelPNR", airFaultMessage);
             airFaultMessage.printStackTrace();
-            XMLFileUtility.createXMLFile(airFaultMessage, "AirReserveResponseException.xml");
             travelportLogger.debug("AirReserveResponseException " + new Date() +" ------>> "+ new XStream().toXML(airFaultMessage));
             BaseCompassitesException baseCompassitesException =  new BaseCompassitesException(airFaultMessage.getMessage());
             baseCompassitesException.setErrorCode(airFaultMessage.getFaultInfo().getCode());

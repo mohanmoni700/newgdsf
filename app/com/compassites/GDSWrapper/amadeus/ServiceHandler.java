@@ -171,7 +171,9 @@ public class ServiceHandler {
     }
 
     //pricing transaction
-    public FarePricePNRWithBookingClassReply pricePNR(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary, List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing) {
+    public FarePricePNRWithBookingClassReply pricePNR(String carrrierCode, PNRReply pnrReply, boolean isSeamen,
+                                                      boolean isDomesticFlight, FlightItinerary flightItinerary,
+                                                      List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing) {
         mSession.incrementSequenceNumber();
         logger.debug("amadeus pricePNR called at " + new Date() + "....................Session Id: " + mSession.getSessionId());
         FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing);
@@ -242,6 +244,7 @@ public class ServiceHandler {
         return pnrReply;
 
     }
+
     public PNRReply addSSRDetailsToPNR(TravellerMasterInfo travellerMasterInfo, List<String> segmentNumbers, Map<String,String> travellerMap){
         mSession.incrementSequenceNumber();
         logger.debug("amadeus addSSRDetailsToPNR called   at " + new Date() + "....................Session Id: " + mSession.getSessionId());
@@ -308,15 +311,21 @@ public class ServiceHandler {
 
 
 
-    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
+//    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
+        public FarePricePNRWithLowestFareReply getLowestFare(String carrrierCode, PNRReply pnrReply, boolean isSeamen,
+                                                        boolean isDomesticFlight, FlightItinerary flightItinerary,
+                                                        List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing)
+        {
     	mSession.incrementSequenceNumber();
         logger.debug("amadeus getLowestFare called at " + new Date() + "....................Session Id: " + mSession.getSessionId());
     	FarePricePNRWithLowestFare farePricePNRWithLowestFare = null;
-    	if(isSeamen) {
+    	/*if(isSeamen) {
     		farePricePNRWithLowestFare = new PricePNRLowestFare().getPricePNRWithLowestSeamenFare();
     	} else {
     		farePricePNRWithLowestFare = new PricePNRLowestFare().getPricePNRWithLowestNonSeamenFare();
-    	}
+    	}*/
+            farePricePNRWithLowestFare = new LowestPricePNR().getPNRPricingOption(carrrierCode,pnrReply, isSeamen,
+                    isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing);
         amadeusLogger.debug("FarePricePNRWithLowestFareReq " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(farePricePNRWithLowestFare));
     	FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, mSession.getSession());
         amadeusLogger.debug("FarePricePNRWithLowestFareReplyRes " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(farePricePNRWithLowestFareReply));

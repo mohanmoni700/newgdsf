@@ -15,6 +15,8 @@ public class LowFareResponse {
 	
 	private int baggageCount;
 
+	private String bookingClass;
+
 	public String getGdsPnr() {
 		return gdsPnr;
 	}
@@ -47,4 +49,11 @@ public class LowFareResponse {
 		this.baggageCount = baggageCount;
 	}
 
+	public String getBookingClass() {
+		return bookingClass;
+	}
+
+	public void setBookingClass(String bookingClass) {
+		this.bookingClass = bookingClass;
+	}
 }

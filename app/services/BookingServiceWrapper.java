@@ -3,18 +3,15 @@ package services;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import play.libs.Json;
 import utils.PNRRequest;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by user on 07-08-2014.
@@ -37,13 +34,25 @@ public class BookingServiceWrapper {
 	@Autowired
 	private TravelportIssuanceServiceImpl travelportIssuanceService;
 
+	private LowestFareService amadeusLowestFareService;
+
 	public AmadeusBookingServiceImpl getAmadeusBookingService() {
 		return amadeusBookingService;
 	}
 
+
 	public void setAmadeusBookingService(
 			AmadeusBookingServiceImpl amadeusBookingService) {
 		this.amadeusBookingService = amadeusBookingService;
+	}
+
+	public LowestFareService getAmadeusLowestFareService() {
+		return amadeusLowestFareService;
+	}
+
+    @Autowired
+	public void setAmadeusLowestFareService(LowestFareService amadeusLowestFareService) {
+		this.amadeusLowestFareService = amadeusLowestFareService;
 	}
 
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
@@ -139,13 +148,13 @@ public class BookingServiceWrapper {
 		return json;
 	}
 	
-	public LowFareResponse getLowestFare(String pnr, String provider, boolean isSeamen) {
+	public LowFareResponse getLowestFare(IssuanceRequest issuanceRequest) {
 		LowFareResponse lowFareRS = null;
-		if("Amadeus".equalsIgnoreCase(provider)) {
-			lowFareRS = amadeusBookingService.getLowestFare(pnr, isSeamen);
-    	} else if("Travelport".equalsIgnoreCase(provider)) {
-            lowFareRS = travelPortBookingService.getLowestFare(pnr, provider, isSeamen);
-    	} else if(Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
+		if("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
+			lowFareRS = amadeusLowestFareService.getLowestFare(issuanceRequest);
+    	} else if("Travelport".equalsIgnoreCase(issuanceRequest.getProvider())) {
+            lowFareRS = travelPortBookingService.getLowestFare(issuanceRequest.getGdsPNR(), issuanceRequest.getProvider(), issuanceRequest.isSeamen());
+    	} else if(Mystifly.PROVIDER.equalsIgnoreCase(issuanceRequest.getProvider())) {
     		// Not implemented.
     	}
 		return lowFareRS;

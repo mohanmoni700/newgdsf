@@ -42,6 +42,9 @@ public class Application {
     @Autowired
     private QueueListServiceWrapper queueListServiceWrapper;
 
+    @Autowired
+    AmadeusBookingServiceImpl amadeusBookingService;
+
     static Logger logger = LoggerFactory.getLogger("gds");
 
     public Result flightSearch(){
@@ -170,8 +173,8 @@ public class Application {
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         Boolean isSeamen = Json.fromJson(json.findPath("isSeamen"), Boolean.class);
-        
-    	LowFareResponse lowestFare = bookingService.getLowestFare(pnr, provider, isSeamen);
+        IssuanceRequest issuanceRequest = Json.fromJson(json.findPath("issuanceRequest"), IssuanceRequest.class);
+    	LowFareResponse lowestFare = bookingService.getLowestFare(issuanceRequest);
     	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
     }
@@ -206,7 +209,7 @@ public class Application {
     public Result displayTST(String pnr,String provider){
         JsonNode jsonNode = null;
         if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
-            AmadeusBookingServiceImpl amadeusBookingService = new AmadeusBookingServiceImpl();
+//            AmadeusBookingServiceImpl amadeusBookingService = new AmadeusBookingServiceImpl();
 //        amadeusBookingService.getDisplayTicketDetails(pnr);
             jsonNode = amadeusBookingService.getBookingDetails(pnr);
 
@@ -214,8 +217,6 @@ public class Application {
             TravelportBookingServiceImpl travelportBookingService = new TravelportBookingServiceImpl();
             jsonNode =  travelportBookingService.getBookingDetails(pnr);
         }
-
-
 
         return ok(jsonNode);
 
