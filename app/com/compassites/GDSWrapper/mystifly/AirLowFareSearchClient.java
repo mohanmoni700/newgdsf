@@ -14,6 +14,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import utils.XMLFileUtility;
 
 import java.rmi.RemoteException;
 import java.util.Calendar;
@@ -41,6 +42,7 @@ public class AirLowFareSearchClient {
 		searchRQ.setTarget(Mystifly.TARGET);
 		searchRQ.setRequestOptions(RequestOptions.FIFTY);
 		searchRQ.setIsRefundable(searchParams.getRefundableFlights());
+		searchRQ.setPricingSourceType(PricingSourceType.ALL);
 
 		setJourneys(searchRQ, searchParams);
 		ArrayOfPassengerTypeQuantity passengers = searchRQ
@@ -52,7 +54,7 @@ public class AirLowFareSearchClient {
 		// TODO: search params to be added
 		// stopOver, currency, preferredFood
 
-//		XMLFileUtility.createFile(searchRQ.xmlText(), "MystiflySearchRQ.xml");
+		XMLFileUtility.createFile(searchRQ.xmlText(), "MystiflySearchRQ.xml");
         mystiflyLogger.debug("MystiflySearchRQ "+ new Date() +" ----->>" + searchRQ.xmlText());
 		AirLowFareSearchResponseDocument searchResDoc = onePointStub
 				.airLowFareSearch(searchRQDoc);
@@ -81,8 +83,12 @@ public class AirLowFareSearchClient {
 						.getDestination());
 				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 				DateTime dateTime = fmt.parseDateTime(searchJourney.getTravelDateStr());
-//				calendar.setTime(searchJourney.getTravelDate());
+				calendar.setTime(searchJourney.getTravelDate());
 				calendar.setTime(dateTime.toDate());
+				calendar.clear(Calendar.ZONE_OFFSET);
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
 				journey.setDepartureDateTime(calendar);
 			}
 		} else {
@@ -92,12 +98,20 @@ public class AirLowFareSearchClient {
 				DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 				DateTime dateTime = fmt.parseDateTime(searchJourney.getTravelDateStr());
 				calendar.setTime(dateTime.toDate());
+				calendar.clear(Calendar.ZONE_OFFSET);
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
 				firstLeg.setDepartureDateTime(calendar);
 				firstLeg.setOriginLocationCode(searchJourney.getOrigin());
 				firstLeg.setDestinationLocationCode(searchParams.getTransit());
 
 				OriginDestinationInformation secondLeg = originDestinationInformations
 						.addNewOriginDestinationInformation();
+				calendar.clear(Calendar.ZONE_OFFSET);
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
 				secondLeg.setDepartureDateTime(calendar);
 				secondLeg.setOriginLocationCode(searchParams.getTransit());
 				secondLeg.setDestinationLocationCode(searchJourney
