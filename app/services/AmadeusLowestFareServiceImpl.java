@@ -72,6 +72,7 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
                     for(String segmentKey : segmentKeysList){
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
+                    carrierCode = airSegment.get(0).getCarrierCode();
                     pricePNRReply = serviceHandler.getLowestFare(carrierCode, gdsPNRReply,
                             issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing);
                     List<FarePricePNRWithLowestFareReply.FareList> tempPricePNRReplyFareList = pricePNRReply.getFareList();

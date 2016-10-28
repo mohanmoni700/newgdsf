@@ -419,48 +419,51 @@ public class PNRAddMultiElementsh {
            	    de2.setFreetextData(ftd2);
            	    de2.setReferenceForDataElement(referenceForDataElement);
            	    dataElementsDivList.add(de2);
-           	     
            	     //emergency contact number
-                 DataElementsIndiv de3 = new DataElementsIndiv();
-                 ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
-                 elementManagementData3.setSegmentName("OS");
-                /* ReferencingDetailsType rf3 = new ReferencingDetailsType();
-                 rf3.setQualifier("OT");
-                 rf3.setNumber((++qualifierNumber) + "");
-                 elementManagementData3.setReference(rf3);*/
-                 de3.setElementManagementData(elementManagementData3);
-                 LongFreeTextType ftd3 = new LongFreeTextType();
-                 FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
-                 ftdt3.setSubjectQualifier("3");
-                 ftdt3.setType("3");
-                 ftd3.setFreetextDetail(ftdt3);
-                 String emergencyContactNo = personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber();
-                 emergencyContactNo = emergencyContactNo.replaceAll("\\+", "");
-                 ftd3.setLongFreetext("Emergency Contact Number " + emergencyContactNo);
-                 de3.setFreetextData(ftd3);
-                 de3.setReferenceForDataElement(referenceForDataElement);
+                 if(StringUtils.hasText(personalDetails.getEmergencyContactNumber())) {
+                     DataElementsIndiv de3 = new DataElementsIndiv();
+                     ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
+                     elementManagementData3.setSegmentName("OS");
+                    /* ReferencingDetailsType rf3 = new ReferencingDetailsType();
+                     rf3.setQualifier("OT");
+                     rf3.setNumber((++qualifierNumber) + "");
+                     elementManagementData3.setReference(rf3);*/
+                     de3.setElementManagementData(elementManagementData3);
+                     LongFreeTextType ftd3 = new LongFreeTextType();
+                     FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
+                     ftdt3.setSubjectQualifier("3");
+                     ftdt3.setType("3");
+                     ftd3.setFreetextDetail(ftdt3);
+                     String emergencyContactNo = personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber();
+                     emergencyContactNo = emergencyContactNo.replaceAll("\\+", "");
+                     ftd3.setLongFreetext("Emergency Contact Number " + emergencyContactNo);
+                     de3.setFreetextData(ftd3);
+                     de3.setReferenceForDataElement(referenceForDataElement);
 
-                 dataElementsDivList.add(de3);
+                     dataElementsDivList.add(de3);
+                 }
 
-                 DataElementsIndiv businessNoDiv = new DataElementsIndiv();
-                 ElementManagementSegmentType businessNoelementManagement = new ElementManagementSegmentType();
-                 businessNoelementManagement.setSegmentName("AP");
-                 ReferencingDetailsType rf4 = new ReferencingDetailsType();
-                 rf4.setQualifier("OT");
-                 rf4.setNumber((++qualifierNumber) + "");
-                 businessNoelementManagement.setReference(rf4);
-                 businessNoDiv.setElementManagementData(businessNoelementManagement);
-                 LongFreeTextType businessNoLongFreeText = new LongFreeTextType();
-                 FreeTextQualificationType freeTextQualificationType = new FreeTextQualificationType();
-                 freeTextQualificationType.setSubjectQualifier("3");
-                 freeTextQualificationType.setType("3");
-                 businessNoLongFreeText.setFreetextDetail(freeTextQualificationType);
-                 businessNoLongFreeText.setLongFreetext(personalDetails.getOfficeNoCode() + personalDetails.getOfficeNumber());
-                 businessNoDiv.setFreetextData(businessNoLongFreeText);
-                 businessNoDiv.setReferenceForDataElement(referenceForDataElement);
-                 dataElementsDivList.add(businessNoDiv);
+                 if(StringUtils.hasText(personalDetails.getOfficeNumber())) {
+                     DataElementsIndiv businessNoDiv = new DataElementsIndiv();
+                     ElementManagementSegmentType businessNoelementManagement = new ElementManagementSegmentType();
+                     businessNoelementManagement.setSegmentName("AP");
+                     ReferencingDetailsType rf4 = new ReferencingDetailsType();
+                     rf4.setQualifier("OT");
+                     rf4.setNumber((++qualifierNumber) + "");
+                     businessNoelementManagement.setReference(rf4);
+                     businessNoDiv.setElementManagementData(businessNoelementManagement);
+                     LongFreeTextType businessNoLongFreeText = new LongFreeTextType();
+                     FreeTextQualificationType freeTextQualificationType = new FreeTextQualificationType();
+                     freeTextQualificationType.setSubjectQualifier("3");
+                     freeTextQualificationType.setType("3");
+                     businessNoLongFreeText.setFreetextDetail(freeTextQualificationType);
+                     businessNoLongFreeText.setLongFreetext(personalDetails.getOfficeNoCode() + personalDetails.getOfficeNumber());
+                     businessNoDiv.setFreetextData(businessNoLongFreeText);
+                     businessNoDiv.setReferenceForDataElement(referenceForDataElement);
+                     dataElementsDivList.add(businessNoDiv);
+                 }
 
-    			}
+             }
        			        
        	}
 		} catch (Exception e) {
