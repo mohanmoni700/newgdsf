@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import utils.AmadeusBookingHelper;
 import utils.AmadeusHelper;
 import utils.LowestFareHelper;
+import utils.XMLFileUtility;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.*;
 import static com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList.SegmentInformation;
 
 /**
@@ -47,9 +49,10 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
 
             List<AirSegmentInformation> airSegmentList = new ArrayList<>();
             for(Journey journey : issuanceRequest.getFlightItinerary().getJourneys(isSeamen)){
-                for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
+                airSegmentList.addAll(journey.getAirSegmentList());
+                /*for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
                     airSegmentList.add(airSegmentInformation);
-                }
+                }*/
             }
 
             List<FarePricePNRWithLowestFareReply.FareList> pricePNRReplyFareList = new ArrayList<>();
@@ -98,32 +101,16 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
 
             }
 
-
-
+            XMLFileUtility.createXMLFile(pricePNRReplyFareList, "lowestFareList.xml");
+            Map<String,TSTLowestFare> tstLowestFareMap = new HashMap<>();
 			PricingInformation pricingInformation = LowestFareHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
-					issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
+					issuanceRequest.getChildCount(), issuanceRequest.getInfantCount(), gdsPNRReply, tstLowestFareMap);
 
-            BigDecimal bookedPrice = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getTotalPriceValue();
             BigDecimal newPrice = pricingInformation.getTotalPriceValue();
 
-            /************************************************************/
-
-            /*FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = serviceHandler.getLowestFare(carrierCode,gdsPNRReply, isSeamen,
-                    isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing);
-
-            com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList fareList = farePricePNRWithLowestFareReply.getFareList().get(0);
-            MonetaryInformationType157202S monetaryinfo = fareList.getFareDataInformation();
-            BigDecimal totalFare = null;
-            for(MonetaryInformationDetailsType223844C monetaryDetails : monetaryinfo.getFareDataSupInformation()) {
-                if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(monetaryDetails.getFareDataQualifier())) {
-                    totalFare = new BigDecimal(monetaryDetails.getFareAmount());
-                    break;
-                }
-            }
-*/
             String bookingClassStr = "";
 
-            for(FarePricePNRWithLowestFareReply.FareList fareList : pricePNRReplyFareList){
+            /*for(FareList fareList : pricePNRReplyFareList){
                 for(SegmentInformation segmentInfo : fareList.getSegmentInformation()) {
                     BaggageDetailsTypeI bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
                     if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
@@ -146,9 +133,8 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
 
             }
 
-
-
-            lowestFare.setBookingClass(bookingClassStr);
+            lowestFare.setBookingClass(bookingClassStr);*/
+            lowestFare.setTstLowestFareMap(tstLowestFareMap);
             lowestFare.setGdsPnr(issuanceRequest.getGdsPNR());
             lowestFare.setAmount(newPrice);
 
@@ -158,5 +144,9 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
             logger.error("Error in getLowestFare", e);
         }
         return lowestFare;
+    }
+
+    private void getTSTFare(FareList fare){
+
     }
 }

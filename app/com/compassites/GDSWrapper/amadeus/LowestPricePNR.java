@@ -88,7 +88,7 @@ public class LowestPricePNR {
 
         carrierInformation.setCarrierCode(carrierCode);
         validatingCarrier.setCarrierInformation(carrierInformation);
-        pricepnr.setValidatingCarrier(validatingCarrier);
+//        pricepnr.setValidatingCarrier(validatingCarrier);
 
         if(isDomesticFlight){
             List<FareJourney> fareJourneys = flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList().get(0).getFareJourneyList();
@@ -133,12 +133,12 @@ public class LowestPricePNR {
         codedAttributeInformationType.setAttributeType("RU");
         attributeList.add(codedAttributeInformationType);
 
-        codedAttributeInformationType = new CodedAttributeInformationType();
+        /*codedAttributeInformationType = new CodedAttributeInformationType();
         if (isDomestic) {
             codedAttributeInformationType.setAttributeType("FBA");
         }else {
             codedAttributeInformationType.setAttributeType("RLO");
-        }
+        }*/
         attributeList.add(codedAttributeInformationType);
 
 

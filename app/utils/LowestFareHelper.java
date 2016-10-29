@@ -1,12 +1,16 @@
 package utils;
 
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList.TaxInformation;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
+import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.PassengerTax;
 import com.compassites.model.PricingInformation;
+import com.compassites.model.TSTLowestFare;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,7 +29,7 @@ public class LowestFareHelper {
     public static PricingInformation getPricingInfo(
             List<FareList> pricePNRReplyFareList,
             int adultCount, int childCount,
-            int infantCount) {
+            int infantCount, PNRReply gdsPNRReply, Map<String,TSTLowestFare> tstLowestFareMap) {
         BigDecimal totalFare = new BigDecimal(0);
         BigDecimal totalBaseFare = new BigDecimal(0);
         BigDecimal adtBaseFare = new BigDecimal(0);
@@ -33,10 +37,21 @@ public class LowestFareHelper {
         BigDecimal infBaseFare = new BigDecimal(0);
         String currency = null;
 
+
+        Map<String,Object> airSegmentRefMap = new HashMap<>();
+
+        for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
+            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
+                String segmentRef = "S"+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                airSegmentRefMap.put(segmentRef,segments);
+            }
+        }
 //        List<FareList> fareList = pricePNRReplyFareList;
         PricingInformation pricingInformation = new PricingInformation();
         for(FareList fare : pricePNRReplyFareList) {
             int paxCount = 0;
+            BigDecimal paxTotalFare = BigDecimal.ZERO;
             String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
             if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
                 paxCount = childCount;
@@ -45,7 +60,7 @@ public class LowestFareHelper {
             } else if("adt".equalsIgnoreCase(paxType)){
                 paxCount = adultCount;
             }else {
-                paxCount = adultCount + childCount + infantCount;
+                paxCount = adultCount + childCount + infantCount; //for seamen fare
             }
 //            currency = fare.getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
             boolean equivalentFareAvailable = false;
@@ -53,6 +68,7 @@ public class LowestFareHelper {
             for(MonetaryInformationDetailsType223844C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
                 if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
+                    paxTotalFare = amount;
                     totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
                 }
                 if("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
@@ -68,12 +84,27 @@ public class LowestFareHelper {
             }
 
             totalBaseFare = totalBaseFare.add(baseFare.multiply(new BigDecimal(paxCount)));
+            String passengerType = "";
             if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
                 chdBaseFare = baseFare;
+                passengerType = "CHD";
             } else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
                 infBaseFare = baseFare;
+                passengerType = "INF";
             } else {
                 adtBaseFare = baseFare;
+                passengerType = "ADT";
+            }
+
+            TSTLowestFare  tstLowestFare = getTSTFare(fare, paxTotalFare, paxType);
+            for(FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
+                if(segmentInfo.getSegmentReference() != null && segmentInfo.getSegmentReference().getRefDetails() != null){
+                    com.amadeus.xml.tplprr_12_4_1a.ReferencingDetailsTypeI referencingDetailsTypeI = segmentInfo.getSegmentReference().getRefDetails().get(0);
+                    String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
+
+                    String tstKey = airSegmentRefMap.get(key).toString() +passengerType;
+                    tstLowestFareMap.put(tstKey.toLowerCase(), tstLowestFare);
+                }
             }
         }
         pricingInformation.setGdsCurrency(currency);
@@ -92,6 +123,30 @@ public class LowestFareHelper {
         pricingInformation.setProvider("Amadeus");
         pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReplyFareList, passengerTypeMap));
         return pricingInformation;
+    }
+
+    private static TSTLowestFare getTSTFare(FareList fare, BigDecimal paxTotalFare, String paxType){
+        TSTLowestFare tstLowestFare = new TSTLowestFare();
+        for(FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
+            BaggageDetailsTypeI bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
+            if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
+                if(tstLowestFare.getMaxBaggageWeight() == 0 || tstLowestFare.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
+                    tstLowestFare.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+                }
+            } else {
+                if(tstLowestFare.getBaggageCount() == 0 || tstLowestFare.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
+                    tstLowestFare.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
+                }
+            }
+            //reading booking class(RBD)
+            String bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
+            tstLowestFare.setBookingClass(bookingClass);
+        }
+
+        tstLowestFare.setAmount(paxTotalFare);
+        tstLowestFare.setPassengerType(paxType);
+
+        return tstLowestFare;
     }
 
     public static List<PassengerTax> getTaxBreakup(List<FareList> pricePNRReplyFareList, Map<String, Integer> passengerTypeMap){
