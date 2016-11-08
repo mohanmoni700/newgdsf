@@ -6,10 +6,12 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType111975C;
+import com.amadeus.xml.tpcbrr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
 import com.amadeus.xml.tpcbrr_12_4_1a.MonetaryInformationDetailsType223826C;
+import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.ttstrr_13_1_1a.MonetaryInformationDetailsTypeI211824C;
 import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
@@ -405,6 +407,7 @@ public class AmadeusBookingHelper {
         BigDecimal baseFare = new BigDecimal(0);
         List<FareList> fareList = pricePNRReply.getFareList();
         PricingInformation pricingInformation = new PricingInformation();
+
         for(FareList fare : fareList) {
             int paxCount = 0;
             String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
@@ -632,6 +635,8 @@ public class AmadeusBookingHelper {
         List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
         PricingInformation pricingInformation = new PricingInformation();
 
+        Map<String, TSTPrice> tstPriceMap = new HashMap<>();
+
         Map<String,Object> airSegmentRefMap = new HashMap<>();
         Map<String,Object> travellerMap = new HashMap<>();
         Map<String, String> passengerType = new HashMap<>();
@@ -750,6 +755,7 @@ public class AmadeusBookingHelper {
             totalPriceOfBooking = totalPriceOfBooking.add(totalFarePerPaxType);
             basePriceOfBooking = basePriceOfBooking.add(baseFareOfPerPaxType);
 
+            TSTPrice tstPrice = getTSTPrice(fare, paxTotalFare, baseFare,paxType, passengerTax);
             for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
                 for (String key : segmentMap.keySet()) {
                     for(Object airSegVal : airSegmentRefMap.values()) {
@@ -759,6 +765,14 @@ public class AmadeusBookingHelper {
                             segmentMap.get(key).setFareBasis(farebasis);
                         }
                     }
+                }
+
+                if(segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null){
+                    ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
+                    String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
+
+                    String tstKey = airSegmentRefMap.get(key).toString() + paxType;
+                    tstPriceMap.put(tstKey.toLowerCase(), tstPrice);
                 }
             }
 
@@ -781,9 +795,35 @@ public class AmadeusBookingHelper {
         pricingInformation.setTax(totalPriceOfBooking.subtract(basePriceOfBooking));
         pricingInformation.setProvider(PROVIDERS.AMADEUS.toString());
         pricingInformation.setPassengerTaxes(passengerTaxList);
+
+        pricingInformation.setTstPriceMap(tstPriceMap);
         return pricingInformation;
     }
 
+    public static TSTPrice getTSTPrice(TicketDisplayTSTReply.FareList fare, BigDecimal paxTotalFare, BigDecimal paxBaseFare, String paxType, PassengerTax passengerTax){
+        TSTPrice tstPrice = new TSTPrice();
+        for(TicketDisplayTSTReply.FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
+            com.amadeus.xml.ttstrr_13_1_1a.BaggageDetailsTypeI bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
+            if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
+                if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
+                    tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+                }
+            } else {
+                if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
+                    tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
+                }
+            }
+            //reading booking class(RBD)
+            String bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
+            tstPrice.setBookingClass(bookingClass);
+        }
+
+        tstPrice.setTotalPrice(paxTotalFare);
+        tstPrice.setBasePrice(paxBaseFare);
+        tstPrice.setPassengerType(paxType);
+        tstPrice.setPassengerTax(passengerTax);
+        return tstPrice;
+    }
 
     public static PassengerTax getTaxDetailsFromTST(List<TicketDisplayTSTReply.FareList.TaxInformation> taxInformationList, String passengerType, int count){
         PassengerTax passengerTax = new PassengerTax();

@@ -62,6 +62,8 @@ public class PricingInformation {
 
 	private boolean isTotalAmountConverted;
 
+	private Map<String, TSTPrice> tstPriceMap;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
@@ -290,5 +292,13 @@ public class PricingInformation {
 
 	public void setTotalAmountConverted(boolean totalAmountConverted) {
 		isTotalAmountConverted = totalAmountConverted;
+	}
+
+	public Map<String, TSTPrice> getTstPriceMap() {
+		return tstPriceMap;
+	}
+
+	public void setTstPriceMap(Map<String, TSTPrice> tstPriceMap) {
+		this.tstPriceMap = tstPriceMap;
 	}
 }
