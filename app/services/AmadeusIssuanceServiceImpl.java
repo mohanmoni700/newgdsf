@@ -147,9 +147,10 @@ public class AmadeusIssuanceServiceImpl {
 
 
 
-            PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
-                    issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
-
+//            PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
+//                    issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
+            PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoWithSegmentPricing(gdsPNRReply,pricePNRReplyFareList,
+                    issuanceRequest.isSeamen(), airSegmentList);
             BigDecimal bookedPrice = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getTotalPriceValue();
             BigDecimal newPrice = pricingInformation.getTotalPriceValue();
 
