@@ -9,6 +9,7 @@ import onepoint.mystifly.BookFlightResponseDocument;
 import onepoint.mystifly.OnePointStub;
 import org.apache.xmlbeans.XmlDateTime;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.Preferences;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -118,11 +119,11 @@ public class BookFlightClient {
 
 		airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
 				.getPassengerTypeFromDOB(dob.toDate())));
+		airTraveler.setPassengerNationality(passportDetails.getNationality().getTwoLetterCode());
 	}
 
 
-	private void setSeatAndFrequentFlyerNumber(AirTraveler airTraveler,
-												  Preferences preferences){
+	private void setSeatAndFrequentFlyerNumber(AirTraveler airTraveler, com.compassites.model.traveller.Preferences preferences){
 		SpecialServiceRequest specialServiceRequest = SpecialServiceRequest.Factory.newInstance();
 
 		if(StringUtils.hasText(preferences.getSeatPreference()) && !"any".equalsIgnoreCase(preferences.getSeatPreference())){
@@ -135,8 +136,7 @@ public class BookFlightClient {
 			airTraveler.setSpecialServiceRequest(specialServiceRequest);
 		}
 
-		if(preferences != null &&
-				StringUtils.hasText(preferences.getFrequentFlyerNumber())){
+		if(preferences != null && StringUtils.hasText(preferences.getFrequentFlyerNumber())){
 			airTraveler.setFrequentFlyerNumber(preferences.getFrequentFlyerNumber());
 		}
 	}
