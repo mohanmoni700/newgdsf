@@ -225,7 +225,7 @@ public class ServiceHandler {
         logger.debug("amadeus ignoreAndRetrievePNR called at " + new Date() + "..................Session Id " + mSession.getSessionId());
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().ignoreAndRetrievePNR();
         amadeusLogger.debug("ignoreAndRetrievePNR " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrAddMultiElements));
-        PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
+        PNRReply pnrReply =  mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
         amadeusLogger.debug("ignoreAndRetrievePNR " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
         return pnrReply;
 
@@ -238,7 +238,7 @@ public class ServiceHandler {
 
         amadeusLogger.debug("ignorePNRAddMultiElementReq " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrAddMultiElements));
 
-        PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), mSession.getSession());
+        PNRReply pnrReply =  mPortType.pnrAddMultiElements(pnrAddMultiElements, mSession.getSession());
 
         amadeusLogger.debug("ignorePNRAddMultiElement Res" + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
         return pnrReply;
