@@ -83,6 +83,7 @@ public class AmadeusIssuanceServiceImpl {
                     for(String segmentKey : segmentKeysList){
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
+                    carrierCode = airSegment.get(0).getCarrierCode();
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
                             issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing);
                     List<FareList> tempPricePNRReplyFareList = pricePNRReply.getFareList();
