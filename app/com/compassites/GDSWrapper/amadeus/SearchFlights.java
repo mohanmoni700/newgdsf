@@ -266,7 +266,7 @@ public class SearchFlights {
             DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
             DateTime dateTime = fmt.parseDateTime(searchJourney.getTravelDateStr());
             itinerary.setTimeDetails(setDateAndTimeInformationType(searchParameters.getDateType(),mapDate(searchJourney.getTravelDate(), dateTime)));
-            if(searchParameters.getTransit() != null&&!searchParameters.getDirectFlights()){
+            if(StringUtils.hasText(searchParameters.getTransit()) && !searchParameters.getDirectFlights()){
                 TravelFlightInformationType165053S fi=new TravelFlightInformationType165053S();
                 setTransitPoint(searchParameters.getTransit(),fi,itinerary);
             }
