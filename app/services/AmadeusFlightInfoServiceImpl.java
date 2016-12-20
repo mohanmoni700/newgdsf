@@ -127,7 +127,6 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
 							searchParams.getInfantCount(), paxFareDetailsList);
-            XMLFileUtility.createXMLFile(pricingReply, "FareInformativePricingWithoutPNRReply.xml");
             amadeusLogger.debug("FareInformativePricingWithoutPNRReply "+ new Date()+" ------->>"+ new XStream().toXML(pricingReply));
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
 			//System.out.println("fareCheckRulesReply ***"+fareCheckRulesReply);

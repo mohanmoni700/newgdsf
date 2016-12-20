@@ -177,7 +177,7 @@ public class AmadeusIssuanceServiceImpl {
             logger.debug("=======================  pricePNR end =========================");
         } catch (Exception e) {
             issuanceResponse.setSuccess(false);
-            XMLFileUtility.createXMLFile(e, "PNRException.xml");
+//            XMLFileUtility.createXMLFile(e, "PNRException.xml");
             logger.error("Amadeus priceBookedPNR error : ", e);
             e.printStackTrace();
         }
@@ -206,7 +206,7 @@ public class AmadeusIssuanceServiceImpl {
 
             logger.debug("=======================  Issuance end =========================");
         } catch (Exception e) {
-            XMLFileUtility.createXMLFile(e, "PNRRetrieveException.xml");
+//            XMLFileUtility.createXMLFile(e, "PNRRetrieveException.xml");
             e.printStackTrace();
             logger.error("docIssuance Exception ", e);
         }finally {
@@ -246,15 +246,37 @@ public class AmadeusIssuanceServiceImpl {
     public IssuanceResponse docIssuance(ServiceHandler serviceHandler, IssuanceRequest issuanceRequest,
                                         IssuanceResponse issuanceResponse, PNRReply gdsPNRReply1) throws InterruptedException {
         String pnr = issuanceRequest.getGdsPNR();
-        logger.debug(pnr + " amadeus docIssuance called " );
+        logger.debug(pnr + " amadeus docIssuance called ");
         Date pnrResponseReceivedAt = new Date();
         boolean sendTSTDataForIssuance = checkForMultipleValidatingCarriers(gdsPNRReply1);
         List<String> tstReferenceList = new ArrayList<>();
-        if(sendTSTDataForIssuance){
+        boolean ticketStatus = false;
+        DocIssuanceIssueTicketReply issuanceIssueTicketReply = null;
+        int count = 1;
+        if (sendTSTDataForIssuance) {
             tstReferenceList = getTSTList(gdsPNRReply1);
+            for (String tstReference : tstReferenceList) {
+                List<String> tstList = new ArrayList<>();
+                tstList.add(tstReference);
+                issuanceIssueTicketReply = serviceHandler.issueTicket(sendTSTDataForIssuance, tstList);
+                if (AmadeusConstants.ISSUANCE_OK_STATUS.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())) {
+                    if(count == tstReferenceList.size()){
+                        ticketStatus = true;
+                    }else {
+                        PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
+                    }
+                }else {
+                    break;
+                }
+                count = count + 1;
+            }
+        } else {
+            issuanceIssueTicketReply = serviceHandler.issueTicket(sendTSTDataForIssuance, tstReferenceList);
+            if (AmadeusConstants.ISSUANCE_OK_STATUS.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())) {
+                ticketStatus = true;
+            }
         }
-        DocIssuanceIssueTicketReply issuanceIssueTicketReply = serviceHandler.issueTicket(sendTSTDataForIssuance, tstReferenceList);
-        if (AmadeusConstants.ISSUANCE_OK_STATUS.equals(issuanceIssueTicketReply.getProcessingStatus().getStatusCode())) {
+        if (ticketStatus) {
             Thread.sleep(3000L);
             PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
             boolean allTicketsReceived = AmadeusBookingHelper.createTickets(issuanceResponse,issuanceRequest, gdsPNRReply);

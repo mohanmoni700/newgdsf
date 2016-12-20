@@ -209,7 +209,12 @@ public class AmadeusBookingHelper {
                     	String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         String[] freeTextArr = freeText.split("/");
                         String ticketNumber = freeTextArr[0].substring(3);
-                        Map<String,String> ticketMap = new HashMap<>();
+                        Map<String,String> ticketMap;
+                        if(traveller1.getTicketNumberMap() != null){
+                            ticketMap = traveller1.getTicketNumberMap();
+                        }else {
+                            ticketMap = new HashMap<>();
+                        }
                         for(String segmentRef : segmentRefList){
                             PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
                             String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+

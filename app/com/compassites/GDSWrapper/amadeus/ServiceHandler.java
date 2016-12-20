@@ -214,7 +214,6 @@ public class ServiceHandler {
         PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);
         amadeusLogger.debug("pnrRetrieveReq " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrRetrieve));
         PNRReply pnrReply = mPortType.pnrRetrieve(pnrRetrieve, mSession.getSession());
-        XMLFileUtility.createXMLFile(pnrReply, "pnrRetrieveRes.xml");
 
         amadeusLogger.debug("pnrRetrieveRes " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
         return pnrReply;
