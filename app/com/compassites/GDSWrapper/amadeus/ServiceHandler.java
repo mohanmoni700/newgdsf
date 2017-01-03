@@ -209,6 +209,7 @@ public class ServiceHandler {
     }
     
     public PNRReply retrivePNR(String num){
+    	//change here
         mSession.incrementSequenceNumber();
         logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ mSession.getSessionId());
         PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);

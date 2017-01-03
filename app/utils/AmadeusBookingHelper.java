@@ -1012,9 +1012,13 @@ public class AmadeusBookingHelper {
                 for (String key : segmentMap.keySet()) {
                     for(Object airSegVal : airSegmentRefMap.values()) {
                         if (key.equals(airSegVal)) {
-                            String farebasis = segmentInformation.getFareQualifier().getFareBasisDetails().getPrimaryCode()
+                        	String farebasis = null;
+                        	if(segmentInformation.getFareQualifier()!=null && segmentInformation.getFareQualifier().getFareBasisDetails()!=null && segmentInformation.getFareQualifier().getFareBasisDetails().getPrimaryCode()!=null)
+                            {
+                        		farebasis = segmentInformation.getFareQualifier().getFareBasisDetails().getPrimaryCode()
                                     + segmentInformation.getFareQualifier().getFareBasisDetails().getFareBasisCode();
                             segmentMap.get(key).setFareBasis(farebasis);
+                            }
                         }
                     }
                 }
@@ -1077,19 +1081,23 @@ public class AmadeusBookingHelper {
     public static TSTPrice getTSTPriceWithSegmentPrice(FareList fare, BigDecimal paxTotalFare, BigDecimal paxBaseFare, String paxType, PassengerTax passengerTax){
         TSTPrice tstPrice = new TSTPrice();
         for(FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
-            BaggageDetailsTypeI bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
-            if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
-                if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
-                    tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+        	BaggageDetailsTypeI bagAllowance =  null;
+        	if(segmentInfo.getBagAllowanceInformation()!=null){
+        		bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
+                if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
+                    if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
+                        tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+                    }
+                } else {
+                    if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
+                        tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
+                    }
                 }
-            } else {
-                if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
-                    tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
-                }
-            }
-            //reading booking class(RBD)
-            String bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
-            tstPrice.setBookingClass(bookingClass);
+                //reading booking class(RBD)
+                String bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
+                tstPrice.setBookingClass(bookingClass);
+        	}            
+           
         }
 
         tstPrice.setTotalPrice(paxTotalFare);
