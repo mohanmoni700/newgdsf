@@ -619,14 +619,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 			FlightItinerary flightItinerary = new FlightItinerary();
 			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
-			/*String carrierCode = "";
+			//String carrierCode = "";
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
-				carrierCode = flightItinerary.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
+				//carrierCode = flightItinerary.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
 			} else {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
-				carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
-			}*/
+				//carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
+			}
 //			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
 
             //todo -- added for segment wise pricing
