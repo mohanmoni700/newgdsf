@@ -764,7 +764,7 @@ public class AmadeusBookingHelper {
             for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
                 for (String key : segmentMap.keySet()) {
                     for(Object airSegVal : airSegmentRefMap.values()) {
-                        if (key.equals(airSegVal)) {
+                        if (key.equals(airSegVal) && segmentInformation.getFareQualifier()!=null && segmentInformation.getFareQualifier().size()>0) {
                             String farebasis = segmentInformation.getFareQualifier().get(0).getFareBasisDetails().getPrimaryCode()
                                     + segmentInformation.getFareQualifier().get(0).getFareBasisDetails().getFareBasisCode();
                             segmentMap.get(key).setFareBasis(farebasis);
@@ -808,18 +808,25 @@ public class AmadeusBookingHelper {
     public static TSTPrice getTSTPrice(TicketDisplayTSTReply.FareList fare, BigDecimal paxTotalFare, BigDecimal paxBaseFare, String paxType, PassengerTax passengerTax){
         TSTPrice tstPrice = new TSTPrice();
         for(TicketDisplayTSTReply.FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
-            com.amadeus.xml.ttstrr_13_1_1a.BaggageDetailsTypeI bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
-            if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
-                if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
-                    tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+        	com.amadeus.xml.ttstrr_13_1_1a.BaggageDetailsTypeI bagAllowance =  null;
+        	if(segmentInfo.getBagAllowanceInformation()!=null){
+        		bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
+        		if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
+                    if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
+                        tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+                    }
+                } else {
+                    if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
+                        tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
+                    }
                 }
-            } else {
-                if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
-                    tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
-                }
-            }
+        	}          	
+            
             //reading booking class(RBD)
-            String bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
+        	String bookingClass = null;
+        	if(segmentInfo.getSegDetails()!=null && segmentInfo.getSegDetails().getSegmentDetail()!=null){
+        		bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
+        	}            
             tstPrice.setBookingClass(bookingClass);
         }
 

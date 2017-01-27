@@ -619,14 +619,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 			FlightItinerary flightItinerary = new FlightItinerary();
 			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
-			String carrierCode = "";
+			/*String carrierCode = "";
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
 				carrierCode = flightItinerary.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
 			} else {
 				flightItinerary.setNonSeamenJourneyList(journeyList);
 				carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
-			}
+			}*/
 //			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
 
             //todo -- added for segment wise pricing
@@ -658,11 +658,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
             pricingInfo.setProvider("Amadeus");
             pnrResponse.setPricingInfo(pricingInfo);
 
-            List<ItineraryInfo> itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
-            if(itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getItineraryReservationInfo() != null) {
-                String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
-                pnrResponse.setAirlinePNR(airlinePnr);
-            }
+            List<ItineraryInfo> itineraryInfos = null;
+            if(gdsPNRReply.getOriginDestinationDetails()!=null && gdsPNRReply.getOriginDestinationDetails().size()>0){
+            	itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+                if(itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getItineraryReservationInfo() != null) {
+                    String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
+                    pnrResponse.setAirlinePNR(airlinePnr);
+                }
+            }            
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
 			readBaggageInfoFromTST(gdsPNRReply, ticketDisplayTSTReply.getFareList(), pnrResponse);
@@ -778,7 +781,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				if (!fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier().equals("PI")
 						&& passengerType.get("P" + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber()).equals(PassengerTypeCode.ADT.toString())) {
 					for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
-						String temp = "S" + segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber();
+						String temp = null;
+						if(segmentInformation.getSegmentReference()!=null && segmentInformation.getSegmentReference().getRefDetails()!=null && segmentInformation.getSegmentReference().getRefDetails().size()>0 && segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber()!=null){
+							temp = "S" + segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber();
+						}						
 						if (airSegmentRefMap.get(temp) != null && !map.containsKey(temp)) {
 							String key = airSegmentRefMap.get(temp).toString();
 							String baggage = null;
