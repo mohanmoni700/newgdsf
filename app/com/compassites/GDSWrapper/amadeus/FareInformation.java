@@ -128,6 +128,7 @@ public class FareInformation {
 			Trigger trigger = new Trigger();
 			segmentGroup.setTrigger(trigger);
 			segmentGroups.add(segmentGroup);
+			i++;
 		}
 		OriginDestination originDestination = new OriginDestination();
 		originDestination.setDestination(airSegments
