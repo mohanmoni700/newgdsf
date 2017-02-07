@@ -82,23 +82,29 @@ public class SearchFlights {
 
         se.setTravelFlightInfo(travelFlightInfo);
 
+        FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
+        PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
+        PricingTicketingInformationType pit = new PricingTicketingInformationType();
+        pdt.setPricingTicketing(pit);
+        fe.setPricingTickInfo(pdt);
+        se.setFareOptions(fe);
         if (searchParameters.getRefundableFlights()) {
-            setRefundableFlights(se);
+            setRefundableFlights(pit);
         }
 
         setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
-        FareMasterPricerTravelBoardSearch.FareOptions  fareOptions = createFareOptions();
-        se.setFareOptions(fareOptions);
+        createFareOptions(pit);
+        //se.setFareOptions(fareOptions);
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-            FareMasterPricerTravelBoardSearch.FareOptions fe1 = new FareMasterPricerTravelBoardSearch.FareOptions();
-            PricingTicketingDetailsType pdt1 = new PricingTicketingDetailsType();
-            PricingTicketingInformationType pit1 = new PricingTicketingInformationType();
-            pit1.getPriceType().add("PTC");
-            pdt1.setPricingTicketing(pit1);
-            fe1.setPricingTickInfo(pdt1);
-            se.setFareOptions(fe1);
+//            FareMasterPricerTravelBoardSearch.FareOptions fe1 = new FareMasterPricerTravelBoardSearch.FareOptions();
+//            PricingTicketingDetailsType pdt1 = new PricingTicketingDetailsType();
+//            PricingTicketingInformationType pit1 = new PricingTicketingInformationType();
+            pit.getPriceType().add("PTC");
+//            pdt1.setPricingTicketing(pit1);
+//            fe1.setPricingTickInfo(pdt1);
+//            se.setFareOptions(fe1);
         }
 
         /*FareMasterPricerTravelBoardSearch.FareOptions fareOptions = new FareMasterPricerTravelBoardSearch.FareOptions();
@@ -129,28 +135,27 @@ public class SearchFlights {
         travelFlightInfo.setFlightDetail(ptd);
     }
 
-    private void setRefundableFlights(FareMasterPricerTravelBoardSearch se){
-        FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
-        PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
-        PricingTicketingInformationType pit = new PricingTicketingInformationType();
+    private void setRefundableFlights(PricingTicketingInformationType pit){
+        //FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
+        //PricingTicketingInformationType pit = new PricingTicketingInformationType();
         pit.getPriceType().add("RF");
-        pdt.setPricingTicketing(pit);
-        fe.setPricingTickInfo(pdt);
-        se.setFareOptions(fe);
+        //fe.setPricingTickInfo(pdt);
+        //se.setFareOptions(fe);
     }
 
-    private FareMasterPricerTravelBoardSearch.FareOptions createFareOptions() {
-        FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
-        PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
-        PricingTicketingInformationType pit = new PricingTicketingInformationType();
+    private void createFareOptions(PricingTicketingInformationType pit) {
+        //FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
+        //PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
+        //PricingTicketingInformationType pit = new PricingTicketingInformationType();
         pit.getPriceType().add("RP");
         pit.getPriceType().add("RU");
         pit.getPriceType().add("TAC");
+        pit.getPriceType().add("ET");
        /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");
         pit.getPriceType().add("NSD");*/
 
-        pdt.setPricingTicketing(pit);
+        //pdt.setPricingTicketing(pit);
 
        /* CodedAttributeType fid = new CodedAttributeType();
         CodedAttributeInformationType247829C cid = new CodedAttributeInformationType247829C();
@@ -158,8 +163,8 @@ public class SearchFlights {
         cid.setFeeIdNumber("0");
         fid.getFeeId().add(cid);
         fe.setFeeIdDescription(fid);*/
-        fe.setPricingTickInfo(pdt);
-        return fe;
+        //fe.setPricingTickInfo(pdt);
+        //return fe;
     }
 
     private NumberOfUnitsType createNumberOfUnits(int noOfPassengers) {
