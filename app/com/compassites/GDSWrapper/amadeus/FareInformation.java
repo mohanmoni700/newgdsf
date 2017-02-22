@@ -62,6 +62,16 @@ public class FareInformation {
 			if(infantCount > 0){
 	            passengers.add(getPassengerGroup(PassengerTypeCode.SEA,infantCount));
 	        }
+			List<FareInformativePricingWithoutPNR.PricingOptionsGroup> pricingOptionsGroupList = fareInfo.getPricingOptionsGroup();
+			FareInformativePricingWithoutPNR.PricingOptionsGroup pricingOptionsGroup = new FareInformativePricingWithoutPNR.PricingOptionsGroup();
+			FareInformativePricingWithoutPNR.PricingOptionsGroup.ExtPricingDetails extPricingDetails = new FareInformativePricingWithoutPNR.PricingOptionsGroup.ExtPricingDetails();
+			FareInformativePricingWithoutPNR.PricingOptionsGroup.ExtPricingDetails.DiscountDetails discountDetails = new FareInformativePricingWithoutPNR.PricingOptionsGroup.ExtPricingDetails.DiscountDetails();
+			FareInformativePricingWithoutPNR.PricingOptionsGroup.PricingDetails pricingDetails = new FareInformativePricingWithoutPNR.PricingOptionsGroup.PricingDetails();
+			extPricingDetails.getDiscountDetails().add(discountDetails);
+			discountDetails.setFareQualifier("PTC");
+			pricingOptionsGroup.setExtPricingDetails(extPricingDetails);
+			pricingOptionsGroup.setPricingDetails(pricingDetails);
+			pricingOptionsGroupList.add(pricingOptionsGroup);
 		}else{
 			passengers.add(getPassengerGroup(PassengerTypeCode.ADT,adultCount));
 	        if(childCount > 0){
@@ -70,9 +80,8 @@ public class FareInformation {
 			if(infantCount > 0){
 	            passengers.add(getPassengerGroup(PassengerTypeCode.INF,infantCount));
 	        }
-		}
-		
 
+		}
 
 		TripsGroup tripsGroup = new TripsGroup();
 		fareInfo.setTripsGroup(tripsGroup);
@@ -140,7 +149,7 @@ public class FareInformation {
 		return fareInfo;
 	}
 
-	
+
 	private PassengersGroup getPassengerGroup(PassengerTypeCode passengerType,
 			int passengerQuantity) {
 		PassengersGroup passengerGroup = new PassengersGroup();
