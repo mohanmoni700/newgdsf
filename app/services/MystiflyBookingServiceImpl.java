@@ -93,7 +93,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 									.getTime());
 							pnrRS.setHoldTime(false);
 						}
-						setAirlinePNR(pnrRS);
+						//setAirlinePNR(pnrRS);
 						//readBaggageInfo(pnrRS, travellerMasterInfo);
 					} else {
 						ErrorMessage error = new ErrorMessage();

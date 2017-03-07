@@ -1,11 +1,14 @@
 package controllers;
 
 
+import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.MessageItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +19,10 @@ import play.mvc.Result;
 import services.*;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
@@ -32,7 +38,7 @@ public class Application {
 
     @Autowired
     private BookingServiceWrapper bookingService;
-    
+
     @Autowired
     private FlightInfoServiceWrapper flightInfoService;
 
@@ -94,10 +100,10 @@ public class Application {
         logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result getBaggageInfo() {
-    	
+
     	JsonNode json = request().body().asJson();
     	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
@@ -109,10 +115,10 @@ public class Application {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    	
+
     	return Controller.ok(Json.toJson(response));
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result getCancellationFee() {
     	JsonNode json = request().body().asJson();
@@ -120,11 +126,11 @@ public class Application {
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
     	String provider = json.get("provider").asText();
     	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-    	
+
     	String fareRules = flightInfoService.getCancellationFee(flightItinerary, searchParams, provider, seamen);
     	return Controller.ok(Json.toJson(fareRules));
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result getFlightDetails() {
     	JsonNode json = request().body().asJson();
@@ -134,7 +140,7 @@ public class Application {
     	FlightItinerary response = flightInfoService.getInFlightDetails(flightItinerary, provider, seamen);
     	return Controller.ok(Json.toJson(response));
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result issueTicket(){
         JsonNode json = request().body().asJson();
@@ -144,7 +150,7 @@ public class Application {
         logger.debug("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result getPnrDetails(){
     	JsonNode json = request().body().asJson();
@@ -155,7 +161,7 @@ public class Application {
     	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result getBookingDetails() {
     	JsonNode json = request().body().asJson();
@@ -166,15 +172,14 @@ public class Application {
         logger.debug("getBookingDetails response =>>>>>>>>>>>> " + res);
 		return ok(res);
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result getLowestFare() {
     	JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         Boolean isSeamen = Json.fromJson(json.findPath("isSeamen"), Boolean.class);
-        IssuanceRequest issuanceRequest = Json.fromJson(json.findPath("issuanceRequest"), IssuanceRequest.class);
-    	LowFareResponse lowestFare = bookingService.getLowestFare(issuanceRequest);
+    	LowFareResponse lowestFare = bookingService.getLowestFare(pnr, provider, isSeamen);
     	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
     }
@@ -229,5 +234,30 @@ public class Application {
         IssuanceResponse issuanceResponse = bookingService.priceBookedPNR(issuanceRequest);
         logger.debug("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
+    }
+
+    public Result getTicktedMessage() throws RemoteException {
+        JsonNode json = request().body().asJson();
+        AirMessageQueue airMessageQueue = new AirMessageQueue();
+        AirMessageQueueRS airMessageQueueRS = airMessageQueue.addMessage();
+        //airMessageQueueRS.getMessageItems().getMessageItemArray()
+        List<MessageQueue> messageQueueList = new ArrayList<>();
+        for ( MessageItem items : airMessageQueueRS.getMessageItems().getMessageItemArray()) {
+            MessageQueue messageQueue = new MessageQueue();
+            messageQueue.setBookingMode(items.getBookingMode());
+            messageQueue.setUniqueId(items.getUniqueID());
+            messageQueue.setMessage(items.getMessages().getStringArray(0));
+            messageQueue.setRph(items.getRPH());
+            messageQueue.setTkeTimeLimit(items.getTktTimeLimit().toString());
+            messageQueueList.add(messageQueue);
+        }
+        return ok(Json.toJson(messageQueueList));
+    }
+
+    public Result removeMessage() throws RemoteException {
+
+        AirMessageQueue airMessageQueue = new AirMessageQueue();
+        airMessageQueue.removeMessageQueueRQ();
+        return ok("Success");
     }
 }
