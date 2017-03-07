@@ -491,6 +491,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					AmadeusBookingHelper.createTickets(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
 					break;
+				} else if(isFA.equalsIgnoreCase("FHM")){
+					AmadeusBookingHelper.createOfflineTickets(issuanceResponse,
+							issuanceRequest, gdsPNRReply);
+					break;
 				} /*else {
 					return masterInfo; 
 				}*/

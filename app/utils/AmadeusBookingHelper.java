@@ -126,6 +126,132 @@ public class AmadeusBookingHelper {
 
     }
 
+    public static boolean createOfflineTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){
+        int ticketsCount = 0;
+        Map<String,Object> airSegmentRefMap = new HashMap<>();
+        Map<String,Object> travellerMap = new HashMap<>();
+        Map<String, String> segmentSequenceMap = new HashMap<>();
+        int segmentSequence = 1;
+        String segmentRef = "";
+        String key1 = "";
+        for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
+            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
+                segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                airSegmentRefMap.put(segmentRef,itineraryInfo);
+                segmentSequenceMap.put(segmentRef, segmentSequence+"");
+                segmentSequence++;
+            }
+        }
+        for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+            key1 = travellerInfo.getElementManagementPassenger().getReference().getQualifier() + travellerInfo.getElementManagementPassenger().getReference().getNumber();
+            travellerMap.put(key1,travellerInfo);
+        }
+        for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv :gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()){
+            if("FHM".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+                String passengerRef = "";
+                List<String> segmentRefList = new ArrayList<>();
+                String travellerKey = "";
+               // int count = dataElementsDiv.getReferenceForDataElement().getReference().size();
+
+                if(dataElementsDiv.getReferenceForDataElement() != null){
+                for (ReferencingDetailsType111975C reference : dataElementsDiv.getReferenceForDataElement().getReference()) {
+                    travellerKey = reference.getQualifier() + reference.getNumber();
+                    if (travellerMap.containsKey(travellerKey)) {
+                        passengerRef = travellerKey;
+                    } else {
+                        segmentRefList.add(travellerKey);
+                    }
+                }
+            } else {
+                    passengerRef = key1;
+                }
+                PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
+                String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
+                String name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
+
+                String ticketText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                String infantIndicator = ticketText.substring(0,3);
+
+                //checking for infant passenger associated to adult
+                if("inf".equalsIgnoreCase(infantIndicator)){
+                    //passenger association when booked from online system
+                    if(traveller.getPassengerData().size() > 1){
+                        String type = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getType();
+                        if("inf".equalsIgnoreCase(type)){
+                            lastName = traveller.getPassengerData().get(1).getTravellerInformation().getTraveller().getSurname();
+                            name = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getFirstName();
+                        }
+                        //passenger association when booked from offline system
+                    }else if(traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().size() > 1){
+                        String type = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getType();
+                        if("inf".equalsIgnoreCase(type)){
+                            lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
+                            name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getFirstName();
+                        }
+                    }
+                }
+
+
+               /* String[] nameArray = name.split(" ");
+                String firstName = nameArray[0];
+                String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
+
+                name = name.replaceAll("\\s+", "");
+                lastName = lastName.replaceAll("\\s+", "");
+
+                for(Traveller traveller1 : issuanceRequest.getTravellerList()){
+                    String contactName = "";
+                    if(traveller1.getPersonalDetails().getMiddleName() != null){
+                        contactName = traveller1.getPersonalDetails().getFirstName() + traveller1.getPersonalDetails().getMiddleName();
+
+                    }else {
+                        contactName = traveller1.getPersonalDetails().getFirstName();
+                    }
+                    contactName = contactName + traveller1.getPersonalDetails().getSalutation();
+                    contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
+                    String contactLastName = traveller1.getPersonalDetails().getLastName();
+                    contactLastName  = contactLastName.replaceAll("\\s+", "");
+                    if(name.equalsIgnoreCase(contactName)
+                            && lastName.equalsIgnoreCase(contactLastName)){
+                        String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                        String[] freeTextArr = freeText.split("/");
+                        String ticketNumber = freeTextArr[0];
+                        Map<String,String> ticketMap;
+                        if(traveller1.getTicketNumberMap() != null){
+                            ticketMap = traveller1.getTicketNumberMap();
+                        }else {
+                            ticketMap = new HashMap<>();
+                        }
+                        //for(String segmentRef : segmentRefList){
+                        PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
+                        String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
+                                itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
+                                + segmentSequenceMap.get(segmentRef);
+                        ticketMap.put(key.toLowerCase(),ticketNumber);
+                        logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
+                        //}
+                        traveller1.setTicketNumberMap(ticketMap);
+                    }
+                }
+                ticketsCount++;
+                issuanceResponse.setTravellerList(issuanceRequest.getTravellerList());
+                issuanceResponse.setSuccess(true);
+            }
+        }
+        int passengerCount = 0;
+        if(issuanceRequest.isSeamen()){
+            passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount() + issuanceRequest.getInfantCount();
+
+        }else {
+            passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount();
+        }
+        logger.debug("ticketCount : " + ticketsCount + " passengerCount " + passengerCount);
+        if(ticketsCount >= passengerCount){
+            return true;
+        }
+
+        return false;
+    }
 
     public static boolean createTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){
         int ticketsCount = 0;
