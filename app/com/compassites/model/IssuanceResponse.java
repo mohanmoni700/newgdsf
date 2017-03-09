@@ -35,6 +35,16 @@ public class IssuanceResponse implements Serializable{
 
     private boolean priceChanged;
 
+    private String errorCode;
+
+
+    public void setErrorCode(String errorCode){
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorCode(){
+        return errorCode;
+    }
     public boolean isCappingLimitReached() {
         return isCappingLimitReached;
     }
