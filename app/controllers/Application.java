@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.MessageItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,18 +239,19 @@ public class Application {
         JsonNode json = request().body().asJson();
         AirMessageQueue airMessageQueue = new AirMessageQueue();
         AirMessageQueueRS airMessageQueueRS = airMessageQueue.addMessage();
-        //airMessageQueueRS.getMessageItems().getMessageItemArray()
-        List<MessageQueue> messageQueueList = new ArrayList<>();
-        for ( MessageItem items : airMessageQueueRS.getMessageItems().getMessageItemArray()) {
-            MessageQueue messageQueue = new MessageQueue();
-            messageQueue.setBookingMode(items.getBookingMode());
-            messageQueue.setUniqueId(items.getUniqueID());
-            messageQueue.setMessage(items.getMessages().getStringArray(0));
-            messageQueue.setRph(items.getRPH());
-            messageQueue.setTkeTimeLimit(items.getTktTimeLimit().toString());
-            messageQueueList.add(messageQueue);
+        MessageItems messageItems = new MessageItems();
+        List<MessageItem> messageItemList = new ArrayList<>();
+        for ( org.datacontract.schemas._2004._07.mystifly_onepoint.MessageItem items : airMessageQueueRS.getMessageItems().getMessageItemArray()) {
+            MessageItem messageItem = new MessageItem();
+            messageItem.setBookingMode(items.getBookingMode());
+            messageItem.setUniqueId(items.getUniqueID());
+            messageItem.setMessage(items.getMessages().getStringArray(0));
+            messageItem.setRph(items.getRPH());
+            messageItem.setTkeTimeLimit(items.getTktTimeLimit().toString());
+            messageItemList.add(messageItem);
         }
-        return ok(Json.toJson(messageQueueList));
+        messageItems.setMessageItem(messageItemList);
+        return ok(Json.toJson(messageItems));
     }
 
     public Result removeMessage() throws RemoteException {

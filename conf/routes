@@ -22,6 +22,8 @@ GET     /displayTST/:pnr/:provider                       @controllers.Applicatio
 
 POST    /priceBookedPNR                         @controllers.Application.priceBookedPNR()
 
+GET     /getTicktedMessage                          @controllers.Application.getTicktedMessage()
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

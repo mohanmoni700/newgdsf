@@ -3,7 +3,7 @@ package com.compassites.model;
 /**
  * Created by Satish Kumar on 03-03-2017.
  */
-public class MessageQueue {
+public class MessageItem {
 
     private String bookingMode;
 
