@@ -55,6 +55,10 @@ public class PersonalDetails {
 		this.designation = designation;
 	}
 
+    private String crewId;
+
+    private Long travellerId;
+
     @JsonIgnore
 	public PassengerTypeCode getPassengerType() {
 		return DateUtility.getPassengerTypeFromDOB(dateOfBirth);
@@ -176,6 +180,22 @@ public class PersonalDetails {
         return emergencyContactCode;
     }
 
+    public String getCrewId() {
+        return crewId;
+    }
+
+    public void setCrewId(String crewId) {
+        this.crewId = crewId;
+    }
+
+    public Long getTravellerId() {
+        return travellerId;
+    }
+
+    public void setTravellerId(Long travellerId) {
+        this.travellerId = travellerId;
+    }
+
     public void setEmergencyContactCode(String emergencyContactCode) {
         this.emergencyContactCode = emergencyContactCode;
     }
@@ -195,4 +215,5 @@ public class PersonalDetails {
     public void setDesignationId(Long designationId) {
         this.designationId = designationId;
     }
+
 }
