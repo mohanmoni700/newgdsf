@@ -1,6 +1,7 @@
 package controllers;
 
 
+import com.amadeus.xml.qdqlrr_03_1_1a.QueueListReply;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -254,10 +255,20 @@ public class Application {
         return ok(Json.toJson(messageItems));
     }
 
-    public Result removeMessage() throws RemoteException {
-
+    public Result getTripDetails() throws RemoteException{
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        IssuanceResponse issuanceResponse = bookingService.readTripDetails(issuanceRequest);
+        logger.debug("-----------------Trip Details Response:\n" + Json.toJson(issuanceResponse));
+        return ok(Json.toJson(issuanceResponse));
+    }
+    public Result removeTicktedMessage() throws RemoteException {
+        JsonNode json = request().body().asJson();
+        Items items = Json.fromJson(json, Items.class);
         AirMessageQueue airMessageQueue = new AirMessageQueue();
-        airMessageQueue.removeMessageQueueRQ();
+        for (com.compassites.model.Item itemList : items.getItemList()) {
+            airMessageQueue.removeMessageQueueRQ(itemList.getUniqueId());
+        }
         return ok("Success");
     }
 }

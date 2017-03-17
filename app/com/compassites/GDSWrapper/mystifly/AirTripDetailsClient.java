@@ -11,6 +11,7 @@ import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRQ;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Target;
+import utils.XMLFileUtility;
 
 /**
  * @author Santhosh
@@ -32,9 +33,10 @@ public class AirTripDetailsClient {
 		airRQ.setTarget(Target.TEST);
 		airRQ.setUniqueID(pnr);
 //		airRQ.setSendOnlyTicketed(true);
-
+		XMLFileUtility.createFile(tripDetailsDoc.xmlText(), "TripDetailsRQ.xml");
 		TripDetailsResponseDocument tripDetailsRSDoc = onePointStub
 				.tripDetails(tripDetailsDoc);
+		XMLFileUtility.createFile(tripDetailsRSDoc.xmlText(), "TripDetailsRS.xml");
 		return tripDetailsRSDoc.getTripDetailsResponse().getTripDetailsResult();
 	}
 }

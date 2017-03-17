@@ -31,6 +31,7 @@ public class AirLowFareSearchClient {
 			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
 		SessionCreateRS sessionRS = sessionsHandler.login();
+		//String sessoinId = sessionsHandler.mystiflySessionHandler();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
 		AirLowFareSearchDocument searchRQDoc = AirLowFareSearchDocument.Factory

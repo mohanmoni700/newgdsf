@@ -1,5 +1,7 @@
 package services;
 
+import com.compassites.GDSWrapper.mystifly.AirCancelClient;
+import com.compassites.GDSWrapper.mystifly.AirOrderTicketClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -65,8 +67,12 @@ public class BookingServiceWrapper {
 			pnrResponse = amadeusBookingService
 					.generatePNR(travellerMasterInfo);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
-			pnrResponse = mystiflyBookingService
-					.generatePNR(travellerMasterInfo);
+			pnrResponse = mystiflyBookingService.generatePNR(travellerMasterInfo);
+			if(pnrResponse.getBookedStatus().equals("PENDING")){
+				pnrResponse.setFlightAvailable(false);
+				CancelServiceWrapper cancelServiceWrapper = null;
+				cancelServiceWrapper.cancelPNR(pnrResponse.getPnrNumber(),"Mystifly");
+			}
 		}
 		return pnrResponse;
 	}
@@ -102,6 +108,11 @@ public class BookingServiceWrapper {
 		return issuanceResponse;
 	}
 
+	public IssuanceResponse readTripDetails(IssuanceRequest issuanceRequest) {
+		IssuanceResponse issuanceResponse = null;
+		issuanceResponse = mystiflyBookingService.readTripDetails(issuanceRequest);
+		return issuanceResponse;
+	}
 	private String getProvider(TravellerMasterInfo travellerMasterInfo) {
 		FlightItinerary itinerary = travellerMasterInfo.getItinerary();
 		return travellerMasterInfo.isSeamen() ? itinerary

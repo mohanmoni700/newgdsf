@@ -8,6 +8,7 @@ import onepoint.mystifly.OnePointStub;
 
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirCancelRQ;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.SessionCreateRS;
+import utils.XMLFileUtility;
 
 /**
  * @author Santhosh
@@ -26,8 +27,9 @@ public class AirCancelClient {
 		airCancelRQ.setSessionId(sessionRS.getSessionId());
 		airCancelRQ.setTarget(Mystifly.TARGET);
 		airCancelRQ.setUniqueID(pnr);
-		
+		XMLFileUtility.createFile(cancelBookingDoc.xmlText(), "CancelBookingRQ.xml");
 		onePointStub.cancelBooking(cancelBookingDoc);
+		XMLFileUtility.createFile(cancelBookingDoc.xmlText(), "CancelBookingRS.xml");
 	}
 
 }

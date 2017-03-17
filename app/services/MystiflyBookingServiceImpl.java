@@ -81,6 +81,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					if (airbookRS.getSuccess()) {
 						pnrRS.setPnrNumber(airbookRS.getUniqueID());
 						pnrRS.setFlightAvailable(airbookRS.getSuccess());
+						pnrRS.setBookedStatus(airbookRS.getStatus());
 						if (airbookRS.getTktTimeLimit().getTime() == null) {
 							Calendar calendar = Calendar.getInstance();
 							Date holdDate = HoldTimeUtility
@@ -119,6 +120,15 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		return pnrRS;
 	}
 
+	/*@Override
+	public void cancelMystiflyBooking(String pnr) {
+		try {
+			AirCancelClient airCancelClient = new AirCancelClient();
+			airCancelClient.cancelBooking(pnr);
+		} catch (Exception ex){
+			logger.debug("Mystilfy AirBook  cancel pnr",ex);
+		}
+	}*/
 	@Override
 	public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
 		return generatePNR(travellerMasterInfo);
@@ -139,6 +149,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					issuanceResponse.setSuccess(true);
 					issuanceResponse.setPnrNumber(pnrRS.getPnrNumber());
 					issuanceResponse.setAirlinePnr(pnrRS.getAirlinePNR());
+					issuanceResponse.setBookingStatus(pnrRS.getBookedStatus());
 					issuanceRequest.setGdsPNR(pnrRS.getPnrNumber());
 					issuanceResponse.setValidTillDate(pnrRS.getValidTillDate());
 				}
@@ -146,7 +157,12 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				AirOrderTicketClient orderTicketClient = new AirOrderTicketClient();
 				AirOrderTicketRS orderTicketRS = orderTicketClient
 						.issueTicket(issuanceRequest.getGdsPNR());
-				issuanceResponse.setPnrNumber(orderTicketRS.getUniqueID());
+				if(orderTicketRS.getSuccess()) {
+					issuanceResponse.setPnrNumber(orderTicketRS.getUniqueID());
+					issuanceResponse.setSuccess(true);
+				} else {
+					issuanceResponse.setSuccess(false);
+				}
 			}
 
 			List<Traveller> travellerList = issuanceRequest.getTravellerList();
@@ -164,6 +180,43 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		return issuanceResponse;
 	}
 
+	public IssuanceResponse readTripDetails(IssuanceRequest issuanceRequest) {
+		mystiflyLogger.debug(" issuanceRequest "+issuanceRequest);
+		IssuanceResponse issuanceResponse = new IssuanceResponse();
+		PricingInformation pricingInfo = issuanceRequest.getFlightItinerary().getPricingInformation();
+		try {
+			if (pricingInfo.isLCC()) {
+				PNRResponse pnrRS = new PNRResponse();
+				TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
+				travellerMasterInfo.setItinerary(issuanceRequest.getFlightItinerary());
+				travellerMasterInfo.setTravellersList(issuanceRequest.getTravellerList());
+				//pnrRS = generatePNR(travellerMasterInfo);
+				issuanceResponse.setSuccess(true);
+				if(pnrRS.isFlightAvailable() && !pnrRS.isPriceChanged()) {
+				issuanceResponse.setPnrNumber(pnrRS.getPnrNumber());
+				issuanceResponse.setAirlinePnr(pnrRS.getAirlinePNR());
+				issuanceRequest.setGdsPNR(pnrRS.getPnrNumber());
+				issuanceResponse.setValidTillDate(pnrRS.getValidTillDate());
+				}
+			/*} else {
+				AirOrderTicketClient orderTicketClient = new AirOrderTicketClient();
+				AirOrderTicketRS orderTicketRS = orderTicketClient
+						.issueTicket(issuanceRequest.getGdsPNR());
+				issuanceResponse.setPnrNumber(orderTicketRS.getUniqueID());
+			}*/
+
+				List<Traveller> travellerList = issuanceRequest.getTravellerList();
+				setTravellerTickets(travellerList, issuanceRequest.getGdsPNR());
+				issuanceResponse.setTravellerList(travellerList);
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("Error in Mystifly issueTicket : ", e);
+
+		}
+		return issuanceResponse;
+	}
 	private void setAirlinePNR(PNRResponse pnrResponse) throws RemoteException {
 		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
 		AirTripDetailsRS tripDetailsRS = tripDetailsClient
@@ -212,6 +265,29 @@ public class MystiflyBookingServiceImpl implements BookingService {
 			}
 			traveller.setTicketNumberMap(ticketMap);
 		}
+	}
+
+	private void setAirlinePNRMap(PNRResponse pnrResponse) throws RemoteException {
+		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
+		AirTripDetailsRS tripDetailsRS = tripDetailsClient
+				.getAirTripDetails(pnrResponse.getPnrNumber());
+		mystiflyLogger.debug("Traveller Tickets "+tripDetailsRS);
+		TravelItinerary itinerary = tripDetailsRS.getTravelItinerary();
+		String airlinePNR = itinerary.getItineraryInfo().getReservationItems()
+				.getReservationItemArray(0).getAirlinePNR();
+		pnrResponse.setAirlinePNR(airlinePNR);
+		ArrayOfReservationItem arrayOfReservationItems = itinerary.getItineraryInfo().getReservationItems();
+
+		Map<String, String> airlinePNRMap = new HashMap<>();
+		int segmentSequence = 1;
+		for(int i =0; i < arrayOfReservationItems.sizeOfReservationItemArray(); i++){
+			ReservationItem reservationItem = arrayOfReservationItems.getReservationItemArray(i);
+			String segments = reservationItem.getDepartureAirportLocationCode() + reservationItem.getArrivalAirportLocationCode() + segmentSequence;
+			airlinePNR = reservationItem.getAirlinePNR();
+			airlinePNRMap.put(segments.toLowerCase(), airlinePNR);
+			segmentSequence++;
+		}
+		pnrResponse.setAirlinePNRMap(airlinePNRMap);
 	}
 
 	private ReservationItem findReservationItemFromRPH(

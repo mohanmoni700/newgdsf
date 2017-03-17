@@ -45,6 +45,8 @@ public class PNRResponse {
 
     private Map<String, String> segmentBaggageMap;
 
+    private String bookedStatus;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -187,6 +189,14 @@ public class PNRResponse {
 
     public void setAirlinePNRError(boolean airlinePNRError) {
         this.airlinePNRError = airlinePNRError;
+	}
+	
+    public void setBookedStatus(String bookedStatus){
+        this.bookedStatus = bookedStatus;
+    }
+
+    public String getBookedStatus() {
+        return bookedStatus;
     }
 }
 

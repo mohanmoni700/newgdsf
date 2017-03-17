@@ -12,5 +12,5 @@ public interface BookingService {
 
     public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo);
 
-
+  /*  public void cancelMystiflyBooking(String pnr);*/
 }
