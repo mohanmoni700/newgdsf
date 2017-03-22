@@ -33,14 +33,15 @@ public class AirRevalidateClient {
 	public AirRevalidateRS revalidate(String fareSourceCode) throws AxisFault,
 			RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
-		SessionCreateRS sessionRS = sessionsHandler.login();
+		//SessionCreateRS sessionRS = sessionsHandler.login();
+		String sessoinId = sessionsHandler.mystiflySessionHandler();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
 		AirRevalidateDocument airRevalidateDoc = AirRevalidateDocument.Factory.newInstance();
 		AirRevalidateRQ airRevalidateRQ = airRevalidateDoc.addNewAirRevalidate().addNewRq();
 		airRevalidateRQ.setTarget(Mystifly.TARGET);
 		airRevalidateRQ.setFareSourceCode(fareSourceCode);
-		airRevalidateRQ.setSessionId(sessionRS.getSessionId());
+		airRevalidateRQ.setSessionId(sessoinId);
 
 		XMLFileUtility.createFile(airRevalidateRQ.xmlText(), "AirRevalidateRQ.xml");
         mystiflyLogger.debug("AirRevalidateRQ "+ new Date() +" ----->>" + airRevalidateRQ.xmlText());

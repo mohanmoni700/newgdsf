@@ -2,10 +2,12 @@ package com.compassites.GDSWrapper.mystifly;
 
 import java.rmi.RemoteException;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.compassites.constants.CacheConstants;
+import models.MystiflySessionWrapper;
 import onepoint.mystifly.CreateSessionDocument;
 import onepoint.mystifly.CreateSessionDocument.CreateSession;
 import onepoint.mystifly.CreateSessionResponseDocument;
@@ -23,6 +25,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import play.mvc.Http;
+import utils.XMLFileUtility;
 
 
 /**
@@ -63,8 +66,10 @@ public class SessionsHandler {
 			sessionRQ.setAccountNumber(Mystifly.ACCOUNT_NUMBER);
 			sessionRQ.setUserName(Mystifly.USERNAME);
 			sessionRQ.setPassword(Mystifly.PASSWORD);
+			XMLFileUtility.createFile(sessionDoc.xmlText(), "MystiflySessionRQ.xml");
 			CreateSessionResponseDocument createSessionResponseDocument = onePointStub
 					.createSession(sessionDoc);
+			XMLFileUtility.createFile(createSessionResponseDocument.xmlText(), "MystiflySessionRS.xml");
 			sessionRS = createSessionResponseDocument
 					.getCreateSessionResponse().getCreateSessionResult();
 		} catch (RemoteException e) {
@@ -74,19 +79,17 @@ public class SessionsHandler {
 	}
 
 	public String mystiflySessionHandler(){
-		Long mSessionValidity = new Date().getTime();
-		String mSessionCreatedTime = "0";
+		MystiflySessionWrapper mystiflySessionWrappers = MystiflySessionWrapper.findByActiveSession();
+	//	Http.Session session = Http.Context.current().session();
 		String mSession = "";
-
-		if(redisTemplate != null){
-			mSessionCreatedTime = (String)redisTemplate.opsForValue().get(":mystiflySessionTime");
-			mSession = (String)redisTemplate.opsForValue().get(":mystiflySession");
-		} else {
-			System.out.println("0");
+		String mSessionCreatedTime = "";
+		Long mSessionValidity = new Date().getTime();
+		if(mystiflySessionWrappers != null) {
+			mSession = mystiflySessionWrappers.getSessionId();
+			mSessionCreatedTime = mystiflySessionWrappers.getSessionCreatedTime();
 		}
 		long diffInMinutes =0L;
-		//mSessionCreatedTime != null ||
-		if(mSessionCreatedTime !="0") {
+		if(mSessionCreatedTime != "") {
 			Double d = Double.parseDouble(mSessionCreatedTime.trim());
 			Long sessionCreationTime = d.longValue();
 			long diff = mSessionValidity - sessionCreationTime;
@@ -94,15 +97,26 @@ public class SessionsHandler {
 			System.out.println("Time Difference " + diffInMinutes);
 		}
 		if((mSession =="" || mSession == null) || (diffInMinutes > 18)) {
+			List<MystiflySessionWrapper> mystiflySessionWrapperList = MystiflySessionWrapper.findByAllActiveSession();
+			for(MystiflySessionWrapper mystiflySessionWrapper : mystiflySessionWrapperList){
+				mystiflySessionWrapper.delete();
+			}
 			SessionsHandler sessionsHandler = new SessionsHandler();
 			SessionCreateRS sessionRS = sessionsHandler.login();
-			redisTemplate.opsForValue().set(":mystiflySession", Json.stringify(Json.toJson(sessionRS.getSessionId())));
-			redisTemplate.opsForValue().set(":mystiflySessionTime", Json.stringify(Json.toJson(mSessionValidity.toString())));
+			MystiflySessionWrapper mystiflySessionWrapper = new MystiflySessionWrapper();
+			//if(sessionRS.isNilErrors()){
+				mystiflySessionWrapper.setSessionId(sessionRS.getSessionId());
+				mystiflySessionWrapper.setActiveContext(true);
+				mystiflySessionWrapper.setSessionCreatedTime(mSessionValidity.toString());
+				mystiflySessionWrapper.save();
+			//}
+			//session.put("mSessionId",sessionRS.getSessionId());
+			//session.put("mSessionValidity",mSessionValidity.toString());
 			System.out.println("Creating new Session "+sessionRS.getSessionId());
 			return sessionRS.getSessionId();
 		} else {
-			System.out.println("Return Existing Session "+(String)redisTemplate.opsForValue().get(":mystiflySessionTime"));
-			return (String)redisTemplate.opsForValue().get(":mystiflySessionTime");
+			System.out.println("Return Existing Session "+mystiflySessionWrappers.getSessionId());
+			return mystiflySessionWrappers.getSessionId();
 		}
 	}
 

@@ -21,7 +21,8 @@ public class AirTripDetailsClient {
 	public AirTripDetailsRS getAirTripDetails(String pnr)
 			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
-		SessionCreateRS sessionRS = sessionsHandler.login();
+		//SessionCreateRS sessionRS = sessionsHandler.login();
+		String sessoinId = sessionsHandler.mystiflySessionHandler();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
 		TripDetailsDocument tripDetailsDoc = TripDetailsDocument.Factory
@@ -29,7 +30,7 @@ public class AirTripDetailsClient {
 		TripDetails tripDetails = tripDetailsDoc.addNewTripDetails();
 		AirTripDetailsRQ airRQ = tripDetails.addNewRq();
 
-		airRQ.setSessionId(sessionRS.getSessionId());
+		airRQ.setSessionId(sessoinId);
 		airRQ.setTarget(Target.TEST);
 		airRQ.setUniqueID(pnr);
 //		airRQ.setSendOnlyTicketed(true);

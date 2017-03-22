@@ -4,8 +4,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.datacontract.schemas._2004._07.mystifly_onepoint_airrules1_1.AirRulesRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint_airrules1_1.BaggageInfo;
+import org.datacontract.schemas._2004._07.mystifly_onepoint_airrules1_1.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -64,7 +63,27 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 		}
 		return flightItinerary;
 	}
-	
+
+	public String getMystiflyFareRules(FlightItinerary flightItinerary,SearchParameters searchParam, boolean seamen) {
+		AirRulesClient airRulesClient = new AirRulesClient();
+		StringBuilder fareRule = new StringBuilder();
+		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getFareSourceCode());
+		FareRule[] fareRules = airRulesRS.getFareRules().getFareRuleArray();
+		try {
+			for(FareRule fareRule1:fareRules){
+				RuleDetail[] ruleDetail = fareRule1.getRuleDetails().getRuleDetailArray();
+				for(RuleDetail ruleDetail1 : ruleDetail){
+					fareRule.append(ruleDetail1.getRules());
+				}
+			}
+			logger.debug("Fare Rules "+fareRule.toString());
+		} catch (Exception e){
+			mystiflyLogger.error("Error in Mystifly getFareRules", e);
+			e.printStackTrace();
+		}
+		return fareRule.toString().replace("\n", "").replace("\r", "");
+	}
+
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
 		return flightItinerary;
 	}

@@ -60,7 +60,7 @@ public class FlightInfoServiceWrapper {
 			fareRules = amadeusFlightInfoService.getCancellationFee(
 					flightItinerary, searchParams, seamen);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
-			// No Cancellation fees
+			fareRules = mystiflyFlightInfoService.getMystiflyFareRules(flightItinerary, searchParams, seamen);
 		}
 		return fareRules;
 	}

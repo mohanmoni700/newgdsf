@@ -36,7 +36,8 @@ public class BookFlightClient {
 	public AirBookRS bookFlight(FlightItinerary itinerary, List<Traveller> travellerList, String userTimezone)
 			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
-		SessionCreateRS sessionRS = sessionsHandler.login();
+		//SessionCreateRS sessionRS = sessionsHandler.login();
+		String sessoinId = sessionsHandler.mystiflySessionHandler();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
 //		FlightItinerary itinerary = travellerMasterInfo.getItinerary();
@@ -44,7 +45,7 @@ public class BookFlightClient {
 		BookFlightDocument bookFlightDocument = BookFlightDocument.Factory
 				.newInstance();
 		AirBookRQ airBookRQ = bookFlightDocument.addNewBookFlight().addNewRq();
-		airBookRQ.setSessionId(sessionRS.getSessionId());
+		airBookRQ.setSessionId(sessoinId);
 		airBookRQ.setTarget(Mystifly.TARGET);
 		airBookRQ.setFareSourceCode(fareSourceCode);
 		TravelerInfo travelerInfo = airBookRQ.addNewTravelerInfo();

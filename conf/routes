@@ -23,6 +23,9 @@ GET     /displayTST/:pnr/:provider                       @controllers.Applicatio
 POST    /priceBookedPNR                         @controllers.Application.priceBookedPNR()
 
 GET     /getTicktedMessage                          @controllers.Application.getTicktedMessage()
+POST    /getTripDetails                             @controllers.Application.getTripDetails()
+POST    /removeTicktedMessage                       @controllers.Application.removeTicktedMessage()
+POST     /getMessagesFromQueue                       @controllers.Application.getMessagesFromQueue()
 
 
 # Map static resources from the /public folder to the /assets URL path

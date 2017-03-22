@@ -240,6 +240,11 @@ public class Application {
         JsonNode json = request().body().asJson();
         AirMessageQueue airMessageQueue = new AirMessageQueue();
         AirMessageQueueRS airMessageQueueRS = airMessageQueue.addMessage();
+        MessageItems messageItems = getMessagesIitem(airMessageQueueRS);
+        return ok(Json.toJson(messageItems));
+    }
+
+    public MessageItems getMessagesIitem(AirMessageQueueRS airMessageQueueRS){
         MessageItems messageItems = new MessageItems();
         List<MessageItem> messageItemList = new ArrayList<>();
         for ( org.datacontract.schemas._2004._07.mystifly_onepoint.MessageItem items : airMessageQueueRS.getMessageItems().getMessageItemArray()) {
@@ -252,15 +257,23 @@ public class Application {
             messageItemList.add(messageItem);
         }
         messageItems.setMessageItem(messageItemList);
-        return ok(Json.toJson(messageItems));
+        return messageItems;
     }
-
     public Result getTripDetails() throws RemoteException{
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         IssuanceResponse issuanceResponse = bookingService.readTripDetails(issuanceRequest);
         logger.debug("-----------------Trip Details Response:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
+    }
+
+    public Result getMessagesFromQueue() throws RemoteException{
+        JsonNode json = request().body().asJson();
+        String category = Json.fromJson(json.findPath("queueCategory"), String.class);
+        AirMessageQueue airMessageQueue = new AirMessageQueue();
+        AirMessageQueueRS airMessageQueueRS = airMessageQueue.getAllMessages(category);
+        MessageItems messageItems = getMessagesIitem(airMessageQueueRS);
+        return ok(Json.toJson(messageItems));
     }
     public Result removeTicktedMessage() throws RemoteException {
         JsonNode json = request().body().asJson();

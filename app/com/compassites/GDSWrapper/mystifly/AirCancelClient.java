@@ -17,14 +17,15 @@ public class AirCancelClient {
 	
 	public void cancelBooking(String pnr) throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
-		SessionCreateRS sessionRS = sessionsHandler.login();
+		//SessionCreateRS sessionRS = sessionsHandler.login();
+		String sessoinId = sessionsHandler.mystiflySessionHandler();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 		
 		CancelBookingDocument cancelBookingDoc = CancelBookingDocument.Factory.newInstance();
 		CancelBooking cancelBooking = cancelBookingDoc.getCancelBooking();
 		AirCancelRQ airCancelRQ = cancelBooking.addNewRq();
 		
-		airCancelRQ.setSessionId(sessionRS.getSessionId());
+		airCancelRQ.setSessionId(sessoinId);
 		airCancelRQ.setTarget(Mystifly.TARGET);
 		airCancelRQ.setUniqueID(pnr);
 		XMLFileUtility.createFile(cancelBookingDoc.xmlText(), "CancelBookingRQ.xml");

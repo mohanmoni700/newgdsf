@@ -205,4 +205,10 @@ public class BookingServiceWrapper {
 
 		return issuanceResponse;
 	}
+
+	/*public IssuanceResponse readTripDetails(IssuanceRequest issuanceRequest) {
+		IssuanceResponse issuanceResponse = null;
+		issuanceResponse = mystiflyBookingService.readTripDetails(issuanceRequest);
+		return issuanceResponse;
+	}*/
 }

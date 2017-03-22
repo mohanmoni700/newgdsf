@@ -30,8 +30,8 @@ public class AirLowFareSearchClient {
 	public AirLowFareSearchRS search(SearchParameters searchParams)
 			throws RemoteException {
 		SessionsHandler sessionsHandler = new SessionsHandler();
-		SessionCreateRS sessionRS = sessionsHandler.login();
-		//String sessoinId = sessionsHandler.mystiflySessionHandler();
+		//SessionCreateRS sessionRS = sessionsHandler.login();
+		String sessoinId = sessionsHandler.mystiflySessionHandler();
 		OnePointStub onePointStub = sessionsHandler.getOnePointStub();
 
 		AirLowFareSearchDocument searchRQDoc = AirLowFareSearchDocument.Factory
@@ -39,7 +39,7 @@ public class AirLowFareSearchClient {
 		AirLowFareSearch lowFareSearch = searchRQDoc.addNewAirLowFareSearch();
 		AirLowFareSearchRQ searchRQ = lowFareSearch.addNewRq();
 
-		searchRQ.setSessionId(sessionRS.getSessionId());
+		searchRQ.setSessionId(sessoinId);
 		searchRQ.setTarget(Mystifly.TARGET);
 		searchRQ.setRequestOptions(RequestOptions.HUNDRED);
 		searchRQ.setIsRefundable(searchParams.getRefundableFlights());
