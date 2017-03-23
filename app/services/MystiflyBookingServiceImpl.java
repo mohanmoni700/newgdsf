@@ -67,7 +67,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 			revalidateRS = revalidateClient.revalidate(fareSourceCode);
 			if (revalidateRS.getSuccess()) {
 				PricedItinerary itinerary = revalidateRS.getPricedItineraries().getPricedItineraryArray(0);
-				if (revalidateRS.getIsValid() || itinerary.isNil()) {
+				if (revalidateRS.getIsValid() || !itinerary.isNil()) {
 
 					String newFareSourceCode = itinerary
 							.getAirItineraryPricingInfo().getFareSourceCode();
