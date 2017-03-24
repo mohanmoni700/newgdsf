@@ -215,21 +215,26 @@ public class AmadeusIssuanceServiceImpl {
                 issuanceResponse.setErrorMessage(errorMessage);
                 return true;
             } else if (errorMessages.equals("NO TICKETABLE VALIDATING CARRIER")) {
-                issuanceResponse.setErrorCode("NO_FARE");
+               issuanceResponse.setErrorCode("NO_FARE");
+                issuanceResponse.setSuccess(true);
                 ErrorMessage errorMessage = ErrorMessageHelper
                         .createErrorMessage("error",
                                 ErrorMessage.ErrorType.ERROR, "Amadeus");
                 issuanceResponse.setErrorMessage(errorMessage);
+
                 return true;
             } else if (errorMessages.equals("NO CURRENT FARE IN SYSTEM")) {
                 issuanceResponse.setErrorCode("NO_FARE");
+                issuanceResponse.setSuccess(true);
                 ErrorMessage errorMessage = ErrorMessageHelper
                         .createErrorMessage("error",
                                 ErrorMessage.ErrorType.ERROR, "Amadeus");
                 issuanceResponse.setErrorMessage(errorMessage);
+
                 return true;
             } else if (errorMessages.equals("NO VALID FARE/RULE COMBINATIONS FOR PRICING")) {
                 issuanceResponse.setErrorCode("NO_FARE");
+                issuanceResponse.setSuccess(true);
                 ErrorMessage errorMessage = ErrorMessageHelper
                         .createErrorMessage("error",
                                 ErrorMessage.ErrorType.ERROR, "Amadeus");
