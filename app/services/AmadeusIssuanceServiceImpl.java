@@ -89,10 +89,10 @@ public class AmadeusIssuanceServiceImpl {
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
                             issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing);
 
-                    if (pricePNRReply.getApplicationError().getErrorWarningDescription().getFreeText().size() > 0) {
+                    /*if (pricePNRReply.getApplicationError().getErrorWarningDescription().getFreeText().size() > 0) {
                         repricingErrors(issuanceResponse, pricePNRReply);
                         return issuanceResponse;
-                    }
+                    }*/
                     if (pricePNRReply.getApplicationError() != null) {
                         repricingErrors(issuanceResponse, pricePNRReply);
                         return issuanceResponse;
