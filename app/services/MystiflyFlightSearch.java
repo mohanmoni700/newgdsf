@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Santhosh
  */
-//@Service
+@Service
 public class MystiflyFlightSearch implements FlightSearch {
 
 	private SearchParameters searchParams;

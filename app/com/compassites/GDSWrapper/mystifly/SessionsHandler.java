@@ -80,7 +80,6 @@ public class SessionsHandler {
 
 	public String mystiflySessionHandler(){
 		MystiflySessionWrapper mystiflySessionWrappers = MystiflySessionWrapper.findByActiveSession();
-	//	Http.Session session = Http.Context.current().session();
 		String mSession = "";
 		String mSessionCreatedTime = "";
 		Long mSessionValidity = new Date().getTime();

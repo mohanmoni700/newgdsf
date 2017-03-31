@@ -179,7 +179,8 @@ public class Application {
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         Boolean isSeamen = Json.fromJson(json.findPath("isSeamen"), Boolean.class);
-    	LowFareResponse lowestFare = bookingService.getLowestFare(pnr, provider, isSeamen);
+        IssuanceRequest issuanceRequest = Json.fromJson(json.findPath("issuanceRequest"), IssuanceRequest.class);
+    	LowFareResponse lowestFare = bookingService.getLowestFare(issuanceRequest);
     	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
     }

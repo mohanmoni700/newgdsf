@@ -53,7 +53,7 @@ import static com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchRe
  * Time: 3:50 PM
  * To change this template use File | Settings | File Templates.
  */
-//@Service
+@Service
 public class AmadeusFlightSearch implements FlightSearch{
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
