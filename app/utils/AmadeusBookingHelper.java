@@ -134,6 +134,7 @@ public class AmadeusBookingHelper {
         int segmentSequence = 1;
         String segmentRef = "";
         String key1 = "";
+        Object[] travelArray = null;
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
                 segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
@@ -165,7 +166,17 @@ public class AmadeusBookingHelper {
             } else {
                     passengerRef = key1;
                 }
-                PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
+                PNRReply.TravellerInfo traveller = null;
+                // Fix for one way multi tst ticket not getting uploaded
+                if(passengerRef.isEmpty())
+                {
+                    travelArray = (Object[]) travellerMap.keySet().toArray();
+                    for(int i=0;i<travelArray.length;i++) {
+                        passengerRef = (String) travelArray[i];
+                    }
+                }
+                traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
+
                 String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
                 String name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
 
@@ -1219,11 +1230,15 @@ public class AmadeusBookingHelper {
         		bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
                 if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
                     if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
-                        tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+                        if(bagAllowance.getBaggageWeight() != null) {
+                            tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
+                        }
                     }
                 } else {
                     if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
-                        tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
+                        if(bagAllowance.getBaggageQuantity() != null) {
+                            tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
+                        }
                     }
                 }
                 //reading booking class(RBD)
