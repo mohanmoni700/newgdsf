@@ -31,7 +31,7 @@ public class AirTripDetailsClient {
 		AirTripDetailsRQ airRQ = tripDetails.addNewRq();
 
 		airRQ.setSessionId(sessoinId);
-		airRQ.setTarget(Target.TEST);
+		airRQ.setTarget(Mystifly.TARGET);
 		airRQ.setUniqueID(pnr);
 //		airRQ.setSendOnlyTicketed(true);
 		XMLFileUtility.createFile(tripDetailsDoc.xmlText(), "TripDetailsRQ.xml");
