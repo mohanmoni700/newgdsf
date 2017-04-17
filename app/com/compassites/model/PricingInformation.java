@@ -64,6 +64,8 @@ public class PricingInformation {
 
 	private Map<String, TSTPrice> tstPriceMap;
 
+	private String fareSourceCode;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
@@ -270,6 +272,14 @@ public class PricingInformation {
 
 	public void setSegmentPricingList(List<SegmentPricing> segmentPricingList) {
 		this.segmentPricingList = segmentPricingList;
+	}
+
+	public String getFareSourceCode() {
+		return fareSourceCode;
+	}
+
+	public void setFareSourceCode(String fareSourceCode) {
+		this.fareSourceCode = fareSourceCode;
 	}
 
 	@Override

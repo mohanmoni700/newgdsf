@@ -29,7 +29,7 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary,SearchParameters searchParam, boolean seamen) {
 
 		AirRulesClient airRulesClient = new AirRulesClient();
-		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getFareSourceCode());
+		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getPricingInformation().getFareSourceCode());
 		BaggageInfo[] baggageInfos = airRulesRS.getBaggageInfos().getBaggageInfoArray();
 
 		try {
@@ -67,7 +67,7 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 	public String getMystiflyFareRules(FlightItinerary flightItinerary,SearchParameters searchParam, boolean seamen) {
 		AirRulesClient airRulesClient = new AirRulesClient();
 		StringBuilder fareRule = new StringBuilder();
-		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getFareSourceCode());
+		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getPricingInformation().getFareSourceCode());
 		FareRule[] fareRules = airRulesRS.getFareRules().getFareRuleArray();
 		try {
 			for(FareRule fareRule1:fareRules){

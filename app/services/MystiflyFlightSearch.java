@@ -149,6 +149,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 				journey.setAirSegmentList(airSegmentInformations);
 				journey.setNoOfStops(airSegmentInformations.size() - 1);
 				journey.setTravelTime(getTravelTime(airSegmentInformations));
+				journey.setProvider("Mystifly");
 				journeys.add(journey);
 			}
 		}

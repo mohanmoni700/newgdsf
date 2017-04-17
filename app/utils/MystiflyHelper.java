@@ -32,6 +32,7 @@ public class MystiflyHelper {
         pricingInfo.setTotalPrice(new BigDecimal(total));
         pricingInfo.setGdsCurrency("INR");
         pricingInfo.setTotalPriceValue(pricingInfo.getTotalPrice());
+        pricingInfo.setFareSourceCode(airlinePricingInfo.getFareSourceCode());
         setFareBeakup(pricingInfo, airlinePricingInfo);
         return pricingInfo;
     }

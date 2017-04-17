@@ -57,8 +57,8 @@ public class MystiflyBookingServiceImpl implements BookingService {
 
 	@Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
-		String fareSourceCode = travellerMasterInfo.getItinerary()
-				.getFareSourceCode();
+		String fareSourceCode = travellerMasterInfo.getItinerary().getPricingInformation().getFareSourceCode();
+
 		AirRevalidateClient revalidateClient = new AirRevalidateClient();
 		PNRResponse pnrRS = new PNRResponse();
 		AirRevalidateRS revalidateRS;
@@ -311,8 +311,8 @@ public class MystiflyBookingServiceImpl implements BookingService {
 
 	public PNRResponse checkFareChangeAndAvailability(
 			TravellerMasterInfo travellerMasterInfo) {
-		String fareSourceCode = travellerMasterInfo.getItinerary()
-				.getFareSourceCode();
+		String fareSourceCode = travellerMasterInfo.getItinerary().getPricingInformation().getFareSourceCode();
+
 		AirRevalidateClient revalidateClient = new AirRevalidateClient();
 		PNRResponse pnrRS = new PNRResponse();
 		AirRevalidateRS revalidateRS;
