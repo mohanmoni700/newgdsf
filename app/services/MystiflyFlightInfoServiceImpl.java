@@ -67,21 +67,28 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 	public String getMystiflyFareRules(FlightItinerary flightItinerary,SearchParameters searchParam, boolean seamen) {
 		AirRulesClient airRulesClient = new AirRulesClient();
 		StringBuilder fareRule = new StringBuilder();
+		String fareRuleString = "";
 		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getPricingInformation().getFareSourceCode());
 		FareRule[] fareRules = airRulesRS.getFareRules().getFareRuleArray();
 		try {
-			for(FareRule fareRule1:fareRules){
-				RuleDetail[] ruleDetail = fareRule1.getRuleDetails().getRuleDetailArray();
-				for(RuleDetail ruleDetail1 : ruleDetail){
-					fareRule.append(ruleDetail1.getRules());
+			if(fareRules.length != 0) {
+				for (FareRule fareRule1 : fareRules) {
+					RuleDetail[] ruleDetail = fareRule1.getRuleDetails().getRuleDetailArray();
+					for (RuleDetail ruleDetail1 : ruleDetail) {
+						fareRule.append(ruleDetail1.getRules());
+					}
 				}
+				//fareRuleString = fareRule.toString().replace("\n", "").replace("<br>", "").replace("\t", "").replace("\r", "").replace("\"", "");
+				fareRuleString = fareRule.toString().replaceAll("\\<.*?\\>", "").replace("\n", "").replace("\t", "").replace("\r", "");
+				logger.debug("Fare Rules " + fareRule.toString());
+			} else {
+				fareRuleString = "No Fare Rules";
 			}
-			logger.debug("Fare Rules "+fareRule.toString());
 		} catch (Exception e){
 			mystiflyLogger.error("Error in Mystifly getFareRules", e);
 			e.printStackTrace();
 		}
-		return fareRule.toString().replace("\n", "").replace("\r", "");
+		return fareRuleString;
 	}
 
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
