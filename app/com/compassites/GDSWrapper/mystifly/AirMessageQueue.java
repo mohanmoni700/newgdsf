@@ -24,9 +24,9 @@ public class AirMessageQueue {
         airMessageQueueRQ.setSessionId(sessoinId);
         airMessageQueueRQ.setTarget(Mystifly.TARGET);
         airMessageQueueRQ.setCategoryId(QueueCategory.TICKETED);
-        //XMLFileUtility.createFile(airMessageQueueRQ.xmlText(), "AiMessageRQ.xml");
+        XMLFileUtility.createFile(airMessageQueueRQ.xmlText(), "AiMessageRQ.xml");
         MessageQueuesResponseDocument messageQueuesResponseDocument = onePointStub.messageQueues(msgQueue);
-       // XMLFileUtility.createFile(messageQueuesResponseDocument.xmlText(), "AiMessageRS.xml");
+        XMLFileUtility.createFile(messageQueuesResponseDocument.xmlText(), "AiMessageRS.xml");
         return messageQueuesResponseDocument.getMessageQueuesResponse().getMessageQueuesResult();
     }
 
