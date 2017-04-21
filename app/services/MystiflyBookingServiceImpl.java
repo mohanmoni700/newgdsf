@@ -185,7 +185,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		PricingInformation pricingInfo = issuanceRequest.getFlightItinerary().getPricingInformation();
 		try {
-			if (pricingInfo.isLCC()) {
+			//if (pricingInfo.isLCC()) {
 				PNRResponse pnrRS = new PNRResponse();
 				TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
 				travellerMasterInfo.setItinerary(issuanceRequest.getFlightItinerary());
@@ -208,7 +208,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				List<Traveller> travellerList = issuanceRequest.getTravellerList();
 				setTravellerTickets(travellerList, issuanceRequest.getGdsPNR());
 				issuanceResponse.setTravellerList(travellerList);
-			}
+			//}
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -322,13 +322,16 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				if (revalidateRS.getIsValid()) {
 					PricedItinerary itinerary = revalidateRS
 							.getPricedItineraries().getPricedItineraryArray(0);
+					AirItineraryPricingInfo airItineraryPricingInfo = revalidateRS.getPricedItineraries().getPricedItineraryArray(0).getAirItineraryPricingInfo();
+					PricingInformation newPriceInfo = MystiflyHelper.setPricingInformtions(airItineraryPricingInfo);
 					String newFareSourceCode = itinerary
 							.getAirItineraryPricingInfo().getFareSourceCode();
 					travellerMasterInfo.getItinerary().setFareSourceCode(
 							newFareSourceCode);
+					//travellerMasterInfo.getItinerary().getPricingInformation().setAdtBasePrice();
 					pnrRS.setFlightAvailable(true);
-					pnrRS.setPricingInfo(travellerMasterInfo.getItinerary()
-							.getPricingInformation(travellerMasterInfo.isSeamen()));
+					pnrRS.setPricingInfo(newPriceInfo);
+					//pnrRS.setPricingInfo(travellerMasterInfo.getItinerary().getPricingInformation(travellerMasterInfo.isSeamen()));
 				} else if (revalidateRS.getPricedItineraries() == null
 						|| revalidateRS.getPricedItineraries()
 						.getPricedItineraryArray() == null
