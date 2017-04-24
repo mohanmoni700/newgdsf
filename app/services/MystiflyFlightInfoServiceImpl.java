@@ -1,9 +1,12 @@
 package services;
 
 import java.math.BigInteger;
+import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.compassites.GDSWrapper.mystifly.AirRevalidateClient;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirRevalidateRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint_airrules1_1.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,26 +70,39 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 	public String getMystiflyFareRules(FlightItinerary flightItinerary,SearchParameters searchParam, boolean seamen) {
 		AirRulesClient airRulesClient = new AirRulesClient();
 		StringBuilder fareRule = new StringBuilder();
+		String fareSourceCode = flightItinerary.getPricingInformation().getFareSourceCode();
 		String fareRuleString = "";
-		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getPricingInformation().getFareSourceCode());
-		FareRule[] fareRules = airRulesRS.getFareRules().getFareRuleArray();
+		AirRevalidateClient revalidateClient = new AirRevalidateClient();
+		AirRevalidateRS revalidateRS;
 		try {
-			if(fareRules.length != 0) {
-				for (FareRule fareRule1 : fareRules) {
-					RuleDetail[] ruleDetail = fareRule1.getRuleDetails().getRuleDetailArray();
-					for (RuleDetail ruleDetail1 : ruleDetail) {
-						fareRule.append(ruleDetail1.getRules());
+			revalidateRS = revalidateClient.revalidate(fareSourceCode);
+			if(revalidateRS.getIsValid()) {
+				//revalidateRS.getPricedItineraries().getPricedItineraryArray(0).getAirItineraryPricingInfo().getFareSourceCode()
+				AirRulesRS airRulesRS = airRulesClient.getAirRules(fareSourceCode);
+				FareRule[] fareRules = airRulesRS.getFareRules().getFareRuleArray();
+				try {
+					if (fareRules.length != 0) {
+						for (FareRule fareRule1 : fareRules) {
+							RuleDetail[] ruleDetail = fareRule1.getRuleDetails().getRuleDetailArray();
+							for (RuleDetail ruleDetail1 : ruleDetail) {
+								fareRule.append(ruleDetail1.getRules());
+							}
+						}
+						//fareRuleString = fareRule.toString().replace("\n", "").replace("<br>", "").replace("\t", "").replace("\r", "").replace("\"", "");
+						fareRuleString = fareRule.toString().replaceAll("\\<.*?\\>", "").replace("\n", "").replace("\t", "").replace("\r", "");
+						logger.debug("Fare Rules " + fareRule.toString());
+					} else {
+						fareRuleString = "No Fare Rules";
 					}
+				} catch (Exception e) {
+					mystiflyLogger.error("Error in Mystifly getFareRules", e);
+					e.printStackTrace();
 				}
-				//fareRuleString = fareRule.toString().replace("\n", "").replace("<br>", "").replace("\t", "").replace("\r", "").replace("\"", "");
-				fareRuleString = fareRule.toString().replaceAll("\\<.*?\\>", "").replace("\n", "").replace("\t", "").replace("\r", "");
-				logger.debug("Fare Rules " + fareRule.toString());
 			} else {
-				fareRuleString = "No Fare Rules";
+				fareRuleString = "No Fare";
 			}
-		} catch (Exception e){
-			mystiflyLogger.error("Error in Mystifly getFareRules", e);
-			e.printStackTrace();
+		} catch (RemoteException rm){
+
 		}
 		return fareRuleString;
 	}
