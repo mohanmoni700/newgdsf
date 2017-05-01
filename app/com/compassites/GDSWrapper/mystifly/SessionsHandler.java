@@ -42,6 +42,8 @@ public class SessionsHandler {
 	@Autowired
 	private RedisTemplate redisTemplate;
 
+	static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
+
 	public SessionsHandler() {
 		try {
 			onePointStub = new OnePointStub(Mystifly.ENDPOINT_ADDRESS);
@@ -66,10 +68,12 @@ public class SessionsHandler {
 			sessionRQ.setAccountNumber(Mystifly.ACCOUNT_NUMBER);
 			sessionRQ.setUserName(Mystifly.USERNAME);
 			sessionRQ.setPassword(Mystifly.PASSWORD);
-			XMLFileUtility.createFile(sessionDoc.xmlText(), "MystiflySessionRQ.xml");
+			//XMLFileUtility.createFile(sessionDoc.xmlText(), "MystiflySessionRQ.xml");
+			mystiflyLogger.debug("MystiflySessionRQ " + new Date() +" ---->" + sessionDoc);
 			CreateSessionResponseDocument createSessionResponseDocument = onePointStub
 					.createSession(sessionDoc);
-			XMLFileUtility.createFile(createSessionResponseDocument.xmlText(), "MystiflySessionRS.xml");
+			//XMLFileUtility.createFile(createSessionResponseDocument.xmlText(), "MystiflySessionRS.xml");
+			mystiflyLogger.debug("MystiflySessionRS " + new Date() +" ---->" + createSessionResponseDocument);
 			sessionRS = createSessionResponseDocument
 					.getCreateSessionResponse().getCreateSessionResult();
 		} catch (RemoteException e) {

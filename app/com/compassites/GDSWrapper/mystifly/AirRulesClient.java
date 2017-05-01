@@ -44,6 +44,7 @@ public class AirRulesClient {
 			e.printStackTrace();
 		}
 		AirRulesRS airRulesRS = fareRulesRSDoc.getFareRules11Response().getFareRules11Result();
+		mystiflyLogger.debug("AirRulesClientRs " + new Date() +" ---->" + airRulesRS);
 		XMLFileUtility.createFile(fareRulesRSDoc.xmlText(), "airRulesRS.xml");
 
 		return airRulesRS;
