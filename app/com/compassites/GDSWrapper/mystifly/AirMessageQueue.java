@@ -5,14 +5,18 @@ import onepoint.mystifly.*;
 import onepoint.mystifly.MessageQueuesDocument.MessageQueues;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Item;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.XMLFileUtility;
 
 import java.rmi.RemoteException;
+import java.util.Date;
 
 /**
  * Created by Satish Kumar on 14-10-2016.
  */
 public class AirMessageQueue {
+    static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
     public AirMessageQueueRS addMessage() throws RemoteException {
         SessionsHandler sessionsHandler = new SessionsHandler();
         OnePointStub onePointStub = sessionsHandler.getOnePointStub();
@@ -25,7 +29,9 @@ public class AirMessageQueue {
         airMessageQueueRQ.setTarget(Mystifly.TARGET);
         airMessageQueueRQ.setCategoryId(QueueCategory.TICKETED);
         XMLFileUtility.createFile(airMessageQueueRQ.xmlText(), "AiMessageRQ.xml");
+        mystiflyLogger.debug("AiMessageRQ "+ new Date() +" ----->>" + airMessageQueueRQ.xmlText());
         MessageQueuesResponseDocument messageQueuesResponseDocument = onePointStub.messageQueues(msgQueue);
+        mystiflyLogger.debug("AiMessageRS "+ new Date() +" ----->>" + messageQueuesResponseDocument.xmlText());
         XMLFileUtility.createFile(messageQueuesResponseDocument.xmlText(), "AiMessageRS.xml");
         return messageQueuesResponseDocument.getMessageQueuesResponse().getMessageQueuesResult();
     }
@@ -45,7 +51,9 @@ public class AirMessageQueue {
         airRemoveMessageQueueRQ.setSessionId(sessoinId);
         airRemoveMessageQueueRQ.setTarget(Mystifly.TARGET);
         XMLFileUtility.createFile(removeMessageQueuesDocument.xmlText(), "AirRemoveMessageRQ.xml");
+        mystiflyLogger.debug("AirRemoveMessageRQ "+ new Date() +" ----->>" + removeMessageQueuesDocument.xmlText());
         RemoveMessageQueuesResponseDocument removeMessageQueuesResponseDocument = onePointStub.removeMessageQueues(removeMessageQueuesDocument);
+        mystiflyLogger.debug("AirRemoveMessageRS "+ new Date() +" ----->>" + removeMessageQueuesResponseDocument.xmlText());
         XMLFileUtility.createFile(removeMessageQueuesResponseDocument.xmlText(), "AirRemoveMessageRS.xml");
         return removeMessageQueuesResponseDocument.getRemoveMessageQueuesResponse().getRemoveMessageQueuesResult();
     }
@@ -61,7 +69,9 @@ public class AirMessageQueue {
         airMessageQueueRQ.setTarget(Mystifly.TARGET);
         airMessageQueueRQ.setCategoryId(QueueCategory.Enum.forString(category));
         XMLFileUtility.createFile(airMessageQueueRQ.xmlText(), "Air"+category+"MessageRQ.xml");
+        mystiflyLogger.debug("Air"+category+"MessageRQ"+ new Date() +" ----->>" + airMessageQueueRQ.xmlText());
         MessageQueuesResponseDocument messageQueuesResponseDocument = onePointStub.messageQueues(msgQueue);
+        mystiflyLogger.debug("Air"+category+"MessageRS "+ new Date() +" ----->>" + messageQueuesResponseDocument.xmlText());
         XMLFileUtility.createFile(messageQueuesResponseDocument.xmlText(), "Air"+category+"MessageRS.xml");
         return messageQueuesResponseDocument.getMessageQueuesResponse().getMessageQueuesResult();
     }

@@ -59,10 +59,10 @@ public class BookFlightClient {
 
 		// TODO: Set dynamic values
 //		 travelerInfo.setAreaCode("809");
-		XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
+		//XMLFileUtility.createFile(airBookRQ.xmlText(), "AirBookRQ.xml");
         mystiflyLogger.debug("AirBookRQ "+ new Date() +" ----->>" + airBookRQ.xmlText());
 		BookFlightResponseDocument rsDoc = onePointStub.bookFlight(bookFlightDocument);
-		XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
+		//XMLFileUtility.createFile(rsDoc.getBookFlightResponse().getBookFlightResult().xmlText(), "AirBookRS.xml");
         mystiflyLogger.debug("AirBookRS "+ new Date() +" ----->>" + rsDoc.getBookFlightResponse().getBookFlightResult().xmlText());
 		return rsDoc.getBookFlightResponse().getBookFlightResult();
 	}
