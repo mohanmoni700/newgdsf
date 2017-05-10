@@ -357,7 +357,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
 		Date lastTicketingDate = null;
-		if(pricePNRReply.getFareList().get(0).getLastTktDate() != null){
+		if (pricePNRReply.getFareList() != null && pricePNRReply.getFareList().size() > 0 && pricePNRReply.getFareList().get(0) != null && pricePNRReply.getFareList().get(0).getLastTktDate() != null) {
 			StructuredDateTimeType dateTime = pricePNRReply
 					.getFareList().get(0).getLastTktDate().getDateTime();
 			String day = ((dateTime.getDay().toString().length() == 1) ? "0"
