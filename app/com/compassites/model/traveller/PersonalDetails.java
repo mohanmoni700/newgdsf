@@ -59,6 +59,8 @@ public class PersonalDetails {
 
     private Long travellerId;
 
+    private String paxType;
+
     @JsonIgnore
 	public PassengerTypeCode getPassengerType() {
 		return DateUtility.getPassengerTypeFromDOB(dateOfBirth);
@@ -216,4 +218,11 @@ public class PersonalDetails {
         this.designationId = designationId;
     }
 
+    public String getPaxType() {
+        return paxType;
+    }
+
+    public void setPaxType(String paxType) {
+        this.paxType = paxType;
+    }
 }
