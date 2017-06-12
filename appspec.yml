@@ -1,0 +1,16 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/apps/flyhi/GDSServiceauto
+permissions:
+   - object: /opt/apps/flyhi/GDSServiceauto
+     pattern: "**"
+     mode: 755
+     owner: flyhimaster
+     group: flyhimaster
+     type:
+       - file
+hooks:
+  ValidateService:
+    - location: commands.sh
