@@ -1000,15 +1000,18 @@ public class AmadeusBookingHelper {
         int adultCount = 0, childCount = 0, infantCount = 0;
         int totalCount = 0;
         for(Traveller traveller : travellerList){
-            PassengerTypeCode passengerTypeCode =DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
-            if(passengerTypeCode.name().equals(PassengerTypeCode.ADT.name())){
+            if(traveller.getPassportDetails() != null) {
+                PassengerTypeCode passengerTypeCode = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+                if (passengerTypeCode.name().equals(PassengerTypeCode.ADT.name())) {
+                    adultCount = 1;
+                } else if (passengerTypeCode.name().equals(PassengerTypeCode.CHD.name())) {
+                    childCount = 1;
+                } else {
+                    infantCount = 1;
+                }
+            } else {
                 adultCount = 1;
-            }else if(passengerTypeCode.name().equals(PassengerTypeCode.CHD.name()))  {
-                childCount = 1;
-            }else {
-                infantCount = 1;
             }
-
             totalCount = adultCount + childCount + infantCount;
 
         }
