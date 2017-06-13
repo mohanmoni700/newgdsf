@@ -1,7 +1,8 @@
 #!/bin/bash
 
-#export gdspid= `ps -ef | grep "jar gdsservice" | grep -v "grep" | awk '{print $2}'`
-#kill -9 $gdspid
+export gdspid=`ps -ef | grep "gdsservice" | grep -v "grep" | awk '{print $2}'`
+kill -9 $gdspid
 cd /opt/apps/flyhi/GDSServiceauto
-#chmod 664 application.properties
-#activator "run -Dhttp.port=9080 -Dconfig.resource=application.qa.conf"
+rm -rf RUNNING_PID
+cd /opt/apps/flyhi/GDSServiceauto/bin
+./gdsservice  -Dconfig.file=/opt/apps/flyhi/GDSServiceauto/bin/conf/application.qa.conf > /dev/null 2>&1&
