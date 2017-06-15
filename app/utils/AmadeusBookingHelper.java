@@ -1,6 +1,5 @@
 package utils;
 
-import com.amadeus.xml.fmptbr_14_2_1a.DateAndTimeInformationType;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
@@ -11,7 +10,6 @@ import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
 import com.amadeus.xml.tpcbrr_12_4_1a.MonetaryInformationDetailsType223826C;
-import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.ttstrr_13_1_1a.MonetaryInformationDetailsTypeI211824C;
 import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
@@ -33,12 +31,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Yaseen on 18-12-2014.
@@ -414,6 +407,8 @@ public class AmadeusBookingHelper {
                         .forPattern(DATE_FORMAT);
                 DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport
                         .getTime_zone());
+                DateTimeZone toDateTimeZone = DateTimeZone.forID(toAirport
+                        .getTime_zone());
                 String fromDateTime = itineraryInfo.getTravelProduct()
                         .getProduct().getArrDate()
                         + itineraryInfo.getTravelProduct().getProduct()
@@ -424,9 +419,9 @@ public class AmadeusBookingHelper {
                         .getDepTime();
                 DateTime departureDate = DATETIME_FORMATTER.withZone(
                         dateTimeZone).parseDateTime(toDateTime);
-                dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+               // dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
                 DateTime arrivalDate = DATETIME_FORMATTER.withZone(
-                        dateTimeZone).parseDateTime(fromDateTime);
+                        toDateTimeZone).parseDateTime(fromDateTime);
 
                 airSegmentInformation.setFlightNumber(itineraryInfo
                         .getTravelProduct().getProductDetails()
@@ -473,9 +468,10 @@ public class AmadeusBookingHelper {
                 //duration
                 DateTimeFormatter DATETIME_FORMATTER1 = DateTimeFormat.forPattern(DATE_FORMAT);
                 DateTimeZone dateTimeZone1 = DateTimeZone.forID(fromAirport.getTime_zone());
+                DateTimeZone toDateTimeZone1 = DateTimeZone.forID(toAirport.getTime_zone());
                 DateTime departureDate1 = DATETIME_FORMATTER1.withZone(dateTimeZone1).parseDateTime(toDateTime);
                 dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
-                DateTime arrivalDate1 = DATETIME_FORMATTER1.withZone(dateTimeZone1).parseDateTime(fromDateTime);
+                DateTime arrivalDate1 = DATETIME_FORMATTER1.withZone(toDateTimeZone1).parseDateTime(fromDateTime);
 
                 airSegmentInformation.setDepartureDate(departureDate1.toDate());
                 airSegmentInformation.setDepartureTime(departureDate1.toString());
