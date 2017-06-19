@@ -15,4 +15,3 @@ permissions:
 hooks:
   ValidateService:
     - location: commands.sh
-      runas: flyhimaster
