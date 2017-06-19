@@ -10,6 +10,7 @@ permissions:
      owner: flyhimaster
      group: flyhimaster
      type:
+       - directory
        - file
 hooks:
   ValidateService:
