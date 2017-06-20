@@ -157,6 +157,7 @@ public class Application {
     	IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
     	String gdsPNR = issuanceRequest.getGdsPNR();
     	String provider = issuanceRequest.getProvider();
+        logger.debug("==== in Application RQ ==== >>>>>>" + Json.toJson(issuanceRequest));
     	TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest, gdsPNR, provider);
     	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
@@ -283,6 +284,6 @@ public class Application {
         for (com.compassites.model.Item itemList : items.getItemList()) {
             airMessageQueue.removeMessageQueueRQ(itemList.getUniqueId());
         }
-        return ok("Success");
+        return ok(Json.toJson(airMessageQueue));
     }
 }
