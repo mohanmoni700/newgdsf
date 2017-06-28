@@ -340,10 +340,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	public PNRResponse createPNRResponse(PNRReply gdsPNRReply,
 			FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
 //		PNRResponse pnrResponse = new PNRResponse();
-		for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
-			pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
-					.getReservation().getControlNumber());
-		}
+		//for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
+			pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+		//}
         if(pricePNRReply != null){
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
         }
@@ -490,11 +489,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				if(isFA.equalsIgnoreCase("FA")){
 					AmadeusBookingHelper.createTickets(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
-					break;
-				} else if(isFA.equalsIgnoreCase("FHM")){
+					//break;
+				} if(isFA.equalsIgnoreCase("FHM")){
 					AmadeusBookingHelper.createOfflineTickets(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
-					break;
+					//break;
 				} /*else {
 					return masterInfo; 
 				}*/
