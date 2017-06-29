@@ -125,12 +125,12 @@ public class AmadeusBookingHelper {
         Map<String,Object> travellerMap = new HashMap<>();
         Map<String, String> segmentSequenceMap = new HashMap<>();
         int segmentSequence = 1;
-        String segmentRef = "";
+        //String segmentRef = "";
         String key1 = "";
         Object[] travelArray = null;
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-                segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
                 airSegmentRefMap.put(segmentRef,itineraryInfo);
                 segmentSequenceMap.put(segmentRef, segmentSequence+"");
                 segmentSequence++;
@@ -226,14 +226,14 @@ public class AmadeusBookingHelper {
                         }else {
                             ticketMap = new HashMap<>();
                         }
-                        //for(String segmentRef : segmentRefList){
+                        for(String segmentRef : segmentRefList){
                         PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
                         String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
                                 itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
                                 + segmentSequenceMap.get(segmentRef);
                         ticketMap.put(key.toLowerCase(),ticketNumber);
                         logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
-                        //}
+                        }
                         traveller1.setTicketNumberMap(ticketMap);
                     }
                 }
@@ -265,9 +265,9 @@ public class AmadeusBookingHelper {
         int segmentSequence = 1;
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-                String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-                airSegmentRefMap.put(segmentRef,itineraryInfo);
-                segmentSequenceMap.put(segmentRef, segmentSequence+"");
+                String segmentRef1 = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                airSegmentRefMap.put(segmentRef1,itineraryInfo);
+                segmentSequenceMap.put(segmentRef1, segmentSequence+"");
                 segmentSequence++;
             }
         }
@@ -278,14 +278,14 @@ public class AmadeusBookingHelper {
         for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv :gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()){
             if("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())){
                 String passengerRef = "";
-                List<String> segmentRefList = new ArrayList<>();
+                List<String> segmentRefList1 = new ArrayList<>();
                 String travellerKey = "";
                 for(ReferencingDetailsType111975C reference :dataElementsDiv.getReferenceForDataElement().getReference()){
                     travellerKey = reference.getQualifier()+ reference.getNumber();
                     if(travellerMap.containsKey(travellerKey)){
                         passengerRef = travellerKey;
                     }else {
-                        segmentRefList.add(travellerKey);
+                        segmentRefList1.add(travellerKey);
                     }
                 }
                 PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
@@ -345,7 +345,7 @@ public class AmadeusBookingHelper {
                         }else {
                             ticketMap = new HashMap<>();
                         }
-                        for(String segmentRef : segmentRefList){
+                        for(String segmentRef : segmentRefList1){
                             PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
                             String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
                                     itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
