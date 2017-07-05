@@ -10,15 +10,9 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.pnracc_11_3_1a.TravellerDetailsTypeI;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
-import com.amadeus.xml.tpcbrq_12_4_1a.*;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.StructuredDateTimeType;
-import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
-import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
-import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
-import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
-import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationType157202S;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
@@ -29,6 +23,7 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
@@ -39,8 +34,6 @@ import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.*;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -578,13 +571,33 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			for (TravellerInfo travellerInfo : travellerinfoList) {
 				PassengerData passengerData = travellerInfo.getPassengerData().get(0);
 				String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
-				String firstName = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
+				String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
+				String firstName = "";
 				Traveller traveller = new Traveller();
 				PersonalDetails personalDetails = new PersonalDetails();
-				String[] names = firstName.split("\\s");
-				personalDetails.setFirstName(names[0]);
-				if(names.length > 1)
-					personalDetails.setMiddleName(names[1]);
+				String[] names = firstNameResponse.split("\\s");
+				//personalDetails.setFirstName(names[0]);
+
+				if(names.length > 1){
+					//personalDetails.setSalutation(names[names.length-1]);
+					for (String name : names){
+						if(name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms")
+								|| name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")){
+							personalDetails.setSalutation(WordUtils.capitalizeFully(name));
+							if(personalDetails.getSalutation().equalsIgnoreCase("Mstr"))
+								personalDetails.setSalutation("Master");
+						}else{
+							firstName = name +" "+ firstName;
+						}
+
+					}
+					personalDetails.setFirstName(firstName.trim());
+				}
+
+
+
+				/*if(names.length > 1)
+					personalDetails.setMiddleName(names[1]);*/
 				personalDetails.setLastName(lastName);
 				traveller.setPersonalDetails(personalDetails);
 				travellersList.add(traveller);
@@ -594,6 +607,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     Traveller infantTraveller = new Traveller();
                     PersonalDetails infantPersonalDetail = new PersonalDetails();
                     String infantFirstName = "";
+					String infFirstName = "";
                     String infantLastName = "";
                     TravellerDetailsTypeI infantPassenger = (passengerData.getTravellerInformation().getPassenger().size() > 1) ? passengerData.getTravellerInformation().getPassenger().get(1) : null;
                     if(infantPassenger != null && ("inf".equalsIgnoreCase(infantPassenger.getType()) || "in".equalsIgnoreCase(infantPassenger.getType()))){
@@ -605,9 +619,30 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     }
                     infantPersonalDetail.setLastName(infantLastName);
                     names = infantFirstName.split("\\s");
-                    infantPersonalDetail.setFirstName(names[0]);
-                    if(names.length > 1)
-                        infantPersonalDetail.setMiddleName(names[1]);
+                    //infantPersonalDetail.setFirstName(names[0]);
+
+					if(names.length > 1){
+						//personalDetails.setSalutation(names[names.length-1]);
+						for (String name : names){
+							if(name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms")
+									|| name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Mstr")|| name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Capt")){
+								infantPersonalDetail.setSalutation(WordUtils.capitalizeFully(name));
+								if(infantPersonalDetail.getSalutation().equalsIgnoreCase("Mstr"))
+									infantPersonalDetail.setSalutation("Master");
+							}else{
+								infFirstName = name +" "+ infFirstName;
+							}
+
+						}
+						infantPersonalDetail.setFirstName(infFirstName.trim());
+					}
+
+
+
+
+
+                    /*if(names.length > 1)
+                        infantPersonalDetail.setMiddleName(names[1]);*/
                     infantTraveller.setPersonalDetails(infantPersonalDetail);
                     travellersList.add(infantTraveller);
 				}
