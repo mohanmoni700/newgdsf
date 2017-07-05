@@ -1,7 +1,5 @@
 package services;
 
-import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
-import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.compassites.GDSWrapper.travelport.*;
 import com.compassites.model.*;
 import com.compassites.model.Journey;
@@ -13,6 +11,7 @@ import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.schema.universal_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
+import org.apache.commons.lang3.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -325,9 +324,25 @@ public class TravelportBookingServiceImpl implements BookingService {
 			Traveller traveller = new Traveller();
 			PersonalDetails personalDetails = new PersonalDetails();
 			String[] names = bookingTraveler.getBookingTravelerName().getFirst().split("\\s");
-			personalDetails.setFirstName(names[0]);
-			if(names.length > 1)
-				personalDetails.setMiddleName(names[1]);
+			String fNmame = "";
+			//personalDetails.setFirstName(names[0]);
+			if(names.length > 1){
+				//personalDetails.setSalutation(names[names.length-1]);
+				for (String nam : names){
+					if(nam.equalsIgnoreCase("Mr") || nam.equalsIgnoreCase("Mrs") || nam.equalsIgnoreCase("Ms")
+							|| nam.equalsIgnoreCase("Miss") || nam.equalsIgnoreCase("Master") || nam.equalsIgnoreCase("Mstr")|| nam.equalsIgnoreCase("Capt")){
+						personalDetails.setSalutation(WordUtils.capitalizeFully(nam));
+						if(personalDetails.getSalutation().equalsIgnoreCase("Mstr"))
+							personalDetails.setSalutation("Master");
+					}else{
+						fNmame = nam +" "+ fNmame;
+					}
+
+				}
+
+				personalDetails.setFirstName(fNmame.trim());
+			}
+
 			personalDetails.setLastName(bookingTraveler.getBookingTravelerName().getLast());
 			traveller.setPersonalDetails(personalDetails);
 			travellersList.add(traveller);
