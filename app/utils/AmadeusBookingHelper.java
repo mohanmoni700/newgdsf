@@ -171,8 +171,13 @@ public class AmadeusBookingHelper {
                 traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
 
                 String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
-                String name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
-
+                String name1 = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
+                String[] names = name1.split("\\s");
+                String fstName = "";
+                for(int i=0;i<names.length-1;i++){
+                    fstName = names[i] +" "+fstName;
+                }
+                String name = fstName.trim();
                 String ticketText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                 String infantIndicator = ticketText.substring(0,3);
 
@@ -201,7 +206,14 @@ public class AmadeusBookingHelper {
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
 
                 name = name.replaceAll("\\s+", "");
+                if(name.equalsIgnoreCase("FNU")){
+                    int len = names.length-1;
+                    name=names[len];
+                }
                 lastName = lastName.replaceAll("\\s+", "");
+                if(lastName.equalsIgnoreCase("LNU")){
+                    lastName="";
+                }
 
                 for(Traveller traveller1 : issuanceRequest.getTravellerList()){
                     String contactName = "";
@@ -290,7 +302,13 @@ public class AmadeusBookingHelper {
                 }
                 PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
                 String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
-                String name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
+                String name1 = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
+                String[] names = name1.split("\\s");
+                String fstName = "";
+                for(int i=0;i<names.length-1;i++){
+                    fstName = names[i] +" "+fstName;
+                }
+                String name = fstName.trim();
 
                 String ticketText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                 String infantIndicator = ticketText.substring(0,3);
@@ -320,8 +338,14 @@ public class AmadeusBookingHelper {
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
 
                 name = name.replaceAll("\\s+", "");
+                if(name.equalsIgnoreCase("FNU")){
+                    int len = names.length-1;
+                    name=names[len];
+                }
                 lastName = lastName.replaceAll("\\s+", "");
-
+                if(lastName.equalsIgnoreCase("LNU")){
+                    lastName="";
+                }
                 for(Traveller traveller1 : issuanceRequest.getTravellerList()){
                     String contactName = "";
                     if(traveller1.getPersonalDetails().getMiddleName() != null){
