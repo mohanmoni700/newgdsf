@@ -308,7 +308,7 @@ public class AmadeusBookingHelper {
                 String[] names = name1.split("\\s");
                 String fstName = "";
                 for(int i=0;i<names.length-1;i++){
-                    fstName = names[i] +" "+fstName;
+                    fstName = fstName+" "+names[i];
                 }
                 String name = fstName.trim();
 
