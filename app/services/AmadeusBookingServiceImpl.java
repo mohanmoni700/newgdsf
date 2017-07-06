@@ -599,6 +599,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				/*if(names.length > 1)
 					personalDetails.setMiddleName(names[1]);*/
 				personalDetails.setLastName(lastName);
+				personalDetails.setMiddleName("");
 				traveller.setPersonalDetails(personalDetails);
 				travellersList.add(traveller);
 
@@ -635,6 +636,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 						}
 						infantPersonalDetail.setFirstName(infFirstName.trim());
+						infantPersonalDetail.setMiddleName("");
 					}
 
 

@@ -341,6 +341,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				}
 
 				personalDetails.setFirstName(fNmame.trim());
+				personalDetails.setMiddleName("");
 			}
 
 			personalDetails.setLastName(bookingTraveler.getBookingTravelerName().getLast());
