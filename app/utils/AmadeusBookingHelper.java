@@ -469,17 +469,16 @@ public class AmadeusBookingHelper {
 				
                 if (itineraryInfo.getFlightDetail() != null
                         && itineraryInfo.getFlightDetail()
-                        .getArrivalStationInfo() != null) {
+                        .getDepartureInformation() != null) {
                     airSegmentInformation.setFromTerminal(itineraryInfo
-                            .getFlightDetail().getArrivalStationInfo()
-                            .getTerminal());
+                            .getFlightDetail().getDepartureInformation()
+                            .getDepartTerminal());
                 }
                 if (itineraryInfo.getFlightDetail() != null
                         && itineraryInfo.getFlightDetail()
-                        .getDepartureInformation() != null) {
+                        .getArrivalStationInfo() != null) {
                     airSegmentInformation.setToTerminal(itineraryInfo
-                            .getFlightDetail().getDepartureInformation()
-                            .getDepartTerminal());
+                            .getFlightDetail().getArrivalStationInfo().getTerminal());
                 }
                 airSegmentInformation.setCarrierCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification());
                 airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification(), redisTemplate));
