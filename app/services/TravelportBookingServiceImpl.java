@@ -335,7 +335,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 						if(personalDetails.getSalutation().equalsIgnoreCase("Mstr"))
 							personalDetails.setSalutation("Master");
 					}else{
-						fNmame = nam +" "+ fNmame;
+						fNmame = fNmame+" "+nam;
 					}
 
 				}

@@ -587,7 +587,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 							if(personalDetails.getSalutation().equalsIgnoreCase("Mstr"))
 								personalDetails.setSalutation("Master");
 						}else{
-							firstName = name +" "+ firstName;
+							firstName = firstName+" "+name;
 						}
 
 					}
@@ -630,7 +630,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 								if(infantPersonalDetail.getSalutation().equalsIgnoreCase("Mstr"))
 									infantPersonalDetail.setSalutation("Master");
 							}else{
-								infFirstName = name +" "+ infFirstName;
+								infFirstName = infFirstName+" "+name;
 							}
 
 						}
