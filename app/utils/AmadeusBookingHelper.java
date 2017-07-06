@@ -206,9 +206,11 @@ public class AmadeusBookingHelper {
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
 
                 name = name.replaceAll("\\s+", "");
+                int len = names.length-1;
                 if(name.equalsIgnoreCase("FNU")){
-                    int len = names.length-1;
                     name=names[len];
+                } else {
+                    name=name+names[len];
                 }
                 lastName = lastName.replaceAll("\\s+", "");
                 if(lastName.equalsIgnoreCase("LNU")){
@@ -338,9 +340,11 @@ public class AmadeusBookingHelper {
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
 
                 name = name.replaceAll("\\s+", "");
+                int len = names.length-1;
                 if(name.equalsIgnoreCase("FNU")){
-                    int len = names.length-1;
                     name=names[len];
+                }else {
+                    name=name+names[len];
                 }
                 lastName = lastName.replaceAll("\\s+", "");
                 if(lastName.equalsIgnoreCase("LNU")){
