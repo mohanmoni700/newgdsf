@@ -255,28 +255,28 @@ public class MystiflyFlightSearch implements FlightSearch {
 	        if(flightSegment.getStopQuantityInformations() !=null){
 				StopQuantityInfo []stopQuantityInfoArray = flightSegment.getStopQuantityInformations().getStopQuantityInfoArray();
 				for(int i=0; i<stopQuantityInfoArray.length;i++) {
-					HoppingFlightInformation hop = new HoppingFlightInformation();
-					hop.setLocation(stopQuantityInfoArray[i].getLocationCode());
+						HoppingFlightInformation hop = new HoppingFlightInformation();
+						hop.setLocation(stopQuantityInfoArray[i].getLocationCode());
 
-					//Date aDate = flightSegment.getStopQuantityInfo().getArrivalDateTime().getTime();
-					//Date dDate = flightSegment.getStopQuantityInfo().getDepartureDateTime().getTime();
-						Date aDate = stopQuantityInfoArray[i].getArrivalDateTime().getTime();
-						Date dDate = stopQuantityInfoArray[i].getDepartureDateTime().getTime();
-					SimpleDateFormat dateFormater = new SimpleDateFormat("dd-MMM-yyyy");
-					SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm");
+						//Date aDate = flightSegment.getStopQuantityInfo().getArrivalDateTime().getTime();
+						//Date dDate = flightSegment.getStopQuantityInfo().getDepartureDateTime().getTime();
+							Date aDate = stopQuantityInfoArray[i].getArrivalDateTime().getTime();
+							Date dDate = stopQuantityInfoArray[i].getDepartureDateTime().getTime();
+						SimpleDateFormat dateFormater = new SimpleDateFormat("dd-MMM-yyyy");
+						SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm");
 
-					//Arrival
-					hop.setStartTime(timeFormater.format(aDate));
-					hop.setStartDate(dateFormater.format(aDate));
-					//Departure
-					hop.setEndTime(timeFormater.format(dDate));
-					hop.setEndDate(dateFormater.format(dDate));
+						//Arrival
+						hop.setStartTime(timeFormater.format(aDate));
+						hop.setStartDate(dateFormater.format(aDate));
+						//Departure
+						hop.setEndTime(timeFormater.format(dDate));
+						hop.setEndDate(dateFormater.format(dDate));
 
-					if (hoppingFlightInformations == null) {
-						hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+						if (hoppingFlightInformations == null) {
+							hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+						}
+						hoppingFlightInformations.add(hop);
 					}
-					hoppingFlightInformations.add(hop);
-				}
 		        }
 		}
         airSegment.setHoppingFlightInformations(hoppingFlightInformations);
