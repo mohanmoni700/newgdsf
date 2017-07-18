@@ -19,7 +19,11 @@ public class SearchJourney implements Serializable{
     @Property
     private String origin;
     @Property
+    private String originAirportCityQualifier;
+    @Property
     private String destination;
+    @Property
+    private String destinationAirportCityQualifier;
     @Property
     private Date travelDate;
 
@@ -55,5 +59,21 @@ public class SearchJourney implements Serializable{
 
     public void setTravelDateStr(String travelDateStr) {
         this.travelDateStr = travelDateStr;
+    }
+
+    public String getDestinationAirportCityQualifier() {
+        return destinationAirportCityQualifier;
+    }
+
+    public void setDestinationAirportCityQualifier(String destinationAirportCityQualifier) {
+        this.destinationAirportCityQualifier = destinationAirportCityQualifier;
+    }
+
+    public String getOriginAirportCityQualifier() {
+        return originAirportCityQualifier;
+    }
+
+    public void setOriginAirportCityQualifier(String originAirportCityQualifier) {
+        this.originAirportCityQualifier = originAirportCityQualifier;
     }
 }
