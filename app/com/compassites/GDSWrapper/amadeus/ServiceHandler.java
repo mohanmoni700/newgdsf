@@ -2,6 +2,7 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
+import com.amadeus.xml.farqiq_08_2_1a.OriginAndDestinationDetails;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.flireq_07_1_1a.AirFlightInfo;
@@ -14,6 +15,7 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve;
 import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
+import com.amadeus.xml.pnrxcl_11_3_1a.ElementIdentificationType;
 import com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType;
 import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
 import com.amadeus.xml.qdqlrq_11_1_1a.QueueList;
@@ -337,21 +339,33 @@ public class ServiceHandler {
     }
 
 
-    public PNRReply cancelPNR(String pnr){
+    public PNRReply cancelPNR(String pnr, PNRReply gdsPNRReply){
         logger.debug("cancelPNR called  at " + new Date() + "................Session Id: "+ mSession.getSessionId());
 
         mSession.incrementSequenceNumber();
+
         PNRCancel pnrCancel = new PNRCancel();
         OptionalPNRActionsType pnrActionsType = new OptionalPNRActionsType();
         pnrActionsType.getOptionCode().add(BigInteger.valueOf(0));
         pnrCancel.setPnrActions(pnrActionsType);
         CancelPNRElementType cancelPNRElementType = new CancelPNRElementType();
-        cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ITINERARY_TYPE);
+        List<ElementIdentificationType> elementIdentificationTypeList = cancelPNRElementType.getElement();
+        for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
+            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
+                ElementIdentificationType elementIdentificationType = new ElementIdentificationType();
+                BigInteger segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                String segQualifier = itineraryInfo.getElementManagementItinerary().getReference().getQualifier();
+                elementIdentificationType.setNumber(segmentRef);
+                elementIdentificationType.setIdentifier(segQualifier);
+                elementIdentificationTypeList.add(elementIdentificationType);
+            }
+        }
+        cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ELEMENT_TYPE);
         pnrCancel.getCancelElements().add(cancelPNRElementType);
 
 
         amadeusLogger.debug("pnrCancelReq " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrCancel));
-
+        //PNRReply pnrReply = new PNRReply();
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, mSession.getSession());
 
         amadeusLogger.debug("pnrCancelRes " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));

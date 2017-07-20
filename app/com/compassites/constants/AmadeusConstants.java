@@ -9,6 +9,8 @@ public class AmadeusConstants {
 
     public static String CANCEL_PNR_ITINERARY_TYPE = "I";
 
+    public static String CANCEL_PNR_ELEMENT_TYPE = "E";
+
     public static String PRICE_BASE_FARE = "B";
 
     public static String PRICE_BASE_EQUIVALENT_FARE = "E";
