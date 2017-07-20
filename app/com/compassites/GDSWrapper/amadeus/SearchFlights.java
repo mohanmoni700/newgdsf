@@ -219,18 +219,20 @@ public class SearchFlights {
         return passengers;
     }
 
-    private DepartureLocationType setDepartureLocationType(String origin){
+    private DepartureLocationType setDepartureLocationType(String origin, String originAirportCityQualifier){
         DepartureLocationType dlt = new DepartureLocationType();
         MultiCityOptionType mcot = new MultiCityOptionType();
         mcot.setLocationId(origin);
+        mcot.setAirportCityQualifier(originAirportCityQualifier);
         dlt.getDepMultiCity().add(mcot);
         return dlt;
     }
 
-    private ArrivalLocalizationType setArrivalLocalizationType(String destination){
+    private ArrivalLocalizationType setArrivalLocalizationType(String destination, String destinationAirportCityQualifier){
         ArrivalLocalizationType alt=new ArrivalLocalizationType();
         MultiCityOptionType mcot1=new MultiCityOptionType();
         mcot1.setLocationId(destination);
+        mcot1.setAirportCityQualifier(destinationAirportCityQualifier);
         alt.getArrivalMultiCity().add(mcot1);
         return alt;
     }
@@ -250,15 +252,15 @@ public class SearchFlights {
         return dti;
     }
 
-    private FareMasterPricerTravelBoardSearch.Itinerary setItineraryLocationDetails(FareMasterPricerTravelBoardSearch.Itinerary itinerary,BigInteger referenceNumber,String origin,String destination){
+    private FareMasterPricerTravelBoardSearch.Itinerary setItineraryLocationDetails(FareMasterPricerTravelBoardSearch.Itinerary itinerary,BigInteger referenceNumber,String origin,String destination, String oacQualifier, String dacQualifier){
         OriginAndDestinationRequestType forwardOrdt=new OriginAndDestinationRequestType();
         forwardOrdt.setSegRef(referenceNumber);
         itinerary.setRequestedSegmentRef(forwardOrdt);
 
 //        itinerary.setDepartureLocalization(setDepartureLocationType("NYC"));
 //        itinerary.setArrivalLocalization(setArrivalLocalizationType("BLR"));
-        itinerary.setDepartureLocalization(setDepartureLocationType(origin));
-        itinerary.setArrivalLocalization(setArrivalLocalizationType(destination));
+        itinerary.setDepartureLocalization(setDepartureLocationType(origin, oacQualifier));
+        itinerary.setArrivalLocalization(setArrivalLocalizationType(destination, dacQualifier));
         return itinerary;
     }
 
@@ -267,7 +269,7 @@ public class SearchFlights {
         int counter=1;
         for(SearchJourney searchJourney:searchParameters.getJourneyList()){
             FareMasterPricerTravelBoardSearch.Itinerary itinerary=new FareMasterPricerTravelBoardSearch.Itinerary();
-            setItineraryLocationDetails(itinerary, new BigInteger(Integer.toString(counter++)), searchJourney.getOrigin(), searchJourney.getDestination());
+            setItineraryLocationDetails(itinerary, new BigInteger(Integer.toString(counter++)), searchJourney.getOrigin(), searchJourney.getDestination(), searchJourney.getOriginAirportCityQualifier(), searchJourney.getDestinationAirportCityQualifier());
             DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
             DateTime dateTime = fmt.parseDateTime(searchJourney.getTravelDateStr());
             itinerary.setTimeDetails(setDateAndTimeInformationType(searchParameters.getDateType(),mapDate(searchJourney.getTravelDate(), dateTime)));
