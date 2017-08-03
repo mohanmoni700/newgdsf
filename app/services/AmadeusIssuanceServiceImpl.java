@@ -83,7 +83,7 @@ public class AmadeusIssuanceServiceImpl {
                     for (String segmentKey : segmentKeysList) {
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
-                    carrierCode = airSegment.get(0).getCarrierCode();
+                    carrierCode = airSegment.get(airSegment.size()-1).getCarrierCode();
 
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
@@ -124,7 +124,7 @@ public class AmadeusIssuanceServiceImpl {
                 }
 //is SegmentWisePricing ==false
             } else {
-                pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
+                pricePNRReply = serviceHandler.pricePNR(airSegmentList.get(airSegmentList.size()-1).getCarrierCode(), gdsPNRReply,
                         issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing);
 
                 if (pricePNRReply.getApplicationError() != null) {
