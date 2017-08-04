@@ -42,6 +42,9 @@ public class IssuanceResponse implements Serializable{
 
     private String errorCode;
 
+    private boolean isChangedPriceLow;
+
+    private BigDecimal newLowerPrice;
 
     public void setErrorCode(String errorCode){
         this.errorCode = errorCode;
@@ -160,4 +163,16 @@ public class IssuanceResponse implements Serializable{
     public void setIsPriceChanged(boolean isPriceChanged) {
         this.priceChanged = isPriceChanged;
     }
+
+    public boolean getChangedPriceLow() {
+        return isChangedPriceLow;
+    }
+
+    public void setChangedPriceLow(boolean isChangedPriceLow) {
+        this.isChangedPriceLow = isChangedPriceLow;
+    }
+
+    public BigDecimal getNewLowerPrice() {return newLowerPrice;}
+
+    public void setNewLowerPrice(BigDecimal newLowerPrice) {this.newLowerPrice = newLowerPrice;}
 }
