@@ -171,15 +171,21 @@ public class AmadeusIssuanceServiceImpl {
                 BigDecimal newPrice = pricingInformation.getTotalPriceValue();
 
 
-                if (bookedPrice.compareTo(newPrice) == -1) {
-                    logger.debug("Price of the PNR : " + issuanceRequest.getGdsPNR() + "changed to " + newPrice);
-                    issuanceResponse.setIsPriceChanged(true);
-                    issuanceResponse.setFlightItinerary(issuanceRequest.getFlightItinerary());
-                    issuanceResponse.getFlightItinerary().setPricingInformation(isSeamen, pricingInformation);
 
-                } else {
-                    issuanceResponse.setIsPriceChanged(false);
-                }
+
+                    if(bookedPrice.compareTo(newPrice) < 0) {
+                        issuanceResponse.setIsPriceChanged(true);
+                        issuanceResponse.setChangedPriceLow(false);
+                        issuanceResponse.setFlightItinerary(issuanceRequest.getFlightItinerary());
+                        issuanceResponse.getFlightItinerary().setPricingInformation(isSeamen, pricingInformation);
+                    }
+
+                    if(bookedPrice.compareTo(newPrice) > 0) {
+                        issuanceResponse.setIsPriceChanged(false);
+                        issuanceResponse.setChangedPriceLow(true);
+                        BigDecimal newLowerPrice = pricingInformation.getTotalPriceValue();
+                        issuanceResponse.setNewLowerPrice(newLowerPrice);
+                    }
             }
             issuanceResponse.setSuccess(true);
 
