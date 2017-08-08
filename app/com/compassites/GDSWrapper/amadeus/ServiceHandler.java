@@ -353,11 +353,14 @@ public class ServiceHandler {
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
                 ElementIdentificationType elementIdentificationType = new ElementIdentificationType();
-                BigInteger segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-                String segQualifier = itineraryInfo.getElementManagementItinerary().getReference().getQualifier();
-                elementIdentificationType.setNumber(segmentRef);
-                elementIdentificationType.setIdentifier(segQualifier);
-                elementIdentificationTypeList.add(elementIdentificationType);
+                String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                if(segType.equalsIgnoreCase("AIR")) {
+                    BigInteger segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                    String segQualifier = itineraryInfo.getElementManagementItinerary().getReference().getQualifier();
+                    elementIdentificationType.setNumber(segmentRef);
+                    elementIdentificationType.setIdentifier(segQualifier);
+                    elementIdentificationTypeList.add(elementIdentificationType);
+                }
             }
         }
         cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ELEMENT_TYPE);

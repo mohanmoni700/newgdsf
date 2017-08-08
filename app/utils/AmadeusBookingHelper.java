@@ -415,6 +415,8 @@ public class AmadeusBookingHelper {
                 .getOriginDestinationDetails()) {
             for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails
                     .getItineraryInfo()) {
+                String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                if(segType.equalsIgnoreCase("AIR")) {
                 AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
 
                 String fromLoc = itineraryInfo.getTravelProduct()
@@ -447,7 +449,7 @@ public class AmadeusBookingHelper {
                         .getDepTime();
                 DateTime departureDate = DATETIME_FORMATTER.withZone(
                         dateTimeZone).parseDateTime(toDateTime);
-               // dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+                // dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
                 DateTime arrivalDate = DATETIME_FORMATTER.withZone(
                         toDateTimeZone).parseDateTime(fromDateTime);
 
@@ -455,7 +457,7 @@ public class AmadeusBookingHelper {
                         .getTravelProduct().getProductDetails()
                         .getIdentification());
 
-                
+
                 airSegmentInformation.setDepartureDate(departureDate
                         .toDate());
                 airSegmentInformation.setDepartureTime(departureDate
@@ -466,7 +468,7 @@ public class AmadeusBookingHelper {
 
                 airSegmentInformation.setFromDate(fromDateTime);
                 airSegmentInformation.setToDate(toDateTime);
-				
+
                 if (itineraryInfo.getFlightDetail() != null
                         && itineraryInfo.getFlightDetail()
                         .getDepartureInformation() != null) {
@@ -491,7 +493,7 @@ public class AmadeusBookingHelper {
                             .getEquipment();
                 }
                 airSegmentInformation.setEquipment(responseEquipment);
-                
+
                 //duration
                 DateTimeFormatter DATETIME_FORMATTER1 = DateTimeFormat.forPattern(DATE_FORMAT);
                 DateTimeZone dateTimeZone1 = DateTimeZone.forID(fromAirport.getTime_zone());
@@ -507,48 +509,49 @@ public class AmadeusBookingHelper {
                 airSegmentInformation.setFromAirport(fromAirport);
                 airSegmentInformation.setToAirport(toAirport);
                 Minutes diff = Minutes.minutesBetween(departureDate1, arrivalDate1);
-                airSegmentInformation.setTravelTime("" + diff.getMinutes());                
-                
+                airSegmentInformation.setTravelTime("" + diff.getMinutes());
+
                 //hopping                
-                if(isHoppingStopExists(itineraryInfo)){
-                	if(itineraryInfo.getLegInfo()!=null && itineraryInfo.getLegInfo().size()>=2){
-                		itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate();
-                    	itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime();
-                    	
-                    	itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate();
-                    	itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime();
-                    	
-                    	itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId();
-                    	                    	
-                    	List<HoppingFlightInformation> hoppingFlightInformations = null;
-                		
-            	        	//Arrival
-                			HoppingFlightInformation hop =new HoppingFlightInformation();
-            	        	hop.setLocation(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId());
-            	        	hop.setStartTime(new StringBuilder(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime()).insert(2, ":").toString());
-            	        	SimpleDateFormat dateParser = new SimpleDateFormat("ddMMyy");
-            	    		Date startDate = null;
-            	    		Date endDate = null;
-            				try {
-            					startDate = dateParser.parse(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate());
-            					endDate = dateParser.parse(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate());
-            				} catch (ParseException e) {
-            					e.printStackTrace();
-            				}
-            	    		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
-            	    		hop.setStartDate(dateFormat.format(startDate));
-            	        	//Departure
-            	    		hop.setEndTime(new StringBuilder(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime()).insert(2, ":").toString());
-            	        	hop.setEndDate(dateFormat.format(endDate));
-            	        	if(hoppingFlightInformations==null){ 
-            	        		hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
-            	        	}
-            	        	hoppingFlightInformations.add(hop);
-            	        
-                		airSegmentInformation.setHoppingFlightInformations(hoppingFlightInformations);
-                	}                	
+                if (isHoppingStopExists(itineraryInfo)) {
+                    if (itineraryInfo.getLegInfo() != null && itineraryInfo.getLegInfo().size() >= 2) {
+                        itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate();
+                        itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime();
+
+                        itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate();
+                        itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime();
+
+                        itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId();
+
+                        List<HoppingFlightInformation> hoppingFlightInformations = null;
+
+                        //Arrival
+                        HoppingFlightInformation hop = new HoppingFlightInformation();
+                        hop.setLocation(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId());
+                        hop.setStartTime(new StringBuilder(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime()).insert(2, ":").toString());
+                        SimpleDateFormat dateParser = new SimpleDateFormat("ddMMyy");
+                        Date startDate = null;
+                        Date endDate = null;
+                        try {
+                            startDate = dateParser.parse(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate());
+                            endDate = dateParser.parse(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate());
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+                        hop.setStartDate(dateFormat.format(startDate));
+                        //Departure
+                        hop.setEndTime(new StringBuilder(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime()).insert(2, ":").toString());
+                        hop.setEndDate(dateFormat.format(endDate));
+                        if (hoppingFlightInformations == null) {
+                            hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+                        }
+                        hoppingFlightInformations.add(hop);
+
+                        airSegmentInformation.setHoppingFlightInformations(hoppingFlightInformations);
+                    }
                 }
                 airSegmentList.add(airSegmentInformation);
+            }
             }
             journey.setAirSegmentList(airSegmentList);
             journeyList.add(journey);
@@ -808,9 +811,12 @@ public class AmadeusBookingHelper {
 
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-                String segmentRef = "S"+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-                String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
-                airSegmentRefMap.put(segmentRef,segments);
+                String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                if(segType.equalsIgnoreCase("AIR")) {
+                    String segmentRef = "S" + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                    String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                    airSegmentRefMap.put(segmentRef, segments);
+                }
             }
         }
         for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){

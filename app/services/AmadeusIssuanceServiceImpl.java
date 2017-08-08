@@ -83,7 +83,7 @@ public class AmadeusIssuanceServiceImpl {
                     for (String segmentKey : segmentKeysList) {
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
-                    carrierCode = airSegment.get(0).getCarrierCode();
+                    carrierCode = airSegment.get(airSegment.size()-1).getCarrierCode();
 
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
@@ -124,7 +124,7 @@ public class AmadeusIssuanceServiceImpl {
                 }
 //is SegmentWisePricing ==false
             } else {
-                pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
+                pricePNRReply = serviceHandler.pricePNR(airSegmentList.get(airSegmentList.size()-1).getCarrierCode(), gdsPNRReply,
                         issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing);
 
                 if (pricePNRReply.getApplicationError() != null) {
@@ -171,15 +171,21 @@ public class AmadeusIssuanceServiceImpl {
                 BigDecimal newPrice = pricingInformation.getTotalPriceValue();
 
 
-                if (bookedPrice.compareTo(newPrice) == -1) {
-                    logger.debug("Price of the PNR : " + issuanceRequest.getGdsPNR() + "changed to " + newPrice);
-                    issuanceResponse.setIsPriceChanged(true);
-                    issuanceResponse.setFlightItinerary(issuanceRequest.getFlightItinerary());
-                    issuanceResponse.getFlightItinerary().setPricingInformation(isSeamen, pricingInformation);
 
-                } else {
-                    issuanceResponse.setIsPriceChanged(false);
-                }
+
+                    if(bookedPrice.compareTo(newPrice) < 0) {
+                        issuanceResponse.setIsPriceChanged(true);
+                        issuanceResponse.setChangedPriceLow(false);
+                        issuanceResponse.setFlightItinerary(issuanceRequest.getFlightItinerary());
+                        issuanceResponse.getFlightItinerary().setPricingInformation(isSeamen, pricingInformation);
+                    }
+
+                    if(bookedPrice.compareTo(newPrice) > 0) {
+                        issuanceResponse.setIsPriceChanged(false);
+                        issuanceResponse.setChangedPriceLow(true);
+                        BigDecimal newLowerPrice = pricingInformation.getTotalPriceValue();
+                        issuanceResponse.setNewLowerPrice(newLowerPrice);
+                    }
             }
             issuanceResponse.setSuccess(true);
 

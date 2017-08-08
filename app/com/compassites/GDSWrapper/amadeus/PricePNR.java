@@ -9,9 +9,21 @@ package com.compassites.GDSWrapper.amadeus;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.StructuredFareCalcGroup.Group27.Group28.StructuredFareCalcG28PTS.FareBasisDetails;
+import com.amadeus.xml.tpcbrq_12_4_1a.AdditionalFareQualifierDetailsTypeI;
+import com.amadeus.xml.tpcbrq_12_4_1a.CodedAttributeInformationType;
+import com.amadeus.xml.tpcbrq_12_4_1a.CodedAttributeType;
+import com.amadeus.xml.tpcbrq_12_4_1a.CompanyIdentificationTypeI;
+import com.amadeus.xml.tpcbrq_12_4_1a.ConversionRateDetailsTypeI;
+import com.amadeus.xml.tpcbrq_12_4_1a.ConversionRateTypeI;
+import com.amadeus.xml.tpcbrq_12_4_1a.DiscountAndPenaltyInformationTypeI;
+import com.amadeus.xml.tpcbrq_12_4_1a.DiscountPenaltyMonetaryInformationTypeI;
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass.PricingFareBase;
 import com.amadeus.xml.tpcbrq_12_4_1a.*;
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
+import com.amadeus.xml.tpcbrq_12_4_1a.FareQualifierDetailsTypeI;
+import com.amadeus.xml.tpcbrq_12_4_1a.ReferenceInformationTypeI94606S;
+import com.amadeus.xml.tpcbrq_12_4_1a.TransportIdentifierType;
+import com.amadeus.xml.tplprq_12_4_1a.*;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.FareJourney;
 import com.compassites.model.FlightItinerary;
@@ -72,12 +84,26 @@ public class PricePNR {
 
 
         CodedAttributeInformationType attributeDetails=new CodedAttributeInformationType();
+        List<CodedAttributeInformationType> attributeList = new ArrayList<>();
         //attributeDetails.setAttributeType("BK");
         //attributeDetails.setAttributeType("NOP");
         //attributeDetails.setAttributeDescription("XN");
         if(isSeamen) {
             attributeDetails.setAttributeType("ptc");
-            overrideInformation.getAttributeDetails().add(attributeDetails);
+            //overrideInformation.getAttributeDetails().add(attributeDetails);
+            attributeList.add(attributeDetails);
+            attributeDetails=new CodedAttributeInformationType();
+            attributeDetails.setAttributeType("RP");
+            attributeList.add(attributeDetails);
+            attributeDetails=new CodedAttributeInformationType();
+            attributeDetails.setAttributeType("RU");
+            attributeList.add(attributeDetails);
+            attributeDetails=new CodedAttributeInformationType();
+            attributeDetails.setAttributeType("RLO");
+            attributeList.add(attributeDetails);
+            overrideInformation.getAttributeDetails().addAll(attributeList);
+
+
         }else {
             overrideInformation.getAttributeDetails().addAll(addPricingOptions(isDomesticFlight));
         }
@@ -121,7 +147,16 @@ public class PricePNR {
                 pricepnr.getPricingFareBase().add(pricingFareBase);
             }
         }
-
+        if(isSeamen) {
+            FarePricePNRWithBookingClass.DiscountInformation discountInfo = new FarePricePNRWithBookingClass.DiscountInformation();
+            DiscountAndPenaltyInformationTypeI penDisInfo = new DiscountAndPenaltyInformationTypeI();
+            penDisInfo.setInfoQualifier("701");
+            DiscountPenaltyMonetaryInformationTypeI penDisData = new DiscountPenaltyMonetaryInformationTypeI();
+            penDisData.setDiscountCode("SEA");
+            penDisInfo.getPenDisData().add(penDisData);
+            discountInfo.setPenDisInformation(penDisInfo);
+            pricepnr.getDiscountInformation().add(discountInfo);
+        }
 
         return pricepnr;
     }
