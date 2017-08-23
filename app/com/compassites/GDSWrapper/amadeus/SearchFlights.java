@@ -92,7 +92,7 @@ public class SearchFlights {
             setRefundableFlights(pit);
         }
 
-        setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
+        //setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
         createFareOptions(pit);
         //se.setFareOptions(fareOptions);
@@ -147,9 +147,10 @@ public class SearchFlights {
         //FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
         //PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
         //PricingTicketingInformationType pit = new PricingTicketingInformationType();
-        pit.getPriceType().add("RP");
-        pit.getPriceType().add("RU");
         pit.getPriceType().add("TAC");
+        pit.getPriceType().add("RU");
+        pit.getPriceType().add("RP");
+
         pit.getPriceType().add("ET");
        /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");
@@ -222,18 +223,24 @@ public class SearchFlights {
     private DepartureLocationType setDepartureLocationType(String origin, String originAirportCityQualifier){
         DepartureLocationType dlt = new DepartureLocationType();
         MultiCityOptionType mcot = new MultiCityOptionType();
+        ArrivalLocationDetailsType120834C arrivalLocationDetailsType120834C = new ArrivalLocationDetailsType120834C();
+        arrivalLocationDetailsType120834C.setLocationId(origin);
         mcot.setLocationId(origin);
         mcot.setAirportCityQualifier(originAirportCityQualifier);
-        dlt.getDepMultiCity().add(mcot);
+       // dlt.getDepMultiCity().add(mcot);
+        dlt.setDeparturePoint(arrivalLocationDetailsType120834C);
         return dlt;
     }
 
     private ArrivalLocalizationType setArrivalLocalizationType(String destination, String destinationAirportCityQualifier){
         ArrivalLocalizationType alt=new ArrivalLocalizationType();
+        ArrivalLocationDetailsType arrivalLocationDetailsType = new ArrivalLocationDetailsType();
         MultiCityOptionType mcot1=new MultiCityOptionType();
         mcot1.setLocationId(destination);
         mcot1.setAirportCityQualifier(destinationAirportCityQualifier);
-        alt.getArrivalMultiCity().add(mcot1);
+       // alt.getArrivalMultiCity().add(mcot1);
+        arrivalLocationDetailsType.setLocationId(destination);
+        alt.setArrivalPointDetails(arrivalLocationDetailsType);
         return alt;
     }
 
