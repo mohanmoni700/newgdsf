@@ -3,12 +3,14 @@ package controllers;
 
 import com.amadeus.xml.qdqlrr_03_1_1a.QueueListReply;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
+import com.compassites.GDSWrapper.mystifly.AirTripDetailsClient;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
+import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,9 @@ public class Application {
 
     @Autowired
     AmadeusBookingServiceImpl amadeusBookingService;
+
+    @Autowired
+    MystiflyBookingServiceImpl mystiflyBookingService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -220,11 +225,20 @@ public class Application {
 //        amadeusBookingService.getDisplayTicketDetails(pnr);
             jsonNode = amadeusBookingService.getBookingDetails(pnr);
 
-        }else {
+        } else {
             TravelportBookingServiceImpl travelportBookingService = new TravelportBookingServiceImpl();
             jsonNode =  travelportBookingService.getBookingDetails(pnr);
         }
 
+        return ok(jsonNode);
+
+    }
+
+    public Result displayPNR(String pnr,String provider) throws RemoteException{
+        JsonNode jsonNode = null;
+        if (PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)){
+            jsonNode = mystiflyBookingService.getBookingDetails(pnr);
+        }
         return ok(jsonNode);
 
     }
@@ -286,4 +300,5 @@ public class Application {
         }
         return ok(Json.toJson(airMessageQueue));
     }
+
 }

@@ -2,14 +2,13 @@ package services;
 
 import java.math.BigDecimal;
 import java.rmi.RemoteException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.compassites.constants.CacheConstants;
+import com.compassites.model.traveller.PersonalDetails;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
 import org.slf4j.Logger;
@@ -94,8 +93,8 @@ public class MystiflyBookingServiceImpl implements BookingService {
 									.getTime());
 							pnrRS.setHoldTime(false);
 						}
-						//setAirlinePNR(pnrRS);
-						//readBaggageInfo(pnrRS, travellerMasterInfo);
+						setAirlinePNR(pnrRS);
+						readBaggageInfo(pnrRS, travellerMasterInfo);
 					} else {
 						ErrorMessage error = new ErrorMessage();
 						Error[] errors = airbookRS.getErrors().getErrorArray();
@@ -226,6 +225,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		String airlinePNR = itinerary.getItineraryInfo().getReservationItems()
 				.getReservationItemArray(0).getAirlinePNR();
 		pnrResponse.setAirlinePNR(airlinePNR);
+
 		ArrayOfReservationItem arrayOfReservationItems = itinerary.getItineraryInfo().getReservationItems();
 
 		Map<String, String> airlinePNRMap = new HashMap<>();
@@ -265,6 +265,35 @@ public class MystiflyBookingServiceImpl implements BookingService {
 			}
 			traveller.setTicketNumberMap(ticketMap);
 		}
+	}
+
+	public JsonNode getBookingDetails(String gdsPNR) throws RemoteException{
+		Map<String, Object> json = new HashMap<>();
+		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
+		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
+		AirTripDetailsRS tripDetailsRS = tripDetailsClient.getAirTripDetails(gdsPNR);
+		if(tripDetailsRS.getSuccess()) {
+			List<Traveller> travellersList = new ArrayList<>();
+			CustomerInfo arrayOfCustomerInfo[] = tripDetailsRS.getTravelItinerary().getItineraryInfo().getCustomerInfos().getCustomerInfoArray();
+			for(int len =0; len < arrayOfCustomerInfo.length; len++){
+				Traveller traveller = new Traveller();
+				PersonalDetails personalDetails = new PersonalDetails();
+				Customer customers = arrayOfCustomerInfo[len].getCustomer();
+				String firName = customers.getPaxName().getPassengerFirstName();
+				String lastName = customers.getPaxName().getPassengerLastName();
+				String title = customers.getPaxName().getPassengerTitle();
+				personalDetails.setSalutation(title);
+				personalDetails.setFirstName(firName);
+				personalDetails.setMiddleName("");
+				personalDetails.setLastName(lastName);
+				traveller.setPersonalDetails(personalDetails);
+				travellersList.add(traveller);
+			}
+			masterInfo.setTravellersList(travellersList);
+			FlightItinerary flightItinerary = new FlightItinerary();
+			json.put("travellerMasterInfo", masterInfo);
+		}
+		return Json.toJson(json);
 	}
 
 	private void setAirlinePNRMap(PNRResponse pnrResponse) throws RemoteException {

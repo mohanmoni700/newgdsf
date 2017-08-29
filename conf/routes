@@ -20,6 +20,8 @@ GET     /getQueueListInfo                       @controllers.Application.getQueu
 
 GET     /displayTST/:pnr/:provider                       @controllers.Application.displayTST(pnr:String, provider:String)
 
+GET     /displayPNR/:pnr/:provider                       @controllers.Application.displayPNR(pnr:String, provider:String)
+
 POST    /priceBookedPNR                         @controllers.Application.priceBookedPNR()
 
 GET     /getTicktedMessage                          @controllers.Application.getTicktedMessage()
