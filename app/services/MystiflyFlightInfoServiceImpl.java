@@ -2,7 +2,9 @@ package services;
 
 import java.math.BigInteger;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.compassites.GDSWrapper.mystifly.AirRevalidateClient;
@@ -34,9 +36,10 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 		AirRulesClient airRulesClient = new AirRulesClient();
 		AirRulesRS airRulesRS = airRulesClient.getAirRules(flightItinerary.getPricingInformation().getFareSourceCode());
 		BaggageInfo[] baggageInfos = airRulesRS.getBaggageInfos().getBaggageInfoArray();
-
 		try {
+			List<Journey> journeyList = new ArrayList<>();
 			for (Journey journey : seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList()) {
+				List<AirSegmentInformation> airSegmentInformationList = new ArrayList<>();
 				for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
 					for (BaggageInfo baggageInfo : baggageInfos) {
 						if (baggageInfo.getArrival().equalsIgnoreCase(airSegment.getToLocation())) {
@@ -48,7 +51,6 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 							} else if (baggageInfo.getBaggage().equals("SB")) {
 								bagInfo.setBaggageUnit(baggageInfo.getBaggage());
 								airSegment.setFlightInfo(bagInfo);
-								// TODO: set airline based Standard Baggage
 							} else if(baggageInfo.getBaggage().endsWith("P")){
 								bagInfo.setBaggageAllowance(new BigInteger(baggageInfo.getBaggage().replaceAll("\\D+", "")));
 								bagInfo.setBaggageUnit("PC");
@@ -57,9 +59,12 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 							break;
 						}
 					}
+					airSegmentInformationList.add(airSegment);
 				}
+				journey.setAirSegmentList(airSegmentInformationList);
+				journeyList.add(journey);
 			}
-
+			flightItinerary.setJourneyList(journeyList);
 		} catch (Exception e){
 			mystiflyLogger.error("Error in Mystifly getBaggageInfo", e);
 			e.printStackTrace();
