@@ -66,8 +66,10 @@ public class SearchFlights {
             se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
         }
 
+       //se.getPaxReference().addAll(createPassengers(searchParameters));
 
-        se.getPaxReference().addAll(createPassengers(searchParameters));
+        createSeamenPassengers(se, searchParameters);
+
         se.getItinerary().addAll(createItinerary(searchParameters));
 
         TravelFlightInformationType165052S travelFlightInfo = new TravelFlightInformationType165052S();
@@ -120,6 +122,75 @@ public class SearchFlights {
         return se;
     }
 
+    private void createSeamenPassengers(FareMasterPricerTravelBoardSearch search, SearchParameters searchParameters){
+        List<TravellerReferenceInformationType> passengers = new ArrayList<TravellerReferenceInformationType>();
+        List<TravellerReferenceInformationType> passengers1 = new ArrayList<TravellerReferenceInformationType>();
+        List<TravellerReferenceInformationType> passengers2 = new ArrayList<TravellerReferenceInformationType>();
+        List<TravellerReferenceInformationType> passengers3 = new ArrayList<TravellerReferenceInformationType>();
+        Stack<BigInteger> adultReferenceNumbers = new Stack<>();
+        int reference = 0;
+        int infReference = 0;
+        int infIndicator = 0;
+
+        List<TravellerDetailsType> adtTravellerDetailsTypeList = new ArrayList<>();
+        List<TravellerDetailsType> chdTravellerDetailsTypeList = new ArrayList<>();
+        List<TravellerDetailsType> infTravellerDetailsTypeList = new ArrayList<>();
+        List<TravellerDetailsType> seamenTravellerDetailsTypeList = new ArrayList<>();
+        for (Passenger passenger : searchParameters.getPassengers()) {
+            if (searchParameters.getBookingType() != BookingType.SEAMEN) {
+                if (passenger.getPassengerType().name().equals("ADT")) {
+                    TravellerDetailsType tdt = new TravellerDetailsType();
+                    tdt.setRef(new BigInteger(Integer.toString(++reference)));
+                    adtTravellerDetailsTypeList.add(tdt);
+                } else if (passenger.getPassengerType().name().equals("CHD")) {
+                    TravellerDetailsType tdt1 = new TravellerDetailsType();
+                    tdt1.setRef(new BigInteger(Integer.toString(++reference)));
+                    chdTravellerDetailsTypeList.add(tdt1);
+                } else if (passenger.getPassengerType().name().equals("IN") || passenger.getPassengerType().name().equals("INF")) {
+                    TravellerDetailsType tdt2 = new TravellerDetailsType();
+                    tdt2.setRef(new BigInteger(Integer.toString(++infReference)));
+                    tdt2.setInfantIndicator(BigInteger.valueOf(++infIndicator));
+                    infTravellerDetailsTypeList.add(tdt2);
+                }
+            } else {
+                TravellerDetailsType tdt3 = new TravellerDetailsType();
+                tdt3.setRef(new BigInteger(Integer.toString(++reference)));
+                seamenTravellerDetailsTypeList.add(tdt3);
+            }
+        }
+        TravellerReferenceInformationType adtTraveller = new TravellerReferenceInformationType();
+        if (adtTravellerDetailsTypeList.size() > 0){
+            adtTraveller.getTraveller().addAll(adtTravellerDetailsTypeList);
+            passengers.add(adtTraveller);
+            adtTraveller.getPtc().add(PassengerTypeCode.ADT.toString());
+            search.getPaxReference().addAll(passengers);
+        }
+
+        TravellerReferenceInformationType chdTraveller = new TravellerReferenceInformationType();
+        if (chdTravellerDetailsTypeList.size() > 0){
+            chdTraveller.getTraveller().addAll(chdTravellerDetailsTypeList);
+            passengers1.add(chdTraveller);
+            chdTraveller.getPtc().add(PassengerTypeCode.CHD.toString());
+            search.getPaxReference().addAll(passengers1);
+        }
+
+        TravellerReferenceInformationType infTraveller = new TravellerReferenceInformationType();
+        if (infTravellerDetailsTypeList.size() > 0){
+            infTraveller.getTraveller().addAll(infTravellerDetailsTypeList);
+            passengers2.add(infTraveller);
+            infTraveller.getPtc().add(PassengerTypeCode.INF.toString());
+            search.getPaxReference().addAll(passengers2);
+        }
+
+        TravellerReferenceInformationType seamenTraveller = new TravellerReferenceInformationType();
+        if (seamenTravellerDetailsTypeList.size() > 0){
+            seamenTraveller.getTraveller().addAll(seamenTravellerDetailsTypeList);
+            passengers3.add(seamenTraveller);
+            seamenTraveller.getPtc().add(PassengerTypeCode.SEA.toString());
+            search.getPaxReference().addAll(passengers3);
+        }
+
+    }
     private void setPreferredAirlines(TravelFlightInformationType165052S travelFlightInfo,String carrier){
         CompanyIdentificationType233548C cid = new CompanyIdentificationType233548C();
         cid.getCarrierId().add(carrier);
