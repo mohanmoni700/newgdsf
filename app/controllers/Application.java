@@ -85,6 +85,11 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
+    public Result splitPNR(){
+        String pnr = "O8LNST";
+        PNRResponse pnrResponse = bookingService.splitPNR(pnr);
+        return ok();
+    }
     public Result checkFareChangeAndAvailability(){
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);

@@ -7,7 +7,13 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply.DataElementsMaster.DataElementsIn
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
+import com.amadeus.xml.pnracc_11_3_1a.PNRSupplementaryDataType;
 import com.amadeus.xml.pnracc_11_3_1a.TravellerDetailsTypeI;
+import com.amadeus.xml.pnrspl_10_1_1a.PNRSplit;
+import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationDetailsTypeI;
+import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationType;
+import com.amadeus.xml.pnrspl_11_3_1a.SplitPNRDetailsType;
+import com.amadeus.xml.pnrspl_11_3_1a.SplitPNRType;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
@@ -169,6 +175,64 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return pnrResponse;
 	}
 
+	@Override
+	public PNRResponse splitPNR(String gdsPNR){
+		ServiceHandler serviceHandler = null;
+    	PNRResponse pnrResponse = null;
+    	JsonNode jsonNode = null;
+		Session session = null;
+    	try{
+			serviceHandler = new ServiceHandler();
+			serviceHandler.logIn();
+			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
+			com.amadeus.xml.pnrspl_11_3_1a.PNRSplit pnrSplit = new com.amadeus.xml.pnrspl_11_3_1a.PNRSplit();
+			ReservationControlInformationType reservationInfo = new ReservationControlInformationType();
+			ReservationControlInformationDetailsTypeI reservationControlInformationDetailsTypeI = new ReservationControlInformationDetailsTypeI();
+			reservationControlInformationDetailsTypeI.setControlNumber(gdsPNR);
+			reservationInfo.setReservation(reservationControlInformationDetailsTypeI);
+			pnrSplit.setReservationInfo(reservationInfo);
+			SplitPNRType splitPNRType = new SplitPNRType();
+			SplitPNRDetailsType splitPNRDetailsType = new SplitPNRDetailsType();
+			splitPNRDetailsType.setType("PT");
+			List<String> tatto = new ArrayList<>();
+			String tat = "2";
+			tatto.add(tat);
+			splitPNRDetailsType.getTattoo().addAll(tatto);
+			splitPNRType.setPassenger(splitPNRDetailsType);
+			pnrSplit.setSplitDetails(splitPNRType);
+			/*PNRSplit.ReservationInfo.Reservation reservation = new PNRSplit.ReservationInfo.Reservation();
+			reservation.setControlNumber(gdsPNR);
+			reservationInfo.setReservation(reservation);
+			pnrSplit.setReservationInfo(reservationInfo);
+			PNRSplit.SplitDetails splitDetails = new PNRSplit.SplitDetails();
+			PNRSplit.SplitDetails.Passenger passenger = new PNRSplit.SplitDetails.Passenger();
+			passenger.setType("PT");
+			List<String> tatto = new ArrayList<>();
+			String tat = "2";
+			tatto.add(tat);
+			passenger.getTattoo().addAll(tatto);
+			splitDetails.setPassenger(passenger);
+			pnrSplit.setSplitDetails(splitDetails);*/
+			serviceHandler.splitPNR(pnrSplit);
+			gdsPNRReply = serviceHandler.savePNR();
+			String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+			Thread.sleep(10000);
+			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("error in splitPNR : ", e);
+			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
+					"error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+			pnrResponse.setErrorMessage(errorMessage);
+		}finally {
+			if(session != null){
+				serviceHandler.logOut();
+				amadeusSessionManager.removeActiveSession(session);
+			}
+
+		}
+    	return pnrResponse;
+	}
 	private PNRReply readAirlinePNR(ServiceHandler serviceHandler, PNRReply  pnrReply, Date lastPNRAddMultiElements, PNRResponse pnrResponse) throws BaseCompassitesException, InterruptedException {
 		List<ItineraryInfo> itineraryInfos = pnrReply.getOriginDestinationDetails().get(0).getItineraryInfo();
 		String airlinePnr = null;
