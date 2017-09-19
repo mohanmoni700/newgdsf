@@ -25,6 +25,8 @@ public class Journey
 
     private String provider;
 
+    private boolean isPassportMandatory;
+
     public Integer getHashCode() {
         return hashCode;
     }
@@ -133,5 +135,13 @@ public class Journey
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public boolean isPassportMandatory() {
+        return isPassportMandatory;
+    }
+
+    public void setPassportMandatory(boolean passportMandatory) {
+        isPassportMandatory = passportMandatory;
     }
 }
