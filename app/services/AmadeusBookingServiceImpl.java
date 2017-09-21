@@ -26,6 +26,7 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.exceptions.BaseCompassitesException;
 import com.compassites.model.*;
 import com.compassites.model.traveller.PersonalDetails;
+import com.compassites.model.traveller.Preferences;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -181,14 +182,16 @@ public class AmadeusBookingServiceImpl implements BookingService {
     	PNRResponse pnrResponse = null;
     	JsonNode jsonNode = null;
 		Session session = null;
-    	try{
+		PNRReply gdsPNRReply = null;
+		try{
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
-			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
+			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
+			String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 			com.amadeus.xml.pnrspl_11_3_1a.PNRSplit pnrSplit = new com.amadeus.xml.pnrspl_11_3_1a.PNRSplit();
 			ReservationControlInformationType reservationInfo = new ReservationControlInformationType();
 			ReservationControlInformationDetailsTypeI reservationControlInformationDetailsTypeI = new ReservationControlInformationDetailsTypeI();
-			reservationControlInformationDetailsTypeI.setControlNumber(gdsPNR);
+			reservationControlInformationDetailsTypeI.setControlNumber(tstRefNo);
 			reservationInfo.setReservation(reservationControlInformationDetailsTypeI);
 			pnrSplit.setReservationInfo(reservationInfo);
 			SplitPNRType splitPNRType = new SplitPNRType();
@@ -200,24 +203,23 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			splitPNRDetailsType.getTattoo().addAll(tatto);
 			splitPNRType.setPassenger(splitPNRDetailsType);
 			pnrSplit.setSplitDetails(splitPNRType);
-			/*PNRSplit.ReservationInfo.Reservation reservation = new PNRSplit.ReservationInfo.Reservation();
-			reservation.setControlNumber(gdsPNR);
-			reservationInfo.setReservation(reservation);
-			pnrSplit.setReservationInfo(reservationInfo);
-			PNRSplit.SplitDetails splitDetails = new PNRSplit.SplitDetails();
-			PNRSplit.SplitDetails.Passenger passenger = new PNRSplit.SplitDetails.Passenger();
-			passenger.setType("PT");
-			List<String> tatto = new ArrayList<>();
-			String tat = "2";
-			tatto.add(tat);
-			passenger.getTattoo().addAll(tatto);
-			splitDetails.setPassenger(passenger);
-			pnrSplit.setSplitDetails(splitDetails);*/
 			serviceHandler.splitPNR(pnrSplit);
-			gdsPNRReply = serviceHandler.savePNR();
-			String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
-			Thread.sleep(10000);
-			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
+
+			PNRReply childPNRReply = serviceHandler.saveChildPNR("14");
+			String childPNR = createChildPNR(childPNRReply);
+			serviceHandler.saveChildPNR("11");
+			serviceHandler.saveChildPNR("20");
+			Thread.sleep(6000);
+			PNRReply childRetrive = serviceHandler.retrivePNR(childPNR);
+			//String airlinePNR = readChildAirlinePNR(serviceHandler,childRetrive);
+			Date lastPNRAddMultiElements = new Date();
+			PNRReply childGdsReply = readAirlinePNR(serviceHandler,childRetrive,lastPNRAddMultiElements,pnrResponse);
+			if(pnrResponse.getAirlinePNR() != null){
+				AmadeusCancelServiceImpl amadeusCancelService = new AmadeusCancelServiceImpl();
+				amadeusCancelService.cancelPNR(childPNR);
+			} else {
+				logger.debug("No Airline PNR found in splitPNR");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("error in splitPNR : ", e);
@@ -233,6 +235,39 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
     	return pnrResponse;
 	}
+
+	private String readChildAirlinePNR(ServiceHandler serviceHandler, PNRReply pnrReply) {
+		List<ItineraryInfo> itineraryInfos = pnrReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+		String airlinePnr = null;
+		if (itineraryInfos != null && itineraryInfos.size() > 0) {
+			for (ItineraryInfo itineraryInfo : itineraryInfos) {
+				if (itineraryInfo.getItineraryReservationInfo() != null && itineraryInfo.getItineraryReservationInfo().getReservation() != null) {
+					airlinePnr = itineraryInfo.getItineraryReservationInfo().getReservation().getControlNumber();
+				}
+			}
+		}
+		return airlinePnr;
+	}
+	private String createChildPNR(PNRReply gdsPNRReply){
+		String childPNR = "";
+		for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv :gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
+			if ("SP".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+				if(dataElementsDiv.getReferencedRecord() != null){
+					childPNR = dataElementsDiv.getReferencedRecord().getReferencedReservationInfo().getReservation().getControlNumber();
+				}
+			}
+		}
+		return childPNR;
+	}
+	private Set<String> createDataElementSegment(PNRReply gdsPNRReply){
+		Set<String> isChildPNRContainSet = new HashSet<String>();
+		for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
+			String segmentName = isticket.getElementManagementData().getSegmentName();
+			isChildPNRContainSet.add(segmentName);
+		}
+		return isChildPNRContainSet;
+	}
+
 	private PNRReply readAirlinePNR(ServiceHandler serviceHandler, PNRReply  pnrReply, Date lastPNRAddMultiElements, PNRResponse pnrResponse) throws BaseCompassitesException, InterruptedException {
 		List<ItineraryInfo> itineraryInfos = pnrReply.getOriginDestinationDetails().get(0).getItineraryInfo();
 		String airlinePnr = null;
@@ -632,6 +667,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
 			List<Traveller> travellersList = new ArrayList<>();
 			List<TravellerInfo> travellerinfoList = gdsPNRReply.getTravellerInfo();
+			Preferences preferences = getPreferenceFromPNR(gdsPNRReply);
 			for (TravellerInfo travellerInfo : travellerinfoList) {
 				PassengerData passengerData = travellerInfo.getPassengerData().get(0);
 				String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
@@ -785,6 +821,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return Json.toJson(json);
 	}
 
+	public Preferences getPreferenceFromPNR(PNRReply pnrReply){
+		Preferences preferences = null;
+		return preferences;
+	}
 	public void getDisplayTicketDetails(String pnr){
 		ServiceHandler serviceHandler = null;
 		try {

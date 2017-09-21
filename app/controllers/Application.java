@@ -86,7 +86,7 @@ public class Application {
     }
 
     public Result splitPNR(){
-        String pnr = "O8LNST";
+        String pnr = "P3W74D";
         PNRResponse pnrResponse = bookingService.splitPNR(pnr);
         return ok();
     }
