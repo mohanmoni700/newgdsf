@@ -48,6 +48,8 @@ public class FlightItinerary implements Serializable{
 
     private String totalTravelTimeStr;
 
+    private boolean isPassportMandatory;
+
     public PricingMessage getPricingMessage() {
         return pricingMessage;
     }
@@ -215,6 +217,12 @@ public class FlightItinerary implements Serializable{
     public void setTotalTravelTimeStr(String totalTravelTimeStr) {
         this.totalTravelTimeStr = totalTravelTimeStr;
     }
-    
-    
+
+    public boolean isPassportMandatory() {
+        return isPassportMandatory;
+    }
+
+    public void setPassportMandatory(boolean passportMandatory) {
+        isPassportMandatory = passportMandatory;
+    }
 }
