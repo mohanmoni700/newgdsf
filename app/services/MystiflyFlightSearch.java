@@ -122,6 +122,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 			List<Journey> journeys = getJourneys(arrayOfOriginDestinationOptions);
 			flightItinerary.setFareSourceCode(airlinePricingInfo
 					.getFareSourceCode());
+			flightItinerary.setPassportMandatory(pricedItinerary.getIsPassportMandatory());
 			flightItinerary.setNonSeamenJourneyList(journeys);
 			flightItinerary.setJourneyList(journeys);
 			flightItineraryList.add(flightItinerary);

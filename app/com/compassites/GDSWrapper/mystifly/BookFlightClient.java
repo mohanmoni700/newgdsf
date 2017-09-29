@@ -108,15 +108,15 @@ public class BookFlightClient {
 		Calendar calendar1 = dob.toGregorianCalendar();
 		calendar1.clear(Calendar.ZONE_OFFSET);
 		airTraveler.setDateOfBirth(calendar1);
-
-		DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
-		dateOfExpiry = dateOfExpiry.withHourOfDay(0);
-		dateOfExpiry = dateOfExpiry.withMinuteOfHour(0);
-		dateOfExpiry = dateOfExpiry.withSecondOfMinute(0);
-		Calendar calendar = dateOfExpiry.toGregorianCalendar();
-		calendar.clear(Calendar.ZONE_OFFSET);
-		passport.setExpiryDate(calendar);
-
+		if(!StringUtils.isEmpty(passportDetails.getDateOfExpiry())) {
+			DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
+			dateOfExpiry = dateOfExpiry.withHourOfDay(0);
+			dateOfExpiry = dateOfExpiry.withMinuteOfHour(0);
+			dateOfExpiry = dateOfExpiry.withSecondOfMinute(0);
+			Calendar calendar = dateOfExpiry.toGregorianCalendar();
+			calendar.clear(Calendar.ZONE_OFFSET);
+			passport.setExpiryDate(calendar);
+		}
 
 		airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
 				.getPassengerTypeFromDOB(dob.toDate())));
