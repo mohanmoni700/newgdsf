@@ -8,7 +8,6 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fmptbq_14_2_1a.*;
 import com.compassites.model.*;
-import com.thoughtworks.xstream.XStream;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -193,8 +192,15 @@ public class SearchFlights {
     }
     private void setPreferredAirlines(TravelFlightInformationType165052S travelFlightInfo,String carrier){
         CompanyIdentificationType233548C cid = new CompanyIdentificationType233548C();
+        /*
+        * use the below lines of code to include the selected airline along with the
+        * other connecting airlines incase of multi segments
+        * */
+        //cid.getCarrierId().add(carrier);
+        //cid.getCarrierId().add("YY");
+        //cid.setCarrierQualifier("M");
+
         cid.getCarrierId().add(carrier);
-        cid.getCarrierId().add("YY");
         cid.setCarrierQualifier("M");
         travelFlightInfo.getCompanyIdentity().add(cid);
     }
