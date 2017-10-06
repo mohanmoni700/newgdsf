@@ -120,9 +120,9 @@ public class MystiflyBookingServiceImpl implements BookingService {
 	}
 
 	@Override
-	public PNRResponse splitPNR(String pnr){
-		PNRResponse pnrResponse = null;
-		return pnrResponse;
+	public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest){
+		SplitPNRResponse splitPNRResponse = null;
+		return splitPNRResponse;
 	}
 	/*@Override
 	public void cancelMystiflyBooking(String pnr) {

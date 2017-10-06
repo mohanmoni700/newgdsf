@@ -1,6 +1,8 @@
 package services;
 
+import com.compassites.model.IssuanceRequest;
 import com.compassites.model.PNRResponse;
+import com.compassites.model.SplitPNRResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 
 /**
@@ -12,6 +14,6 @@ public interface BookingService {
 
     public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo);
 
-    public PNRResponse splitPNR(String pnr);
+    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest);
   /*  public void cancelMystiflyBooking(String pnr);*/
 }

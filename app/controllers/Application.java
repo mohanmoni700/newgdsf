@@ -86,10 +86,13 @@ public class Application {
     }
 
     public Result splitPNR(){
-        String pnr = "P3W74D";
-        PNRResponse pnrResponse = bookingService.splitPNR(pnr);
-        return ok();
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest);
+        logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
+        return ok(Json.toJson(splitPNRResponse));
     }
+
     public Result checkFareChangeAndAvailability(){
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);
