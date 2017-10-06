@@ -96,8 +96,11 @@ public class BookFlightClient {
 	private void setPassportDetails(AirTraveler airTraveler,
 			PassportDetails passportDetails, String userTimezone) {
 		Passport passport = airTraveler.addNewPassport();
-
-		passport.setCountry(passportDetails.getNationality().getTwoLetterCode());
+		String nationalityTwoLetterCode=null;
+		if(!StringUtils.isEmpty(passportDetails.getNationality())) {
+			nationalityTwoLetterCode=passportDetails.getNationality().getTwoLetterCode();
+		}
+		passport.setCountry(nationalityTwoLetterCode);
 		passport.setPassportNumber(passportDetails.getPassportNumber());
 		DateTimeZone dateTimeZone  = DateTimeZone.forID(userTimezone);
 
@@ -118,9 +121,15 @@ public class BookFlightClient {
 			passport.setExpiryDate(calendar);
 		}
 
-		airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
-				.getPassengerTypeFromDOB(dob.toDate())));
-		airTraveler.setPassengerNationality(passportDetails.getNationality().getTwoLetterCode());
+		if(passportDetails.getDateOfBirth()== null)
+		{
+			airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
+					.getPassengerTypeFromDOB(null)));
+		}else{
+			airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
+					.getPassengerTypeFromDOB(dob.toDate())));
+		}
+		airTraveler.setPassengerNationality(nationalityTwoLetterCode);
 	}
 
 
