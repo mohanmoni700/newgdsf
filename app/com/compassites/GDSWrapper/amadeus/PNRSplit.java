@@ -16,7 +16,7 @@ public class PNRSplit {
         element.setPnrActions(pnrActions);
 
         PNRAddMultiElements.DataElementsMaster dataElementsMaster =  new PNRAddMultiElements.DataElementsMaster();
-        PNRAddMultiElements.DataElementsMaster.DataElementsIndiv dataElementsIndiv = new PNRAddMultiElements.DataElementsMaster.DataElementsIndiv();
+        /*PNRAddMultiElements.DataElementsMaster.DataElementsIndiv dataElementsIndiv = new PNRAddMultiElements.DataElementsMaster.DataElementsIndiv();
 
         ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
         ReferencingDetailsType reference =  new ReferencingDetailsType();
@@ -33,7 +33,7 @@ public class PNRSplit {
         freetextData.setFreetextDetail(freetextDetail);
         freetextData.setLongFreetext("Internet");
         dataElementsIndiv.setFreetextData(freetextData);
-        dataElementsMaster.getDataElementsIndiv().add(dataElementsIndiv);
+        dataElementsMaster.getDataElementsIndiv().add(dataElementsIndiv);*/
         dataElementsMaster.setMarker1(new DummySegmentTypeI());
         element.setDataElementsMaster(dataElementsMaster);
 
