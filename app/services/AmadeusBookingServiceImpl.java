@@ -210,13 +210,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pnrSplit.setReservationInfo(reservationInfo);
 			SplitPNRType splitPNRType = createSplitPNRType(issuanceRequest,travellerSegMap);
 			pnrSplit.setSplitDetails(splitPNRType);
+
 			serviceHandler.splitPNR(pnrSplit);
 
 			serviceHandler.saveChildPNR("14");
 			PNRReply childPNRReply = serviceHandler.saveChildPNR("11");
 			String childPNR = createChildPNR(childPNRReply);
 			serviceHandler.saveChildPNR("20");
-			Thread.sleep(12000);
+			Thread.sleep(4000);
 			PNRReply childRetrive = serviceHandler.retrivePNR(childPNR);
 
 			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(childRetrive, redisTemplate);
@@ -234,14 +235,23 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			Date lastPNRAddMultiElements = new Date();
 			PNRReply childGdsReply = readChildAirlinePNR(serviceHandler,childRetrive,lastPNRAddMultiElements,pnrResponse);
 			if(pnrResponse.getAirlinePNR() != null){
-				cancelPNRResponse = amadeusCancelService.cancelPNR(childPNR);
-				splitPNRResponse.setCancelPNRResponse(cancelPNRResponse);
-				serviceHandler.saveChildPNR("10");
+				try {
+					cancelPNRResponse = amadeusCancelService.cancelPNR(childPNR);
+					splitPNRResponse.setCancelPNRResponse(cancelPNRResponse);
+					serviceHandler.saveChildPNR("10");
+				} catch (Exception ex){
+					logger.error("error in cancelPNR : ", ex);
+					ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
+							"childPNRCancel", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+					pnrResponse.setErrorMessage(errorMessage);
+				}
 			} else {
+				ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
+						"noAirlinePNR", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+				pnrResponse.setErrorMessage(errorMessage);
 				logger.debug("No Airline PNR found in splitPNR");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			logger.error("error in splitPNR : ", e);
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
