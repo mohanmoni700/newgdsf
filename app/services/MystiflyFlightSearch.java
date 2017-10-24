@@ -216,7 +216,8 @@ public class MystiflyFlightSearch implements FlightSearch {
 		toAirport = Airport.getAirport(flightSegment.getArrivalAirportLocationCode(), redisTemplate);
 
 		OperatingAirline airline = flightSegment.getOperatingAirline();
-		airSegment.setFlightNumber(airline.getFlightNumber());
+		//airSegment.setFlightNumber(airline.getFlightNumber());
+		airSegment.setFlightNumber(flightSegment.getFlightNumber());
 		airSegment.setEquipment(airline.getEquipment());
 		airSegment.setOperatingCarrierCode(airline.getCode());
 		airSegment.setCarrierCode(flightSegment.getMarketingAirlineCode());
