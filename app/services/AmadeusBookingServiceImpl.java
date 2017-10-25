@@ -477,6 +477,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					return masterInfo;
 				}*/
 			}
+			if(isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM")){
+				issuanceResponse.setIssued(true);
+			} else {
+				issuanceResponse.setIssued(false);
+			}
 			/*logger.debug("SET>>>>>>>>>>>>>>>>>>>"+Json.toJson(isTicketContainSet));*/
 			for (String isFA : isTicketContainSet) {
 				if(isFA.equalsIgnoreCase("FA")){

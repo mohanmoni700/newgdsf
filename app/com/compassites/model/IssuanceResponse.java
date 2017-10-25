@@ -46,6 +46,8 @@ public class IssuanceResponse implements Serializable{
 
     private BigDecimal newLowerPrice;
 
+    private boolean isIssued;
+
     public void setErrorCode(String errorCode){
         this.errorCode = errorCode;
     }
@@ -175,4 +177,12 @@ public class IssuanceResponse implements Serializable{
     public BigDecimal getNewLowerPrice() {return newLowerPrice;}
 
     public void setNewLowerPrice(BigDecimal newLowerPrice) {this.newLowerPrice = newLowerPrice;}
+
+    public boolean getIssued() {
+        return isIssued;
+    }
+
+    public void setIssued(boolean issued) {
+        isIssued = issued;
+    }
 }
