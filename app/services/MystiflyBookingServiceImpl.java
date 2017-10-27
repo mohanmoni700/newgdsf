@@ -151,6 +151,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					issuanceResponse.setBookingStatus(pnrRS.getBookedStatus());
 					issuanceRequest.setGdsPNR(pnrRS.getPnrNumber());
 					issuanceResponse.setValidTillDate(pnrRS.getValidTillDate());
+					issuanceResponse.setAirlinePNRMap(pnrRS.getAirlinePNRMap());
 				}
 			} else {
 				AirOrderTicketClient orderTicketClient = new AirOrderTicketClient();
