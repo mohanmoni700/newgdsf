@@ -69,14 +69,27 @@ public class PricePNR {
 
 
         if(isDomesticFlight && !isSegmentWisePricing){
-            int i = 1;
+            //int i = 1;
 //            for(Journey journey : flightItinerary.getJourneys(isSeamen))  {
             for(AirSegmentInformation airSegment : airSegmentList)  {
-                refDetails = new ReferencingDetailsTypeI142222C();
+                /*refDetails = new ReferencingDetailsTypeI142222C();
                 refDetails.setRefQualifier("S");
                 refDetails.setRefNumber(BigInteger.valueOf(i));
                 paxSegReference.getRefDetails().add(refDetails);
-                i = i + 1;
+                i = i + 1;*/
+                String key = airSegment.getFromLocation() + airSegment.getToLocation();
+                for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
+                    for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
+                        String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
+                                + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                        if(segments.equals(key)) {
+                            refDetails = new ReferencingDetailsTypeI142222C();
+                            refDetails.setRefQualifier("S");
+                            refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
+                            paxSegReference.getRefDetails().add(refDetails);
+                        }
+                    }
+                }
             }
 
             pricepnr.setPaxSegReference(paxSegReference);
@@ -134,7 +147,7 @@ public class PricePNR {
                     fareBasisDetails.setFareBasisCode(basisCode);
                 }
                 fareBasisOptions.setFareBasisDetails(fareBasisDetails);
-                pricingFareBase.setFareBasisOptions(fareBasisOptions);
+                /*pricingFareBase.setFareBasisOptions(fareBasisOptions);
 
                 ReferenceInformationTypeI94606S fareBasisSegReferenc = new ReferenceInformationTypeI94606S();
                 ReferencingDetailsTypeI142223C referencingDetails = new ReferencingDetailsTypeI142223C();
@@ -144,7 +157,7 @@ public class PricePNR {
                 pricingFareBase.setFareBasisSegReference(fareBasisSegReferenc);
 
                 journeyIndex = journeyIndex + 1;
-                pricepnr.getPricingFareBase().add(pricingFareBase);
+                pricepnr.getPricingFareBase().add(pricingFareBase);*/
             }
         }
         if(isSeamen) {

@@ -51,7 +51,7 @@ public class AmadeusIssuanceServiceImpl {
         issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
 
         TravellerMasterInfo travellerMasterInfo = amadeusBookingService.allPNRDetails(issuanceRequest,issuanceRequest.getGdsPNR());
-        if(travellerMasterInfo.getTravellersList().size() > 0) {
+        if(travellerMasterInfo.getTravellersList() != null) {
             int ticketSize = travellerMasterInfo.getTravellersList().get(0).getTicketNumberMap().size();
             if (ticketSize > 0) {
                 issuanceResponse.setIssued(true);
