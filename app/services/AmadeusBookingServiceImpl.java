@@ -112,10 +112,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         .getApplicationErrorInfo()
                         .getApplicationErrorDetail()
                         .getApplicationErrorCode();
-
-                ErrorMessage errorMessage = ErrorMessageHelper
-                        .createErrorMessage("error",
-                                ErrorMessage.ErrorType.ERROR, "Amadeus");
+				ErrorMessage errorMessage = new ErrorMessage();
+                //ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error",ErrorMessage.ErrorType.ERROR, "Amadeus");
+                String errorMsg = ticketCreateTSTFromPricingReply.getApplicationError().getErrorText().getErrorFreeText();
+				errorMessage.setMessage(errorMsg);
                 pnrResponse.setErrorMessage(errorMessage);
                 pnrResponse.setFlightAvailable(false);
                 return pnrResponse;
