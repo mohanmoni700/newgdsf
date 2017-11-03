@@ -81,7 +81,7 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 		AirRevalidateRS revalidateRS;
 		try {
 			revalidateRS = revalidateClient.revalidate(fareSourceCode);
-			if(revalidateRS.getIsValid()) {
+			if(!revalidateRS.isNilPricedItineraries()) {
 				AirRulesRS airRulesRS = airRulesClient.getAirRules(revalidateRS.getPricedItineraries().getPricedItineraryArray(0).getAirItineraryPricingInfo().getFareSourceCode());
 				FareRule[] fareRules = airRulesRS.getFareRules().getFareRuleArray();
 				try {

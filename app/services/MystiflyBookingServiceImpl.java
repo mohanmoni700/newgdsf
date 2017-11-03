@@ -103,6 +103,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 						error.setProvider(Mystifly.PROVIDER);
 						pnrRS.setErrorMessage(error);
 						pnrRS.setFlightAvailable(false);
+						return pnrRS;
 					}
 				} else {
 					pnrRS.setFlightAvailable(false);

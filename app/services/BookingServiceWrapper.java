@@ -68,7 +68,7 @@ public class BookingServiceWrapper {
 					.generatePNR(travellerMasterInfo);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
 			pnrResponse = mystiflyBookingService.generatePNR(travellerMasterInfo);
-			if(pnrResponse.getBookedStatus().equals("PENDING")){
+			if(pnrResponse.getBookedStatus() != null && pnrResponse.getBookedStatus().equals("PENDING")){
 				pnrResponse.setFlightAvailable(false);
 				CancelServiceWrapper cancelServiceWrapper = null;
 				cancelServiceWrapper.cancelPNR(pnrResponse.getPnrNumber(),"Mystifly");
