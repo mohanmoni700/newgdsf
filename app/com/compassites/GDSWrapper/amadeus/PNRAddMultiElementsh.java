@@ -112,7 +112,7 @@ public class PNRAddMultiElementsh {
 
             passenger.setFirstName(name);
 
-            String passengerType = getPassengerType(traveller.getPassportDetails().getDateOfBirth());
+            String passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString();
             if(travellerMasterInfo.isSeamen()){
                 passenger.setType(PassengerTypeCode.SEA.toString());
 
@@ -183,7 +183,7 @@ public class PNRAddMultiElementsh {
         Iterator<Traveller> travellerIterator = travellerList.iterator();
         while(travellerIterator.hasNext()){
             Traveller traveller = travellerIterator.next();
-            String passengerType = getPassengerType(traveller.getPassportDetails().getDateOfBirth());
+            String passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString();
             if("INF".equals(passengerType)){
                 infantList.add(traveller);
                 travellerIterator.remove();
