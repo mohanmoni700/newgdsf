@@ -85,7 +85,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 					"partialResults", ErrorMessage.ErrorType.ERROR, provider());
 			searchResponse.getErrorMessageList().add(errorMsg);
 		}
-		XMLFileUtility.createXMLFile(searchResponse, "MystifySearchRes.xml");
+		//XMLFileUtility.createXMLFile(searchResponse, "MystifySearchRes.xml");
 		return searchResponse;
 	}
 
