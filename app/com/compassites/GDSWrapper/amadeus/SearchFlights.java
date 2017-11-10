@@ -93,7 +93,7 @@ public class SearchFlights {
             setRefundableFlights(pit);
         }
 
-        //setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
+        setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
         createFareOptions(pit);
         //se.setFareOptions(fareOptions);
