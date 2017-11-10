@@ -96,8 +96,11 @@ public class BookFlightClient {
 	private void setPassportDetails(AirTraveler airTraveler,
 			PassportDetails passportDetails, String userTimezone) {
 		Passport passport = airTraveler.addNewPassport();
-
-		passport.setCountry(passportDetails.getNationality().getTwoLetterCode());
+		String nationalityTwoLetterCode=null;
+		if(!StringUtils.isEmpty(passportDetails.getNationality())) {
+			nationalityTwoLetterCode=passportDetails.getNationality().getTwoLetterCode();
+		}
+		passport.setCountry(nationalityTwoLetterCode);
 		passport.setPassportNumber(passportDetails.getPassportNumber());
 		DateTimeZone dateTimeZone  = DateTimeZone.forID(userTimezone);
 
@@ -108,19 +111,25 @@ public class BookFlightClient {
 		Calendar calendar1 = dob.toGregorianCalendar();
 		calendar1.clear(Calendar.ZONE_OFFSET);
 		airTraveler.setDateOfBirth(calendar1);
+		if(!StringUtils.isEmpty(passportDetails.getDateOfExpiry())) {
+			DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
+			dateOfExpiry = dateOfExpiry.withHourOfDay(0);
+			dateOfExpiry = dateOfExpiry.withMinuteOfHour(0);
+			dateOfExpiry = dateOfExpiry.withSecondOfMinute(0);
+			Calendar calendar = dateOfExpiry.toGregorianCalendar();
+			calendar.clear(Calendar.ZONE_OFFSET);
+			passport.setExpiryDate(calendar);
+		}
 
-		DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
-		dateOfExpiry = dateOfExpiry.withHourOfDay(0);
-		dateOfExpiry = dateOfExpiry.withMinuteOfHour(0);
-		dateOfExpiry = dateOfExpiry.withSecondOfMinute(0);
-		Calendar calendar = dateOfExpiry.toGregorianCalendar();
-		calendar.clear(Calendar.ZONE_OFFSET);
-		passport.setExpiryDate(calendar);
-
-
-		airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
-				.getPassengerTypeFromDOB(dob.toDate())));
-		airTraveler.setPassengerNationality(passportDetails.getNationality().getTwoLetterCode());
+		if(passportDetails.getDateOfBirth()== null)
+		{
+			airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
+					.getPassengerTypeFromDOB(null)));
+		}else{
+			airTraveler.setPassengerType(Mystifly.PASSENGER_TYPE.get(DateUtility
+					.getPassengerTypeFromDOB(dob.toDate())));
+		}
+		airTraveler.setPassengerNationality(nationalityTwoLetterCode);
 	}
 
 

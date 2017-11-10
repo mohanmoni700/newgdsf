@@ -112,10 +112,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         .getApplicationErrorInfo()
                         .getApplicationErrorDetail()
                         .getApplicationErrorCode();
-
-                ErrorMessage errorMessage = ErrorMessageHelper
-                        .createErrorMessage("error",
-                                ErrorMessage.ErrorType.ERROR, "Amadeus");
+				ErrorMessage errorMessage = new ErrorMessage();
+                //ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error",ErrorMessage.ErrorType.ERROR, "Amadeus");
+                String errorMsg = ticketCreateTSTFromPricingReply.getApplicationError().getErrorText().getErrorFreeText();
+				errorMessage.setMessage(errorMsg);
                 pnrResponse.setErrorMessage(errorMessage);
                 pnrResponse.setFlightAvailable(false);
                 return pnrResponse;
@@ -477,6 +477,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					return masterInfo;
 				}*/
 			}
+			if(isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM")){
+				issuanceResponse.setIssued(true);
+			} else {
+				issuanceResponse.setIssued(false);
+			}
 			/*logger.debug("SET>>>>>>>>>>>>>>>>>>>"+Json.toJson(isTicketContainSet));*/
 			for (String isFA : isTicketContainSet) {
 				if(isFA.equalsIgnoreCase("FA")){
@@ -620,9 +625,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     }
                     infantPersonalDetail.setLastName(infantLastName);
                     names = infantFirstName.split("\\s");
-                    //infantPersonalDetail.setFirstName(names[0]);
+                   // infantPersonalDetail.setFirstName(names[0]);
 
-					if(names.length > 1){
+					if(names.length >= 1){
 						//personalDetails.setSalutation(names[names.length-1]);
 						for (String name : names){
 							if(name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms")

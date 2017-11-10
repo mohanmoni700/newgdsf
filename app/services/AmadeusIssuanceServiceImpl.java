@@ -9,6 +9,7 @@ import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -16,6 +17,7 @@ import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import play.api.libs.json.Json;
 import utils.*;
 
 import java.math.BigDecimal;
@@ -35,6 +37,9 @@ public class AmadeusIssuanceServiceImpl {
     private AmadeusSessionManager amadeusSessionManager;
 
     @Autowired
+    AmadeusBookingServiceImpl amadeusBookingService;
+
+    @Autowired
     public AmadeusIssuanceServiceImpl(AmadeusSessionManager amadeusSessionManager) {
         this.amadeusSessionManager = amadeusSessionManager;
     }
@@ -44,6 +49,17 @@ public class AmadeusIssuanceServiceImpl {
         ServiceHandler serviceHandler = null;
         IssuanceResponse issuanceResponse = new IssuanceResponse();
         issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
+
+        TravellerMasterInfo travellerMasterInfo = amadeusBookingService.allPNRDetails(issuanceRequest,issuanceRequest.getGdsPNR());
+        if(travellerMasterInfo.getTravellersList() != null) {
+            int ticketSize = travellerMasterInfo.getTravellersList().get(0).getTicketNumberMap().size();
+            if (ticketSize > 0) {
+                issuanceResponse.setIssued(true);
+                issuanceResponse.setChangedPriceLow(false);
+                issuanceResponse.setSuccess(true);
+                return issuanceResponse;
+            }
+        }
         boolean isSeamen = issuanceRequest.isSeamen();
         try {
             serviceHandler = new ServiceHandler();

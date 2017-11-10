@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by user on 05-12-2014.
@@ -45,6 +46,10 @@ public class IssuanceResponse implements Serializable{
     private boolean isChangedPriceLow;
 
     private BigDecimal newLowerPrice;
+
+    private boolean isIssued;
+
+    private Map<String, String> airlinePNRMap;
 
     public void setErrorCode(String errorCode){
         this.errorCode = errorCode;
@@ -175,4 +180,20 @@ public class IssuanceResponse implements Serializable{
     public BigDecimal getNewLowerPrice() {return newLowerPrice;}
 
     public void setNewLowerPrice(BigDecimal newLowerPrice) {this.newLowerPrice = newLowerPrice;}
+
+    public boolean getIssued() {
+        return isIssued;
+    }
+
+    public void setIssued(boolean issued) {
+        isIssued = issued;
+    }
+
+    public Map<String, String> getAirlinePNRMap() {
+        return airlinePNRMap;
+    }
+
+    public void setAirlinePNRMap(Map<String, String> airlinePNRMap) {
+        this.airlinePNRMap = airlinePNRMap;
+    }
 }
