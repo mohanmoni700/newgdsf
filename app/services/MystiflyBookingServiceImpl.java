@@ -396,9 +396,14 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					pnrRS.setPricingInfo(newPriceInfo);
 				}
 			} else {
-				pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
-						"error", ErrorMessage.ErrorType.ERROR,
-						Mystifly.PROVIDER));
+				ErrorMessage errorMessage = new ErrorMessage();
+				//ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error",ErrorMessage.ErrorType.ERROR, "Amadeus");
+				String errorMsg = revalidateRS.getErrors().getErrorArray(0).getMessage();
+				errorMessage.setMessage(errorMsg);
+				pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR,Mystifly.PROVIDER));
+				pnrRS.setPriceChanged(false);
+				pnrRS.setFlightAvailable(false);
+				//pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR,Mystifly.PROVIDER));
 			}
 		} catch (RemoteException e) {
 			pnrRS.setErrorMessage(ErrorMessageHelper.createErrorMessage(
