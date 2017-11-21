@@ -14,6 +14,7 @@ import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve;
+import com.amadeus.xml.pnrspl_10_1_1a.PNRSplit;
 import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
 import com.amadeus.xml.pnrxcl_11_3_1a.ElementIdentificationType;
 import com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType;
@@ -209,7 +210,17 @@ public class ServiceHandler {
         amadeusLogger.debug("savePNRRes " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
         return pnrReply;
     }
-    
+
+    public PNRReply saveChildPNR(String optionCode) {
+        mSession.incrementSequenceNumber();
+        logger.debug("amadeus saveChildPNR called at " + new Date() + "....................Session Id: " + mSession.getSessionId());
+        PNRAddMultiElements pnrAddMultiElements = new com.compassites.GDSWrapper.amadeus.PNRSplit().saveChildPnr(optionCode);
+        amadeusLogger.debug("saveChildPNRReq " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrAddMultiElements));
+        PNRReply pnrReply =  mPortType.pnrAddMultiElements(new com.compassites.GDSWrapper.amadeus.PNRSplit().saveChildPnr(optionCode), mSession.getSession());
+        amadeusLogger.debug("saveChildPNRRes " + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
+    }
+
     public PNRReply retrivePNR(String num){
     	//change here
         mSession.incrementSequenceNumber();
@@ -396,5 +407,14 @@ public class ServiceHandler {
         amadeusLogger.debug("ticketDisplayTSTRes" + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(ticketDisplayTSTReply));
 
         return ticketDisplayTSTReply;
+    }
+
+    public PNRReply splitPNR(com.amadeus.xml.pnrspl_11_3_1a.PNRSplit pnrSplit){
+        logger.debug("splitPNR called at " +  new Date() + "....................Session Id: " + mSession.getSessionId());
+        mSession.incrementSequenceNumber();
+        amadeusLogger.debug("splitPNRReq" + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrSplit));
+        PNRReply pnrReply = mPortType.pnrSplit(pnrSplit,mSession.getSession());
+        amadeusLogger.debug("splitPNRRes" + new Date() + " SessionId: " + mSession.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
     }
 }

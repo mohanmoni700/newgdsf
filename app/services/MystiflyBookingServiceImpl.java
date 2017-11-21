@@ -124,6 +124,11 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		return pnrRS;
 	}
 
+	@Override
+	public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest){
+		SplitPNRResponse splitPNRResponse = null;
+		return splitPNRResponse;
+	}
 	/*@Override
 	public void cancelMystiflyBooking(String pnr) {
 		try {

@@ -77,6 +77,14 @@ public class BookingServiceWrapper {
 		return pnrResponse;
 	}
 
+	public SplitPNRResponse splitPNR( IssuanceRequest issuanceRequest){
+		SplitPNRResponse splitPNRResponse = null;
+		if("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
+			splitPNRResponse = amadeusBookingService.splitPNR(issuanceRequest);
+		}
+		return splitPNRResponse;
+	}
+
 	public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo) {
 		String provider = getProvider(travellerMasterInfo);
 		PNRResponse pnrResponse = null;

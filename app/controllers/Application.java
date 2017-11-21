@@ -85,6 +85,14 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
+    public Result splitPNR(){
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest);
+        logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
+        return ok(Json.toJson(splitPNRResponse));
+    }
+
     public Result checkFareChangeAndAvailability(){
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);

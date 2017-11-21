@@ -22,6 +22,8 @@ GET     /displayTST/:pnr/:provider                       @controllers.Applicatio
 
 GET     /displayPNR/:pnr/:provider                       @controllers.Application.displayPNR(pnr:String, provider:String)
 
+POST     /splitPNR                               @controllers.Application.splitPNR()
+
 POST    /priceBookedPNR                         @controllers.Application.priceBookedPNR()
 
 GET     /getTicktedMessage                          @controllers.Application.getTicktedMessage()
