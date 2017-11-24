@@ -14,6 +14,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import utils.CorporateCodeHelper;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -96,6 +97,11 @@ public class SearchFlights {
         setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
         createFareOptions(pit);
+
+
+        CorporateIdentificationType corporateIdentificationType = createCorporateCode(pit,searchParameters);
+        fe.setCorporate(corporateIdentificationType);
+
         //se.setFareOptions(fareOptions);
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
@@ -103,6 +109,16 @@ public class SearchFlights {
 //            PricingTicketingDetailsType pdt1 = new PricingTicketingDetailsType();
 //            PricingTicketingInformationType pit1 = new PricingTicketingInformationType();
             pit.getPriceType().add("PTC");
+
+            /*pit.getPriceType().add("RW");
+            CorporateIdentificationType corporateIdentificationType = new CorporateIdentificationType();
+            CorporateIdentityType corporateIdentityType = new CorporateIdentityType();
+            corporateIdentityType.setCorporateQualifier("RW");
+            corporateIdentityType.getIdentity().add("061724");
+            corporateIdentityType.getIdentity().add("752375");
+            corporateIdentificationType.getCorporateId().add(corporateIdentityType);
+            fe.setCorporate(corporateIdentificationType);*/
+
 //            pdt1.setPricingTicketing(pit1);
 //            fe1.setPricingTickInfo(pdt1);
 //            se.setFareOptions(fe1);
@@ -119,6 +135,21 @@ public class SearchFlights {
 
 //        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " ---->" + new XStream().toXML(se));
         return se;
+    }
+
+    private CorporateIdentificationType createCorporateCode(PricingTicketingInformationType pricingTicketingInformationType,SearchParameters searchParameters){
+        CorporateIdentificationType corporateIdentificationType = new CorporateIdentificationType();
+        CorporateIdentityType corporateIdentityType = new CorporateIdentityType();
+        corporateIdentityType.setCorporateQualifier("RW");
+        corporateIdentityType.getIdentity().add("061724");
+        if(searchParameters.getPreferredAirlines() != null){
+            String airlineCorporateCode = CorporateCodeHelper.getAirlineCorporateCode(searchParameters.getPreferredAirlines());
+            if(airlineCorporateCode != null) {
+                corporateIdentityType.getIdentity().add(airlineCorporateCode);
+            }
+        }
+        corporateIdentificationType.getCorporateId().add(corporateIdentityType);
+        return corporateIdentificationType;
     }
 
     private void createSeamenPassengers(FareMasterPricerTravelBoardSearch search, SearchParameters searchParameters){
@@ -229,6 +260,7 @@ public class SearchFlights {
         pit.getPriceType().add("RP");
 
         pit.getPriceType().add("ET");
+        pit.getPriceType().add("RW");
        /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");
         pit.getPriceType().add("NSD");*/
