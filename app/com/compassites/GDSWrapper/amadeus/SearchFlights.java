@@ -143,7 +143,7 @@ public class SearchFlights {
         corporateIdentityType.setCorporateQualifier("RW");
         corporateIdentityType.getIdentity().add("061724");
         if(searchParameters.getPreferredAirlines() != null){
-            String airlineCorporateCode = CorporateCodeHelper.getAirlineCorporateCode(searchParameters.getPreferredAirlines());
+            String airlineCorporateCode = CorporateCodeHelper.getAirlineCorporateCode(searchParameters.getBookingType()+"."+searchParameters.getPreferredAirlines());
             if(airlineCorporateCode != null) {
                 corporateIdentityType.getIdentity().add(airlineCorporateCode);
             }
