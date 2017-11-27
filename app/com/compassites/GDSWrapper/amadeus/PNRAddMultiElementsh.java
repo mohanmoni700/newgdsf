@@ -708,9 +708,11 @@ public class PNRAddMultiElementsh {
         DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
 
         String issuanceCountryCode = NationalityDao.getCodeForCountry(traveller.getPassportDetails().getPlaceOfIssue());
-        String freeText = "P-"+ issuanceCountryCode + "-" +
-                passportDetails.getPassportNumber() + "-" + traveller.getPassportDetails().getNationality().getThreeLetterCode()
-                + "-" + fmt.print(dob)
+        String freeText = "P-"+ issuanceCountryCode + "-" + passportDetails.getPassportNumber();
+        if(traveller.getPassportDetails().getNationality() != null){
+            freeText=freeText + "-" + traveller.getPassportDetails().getNationality().getThreeLetterCode();
+        }
+        freeText = freeText + "-" + fmt.print(dob)
                 + "-" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "-" + fmt.print(dateOfExpiry)+"-";
         String name = traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName();
 
