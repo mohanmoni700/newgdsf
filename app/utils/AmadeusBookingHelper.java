@@ -341,10 +341,12 @@ public class AmadeusBookingHelper {
 
                 name = name.replaceAll("\\s+", "");
                 int len = names.length-1;
-                if(name.equalsIgnoreCase("FNU")){
-                    name=names[len];
-                }else {
-                    name=name+names[len];
+                if(!"inf".equalsIgnoreCase(infantIndicator)) {
+                    if (name.equalsIgnoreCase("FNU")) {
+                        name = names[len];
+                    } else {
+                        name = name + names[len];
+                    }
                 }
                 lastName = lastName.replaceAll("\\s+", "");
                 if(lastName.equalsIgnoreCase("LNU")){
