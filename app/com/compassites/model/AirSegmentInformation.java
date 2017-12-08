@@ -85,6 +85,8 @@ public class AirSegmentInformation implements Serializable{
 
     private String contextType;
 
+    private String validatingCarrierCode;
+
     private List<HoppingFlightInformation> hoppingFlightInformations = null;
     
     public List<HoppingFlightInformation> getHoppingFlightInformations() {
@@ -390,5 +392,13 @@ public class AirSegmentInformation implements Serializable{
 
     public void setContextType(String contextType) {
         this.contextType = contextType;
+    }
+
+    public String getValidatingCarrierCode() {
+        return validatingCarrierCode;
+    }
+
+    public void setValidatingCarrierCode(String validatingCarrierCode) {
+        this.validatingCarrierCode = validatingCarrierCode;
     }
 }

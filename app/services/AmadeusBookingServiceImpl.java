@@ -19,6 +19,7 @@ import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.StructuredDateTimeType;
+import com.amadeus.xml.ttstrr_13_1_1a.OriginAndDestinationDetailsTypeI;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
@@ -692,6 +693,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST();
 			PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 
+			List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
+			validatingCarrierInSegment(fareList,flightItinerary,isSeamen);
+
             if(isSeamen){
                 flightItinerary.setSeamanPricingInformation(pricingInformation);
             }else {
@@ -869,6 +873,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				json.put("pnrResponse", pnrResponse);
 				return Json.toJson(json);
 			}
+			List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
+			validatingCarrierInSegment(fareList,flightItinerary,isSeamen);
 			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 			if (isSeamen) {
 				flightItinerary.setSeamanPricingInformation(pricingInfo);
@@ -908,6 +914,37 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return Json.toJson(json);
 	}
 
+	private void validatingCarrierInSegment(List<TicketDisplayTSTReply.FareList> fareList, FlightItinerary flightItinerary, Boolean isSeamen){
+		logger.debug("validatingCarrierInSegment");
+		try {
+			Map<Integer, String> validatingCarrierMap = new HashMap<>();
+			int key = 0;
+			for (TicketDisplayTSTReply.FareList fare : fareList) {
+				OriginAndDestinationDetailsTypeI originAndDestinationDetailsTypeI = fare.getOriginDestination();
+				//String key = originAndDestinationDetailsTypeI.getCityCode().get(0)+originAndDestinationDetailsTypeI.getCityCode().get(1);
+				String value = fare.getValidatingCarrier().getCarrierInformation().getCarrierCode();
+				validatingCarrierMap.put(key, value);
+				key++;
+			}
+			List<Journey> journeyList1 = null;
+			if (isSeamen) {
+				journeyList1 = flightItinerary.getJourneyList();
+			} else {
+				journeyList1 = flightItinerary.getNonSeamenJourneyList();
+			}
+			for (Journey journey : journeyList1) {
+				int index = 0;
+				for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
+					//String key = airSegmentInformation.getFromAirport().getCityCode()+airSegmentInformation.getToAirport().getCityCode();
+					String validateCarrier = validatingCarrierMap.get(index);
+					airSegmentInformation.setValidatingCarrierCode(validateCarrier);
+					index++;
+				}
+			}
+		} catch (Exception e){
+			logger.debug("Exception validatingCarrierInSegment ",e);
+		}
+	}
 	public Preferences getPreferenceFromPNR(PNRReply pnrReply){
 		Preferences preferences = null;
 		return preferences;
