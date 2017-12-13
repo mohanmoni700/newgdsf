@@ -152,6 +152,7 @@ public class AmadeusBookingHelper {
                     travellerKey = reference.getQualifier() + reference.getNumber();
                     if (travellerMap.containsKey(travellerKey)) {
                         passengerRef = travellerKey;
+                        //segmentRefList.add(travellerKey);
                     } else {
                         segmentRefList.add(travellerKey);
                     }
@@ -207,10 +208,12 @@ public class AmadeusBookingHelper {
 
                 name = name.replaceAll("\\s+", "");
                 int len = names.length-1;
-                if(name.equalsIgnoreCase("FNU")){
-                    name=names[len];
-                } else {
-                    name=name+names[len];
+                if(!"inf".equalsIgnoreCase(infantIndicator)) {
+                    if (name.equalsIgnoreCase("FNU")) {
+                        name = names[len];
+                    } else {
+                        name = name + names[len];
+                    }
                 }
                 lastName = lastName.replaceAll("\\s+", "");
                 if(lastName.equalsIgnoreCase("LNU")){
@@ -225,7 +228,13 @@ public class AmadeusBookingHelper {
                     }else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
                     }
-                    contactName = contactName + traveller1.getPersonalDetails().getSalutation();
+                    String salutation = "";
+                    if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
+                        salutation = "MSTR";
+                    } else {
+                        salutation = traveller1.getPersonalDetails().getSalutation();
+                    }
+                    contactName = contactName +salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
                     contactLastName  = contactLastName.replaceAll("\\s+", "");
@@ -240,13 +249,15 @@ public class AmadeusBookingHelper {
                         }else {
                             ticketMap = new HashMap<>();
                         }
-                        for(String segmentRef : segmentRefList){
-                        PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
-                        String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()+
-                                itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
-                                + segmentSequenceMap.get(segmentRef);
-                        ticketMap.put(key.toLowerCase(),ticketNumber);
-                        logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
+                        if(segmentRefList.size() != 0) {
+                            for (String segmentRef : segmentRefList) {
+                                PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo) airSegmentRefMap.get(segmentRef);
+                                String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() +
+                                        itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
+                                        + segmentSequenceMap.get(segmentRef);
+                                ticketMap.put(key.toLowerCase(), ticketNumber);
+                                logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
+                            }
                         }
                         traveller1.setTicketNumberMap(ticketMap);
                     }
@@ -360,7 +371,13 @@ public class AmadeusBookingHelper {
                     }else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
                     }
-                    contactName = contactName + traveller1.getPersonalDetails().getSalutation();
+                    String salutation = "";
+                    if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
+                        salutation = "MSTR";
+                    } else {
+                        salutation = traveller1.getPersonalDetails().getSalutation();
+                    }
+                    contactName = contactName + salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
                     contactLastName  = contactLastName.replaceAll("\\s+", "");
