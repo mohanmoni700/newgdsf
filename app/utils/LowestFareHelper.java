@@ -42,9 +42,12 @@ public class LowestFareHelper {
 
         for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
             for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-                String segmentRef = "S"+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-                String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
-                airSegmentRefMap.put(segmentRef,segments);
+                String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                if(segType.equalsIgnoreCase("AIR")) {
+                    String segmentRef = "S" + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                    String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                    airSegmentRefMap.put(segmentRef, segments);
+                }
             }
         }
 //        List<FareList> fareList = pricePNRReplyFareList;
