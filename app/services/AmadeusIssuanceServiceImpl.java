@@ -51,7 +51,7 @@ public class AmadeusIssuanceServiceImpl {
         issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
 
         TravellerMasterInfo travellerMasterInfo = amadeusBookingService.allPNRDetails(issuanceRequest,issuanceRequest.getGdsPNR());
-        if(travellerMasterInfo.getTravellersList() != null) {
+        /*if(travellerMasterInfo.getTravellersList() != null) {
             int ticketSize = travellerMasterInfo.getTravellersList().get(0).getTicketNumberMap().size();
             if (ticketSize > 0) {
                 issuanceResponse.setIssued(true);
@@ -59,12 +59,29 @@ public class AmadeusIssuanceServiceImpl {
                 issuanceResponse.setSuccess(true);
                 return issuanceResponse;
             }
-        }
+        }*/
         boolean isSeamen = issuanceRequest.isSeamen();
         try {
             serviceHandler = new ServiceHandler();
             serviceHandler.logIn();
             PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
+
+            for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
+                if ("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+                    logger.debug("Tickets are already issued cannot reprice the pnr: " + issuanceRequest.getGdsPNR());
+                    issuanceResponse.setIssued(true);
+                    issuanceResponse.setChangedPriceLow(false);
+                    issuanceResponse.setSuccess(true);
+                    return issuanceResponse;
+                } else if ("FHM".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+                    logger.debug("Tickets are already issued cannot reprice the pnr: " + issuanceRequest.getGdsPNR());
+                    issuanceResponse.setIssued(true);
+                    issuanceResponse.setChangedPriceLow(false);
+                    issuanceResponse.setSuccess(true);
+                    return issuanceResponse;
+                }
+            }
+
             String carrierCode = "";
 
             carrierCode = issuanceRequest.getFlightItinerary().getJourneys(isSeamen).get(0).getAirSegmentList().get(0).getValidatingCarrierCode();
