@@ -52,14 +52,17 @@ public class PricePNR {
                 String key = airSegment.getFromLocation() + airSegment.getToLocation();
                 for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
                     for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
-                        String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
-                                + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
-                        //TODO for multicity the starting and ending segments may be same
-                        if(segments.equals(key)) {
-                            refDetails = new ReferencingDetailsTypeI142222C();
-                            refDetails.setRefQualifier("S");
-                            refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
-                            paxSegReference.getRefDetails().add(refDetails);
+                        String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                        if(segType.equalsIgnoreCase("AIR")) {
+                            String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
+                                    + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                            //TODO for multicity the starting and ending segments may be same
+                            if (segments.equals(key)) {
+                                refDetails = new ReferencingDetailsTypeI142222C();
+                                refDetails.setRefQualifier("S");
+                                refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
+                                paxSegReference.getRefDetails().add(refDetails);
+                            }
                         }
                     }
                 }
@@ -80,13 +83,16 @@ public class PricePNR {
                 String key = airSegment.getFromLocation() + airSegment.getToLocation();
                 for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
                     for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
-                        String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
-                                + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
-                        if(segments.equals(key)) {
-                            refDetails = new ReferencingDetailsTypeI142222C();
-                            refDetails.setRefQualifier("S");
-                            refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
-                            paxSegReference.getRefDetails().add(refDetails);
+                        String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                        if(segType.equalsIgnoreCase("AIR")) {
+                            String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
+                                    + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                            if (segments.equals(key)) {
+                                refDetails = new ReferencingDetailsTypeI142222C();
+                                refDetails.setRefQualifier("S");
+                                refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
+                                paxSegReference.getRefDetails().add(refDetails);
+                            }
                         }
                     }
                 }
