@@ -34,6 +34,12 @@ public class AmadeusCancelServiceImpl implements CancelService {
                     ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
                     cancelPNRResponse.setErrorMessage(errorMessage);
                     return cancelPNRResponse;
+                } else if ("FHM".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+                    logger.debug("Tickets are already issued in FHM cannot cancel the pnr: " + pnr);
+                    cancelPNRResponse.setSuccess(false);
+                    ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+                    cancelPNRResponse.setErrorMessage(errorMessage);
+                    return cancelPNRResponse;
                 }
             }
             pnrReply = serviceHandler.cancelPNR(pnr,pnrReply);
