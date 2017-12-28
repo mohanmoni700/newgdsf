@@ -117,6 +117,7 @@ public class AmadeusIssuanceServiceImpl {
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
                     //carrierCode = airSegment.get(airSegment.size()-1).getValidatingCarrierCode();
+                     carrierCode = travellerMasterInfo.getItinerary().getJourneys(isSeamen).get(0).getAirSegmentList().get(0).getValidatingCarrierCode();
 
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
