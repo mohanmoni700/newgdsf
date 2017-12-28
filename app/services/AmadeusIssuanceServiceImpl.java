@@ -116,7 +116,7 @@ public class AmadeusIssuanceServiceImpl {
                     for (String segmentKey : segmentKeysList) {
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
-                    carrierCode = airSegment.get(airSegment.size()-1).getValidatingCarrierCode();
+                    //carrierCode = airSegment.get(airSegment.size()-1).getValidatingCarrierCode();
 
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
