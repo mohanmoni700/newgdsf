@@ -7,9 +7,7 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply.DataElementsMaster.DataElementsIn
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
-import com.amadeus.xml.pnracc_11_3_1a.PNRSupplementaryDataType;
 import com.amadeus.xml.pnracc_11_3_1a.TravellerDetailsTypeI;
-import com.amadeus.xml.pnrspl_10_1_1a.PNRSplit;
 import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationDetailsTypeI;
 import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationType;
 import com.amadeus.xml.pnrspl_11_3_1a.SplitPNRDetailsType;
@@ -757,12 +755,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler.logIn();
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
 			List<Traveller> travellersList = new ArrayList<>();
+            List<Traveller> childTravellersList = new ArrayList<>();
+            List<Traveller> infantTravellersList = new ArrayList<>();
 			List<TravellerInfo> travellerinfoList = gdsPNRReply.getTravellerInfo();
 			Preferences preferences = getPreferenceFromPNR(gdsPNRReply);
 			for (TravellerInfo travellerInfo : travellerinfoList) {
 				PassengerData passengerData = travellerInfo.getPassengerData().get(0);
 				String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
 				String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
+				String passengerType = passengerData.getTravellerInformation().getPassenger().get(0).getType();
 				String firstName = "";
 				Traveller traveller = new Traveller();
 				PersonalDetails personalDetails = new PersonalDetails();
@@ -792,9 +793,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				personalDetails.setLastName(lastName);
 				personalDetails.setMiddleName("");
 				traveller.setPersonalDetails(personalDetails);
-				travellersList.add(traveller);
-
 				String infantIndicator = passengerData.getTravellerInformation().getPassenger().get(0).getInfantIndicator();
+                if(passengerType != null && passengerType != ""){
+                    if(passengerType.equals("CHD")){
+                        childTravellersList.add(traveller);
+                    }
+                } if(passengerType == null || passengerType == "" || passengerType.equals("SEA")){
+                    travellersList.add(traveller);
+                }
 				if(infantIndicator != null && !"".equalsIgnoreCase(infantIndicator)){
                     Traveller infantTraveller = new Traveller();
                     PersonalDetails infantPersonalDetail = new PersonalDetails();
@@ -837,10 +843,16 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     /*if(names.length > 1)
                         infantPersonalDetail.setMiddleName(names[1]);*/
                     infantTraveller.setPersonalDetails(infantPersonalDetail);
-                    travellersList.add(infantTraveller);
+                    infantTravellersList.add(infantTraveller);
 				}
 
 			}
+			if(childTravellersList.size() > 0){
+				travellersList.addAll(childTravellersList);
+			}
+			if(infantTravellersList.size() > 0){
+				travellersList.addAll(infantTravellersList);
+            }
 			masterInfo.setTravellersList(travellersList);
 			Map<String, Integer> paxTypeCount = AmadeusBookingHelper.getPaxTypeCount(travellerinfoList);
 			String paxType = travellerinfoList.get(0).getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getType();
