@@ -556,7 +556,7 @@ public class AirRequestClient extends TravelPortClient {
 			searchPassenger.setCode(paxType);
 			searchPassenger.setKey("" + i);
 			searchPassenger.setPricePTCOnly(true);
-			searchPassenger.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(dob)));
+			searchPassenger.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOBRounded(dob)));
 			searchPassenger.setBookingTravelerRef("" + i);
             request.getSearchPassenger().add(searchPassenger);
 		}

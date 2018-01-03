@@ -358,12 +358,11 @@ public class AirReservationClient  extends TravelPortClient {
             calendar.setMonth(jCalendar.get(Calendar.MONTH) + 1);
             calendar.setYear(jCalendar.get(Calendar.YEAR));
             bookingTraveler.setDOB(calendar);
-            bookingTraveler.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth())));
+            bookingTraveler.setAge(BigInteger.valueOf(DateUtility.getAgeFromDOBRounded(traveller.getPassportDetails().getDateOfBirth())));
             //adult
 //            String travelerType = travellerMasterInfo.isSeamen() ? PassengerTypeCode.SEA.name() : DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).name();
             
-            long age = DateUtility.getAgeFromDOB(traveller.getPassportDetails().getDateOfBirth());
-            String travelerType = (age <= 12) ? ((age <= 2 ) ? "INF" : "CNN") : "ADT";
+            String travelerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString();
             bookingTraveler.setTravelerType(travelerType);
             bookingTraveler.setKey(i++ + "");
 

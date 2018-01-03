@@ -195,21 +195,7 @@ public class PNRAddMultiElementsh {
 
     //TODO-- Add Seaman type to the adult passenger
     private String getPassengerType(Date passengerDOB){
-        LocalDate birthdate = new LocalDate (passengerDOB);          //Birth date
-        LocalDate now = new LocalDate();                    //Today's date
-        Period period = new Period(birthdate, now,  PeriodType.yearMonthDay());
-        int age = period.getYears();
-        String passengerType;
-        if(age <= 2){
-            passengerType = "INF";
-        }else if (age <= 12){
-            passengerType = "CHD";
-        }else{
-            passengerType = "ADT";
-        }
-
-        return passengerType;
-
+        return DateUtility.getPassengerTypeFromDOB(passengerDOB).toString();
     }
     public TravellerInfo addPassenger(){
         TravellerInfo travellerInfo = new TravellerInfo();
