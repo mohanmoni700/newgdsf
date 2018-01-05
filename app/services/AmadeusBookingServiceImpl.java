@@ -796,9 +796,17 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				String infantIndicator = passengerData.getTravellerInformation().getPassenger().get(0).getInfantIndicator();
                 if(passengerType != null && passengerType != ""){
                     if(passengerType.equals("CHD")){
+						personalDetails.setPaxType("CHD");
+						traveller.setPersonalDetails(personalDetails);
                         childTravellersList.add(traveller);
-                    }
-                } if(passengerType == null || passengerType == "" || passengerType.equals("SEA")){
+                    } else {
+						personalDetails.setPaxType("ADT");
+						traveller.setPersonalDetails(personalDetails);
+						travellersList.add(traveller);
+					}
+                } else {
+					personalDetails.setPaxType("ADT");
+					traveller.setPersonalDetails(personalDetails);
                     travellersList.add(traveller);
                 }
 				if(infantIndicator != null && !"".equalsIgnoreCase(infantIndicator)){
@@ -834,6 +842,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						}
 						infantPersonalDetail.setFirstName(infFirstName.trim());
 						infantPersonalDetail.setMiddleName("");
+						infantPersonalDetail.setPaxType("INF");
 					}
 
 

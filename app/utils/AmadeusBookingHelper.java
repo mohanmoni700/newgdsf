@@ -849,11 +849,11 @@ public class AmadeusBookingHelper {
         }
         for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
             String key = "P" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
+            String infantIndicator = travellerInfo.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getInfantIndicator();
             travellerMap.put(key,travellerInfo);
             if(!isSeamen){
                 PassengerData paxData = travellerInfo.getPassengerData().get(0);
                 String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
-                String infantIndicator = paxData.getTravellerInformation().getPassenger().get(0).getInfantIndicator();
                 if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
                     passengerType.put(key,"CHD");
                 } else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
@@ -867,6 +867,9 @@ public class AmadeusBookingHelper {
                 }
             }else {
                 passengerType.put(key, "ADT");
+                if(infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)){
+                    passengerType.put("PI"+ travellerInfo.getElementManagementPassenger().getReference().getNumber(), "ADT");
+                }
             }
         }
 
@@ -911,7 +914,6 @@ public class AmadeusBookingHelper {
             if("PI".equalsIgnoreCase(fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier())){
                 paxTypeKey = fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier() + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber();
             }
-
             String paxType = passengerType.get(paxTypeKey);
             totalFarePerPaxType = totalFarePerPaxType.add(paxTotalFare.multiply(new BigDecimal(paxCount)));
             baseFareOfPerPaxType = baseFareOfPerPaxType.add(baseFare.multiply(new BigDecimal(paxCount)));
