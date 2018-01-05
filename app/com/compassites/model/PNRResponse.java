@@ -47,6 +47,8 @@ public class PNRResponse {
 
     private String bookedStatus;
 
+    private boolean isChangedPriceLow;
+
     public String getPnrNumber() {
         return pnrNumber;
     }
@@ -197,6 +199,14 @@ public class PNRResponse {
 
     public String getBookedStatus() {
         return bookedStatus;
+    }
+
+    public boolean isChangedPriceLow() {
+        return isChangedPriceLow;
+    }
+
+    public void setChangedPriceLow(boolean changedPriceLow) {
+        isChangedPriceLow = changedPriceLow;
     }
 }
 

@@ -398,6 +398,16 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					pnrRS.setPriceChanged(true);
 
 					PricingInformation newPriceInfo = MystiflyHelper.setPricingInformtions(pricingInfo);
+					BigDecimal bookedPrice = travellerMasterInfo.getItinerary().getPricingInformation(travellerMasterInfo.isSeamen()).getTotalPriceValue();
+					BigDecimal newPrice = newPriceInfo.getTotalPriceValue();
+					if(bookedPrice.compareTo(newPrice) < 0) {
+						pnrRS.setChangedPriceLow(false);
+					} else if(bookedPrice.compareTo(newPrice) > 0) {
+						pnrRS.setChangedPriceLow(true);
+					} else {
+						pnrRS.setPriceChanged(false);
+						pnrRS.setChangedPriceLow(false);
+					}
 					pnrRS.setPricingInfo(newPriceInfo);
 				}
 			} else {
