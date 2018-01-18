@@ -379,7 +379,7 @@ public class AmadeusBookingHelper {
                     }
                     String salutation = "";
                     if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
-                        salutation = "MASTER";
+                        salutation = "MSTR";
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
                     }
