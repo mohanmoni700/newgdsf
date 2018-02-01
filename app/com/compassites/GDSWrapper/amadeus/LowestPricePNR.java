@@ -9,6 +9,7 @@ import com.compassites.model.FlightItinerary;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -70,14 +71,21 @@ public class LowestPricePNR {
             pricepnr.setPaxSegReference(paxSegReference);
         }
 
-
-        com.amadeus.xml.tplprq_12_4_1a.CodedAttributeInformationType attributeDetails=new com.amadeus.xml.tplprq_12_4_1a.CodedAttributeInformationType();
+       List<String> codeAttributes = Arrays.asList("RU","PTC","RW");
         //attributeDetails.setAttributeType("BK");
         //attributeDetails.setAttributeType("NOP");
         //attributeDetails.setAttributeDescription("XN");
+        List<CodedAttributeInformationType> codedAttribute = new ArrayList<>();
         if(isSeamen) {
-            attributeDetails.setAttributeType("ptc");
-            overrideInformation.getAttributeDetails().add(attributeDetails);
+            for(String code : codeAttributes){
+                CodedAttributeInformationType codeAttrInfoType = new CodedAttributeInformationType();
+                codeAttrInfoType.setAttributeType(code);
+                if(code.equals("RW")){
+                    codeAttrInfoType.setAttributeDescription("029608");
+                }
+                codedAttribute.add(codeAttrInfoType);
+            }
+            overrideInformation.getAttributeDetails().addAll(codedAttribute);
         }else {
             overrideInformation.getAttributeDetails().addAll(addPricingOptions(isDomesticFlight));
         }

@@ -1,11 +1,11 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.tplprq_12_4_1a.CodedAttributeInformationType;
-import com.amadeus.xml.tplprq_12_4_1a.CodedAttributeType;
-import com.amadeus.xml.tplprq_12_4_1a.DiscountAndPenaltyInformationTypeI;
-import com.amadeus.xml.tplprq_12_4_1a.DiscountPenaltyMonetaryInformationTypeI;
-import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
+import com.amadeus.xml.tplprq_12_4_1a.*;
 import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare.DiscountInformation;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Santhosh
@@ -23,11 +23,18 @@ public class PricePNRLowestFare {
 		penDisInfo.getPenDisData().add(penDisData);
 		discountInfo.setPenDisInformation(penDisInfo);
 		farePricePNRWithLowestFare.getDiscountInformation().add(discountInfo);
-
+		List<String> codeAttributes = Arrays.asList("PTC","RU","RW");
 		CodedAttributeType codedAttributeType = new CodedAttributeType();
-		CodedAttributeInformationType codedAttribute = new CodedAttributeInformationType();
-		codedAttribute.setAttributeType("PTC");
-		codedAttributeType.getAttributeDetails().add(codedAttribute);
+		List<CodedAttributeInformationType> codedAttribute = new ArrayList<>();
+		for(String code : codeAttributes){
+            CodedAttributeInformationType codeAttrInfoType = new CodedAttributeInformationType();
+			codeAttrInfoType.setAttributeType(code);
+			if(code.equals("RW")){
+				codeAttrInfoType.setAttributeDescription("029608");
+			}
+		    codedAttribute.add(codeAttrInfoType);
+        }
+		codedAttributeType.getAttributeDetails().addAll(codedAttribute);
 		farePricePNRWithLowestFare.setOverrideInformation(codedAttributeType);
 
 		return farePricePNRWithLowestFare;
