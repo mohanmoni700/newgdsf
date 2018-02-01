@@ -1,12 +1,12 @@
 package services;
 
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
-import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
 import utils.AmadeusBookingHelper;
 import utils.AmadeusHelper;
 import utils.LowestFareHelper;
@@ -18,8 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.*;
-import static com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList.SegmentInformation;
+import static com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList;
 
 /**
  * Created by yaseen on 24-09-2016.
@@ -68,7 +67,6 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
                         segmentsInfo.put(key, airSegmentInformation);
                     }
                 }
-
                 for(SegmentPricing segmentPricing : segmentPricingList) {
                     List<String> segmentKeysList = segmentPricing.getSegmentKeysList();
                     List<AirSegmentInformation> airSegment = new ArrayList<>();
@@ -79,12 +77,13 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
                     pricePNRReply = serviceHandler.getLowestFare(carrierCode, gdsPNRReply,
                             issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing);
                     List<FarePricePNRWithLowestFareReply.FareList> tempPricePNRReplyFareList = pricePNRReply.getFareList();
-
                     int numberOfTst = (issuanceRequest.isSeamen()) ? 1
                             : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
 
-                    for(int i = 0; i< numberOfTst ; i++){
-                        pricePNRReplyFareList.add(tempPricePNRReplyFareList.get(i));
+                    if (tempPricePNRReplyFareList.size() > 0) {
+                        for(int i = 0; i< numberOfTst ; i++){
+                            pricePNRReplyFareList.add(tempPricePNRReplyFareList.get(i));
+                        }
                     }
                 }
 
@@ -137,7 +136,7 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
             lowestFare.setTstLowestFareMap(tstLowestFareMap);
             lowestFare.setGdsPnr(issuanceRequest.getGdsPNR());
             lowestFare.setAmount(newPrice);
-
+            logger.debug("lowestFare: " + Json.toJson(lowestFare));
             serviceHandler.logOut();
         } catch (Exception e) {
             e.printStackTrace();
