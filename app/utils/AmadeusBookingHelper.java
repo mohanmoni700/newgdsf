@@ -228,12 +228,12 @@ public class AmadeusBookingHelper {
                     }else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
                     }
-                    String salutation = "";
-                    if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
+                    String salutation = traveller1.getPersonalDetails().getSalutation();
+                    /*if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
                         salutation = "MSTR";
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
-                    }
+                    }*/
                     contactName = contactName +salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
@@ -404,12 +404,12 @@ public class AmadeusBookingHelper {
                     }else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
                     }
-                    String salutation = "";
-                    if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
+                    String salutation = traveller1.getPersonalDetails().getSalutation();;
+                    /*if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
                         salutation = "MSTR";
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
-                    }
+                    }*/
                     contactName = contactName +salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
@@ -559,12 +559,12 @@ public class AmadeusBookingHelper {
                     }else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
                     }
-                    String salutation = "";
-                    if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
+                    String salutation = traveller1.getPersonalDetails().getSalutation();
+                    /*if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
                         salutation = "MSTR";
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
-                    }
+                    }*/
                     contactName = contactName + salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();

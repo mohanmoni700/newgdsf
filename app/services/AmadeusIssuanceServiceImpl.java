@@ -81,6 +81,12 @@ public class AmadeusIssuanceServiceImpl {
                     issuanceResponse.setChangedPriceLow(false);
                     issuanceResponse.setSuccess(true);
                     return issuanceResponse;
+                } else if ("FHE".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+                    logger.debug("Tickets are already issued cannot reprice the pnr: " + issuanceRequest.getGdsPNR());
+                    issuanceResponse.setIssued(true);
+                    issuanceResponse.setChangedPriceLow(false);
+                    issuanceResponse.setSuccess(true);
+                    return issuanceResponse;
                 }
             }
 
