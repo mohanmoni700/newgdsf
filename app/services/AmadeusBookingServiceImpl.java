@@ -657,7 +657,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					return masterInfo;
 				}*/
 			}
-			if(isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM")){
+			if(isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM") || isTicketContainSet.contains("FHE") ){
 				issuanceResponse.setIssued(true);
 			} else {
 				issuanceResponse.setIssued(false);
@@ -672,10 +672,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					AmadeusBookingHelper.createOfflineTickets(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
 					//break;
-				} /*else {
-					return masterInfo; 
-				}*/
+				} if(isFA.equalsIgnoreCase("FHE")){
+					AmadeusBookingHelper.createOfflineTicketsinFHE(issuanceResponse,
+							issuanceRequest, gdsPNRReply);
+					//break;
+				}
 			}
+			masterInfo.setTravellersList(issuanceResponse.getTravellerList());
 			/*System.out
 					.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
 							+ "\n" + Json.toJson(gdsPNRReply));*/
@@ -702,7 +705,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 			masterInfo.setItinerary(flightItinerary);
 
-			masterInfo.setTravellersList(issuanceResponse.getTravellerList());
+
 //            getCancellationFee(issuanceRequest,issuanceResponse,serviceHandler);
             masterInfo.setCancellationFeeText(issuanceResponse.getCancellationFeeText());
 			// logger.debug("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
