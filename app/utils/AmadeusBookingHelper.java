@@ -242,10 +242,14 @@ public class AmadeusBookingHelper {
                             && lastName.equalsIgnoreCase(contactLastName)){
                         String freeText = "";
                         if("inf".equalsIgnoreCase(infantIndicator)) {
-                            String freeText1[] =  dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("\\s");
-                            freeText = freeText1[1];
+                            if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
+                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("INF", 0);
+                                freeText = freeText1[1];
+                            } else {
+                                freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                            }
                         } else {
-                            freeText =  dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                             freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         }
                        // String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         String[] freeTextArr = freeText.split("/");
@@ -418,10 +422,14 @@ public class AmadeusBookingHelper {
                             && lastName.equalsIgnoreCase(contactLastName)){
                         String freeText = "";
                         if("inf".equalsIgnoreCase(infantIndicator)) {
-                            String freeText1[] =  dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("\\s");
-                            freeText = freeText1[1];
+                            if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
+                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("INF", 0);
+                                freeText = freeText1[1];
+                            } else {
+                                freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                            }
                         } else {
-                            freeText =  dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                            freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         }
                         String[] freeTextArr = freeText.split("/");
                         String ticketNumber = freeTextArr[0].trim();
@@ -574,10 +582,14 @@ public class AmadeusBookingHelper {
                     	//String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         String freeText = "";
                         if("inf".equalsIgnoreCase(infantIndicator)) {
-                            String freeText1[] =  dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("\\s");
-                            freeText = freeText1[1];
+                            if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
+                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("INF", 0);
+                                freeText = freeText1[1];
+                            } else {
+                                freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                            }
                         } else {
-                            freeText =  dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                            freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         }
                         String[] freeTextArr = freeText.split("/");
                         String ticketNumber = freeTextArr[0].substring(3);
