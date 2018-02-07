@@ -2,8 +2,8 @@ package services;
 
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
-import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
@@ -17,8 +17,10 @@ import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import play.api.libs.json.Json;
-import utils.*;
+import utils.AmadeusBookingHelper;
+import utils.AmadeusHelper;
+import utils.AmadeusSessionManager;
+import utils.ErrorMessageHelper;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -116,8 +118,7 @@ public class AmadeusIssuanceServiceImpl {
                     for (String segmentKey : segmentKeysList) {
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
-                    //carrierCode = airSegment.get(airSegment.size()-1).getValidatingCarrierCode();
-                     carrierCode = travellerMasterInfo.getItinerary().getJourneys(isSeamen).get(0).getAirSegmentList().get(0).getValidatingCarrierCode();
+                    carrierCode = airSegment.get(airSegment.size()-1).getValidatingCarrierCode();
 
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
