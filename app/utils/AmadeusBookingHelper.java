@@ -243,7 +243,7 @@ public class AmadeusBookingHelper {
                         String freeText = "";
                         if("inf".equalsIgnoreCase(infantIndicator)) {
                             if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
-                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("INF", 0);
+                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("I", 3);
                                 freeText = freeText1[1];
                             } else {
                                 freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
@@ -423,7 +423,7 @@ public class AmadeusBookingHelper {
                         String freeText = "";
                         if("inf".equalsIgnoreCase(infantIndicator)) {
                             if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
-                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("INF", 0);
+                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("I", 3);
                                 freeText = freeText1[1];
                             } else {
                                 freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
@@ -583,7 +583,7 @@ public class AmadeusBookingHelper {
                         String freeText = "";
                         if("inf".equalsIgnoreCase(infantIndicator)) {
                             if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
-                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("INF", 0);
+                                String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("I", 3);
                                 freeText = freeText1[1];
                             } else {
                                 freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
