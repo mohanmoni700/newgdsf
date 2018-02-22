@@ -339,7 +339,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 							|| nam.equalsIgnoreCase("Miss") || nam.equalsIgnoreCase("Master") || nam.equalsIgnoreCase("Mstr")|| nam.equalsIgnoreCase("Capt")){
 						personalDetails.setSalutation(WordUtils.capitalizeFully(nam));
 						if(personalDetails.getSalutation().equalsIgnoreCase("Mstr"))
-							personalDetails.setSalutation("Master");
+							personalDetails.setSalutation("Mstr");
 					}else{
 						fNmame = fNmame+" "+nam;
 					}
