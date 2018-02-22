@@ -780,7 +780,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 								|| name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")){
 							personalDetails.setSalutation(WordUtils.capitalizeFully(name));
 							if(personalDetails.getSalutation().equalsIgnoreCase("Mstr"))
-								personalDetails.setSalutation("Master");
+								personalDetails.setSalutation("Mstr");
 						}else{
 							firstName = firstName+" "+name;
 						}
@@ -837,7 +837,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 									|| name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Mstr")|| name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Capt")){
 								infantPersonalDetail.setSalutation(WordUtils.capitalizeFully(name));
 								if(infantPersonalDetail.getSalutation().equalsIgnoreCase("Mstr"))
-									infantPersonalDetail.setSalutation("Master");
+									infantPersonalDetail.setSalutation("Mstr");
 							}else{
 								infFirstName = infFirstName+" "+name;
 							}
