@@ -346,6 +346,25 @@ public class PNRAddMultiElementsh {
         return element;
     }
 
+public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
+    DataElementsIndiv de1 = new DataElementsIndiv();
+    LongFreeTextType ftd1 = new LongFreeTextType();
+    ftd1.setLongFreetext(play.Play.application().configuration().getString("travelagent.info"));
+    FreeTextQualificationType ftdt1 = new FreeTextQualificationType();
+    ftdt1.setSubjectQualifier("3");
+    ftdt1.setType("5");
+    ftd1.setFreetextDetail(ftdt1);
+    de1.setFreetextData(ftd1);
+    ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
+    elementManagementData1.setSegmentName("AP");
+    ReferencingDetailsType rf1 = new ReferencingDetailsType();
+    rf1.setQualifier("OT");
+    rf1.setNumber((++qualifierNumber)+"");
+    elementManagementData1.setReference(rf1);
+    de1.setElementManagementData(elementManagementData1);
+
+    return de1;
+}
     //contact information
     public List<DataElementsIndiv> addContactInfo(TravellerMasterInfo travellerMasterInfo, int qualifierNumber) {
         //email info
