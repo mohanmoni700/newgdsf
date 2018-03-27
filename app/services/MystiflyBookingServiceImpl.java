@@ -1,13 +1,12 @@
 package services;
 
-import java.math.BigDecimal;
-import java.rmi.RemoteException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.compassites.GDSWrapper.mystifly.*;
 import com.compassites.constants.CacheConstants;
+import com.compassites.model.*;
+import com.compassites.model.CabinClass;
 import com.compassites.model.traveller.PersonalDetails;
+import com.compassites.model.traveller.Traveller;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
@@ -16,26 +15,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
+import play.libs.Json;
 import utils.DateUtility;
 import utils.ErrorMessageHelper;
 import utils.HoldTimeUtility;
-
-import com.compassites.GDSWrapper.mystifly.AirOrderTicketClient;
-import com.compassites.GDSWrapper.mystifly.AirRevalidateClient;
-import com.compassites.GDSWrapper.mystifly.*;
-import com.compassites.GDSWrapper.mystifly.BookFlightClient;
-import com.compassites.GDSWrapper.mystifly.Mystifly;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.PricingInformation;
-import com.compassites.model.traveller.Traveller;
-import com.compassites.model.traveller.TravellerMasterInfo;
 import utils.MystiflyHelper;
-import com.compassites.model.*;
-import play.libs.Json;
+
+import java.math.BigDecimal;
+import java.rmi.RemoteException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Santhosh
@@ -53,6 +42,13 @@ public class MystiflyBookingServiceImpl implements BookingService {
 
 	static Logger logger = LoggerFactory.getLogger("gds");
 
+	public RedisTemplate getRedisTemplate() {
+		return redisTemplate;
+	}
+
+	public void setRedisTemplate(RedisTemplate redisTemplate) {
+		this.redisTemplate = redisTemplate;
+	}
 
 	@Override
 	public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
@@ -278,31 +274,50 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		}
 	}
 
-	public JsonNode getBookingDetails(String gdsPNR) throws RemoteException{
+	public JsonNode getBookingDetails(String gdsPNR){
 		Map<String, Object> json = new HashMap<>();
+		HashMap<String, String> baggageMap = new HashMap<>();
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
+		List<Journey> journeyList = null;
 		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
-		AirTripDetailsRS tripDetailsRS = tripDetailsClient.getAirTripDetails(gdsPNR);
-		if(tripDetailsRS.getSuccess()) {
-			List<Traveller> travellersList = new ArrayList<>();
-			CustomerInfo arrayOfCustomerInfo[] = tripDetailsRS.getTravelItinerary().getItineraryInfo().getCustomerInfos().getCustomerInfoArray();
-			for(int len =0; len < arrayOfCustomerInfo.length; len++){
-				Traveller traveller = new Traveller();
-				PersonalDetails personalDetails = new PersonalDetails();
-				Customer customers = arrayOfCustomerInfo[len].getCustomer();
-				String firName = customers.getPaxName().getPassengerFirstName();
-				String lastName = customers.getPaxName().getPassengerLastName();
-				String title = customers.getPaxName().getPassengerTitle();
-				personalDetails.setSalutation(title);
-				personalDetails.setFirstName(firName);
-				personalDetails.setMiddleName("");
-				personalDetails.setLastName(lastName);
-				traveller.setPersonalDetails(personalDetails);
-				travellersList.add(traveller);
+		AirTripDetailsRS tripDetailsRS = null;
+		try {
+			tripDetailsRS = tripDetailsClient.getAirTripDetails(gdsPNR);
+			if(tripDetailsRS.getSuccess()) {
+				List<Traveller> travellersList = new ArrayList<>();
+				CustomerInfo arrayOfCustomerInfo[] = tripDetailsRS.getTravelItinerary().getItineraryInfo().getCustomerInfos().getCustomerInfoArray();
+				for(int len =0; len < arrayOfCustomerInfo.length; len++){
+					Traveller traveller = new Traveller();
+					PersonalDetails personalDetails = new PersonalDetails();
+					Customer customers = arrayOfCustomerInfo[len].getCustomer();
+					String firName = customers.getPaxName().getPassengerFirstName();
+					String lastName = customers.getPaxName().getPassengerLastName();
+					String title = customers.getPaxName().getPassengerTitle();
+					personalDetails.setSalutation(title);
+					personalDetails.setFirstName(firName);
+					personalDetails.setMiddleName("");
+					personalDetails.setLastName(lastName);
+					traveller.setPersonalDetails(personalDetails);
+					travellersList.add(traveller);
+				}
+				masterInfo.setTravellersList(travellersList);
+				journeyList = MystiflyHelper.getJourneyListFromPNRResponse(tripDetailsRS, baggageMap);
+				PricingInformation pricingInformation = MystiflyHelper.getPricingInfoFromPNRResponse(tripDetailsRS);
+
+				FlightItinerary flightItinerary = new FlightItinerary();
+				flightItinerary.setNonSeamenJourneyList(journeyList);
+				flightItinerary.setPricingInformation(pricingInformation);
+				masterInfo.setItinerary(flightItinerary);
+				masterInfo.setCabinClass(CabinClass.ECONOMY);
+				PNRResponse pnrResponse = new PNRResponse();
+				pnrResponse.setPricingInfo(pricingInformation);
+				pnrResponse.setPnrNumber(tripDetailsRS.getTravelItinerary().getUniqueID());
+				pnrResponse.setSegmentBaggageMap(baggageMap);
+				json.put("travellerMasterInfo", masterInfo);
+				json.put("pnrResponse", pnrResponse);
 			}
-			masterInfo.setTravellersList(travellersList);
-			FlightItinerary flightItinerary = new FlightItinerary();
-			json.put("travellerMasterInfo", masterInfo);
+		} catch (Exception e) {
+			logger.error("Error in getBookingDetails Mystifly");
 		}
 		return Json.toJson(json);
 	}
