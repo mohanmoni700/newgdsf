@@ -1,15 +1,13 @@
 package com.compassites.model;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import models.Airline;
+import models.Airport;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
-import models.Airline;
-import models.Airport;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -86,6 +84,8 @@ public class AirSegmentInformation implements Serializable{
     private String contextType;
 
     private String validatingCarrierCode;
+
+    private String airLinePnr;
 
     private List<HoppingFlightInformation> hoppingFlightInformations = null;
     
@@ -400,5 +400,13 @@ public class AirSegmentInformation implements Serializable{
 
     public void setValidatingCarrierCode(String validatingCarrierCode) {
         this.validatingCarrierCode = validatingCarrierCode;
+    }
+
+    public String getAirLinePnr() {
+        return airLinePnr;
+    }
+
+    public void setAirLinePnr(String airLinePnr) {
+        this.airLinePnr = airLinePnr;
     }
 }

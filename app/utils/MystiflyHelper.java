@@ -5,6 +5,7 @@ import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
 import com.compassites.model.PassengerTax;
 import com.compassites.model.PricingInformation;
+import models.Airline;
 import models.Airport;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.joda.time.DateTime;
@@ -91,11 +92,11 @@ public class MystiflyHelper {
         pricingInfo.setPassengerTaxes(passengerTaxes);
     }
 
-    public static List<Journey> getJourneyListFromPNRResponse(AirTripDetailsRS tripDetailsRS , HashMap<String, String> baggageMap){
-        RedisTemplate redisTemplate = new RedisTemplate();
+    public static List<Journey> getJourneyListFromPNRResponse(AirTripDetailsRS tripDetailsRS , HashMap<String, String> baggageMap, HashMap<String, String> airlinePNRMap, RedisTemplate redisTemplate){
         List<Journey> journeyList = new ArrayList<>();
         List<AirSegmentInformation> airSegmentList = new ArrayList<>();
         Journey journey = new Journey();
+        int segmentSeq = 1;
         ArrayOfReservationItem reservationItemArray = tripDetailsRS.getTravelItinerary().getItineraryInfo().getReservationItems();
         for(ReservationItem reservationItem : reservationItemArray.getReservationItemArray())   {
             AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
@@ -132,11 +133,14 @@ public class MystiflyHelper {
             airSegmentInformation.setConnectionTimeStr();
             airSegmentInformation.setFromTerminal(depTerminal);
             airSegmentInformation.setToTerminal(arrTerminal);
-            //airSegmentInformation.setAirLinePnr(reservationItem.getAirlinePNR());
+            airSegmentInformation.setAirLinePnr(reservationItem.getAirlinePNR());
             airSegmentInformation.setBookingClass(reservationItem.getResBookDesigCode());
+            airSegmentInformation.setAirline(Airline.getAirlineByCode(reservationItem.getOperatingAirlineCode(), redisTemplate));
             String key = airSegmentInformation.getFromLocation().concat(airSegmentInformation.getToLocation());
             String baggage = reservationItem.getBaggage();
             baggageMap.put(key, baggage);
+            key = key.concat(String.valueOf(reservationItem.getItemRPH()));
+            airlinePNRMap.put(key.toLowerCase() , reservationItem.getAirlinePNR());
             airSegmentList.add(airSegmentInformation);
         }
         journey.setAirSegmentList(airSegmentList);

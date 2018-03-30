@@ -275,8 +275,10 @@ public class MystiflyBookingServiceImpl implements BookingService {
 	}
 
 	public JsonNode getBookingDetails(String gdsPNR){
+		logger.info("getBookingDetails mystifly called");
 		Map<String, Object> json = new HashMap<>();
 		HashMap<String, String> baggageMap = new HashMap<>();
+		HashMap<String, String> airlinePNRMap = new HashMap<>();
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		List<Journey> journeyList = null;
 		AirTripDetailsClient tripDetailsClient = new AirTripDetailsClient();
@@ -301,7 +303,7 @@ public class MystiflyBookingServiceImpl implements BookingService {
 					travellersList.add(traveller);
 				}
 				masterInfo.setTravellersList(travellersList);
-				journeyList = MystiflyHelper.getJourneyListFromPNRResponse(tripDetailsRS, baggageMap);
+				journeyList = MystiflyHelper.getJourneyListFromPNRResponse(tripDetailsRS, baggageMap, airlinePNRMap, redisTemplate);
 				PricingInformation pricingInformation = MystiflyHelper.getPricingInfoFromPNRResponse(tripDetailsRS);
 
 				FlightItinerary flightItinerary = new FlightItinerary();
@@ -313,11 +315,13 @@ public class MystiflyBookingServiceImpl implements BookingService {
 				pnrResponse.setPricingInfo(pricingInformation);
 				pnrResponse.setPnrNumber(tripDetailsRS.getTravelItinerary().getUniqueID());
 				pnrResponse.setSegmentBaggageMap(baggageMap);
+				pnrResponse.setAirlinePNRMap(airlinePNRMap);
+				pnrResponse.setAirlinePNR(tripDetailsRS.getTravelItinerary().getItineraryInfo().getReservationItems().getReservationItemArray(0).getAirlinePNR());
 				json.put("travellerMasterInfo", masterInfo);
 				json.put("pnrResponse", pnrResponse);
 			}
 		} catch (Exception e) {
-			logger.error("Error in getBookingDetails Mystifly");
+			logger.error("Error in getBookingDetails Mystifly" + e);
 		}
 		return Json.toJson(json);
 	}

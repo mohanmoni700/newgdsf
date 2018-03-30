@@ -196,6 +196,8 @@ public class BookingServiceWrapper {
                 jsonMap.put(pnrRequest.getGdsPnr(), travelPortBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
             } else if("Amadeus".equalsIgnoreCase(pnrRequest.getProvider())){
                 jsonMap.put(pnrRequest.getGdsPnr(), amadeusBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
+            } else if("Mystifly".equalsIgnoreCase(pnrRequest.getProvider())){
+                jsonMap.put(pnrRequest.getGdsPnr(), mystiflyBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
             }
         }
 //        System.out.println(" HashMap ==============>>>>>>\n"+Json.toJson(jsonMap));
