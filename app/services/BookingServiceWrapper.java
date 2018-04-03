@@ -1,7 +1,5 @@
 package services;
 
-import com.compassites.GDSWrapper.mystifly.AirCancelClient;
-import com.compassites.GDSWrapper.mystifly.AirOrderTicketClient;
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -163,7 +161,9 @@ public class BookingServiceWrapper {
 			json = travelPortBookingService.getBookingDetails(gdsPNR);
     	} else if("Amadeus".equalsIgnoreCase(provider)){
     		json = amadeusBookingService.getBookingDetails(gdsPNR);
-    	}
+    	}else if ("Mystifly".equalsIgnoreCase(provider)){
+			json =  mystiflyBookingService.getBookingDetails(gdsPNR);
+		}
 		return json;
 	}
 	
@@ -196,6 +196,8 @@ public class BookingServiceWrapper {
                 jsonMap.put(pnrRequest.getGdsPnr(), travelPortBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
             } else if("Amadeus".equalsIgnoreCase(pnrRequest.getProvider())){
                 jsonMap.put(pnrRequest.getGdsPnr(), amadeusBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
+            } else if("Mystifly".equalsIgnoreCase(pnrRequest.getProvider())){
+                jsonMap.put(pnrRequest.getGdsPnr(), mystiflyBookingService.getBookingDetails(pnrRequest.getGdsPnr()));
             }
         }
 //        System.out.println(" HashMap ==============>>>>>>\n"+Json.toJson(jsonMap));
