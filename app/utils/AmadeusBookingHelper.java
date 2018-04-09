@@ -1126,7 +1126,7 @@ public class AmadeusBookingHelper {
                 segmentWisePricing = true;
             }
             List<String> segmentKeys = new ArrayList<>();
-            if(segmentWisePricing){
+            //if(segmentWisePricing){
                 for(TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()){
                     if(segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null){
                         ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
@@ -1135,7 +1135,7 @@ public class AmadeusBookingHelper {
                     }
 
                 }
-            }
+            //}
             segmentPricing.setSegmentKeysList(segmentKeys);
             segmentPricing.setTotalPrice(totalFarePerPaxType);
             segmentPricing.setBasePrice(baseFareOfPerPaxType);

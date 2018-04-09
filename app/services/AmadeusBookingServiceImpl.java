@@ -695,7 +695,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 
 			List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
-			validatingCarrierInSegment(fareList,flightItinerary,isSeamen);
+			validatingCarrierInSegment(fareList,flightItinerary,isSeamen,gdsPNRReply);
 
             if(isSeamen){
                 flightItinerary.setSeamanPricingInformation(pricingInformation);
@@ -898,7 +898,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				return Json.toJson(json);
 			}
 			List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
-			validatingCarrierInSegment(fareList,flightItinerary,isSeamen);
+			validatingCarrierInSegment(fareList,flightItinerary,isSeamen,gdsPNRReply);
 			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 			if (isSeamen) {
 				flightItinerary.setSeamanPricingInformation(pricingInfo);
@@ -938,18 +938,33 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return Json.toJson(json);
 	}
 
-	private void validatingCarrierInSegment(List<TicketDisplayTSTReply.FareList> fareList, FlightItinerary flightItinerary, Boolean isSeamen){
+	private void validatingCarrierInSegment(List<TicketDisplayTSTReply.FareList> fareList, FlightItinerary flightItinerary, Boolean isSeamen, PNRReply gdsPNRReply){
 		logger.debug("validatingCarrierInSegment");
 		try {
-			Map<Integer, String> validatingCarrierMap = new HashMap<>();
-			int key = 0;
+			Map<String, String> validatingCarrierMap = new HashMap<>();
+			Map<String, String> segmentRefMap = new HashMap<>();
 			for (TicketDisplayTSTReply.FareList fare : fareList) {
-				OriginAndDestinationDetailsTypeI originAndDestinationDetailsTypeI = fare.getOriginDestination();
-				//String key = originAndDestinationDetailsTypeI.getCityCode().get(0)+originAndDestinationDetailsTypeI.getCityCode().get(1);
-				String value = fare.getValidatingCarrier().getCarrierInformation().getCarrierCode();
-				validatingCarrierMap.put(key, value);
-				key++;
+				List<TicketDisplayTSTReply.FareList.SegmentInformation> segmentInformationList = fare.getSegmentInformation();
+				for(TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : segmentInformationList) {
+					if(segmentInformation.getSegDetails() != null && "AIR".equalsIgnoreCase(segmentInformation.getSegDetails().getSegmentDetail().getIdentification())) {
+						String value = fare.getValidatingCarrier().getCarrierInformation().getCarrierCode();
+						String segmentRefKey = segmentInformation.getSegmentReference().getRefDetails().get(0).getRefQualifier()+"T"+ segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber();
+						validatingCarrierMap.put(segmentRefKey, value);
+					}
+				}
 			}
+
+			List<PNRReply.OriginDestinationDetails> originDestinationDetails = gdsPNRReply.getOriginDestinationDetails();
+			for(PNRReply.OriginDestinationDetails originDestinationDetails1 : originDestinationDetails){
+				for(ItineraryInfo itineraryInfo : originDestinationDetails1.getItineraryInfo()){
+					if("AIR".equalsIgnoreCase(itineraryInfo.getElementManagementItinerary().getSegmentName())) {
+						String value = itineraryInfo.getElementManagementItinerary().getReference().getQualifier() + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+						String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+						segmentRefMap.put(key, value);
+					}
+				}
+			}
+			//gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo().get(0).getElementManagementItinerary().getReference().getQualifier()
 			List<Journey> journeyList1 = null;
 			if (isSeamen) {
 				journeyList1 = flightItinerary.getJourneyList();
@@ -957,12 +972,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				journeyList1 = flightItinerary.getNonSeamenJourneyList();
 			}
 			for (Journey journey : journeyList1) {
-				int index = 0;
 				for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
-					//String key = airSegmentInformation.getFromAirport().getCityCode()+airSegmentInformation.getToAirport().getCityCode();
-					String validateCarrier = validatingCarrierMap.get(index);
+					String segmentKey = airSegmentInformation.getFromLocation()+airSegmentInformation.getToLocation();
+					String tstKey = segmentRefMap.get(segmentKey);
+					String validateCarrier = validatingCarrierMap.get(tstKey);
 					airSegmentInformation.setValidatingCarrierCode(validateCarrier);
-					index++;
 				}
 			}
 		} catch (Exception e){
