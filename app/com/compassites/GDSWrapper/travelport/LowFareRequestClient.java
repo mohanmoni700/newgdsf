@@ -145,7 +145,7 @@ public class LowFareRequestClient extends TravelPortClient {
         List<TypeSearchAirLeg> airLegList=new ArrayList<>();
         for(SearchJourney journey:searchParameters.getJourneyList()) {
             TypeCabinClass cabinClass = TypeCabinClass.valueOf(searchParameters.getCabinClass().upperValue());
-            TypeSearchAirLeg airLeg = createLeg(journey.getOrigin(), journey.getDestination(), cabinClass, searchParameters.getDirectFlights(), searchParameters.getPreferredAirlines(), searchParameters.getTransit());
+            TypeSearchAirLeg airLeg = createLeg(journey.getOrigin(), journey.getDestination(), cabinClass, searchParameters.getDirectFlights(), searchParameters.getPreferredAirlinesList(), searchParameters.getTransit());
 
             DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
             DateTime dateTime = fmt.parseDateTime(journey.getTravelDateStr());
@@ -340,7 +340,7 @@ public class LowFareRequestClient extends TravelPortClient {
                                          String destAirportCode,
                                          TypeCabinClass cabinClass,
                                          Boolean directFlight,
-                                         String preferredAirlineCode,
+                                         List<String> preferredAirlineCode,
                                          String transit) {
         TypeSearchLocation originLoc = new TypeSearchLocation();
         TypeSearchLocation destLoc = new TypeSearchLocation();
@@ -370,7 +370,7 @@ public class LowFareRequestClient extends TravelPortClient {
                                          TypeSearchLocation destLoc,
                                          TypeCabinClass cabinClass,
                                          Boolean directFlight,
-                                         String preferredAirlineCode,
+                                         List<String> preferredAirlineCode,
                                          String transit) {
         TypeSearchAirLeg leg = new TypeSearchAirLeg();
 
@@ -386,7 +386,7 @@ public class LowFareRequestClient extends TravelPortClient {
     public static void addPrefererences(TypeSearchAirLeg leg,
                                         TypeCabinClass cabinClass,
                                         Boolean directFlight,
-                                        String preferredAirlineCode,
+                                        List<String> preferredAirlineCode,
                                         String transit) {
         AirLegModifiers modifiers = new AirLegModifiers();
         AirLegModifiers.PreferredCabins cabins = new AirLegModifiers.PreferredCabins();
@@ -401,11 +401,13 @@ public class LowFareRequestClient extends TravelPortClient {
         flightType.setNonStopDirects(directFlight);
         modifiers.setFlightType(flightType);
 
-        if (preferredAirlineCode != null && StringUtils.hasText(preferredAirlineCode)) {
+        if (preferredAirlineCode != null) {
             AirLegModifiers.PreferredCarriers preferredCarriers = new AirLegModifiers.PreferredCarriers();
-            Carrier carrier = new Carrier();
-            carrier.setCode(preferredAirlineCode);
-            preferredCarriers.getCarrier().add(carrier);
+            for(int i=0; i<preferredAirlineCode.size(); i++) {
+                Carrier carrier = new Carrier();
+                carrier.setCode(preferredAirlineCode.get(i));
+                preferredCarriers.getCarrier().add(carrier);
+            }
             modifiers.setPreferredCarriers(preferredCarriers);
         }
         else if(transit != null){

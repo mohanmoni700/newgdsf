@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
@@ -50,12 +51,14 @@ public class SearchParameters implements Serializable,Cloneable{
 
     @Property
     private CabinClass cabinClass;
+    @JsonIgnore
     private String preferredAirlines;
     private String preferredFood;
 
     private String transit;
     private String nationality;
 
+    private List<String> preferredAirlinesList;
     public String getNationality() {
         return nationality;
     }
@@ -220,8 +223,18 @@ public class SearchParameters implements Serializable,Cloneable{
         this.transit = transit;
     }
 
+    public List<String> getPreferredAirlinesList() { return preferredAirlinesList; }
+
+    public void setPreferredAirlinesList(List<String> preferredAirlinesList) { this.preferredAirlinesList = preferredAirlinesList; }
+
     public String redisKey(){
         String key = "";
+        String preferredAirline = "";
+        if(preferredAirlinesList.size() > 0) {
+            for (int i = 0; i < preferredAirlinesList.size(); i++) {
+                preferredAirline = preferredAirline.concat(preferredAirlinesList.get(i));
+            }
+        }
         for(SearchJourney journey:journeyList){
             Calendar calDate = Calendar.getInstance();
             calDate.setTime(journey.getTravelDate());
@@ -232,7 +245,7 @@ public class SearchParameters implements Serializable,Cloneable{
             key+="O:"+journey.getOrigin()+",D:"+journey.getDestination()+",DD:"+day+",DM:"+month;
         }
         key += "ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+ this.cabinClass;
-        key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + this.preferredAirlines;
+        key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + preferredAirline;
         key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType+"JT"+this.journeyType;
         return key;
     }

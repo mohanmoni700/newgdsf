@@ -17,8 +17,10 @@ import org.springframework.util.StringUtils;
 import utils.XMLFileUtility;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Santhosh
@@ -128,12 +130,10 @@ public class AirLowFareSearchClient {
 		prefs.setMaxStopsQuantity(MaxStopsQuantity.ALL);
 		if (searchParams.getDirectFlights())
 			prefs.setMaxStopsQuantity(MaxStopsQuantity.DIRECT);
-		if (StringUtils.hasText(searchParams.getPreferredAirlines()))
-			prefs.addNewVendorPreferenceCodes().addString(
-					searchParams.getPreferredAirlines());
+		if (searchParams.getPreferredAirlinesList()!= null)
+			prefs.addNewVendorPreferenceCodes().setStringArray(StringUtils.toStringArray(searchParams.getPreferredAirlinesList()));
 		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams
 				.getCabinClass()));
-
 		Enum journeyType = searchParams.getTransit() == null ? Mystifly.JOURNEY_TYPE
 				.get(searchParams.getJourneyType()) : AirTripType.OPEN_JAW;
 		prefs.setAirTripType(journeyType);

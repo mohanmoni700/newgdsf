@@ -74,8 +74,8 @@ public class SearchFlights {
 
         TravelFlightInformationType165052S travelFlightInfo = new TravelFlightInformationType165052S();
 
-        if (searchParameters.getPreferredAirlines() != null && StringUtils.hasText(searchParameters.getPreferredAirlines())) {
-            setPreferredAirlines(travelFlightInfo,searchParameters.getPreferredAirlines());
+        if (searchParameters.getPreferredAirlinesList() != null &&searchParameters.getPreferredAirlinesList().size()>0) {
+            setPreferredAirlines(travelFlightInfo,searchParameters.getPreferredAirlinesList());
         }
 
         if (searchParameters.getDirectFlights()) {
@@ -142,10 +142,12 @@ public class SearchFlights {
         CorporateIdentityType corporateIdentityType = new CorporateIdentityType();
         corporateIdentityType.setCorporateQualifier("RW");
         corporateIdentityType.getIdentity().add("061724");
-        if(searchParameters.getPreferredAirlines() != null){
-            String airlineCorporateCode = CorporateCodeHelper.getAirlineCorporateCode(searchParameters.getBookingType()+"."+searchParameters.getPreferredAirlines());
-            if(airlineCorporateCode != null) {
-                corporateIdentityType.getIdentity().add(airlineCorporateCode);
+        if(searchParameters.getPreferredAirlinesList() != null){
+            for(int i= 0; i < searchParameters.getPreferredAirlinesList().size(); i++) {
+                String airlineCorporateCode = CorporateCodeHelper.getAirlineCorporateCode(searchParameters.getBookingType() + "." + searchParameters.getPreferredAirlinesList().get(i));
+                if (airlineCorporateCode != null) {
+                    corporateIdentityType.getIdentity().add(airlineCorporateCode);
+                }
             }
         }
         corporateIdentificationType.getCorporateId().add(corporateIdentityType);
@@ -221,7 +223,7 @@ public class SearchFlights {
         }
 
     }
-    private void setPreferredAirlines(TravelFlightInformationType165052S travelFlightInfo,String carrier){
+    private void setPreferredAirlines(TravelFlightInformationType165052S travelFlightInfo,List<String> carrier){
         CompanyIdentificationType233548C cid = new CompanyIdentificationType233548C();
         /*
         * use the below lines of code to include the selected airline along with the
@@ -230,8 +232,7 @@ public class SearchFlights {
         //cid.getCarrierId().add(carrier);
         //cid.getCarrierId().add("YY");
         //cid.setCarrierQualifier("M");
-
-        cid.getCarrierId().add(carrier);
+        cid.getCarrierId().addAll(carrier);
         cid.setCarrierQualifier("M");
         travelFlightInfo.getCompanyIdentity().add(cid);
     }
