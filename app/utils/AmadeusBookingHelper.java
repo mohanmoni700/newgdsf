@@ -1143,6 +1143,7 @@ public class AmadeusBookingHelper {
             segmentPricing.setPassengerType(paxType);
             segmentPricing.setPassengerTax(passengerTax);
             segmentPricing.setPassengerCount(new Long(paxCount));
+            segmentPricing.setSegmentSequenceNumber(fare.getFareReference().getIDDescription().getIDSequenceNumber());
             segmentPricingList.add(segmentPricing);
             if("CHD".equalsIgnoreCase(paxType)){
                 chdBaseFare = chdBaseFare.add(baseFare);

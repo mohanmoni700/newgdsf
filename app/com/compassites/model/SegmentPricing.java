@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -26,6 +27,8 @@ public class SegmentPricing {
     private Long bookingId;
 
     private String passengerType;
+
+    private BigInteger segmentSequenceNumber;
 
     private List<TaxDetails> taxDetailsList;      //store just the ids instead of the object, one to many relationship with the tax
 
@@ -140,4 +143,9 @@ public class SegmentPricing {
     public void setBookingVerificationContactMappingId(Long bookingVerificationContactMappingId) {
         this.bookingVerificationContactMappingId = bookingVerificationContactMappingId;
     }
+
+    public BigInteger getSegmentSequenceNumber() { return segmentSequenceNumber; }
+
+    public void setSegmentSequenceNumber(BigInteger segmentSequenceNumber) { this.segmentSequenceNumber = segmentSequenceNumber; }
+
 }
