@@ -217,6 +217,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
             for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                 FlightItinerary flightItinerary = new FlightItinerary();
+                flightItinerary.setPassportMandatory(false);
                 flightItinerary.setPricingInformation(getPricingInformation(recommendation));
                 flightItinerary.getPricingInformation().setGdsCurrency(currency);
                 List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
