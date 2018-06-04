@@ -1,5 +1,6 @@
 package services;
 
+import models.MiniRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,4 +66,16 @@ public class FlightInfoServiceWrapper {
 		return fareRules;
 	}
 
+	public MiniRule getMiniRuleFee(FlightItinerary flightItinerary,
+									 SearchParameters searchParams, String provider, boolean seamen,MiniRule miniRule) {
+		if ("Travelport".equalsIgnoreCase(provider)) {
+			// MiniRule not avaliable
+		} else if ("Amadeus".equalsIgnoreCase(provider)) {
+			miniRule = amadeusFlightInfoService.getMiniRules(
+					flightItinerary, searchParams, seamen,miniRule);
+		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
+			// MiniRule not avaliable
+		}
+		return miniRule;
+	}
 }

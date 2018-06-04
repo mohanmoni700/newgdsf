@@ -14,6 +14,13 @@ import com.amadeus.xml.pnrspl_11_3_1a.SplitPNRDetailsType;
 import com.amadeus.xml.pnrspl_11_3_1a.SplitPNRType;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
+import com.amadeus.xml.tmrcrr_11_1_1a.MiniRulesRegulPropertiesType;
+import com.amadeus.xml.tmrcrr_11_1_1a.MonetaryInformationDetailsType;
+import com.amadeus.xml.tmrerq_13_1_1a.MiniRuleGetFromETicket;
+import com.amadeus.xml.tmrerr_13_1_1a.MiniRuleGetFromETicketReply;
+import com.amadeus.xml.tmrqrq_11_1_1a.ItemReferencesAndVersionsType;
+import com.amadeus.xml.tmrqrq_11_1_1a.MiniRuleGetFromPricingRec;
+import com.amadeus.xml.tmrqrr_11_1_1a.MiniRuleGetFromPricingRecReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.StructuredDateTimeType;
@@ -29,6 +36,7 @@ import com.compassites.model.traveller.Preferences;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+import models.MiniRule;
 import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -743,10 +751,100 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
         return  totalCount;
     }
-    
+
+    public List<MiniRule> getMiniRuleFeeFromPNR(String gdsPNR){
+		PNRReply gdsPNRReply = null;
+    	MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply = null;
+		ServiceHandler serviceHandler = null;
+		List<MiniRule> miniRules = new ArrayList<>();
+		try {
+			serviceHandler = new ServiceHandler();
+			serviceHandler.logIn();
+			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
+			miniRuleGetFromPricingRecReply = serviceHandler.retriveMiniRuleFromPNR();
+			//List<com.amadeus.xml.tmrqrr_11_1_1a.MiniRulesRegulPropertiesType.MnrMonInfoGrp> MonetaryInformationDetailsType = miniRuleGetFromPricingRecReply.getMnrByPricingRecord().get(0).getMnrRulesInfoGrp().get(3).getMnrMonInfoGrp();
+			for(MiniRuleGetFromPricingRecReply.MnrByPricingRecord MonetaryInformationDetailsType : miniRuleGetFromPricingRecReply.getMnrByPricingRecord()){
+				String tstSeq = MonetaryInformationDetailsType.getPricingRecordId().getReferenceType() + MonetaryInformationDetailsType.getPricingRecordId().getUniqueReference();
+				for(com.amadeus.xml.tmrqrr_11_1_1a.MiniRulesRegulPropertiesType mnrRulesInfo : MonetaryInformationDetailsType.getMnrRulesInfoGrp())
+			    	for(com.amadeus.xml.tmrqrr_11_1_1a.MiniRulesRegulPropertiesType.MnrMonInfoGrp mnrMonInfo : mnrRulesInfo.getMnrMonInfoGrp())
+			    		if(!mnrMonInfo.getMonetaryInfo().getMonetaryDetails().get(0).getTypeQualifier().startsWith("A"))
+						miniRules.add(addMiniFareRules(mnrMonInfo,tstSeq));
+
+            }
+
+
+		}catch (Exception e) {
+			e.printStackTrace();
+			logger.error("Error in Amadeus getMiniRuleFeeFromPNR : ", e);
+		}finally {
+			serviceHandler.logOut();
+		}
+
+    	return miniRules;
+	}
+
+    public MiniRule getMiniRuleFeeFromEticket(String gdsPNR,String Eticket,MiniRule miniRule){
+        PNRReply gdsPNRReply = null;
+        MiniRuleGetFromETicketReply miniRuleGetFromETicketReply = null;
+        ServiceHandler serviceHandler = null;
+        try {
+            serviceHandler = new ServiceHandler();
+            serviceHandler.logIn();
+            gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
+            miniRuleGetFromETicketReply = serviceHandler.retriveMiniRuleFromEticket(Eticket);
+            List<com.amadeus.xml.tmrerr_13_1_1a.MonetaryInformationDetailsType> MonetaryInformationDetailsType = miniRuleGetFromETicketReply.getMnrByPricingRecord().get(0).getMnrRulesInfoGrp().get(3).getMnrMonInfoGrp().get(0).getMonetaryInfo().getMonetaryDetails();
+            addMiniFareRulesFromEticket(MonetaryInformationDetailsType,miniRule);
+        }catch (Exception e) {
+            e.printStackTrace();
+            logger.error("Error in Amadeus getMiniRuleFeeFromPNR : ", e);
+        }finally {
+            serviceHandler.logOut();
+        }
+
+        return miniRule;
+    }
+
+	public MiniRule addMiniFareRules(com.amadeus.xml.tmrqrr_11_1_1a.MiniRulesRegulPropertiesType.MnrMonInfoGrp monetaryInformationType,String tstSeq){
+
+		MiniRule miniRule = new MiniRule();
+		//HashMap<String,Object> miniRuleMap = new HashMap<>();
+
+            miniRule.setCancellationFeeAfterDeparture(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(0).getAmount());
+			miniRule.setCancellationFeeAfterDepartureCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(0).getCurrency());
+			miniRule.setCancellationFeeBeforeDeparture(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(1).getAmount());
+			miniRule.setCancellationFeeBeforeDepartureCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(1).getCurrency());
+            miniRule.setCancellationNoShowFee(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(2).getAmount());
+            miniRule.setCancellationNoShowFeeCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(2).getCurrency());
+
+		//miniRuleMap.put(tstSeq,miniRule);
+
+		return miniRule;
+	}
+
+    public MiniRule addMiniFareRulesFromEticket(List<com.amadeus.xml.tmrerr_13_1_1a.MonetaryInformationDetailsType> monetaryInformationType, MiniRule miniRule){
+        String BDXAmt = monetaryInformationType.get(0).getAmount();
+        String BDXCurrency = monetaryInformationType.get(0).getCurrency();
+        String BNFAmt = monetaryInformationType.get(1).getAmount();
+        String BNFCurrency = monetaryInformationType.get(1).getCurrency();
+        String BNGAmt = monetaryInformationType.get(2).getAmount();
+        String BNGCurrency = monetaryInformationType.get(2).getCurrency();
+
+		miniRule.setCancellationFeeAfterDeparture(BDXAmt);
+		miniRule.setCancellationFeeAfterDepartureCurrency(BDXCurrency);
+		miniRule.setCancellationFeeBeforeDeparture(BNFAmt);
+		miniRule.setCancellationFeeBeforeDepartureCurrency(BNFCurrency);
+		miniRule.setCancellationNoShowFee(BNGAmt);
+		miniRule.setCancellationNoShowFeeCurrency(BNGCurrency);
+
+
+		return miniRule;
+    }
+
 	public JsonNode getBookingDetails(String gdsPNR) {
 		logger.debug("Amadeus getBookingDetails called .......");
 		PNRReply gdsPNRReply = null;
+		MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply = null;
+		MiniRuleGetFromETicketReply miniRuleGetFromETicketReply = null;
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		PricingInformation pricingInfo = null;
@@ -757,6 +855,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler = new ServiceHandler();
 			serviceHandler.logIn();
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR);
+			miniRuleGetFromPricingRecReply = serviceHandler.retriveMiniRuleFromPNR();
+			//miniRuleGetFromPricingRecReply.getMnrByPricingRecord().get(0).getMnrRulesInfoGrp().get(0).getMnrMonInfoGrp().get(0).getMonetaryInfo().getMonetaryDetails().get(0).getTypeQualifier();
+			//miniRuleGetFromETicketReply = serviceHandler.retriveMiniRuleFromEticket();
 			List<Traveller> travellersList = new ArrayList<>();
             List<Traveller> childTravellersList = new ArrayList<>();
             List<Traveller> infantTravellersList = new ArrayList<>();

@@ -7,14 +7,21 @@ import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup.BaggageAllowance.BaggageDetails;
+import com.amadeus.xml.tmrcrq_11_1_1a.MiniRuleGetFromPricing;
+import com.amadeus.xml.tmrcrr_11_1_1a.MiniRuleGetFromPricingReply;
+import com.amadeus.xml.tmrcrr_11_1_1a.MiniRulesRegulPropertiesType;
+import com.amadeus.xml.tmrcrr_11_1_1a.MonetaryInformationDetailsType;
+import com.amadeus.xml.tmrcrr_11_1_1a.MonetaryInformationType;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import models.AmadeusSessionWrapper;
+import models.MiniRule;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
 import utils.AmadeusSessionManager;
 import utils.XMLFileUtility;
 
@@ -76,6 +83,21 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			}
 		}
 		return flightItinerary;
+	}
+
+	public MiniRule addMiniFareRules(List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> MnrMonInfoGrp, MiniRule miniRule){
+
+		for(MiniRulesRegulPropertiesType.MnrMonInfoGrp monetaryInformationType : MnrMonInfoGrp){
+		miniRule.setCancellationFeeBeforeDeparture(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(1).getAmount());
+		miniRule.setCancellationFeeAfterDeparture(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(0).getAmount());
+		miniRule.setCancellationFeeBeforeDepartureCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(1).getCurrency());
+		miniRule.setCancellationFeeAfterDepartureCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(0).getCurrency());
+		miniRule.setCancellationNoShowFee(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(2).getAmount());
+		miniRule.setCancellationNoShowFeeCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(2).getCurrency());
+		}
+
+
+		return miniRule;
 	}
 	
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
@@ -165,6 +187,40 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		}
 		return fareRules;
     }
+
+    public MiniRule getMiniRules(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen,MiniRule miniRule){
+		AmadeusSessionWrapper amadeusSessionWrapper = null;
+		try {
+			amadeusSessionWrapper = amadeusSessionManager.getSession();
+			ServiceHandler serviceHandler = new ServiceHandler();
+			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
+//            serviceHandler.logIn();
+			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
+			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
+					searchParams.getInfantCount(), paxFareDetailsList);
+			MiniRuleGetFromPricingReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing();
+			if(miniRuleGetFromPricingReply.getErrorWarningGroup() != null){
+				if(miniRuleGetFromPricingReply.getErrorWarningGroup().getErrorWarningDescription()!=null){
+					amadeusLogger.debug("MiniRuleGetFromPricingReply Error"+miniRuleGetFromPricingReply.getErrorWarningGroup().getErrorWarningDescription());
+				}
+				return null;
+			}
+			List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> monetaryInformationType = miniRuleGetFromPricingReply.getMnrByFareRecommendation().get(0).getMnrRulesInfoGrp().get(3).getMnrMonInfoGrp();
+			addMiniFareRules(monetaryInformationType,miniRule);
+		} catch (Exception e) {
+			//System.out.println("getCancellationFee fare rule exception..........");
+			e.printStackTrace();
+		}finally {
+			if(amadeusSessionWrapper != null) {
+				amadeusSessionWrapper.setQueryInProgress(false);
+				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+			}
+		}
+		amadeusLogger.info("miniRule: " + Json.toJson(miniRule));
+		return miniRule;
+	}
+
 	public String getFareRuleFromTariffInfo(FareCheckRulesReply fareCheckRulesReply){
 		StringBuilder fareRuleText = new StringBuilder();
 		for(FareCheckRulesReply.TariffInfo tariffInfo : fareCheckRulesReply.getTariffInfo()){
