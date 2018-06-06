@@ -146,32 +146,40 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result getMiniRuleFee() {
+    public Result getMiniRuleFromFlightItenary() {
         MiniRule miniRule = new MiniRule();
         JsonNode json = request().body().asJson();
-        List<MiniRule> miniRules = new ArrayList<>();
-        String type = json.get("Type").asText();
-        if ("FlightItenary".equalsIgnoreCase(type)){
-            SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
-            FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-            String provider = json.get("provider").asText();
-            Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-            miniRule = flightInfoService.getMiniRuleFee(flightItinerary, searchParams, provider, seamen,miniRule);
-        }else if("PNR".equalsIgnoreCase(type)) {
-            String provider = json.get("provider").asText();
-            String pnr = json.get("pnr").asText();
-            if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)) {
-                miniRules = amadeusBookingService.getMiniRuleFeeFromPNR(pnr);
-            }
-        }else if("Eticket".equalsIgnoreCase(type)){
-            String provider = json.get("provider").asText();
-            String pnr = json.get("pnr").asText();
-            String Eticket = json.get("eticket").asText();
-            if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
-                miniRule = amadeusBookingService.getMiniRuleFeeFromEticket(pnr,Eticket,miniRule);
-            }
+        SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
+        FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+        String provider = json.get("provider").asText();
+        Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+        miniRule = flightInfoService.getMiniRuleFeeFromFlightItenary(flightItinerary, searchParams, provider, seamen);
+        return Controller.ok(Json.toJson(miniRule));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getMiniRuleFromPNR() {
+        JsonNode json = request().body().asJson();
+        List<HashMap> miniRules = new ArrayList<>();
+        String provider = json.get("provider").asText();
+        String pnr = json.get("pnr").asText();
+        if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)) {
+            miniRules = amadeusBookingService.getMiniRuleFeeFromPNR(pnr);
         }
         return Controller.ok(Json.toJson(miniRules));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getMiniRuleFromEticket() {
+        MiniRule miniRule = new MiniRule();
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String pnr = json.get("pnr").asText();
+        String Eticket = json.get("eticket").asText();
+        if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
+            miniRule = amadeusBookingService.getMiniRuleFeeFromEticket(pnr,Eticket,miniRule);
+        }
+        return Controller.ok(Json.toJson(miniRule));
     }
 
     @BodyParser.Of(BodyParser.Json.class)

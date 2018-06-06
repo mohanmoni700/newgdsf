@@ -8,6 +8,10 @@ import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * @author Santhosh
  */
@@ -66,8 +70,9 @@ public class FlightInfoServiceWrapper {
 		return fareRules;
 	}
 
-	public MiniRule getMiniRuleFee(FlightItinerary flightItinerary,
-									 SearchParameters searchParams, String provider, boolean seamen,MiniRule miniRule) {
+	public MiniRule getMiniRuleFeeFromFlightItenary(FlightItinerary flightItinerary,
+                                        SearchParameters searchParams, String provider, boolean seamen) {
+		MiniRule miniRule = new MiniRule();
 		if ("Travelport".equalsIgnoreCase(provider)) {
 			// MiniRule not avaliable
 		} else if ("Amadeus".equalsIgnoreCase(provider)) {

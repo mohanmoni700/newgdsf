@@ -87,15 +87,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 	public MiniRule addMiniFareRules(List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> MnrMonInfoGrp, MiniRule miniRule){
 
-		for(MiniRulesRegulPropertiesType.MnrMonInfoGrp monetaryInformationType : MnrMonInfoGrp){
-		miniRule.setCancellationFeeBeforeDeparture(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(1).getAmount());
-		miniRule.setCancellationFeeAfterDeparture(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(0).getAmount());
-		miniRule.setCancellationFeeBeforeDepartureCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(1).getCurrency());
-		miniRule.setCancellationFeeAfterDepartureCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(0).getCurrency());
-		miniRule.setCancellationNoShowFee(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(2).getAmount());
-		miniRule.setCancellationNoShowFeeCurrency(monetaryInformationType.getMonetaryInfo().getMonetaryDetails().get(2).getCurrency());
-		}
 
+		miniRule.setCancellationFeeBeforeDeparture(MnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(1).getAmount());
+		miniRule.setCancellationFeeAfterDeparture(MnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(0).getAmount());
+		miniRule.setCancellationFeeBeforeDepartureCurrency(MnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(1).getCurrency());
+		miniRule.setCancellationFeeAfterDepartureCurrency(MnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(0).getCurrency());
+		miniRule.setCancellationNoShowFee(MnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(2).getAmount());
+		miniRule.setCancellationNoShowFeeCurrency(MnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(2).getCurrency());
 
 		return miniRule;
 	}
@@ -206,8 +204,10 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 				}
 				return null;
 			}
-			List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> monetaryInformationType = miniRuleGetFromPricingReply.getMnrByFareRecommendation().get(0).getMnrRulesInfoGrp().get(3).getMnrMonInfoGrp();
-			addMiniFareRules(monetaryInformationType,miniRule);
+
+			List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> monetaryInformationType = miniRuleGetFromPricingReply.getMnrByFareRecommendation().get(0).getMnrRulesInfoGrp().get(2).getMnrMonInfoGrp();
+
+            miniRule = addMiniFareRules(monetaryInformationType,miniRule);
 		} catch (Exception e) {
 			//System.out.println("getCancellationFee fare rule exception..........");
 			e.printStackTrace();
