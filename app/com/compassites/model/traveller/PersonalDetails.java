@@ -61,6 +61,8 @@ public class PersonalDetails {
 
     private String paxType;
 
+    private String contactType;
+
     @JsonIgnore
 	public PassengerTypeCode getPassengerType() {
 		return DateUtility.getPassengerTypeFromDOB(dateOfBirth);
@@ -224,5 +226,13 @@ public class PersonalDetails {
 
     public void setPaxType(String paxType) {
         this.paxType = paxType;
+    }
+
+    public String getContactType() {
+        return contactType;
+    }
+
+    public void setContactType(String contactType) {
+        this.contactType = contactType;
     }
 }
