@@ -129,7 +129,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
                     changeFeeBeforeDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
                     miniRule.setChangeFeeFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
                 }
-				BigDecimal markUp = new BigDecimal(play.Play.application().configuration().getInt("markup"));
+				BigDecimal markUp = new BigDecimal(play.Play.application().configuration().getDouble("markup"));
 				cancellationFeeBeforeDept= cancellationFeeBeforeDept.add(cancellationFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
 				cancellationFeeAfterDept= cancellationFeeAfterDept.add(cancellationFeeAfterDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
 				cancellationFeeNoShow= cancellationFeeNoShow.add(cancellationFeeNoShow.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
