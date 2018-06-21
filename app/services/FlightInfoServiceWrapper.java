@@ -70,14 +70,14 @@ public class FlightInfoServiceWrapper {
 		return fareRules;
 	}
 
-	public MiniRule getMiniRuleFeeFromFlightItenary(FlightItinerary flightItinerary,
+	public List<HashMap> getMiniRuleFeeFromFlightItenary(FlightItinerary flightItinerary,
                                         SearchParameters searchParams, String provider, boolean seamen) {
-		MiniRule miniRule = new MiniRule();
+		List<HashMap> miniRule = new ArrayList<>();
 		if ("Travelport".equalsIgnoreCase(provider)) {
 			// MiniRule not avaliable
 		} else if ("Amadeus".equalsIgnoreCase(provider)) {
-			miniRule = amadeusFlightInfoService.getMiniRules(
-					flightItinerary, searchParams, seamen,miniRule);
+			miniRule = amadeusFlightInfoService.getMiniRulesFromFlightItenary(
+					flightItinerary, searchParams, seamen);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
 			// MiniRule not avaliable
 		}

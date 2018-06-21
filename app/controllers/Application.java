@@ -147,14 +147,14 @@ public class Application {
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getMiniRuleFromFlightItenary() {
-        MiniRule miniRule = new MiniRule();
+        List<HashMap> miniRules = new ArrayList<>();
         JsonNode json = request().body().asJson();
         SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
         FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
         String provider = json.get("provider").asText();
         Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-        miniRule = flightInfoService.getMiniRuleFeeFromFlightItenary(flightItinerary, searchParams, provider, seamen);
-        return Controller.ok(Json.toJson(miniRule));
+        miniRules = flightInfoService.getMiniRuleFeeFromFlightItenary(flightItinerary, searchParams, provider, seamen);
+        return Controller.ok(Json.toJson(miniRules));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
