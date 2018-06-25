@@ -4,7 +4,6 @@ import com.compassites.model.CancelPNRResponse;
 import com.compassites.model.PROVIDERS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sun.security.jca.Providers;
 
 /**
  * Created by Yaseen on 08-05-2015.
