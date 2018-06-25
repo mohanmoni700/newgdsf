@@ -9,6 +9,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
 import org.slf4j.Logger;
@@ -142,6 +143,43 @@ public class Application {
 
     	String fareRules = flightInfoService.getCancellationFee(flightItinerary, searchParams, provider, seamen);
     	return Controller.ok(Json.toJson(fareRules));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getMiniRuleFromFlightItenary() {
+        List<HashMap> miniRules = new ArrayList<>();
+        JsonNode json = request().body().asJson();
+        SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
+        FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+        String provider = json.get("provider").asText();
+        Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+        miniRules = flightInfoService.getMiniRuleFeeFromFlightItenary(flightItinerary, searchParams, provider, seamen);
+        return Controller.ok(Json.toJson(miniRules));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getMiniRuleFromPNR() {
+        JsonNode json = request().body().asJson();
+        List<HashMap> miniRules = new ArrayList<>();
+        String provider = json.get("provider").asText();
+        String pnr = json.get("pnr").asText();
+        if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)) {
+            miniRules = amadeusBookingService.getMiniRuleFeeFromPNR(pnr);
+        }
+        return Controller.ok(Json.toJson(miniRules));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getMiniRuleFromEticket() {
+        MiniRule miniRule = new MiniRule();
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String pnr = json.get("pnr").asText();
+        String Eticket = json.get("eticket").asText();
+        if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
+            miniRule = amadeusBookingService.getMiniRuleFeeFromEticket(pnr,Eticket,miniRule);
+        }
+        return Controller.ok(Json.toJson(miniRule));
     }
 
     @BodyParser.Of(BodyParser.Json.class)

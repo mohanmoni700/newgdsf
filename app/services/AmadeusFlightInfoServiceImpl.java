@@ -7,17 +7,22 @@ import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup.BaggageAllowance.BaggageDetails;
+import com.amadeus.xml.tmrcrr_11_1_1a.*;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import models.AmadeusSessionWrapper;
+import models.MiniRule;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
 import utils.AmadeusSessionManager;
 import utils.XMLFileUtility;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -76,6 +81,85 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			}
 		}
 		return flightItinerary;
+	}
+
+	public List<HashMap> addMiniFareRulesForFlightItenary(MiniRuleGetFromPricingReply miniRuleGetFromPricingReply){
+
+		HashMap<String,MiniRule> AdultMap = new HashMap<>();
+		HashMap<String,MiniRule> ChildMap = new HashMap<>();
+		HashMap<String,MiniRule> InfantMap = new HashMap<>();
+		List<HashMap> paxTypeMap = new ArrayList<>();
+
+
+
+		for(MiniRuleGetFromPricingReply.MnrByFareRecommendation mnrByFareRecommendation: miniRuleGetFromPricingReply.getMnrByFareRecommendation()){
+			for(ReferencingDetailsType152449C paxRef:mnrByFareRecommendation.getPaxRef().getPassengerReference()){
+				BigDecimal cancellationFeeBeforeDept,cancellationFeeAfterDept,cancellationFeeNoShow = new BigDecimal(0);
+				BigDecimal changeFeeBeforeDept,changeFeeAfterDept,changeFeeNoShow = new BigDecimal(0);
+
+				String paxType = paxRef.getType();
+				MiniRule miniRule = new MiniRule();
+				int size = mnrByFareRecommendation.getMnrRulesInfoGrp().size() -1;
+				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> mnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size-1).getMnrMonInfoGrp();
+				if(mnrMonInfoGrp.size() > 1) {
+					cancellationFeeAfterDept=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
+					miniRule.setCancellationFeeAfterDeptCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
+					cancellationFeeBeforeDept=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
+					miniRule.setCancellationFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
+					cancellationFeeNoShow=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
+					miniRule.setCancellationNoShowCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
+					changeFeeNoShow=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
+					miniRule.setChangeFeeNoShowFeeCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
+					changeFeeAfterDept=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
+					miniRule.setChangeFeeFeeAfterDeptCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
+					changeFeeBeforeDept=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
+					miniRule.setChangeFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
+				}
+				else {
+                    cancellationFeeAfterDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
+                    miniRule.setCancellationFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
+                    cancellationFeeBeforeDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
+                    miniRule.setCancellationFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
+                    cancellationFeeNoShow = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(8).getAmount()));
+                    miniRule.setCancellationNoShowCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(8).getCurrency());
+                    changeFeeNoShow = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(18).getAmount()));
+                    miniRule.setChangeFeeNoShowFeeCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(18).getCurrency());
+                    changeFeeAfterDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
+                    miniRule.setChangeFeeFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
+                    changeFeeBeforeDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
+                    miniRule.setChangeFeeFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
+                }
+				BigDecimal markUp = new BigDecimal(play.Play.application().configuration().getDouble("markup"));
+				cancellationFeeBeforeDept= cancellationFeeBeforeDept.add(cancellationFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+				cancellationFeeAfterDept= cancellationFeeAfterDept.add(cancellationFeeAfterDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+				cancellationFeeNoShow= cancellationFeeNoShow.add(cancellationFeeNoShow.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+				changeFeeNoShow = changeFeeNoShow.add(changeFeeNoShow.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+				changeFeeAfterDept = changeFeeAfterDept.add(changeFeeAfterDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+				changeFeeBeforeDept = changeFeeBeforeDept.add(changeFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+				miniRule.setCancellationFeeAfterDept(cancellationFeeAfterDept);
+				miniRule.setCancellationFeeBeforeDept(cancellationFeeBeforeDept);
+				miniRule.setCancellationFeeNoShow(cancellationFeeNoShow);
+				miniRule.setChangeFeeNoShow(changeFeeNoShow);
+				miniRule.setChangeFeeAfterDept(changeFeeAfterDept);
+				miniRule.setChangeFeeBeforeDept(changeFeeBeforeDept);
+
+				if (paxType.equalsIgnoreCase("PA") && AdultMap.size() == 0) {
+					AdultMap.put("ADT", miniRule);
+				} else if (paxType.equalsIgnoreCase("PA") && AdultMap.size() > 0) {
+					ChildMap.put("CHD", miniRule);
+				} else if (paxType.equalsIgnoreCase("PI")) {
+					InfantMap.put("INF", miniRule);
+
+				}
+			}
+		}
+
+		paxTypeMap.add(AdultMap);
+		paxTypeMap.add(ChildMap);
+		paxTypeMap.add(InfantMap);
+
+		return paxTypeMap;
 	}
 	
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
@@ -165,6 +249,41 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		}
 		return fareRules;
     }
+
+    public List<HashMap> getMiniRulesFromFlightItenary(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen){
+	    AmadeusSessionWrapper amadeusSessionWrapper = null;
+		List<HashMap> miniRule = new ArrayList<>();
+		try {
+			amadeusSessionWrapper = amadeusSessionManager.getSession();
+			ServiceHandler serviceHandler = new ServiceHandler();
+			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
+//            serviceHandler.logIn();
+			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
+			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
+					searchParams.getInfantCount(), paxFareDetailsList);
+			MiniRuleGetFromPricingReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing();
+			if(miniRuleGetFromPricingReply.getErrorWarningGroup() != null){
+				if(miniRuleGetFromPricingReply.getErrorWarningGroup().getErrorWarningDescription()!=null){
+					amadeusLogger.debug("MiniRuleGetFromPricingReply Error"+miniRuleGetFromPricingReply.getErrorWarningGroup().getErrorWarningDescription());
+				}
+				return null;
+			}
+
+			miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
+		} catch (Exception e) {
+			//System.out.println("getCancellationFee fare rule exception..........");
+			e.printStackTrace();
+		}finally {
+			if(amadeusSessionWrapper != null) {
+				amadeusSessionWrapper.setQueryInProgress(false);
+				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+			}
+		}
+		amadeusLogger.info("miniRule: " + Json.toJson(miniRule));
+		return miniRule;
+	}
+
 	public String getFareRuleFromTariffInfo(FareCheckRulesReply fareCheckRulesReply){
 		StringBuilder fareRuleText = new StringBuilder();
 		for(FareCheckRulesReply.TariffInfo tariffInfo : fareCheckRulesReply.getTariffInfo()){

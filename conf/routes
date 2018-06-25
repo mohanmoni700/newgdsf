@@ -8,6 +8,9 @@ POST	/priceChangePNR                            @controllers.Application.priceCh
 POST	/baggageInfo                               @controllers.Application.getBaggageInfo
 POST	/flightDetails                             @controllers.Application.getFlightDetails
 POST	/getCancelFee                              @controllers.Application.getCancellationFee()
+POST	/getMiniRuleFromFlightItenary              @controllers.Application.getMiniRuleFromFlightItenary()
+POST	/getMiniRuleFromPNR                        @controllers.Application.getMiniRuleFromPNR()
+POST	/getMiniRuleFromEticket                    @controllers.Application.getMiniRuleFromEticket()
 POST	/issueTicket                               @controllers.Application.issueTicket()
 POST	/checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
 POST	/getPnrDetails							   @controllers.Application.getPnrDetails()

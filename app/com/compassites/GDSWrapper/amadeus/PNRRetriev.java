@@ -9,6 +9,11 @@ package com.compassites.GDSWrapper.amadeus;
 import com.amadeus.xml.pnrret_11_3_1a.*;
 import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve.RetrievalFacts;
 import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve.RetrievalFacts.PersonalFacts;
+import com.amadeus.xml.tmrcrq_11_1_1a.MiniRuleGetFromPricing;
+import com.amadeus.xml.tmrerq_13_1_1a.MiniRuleGetFromETicket;
+import com.amadeus.xml.tmrerq_13_1_1a.TicketNumberDetailsTypeI;
+import com.amadeus.xml.tmrqrq_11_1_1a.ItemReferencesAndVersionsType;
+import com.amadeus.xml.tmrqrq_11_1_1a.MiniRuleGetFromPricingRec;
 
 import java.math.BigInteger;
 
@@ -63,5 +68,36 @@ public class PNRRetriev {
         rf.setRetrieve(rv);
         rtr.setRetrievalFacts(rf);
         return rtr;
+    }
+
+    public MiniRuleGetFromPricingRec miniRuleGetFromPricingRec() {
+        MiniRuleGetFromPricingRec miniRuleGetFromPricingRec = new MiniRuleGetFromPricingRec();
+        //List<ItemReferencesAndVersionsType> itemReferencesAndVersionsTypeList = miniRuleGetFromPricingRec.getRecordId();
+        ItemReferencesAndVersionsType itemReferencesAndVersionsType = new ItemReferencesAndVersionsType();
+        itemReferencesAndVersionsType.setReferenceType("TST");
+        itemReferencesAndVersionsType.setUniqueReference("ALL");
+        miniRuleGetFromPricingRec.getRecordId().add(itemReferencesAndVersionsType);
+        return miniRuleGetFromPricingRec;
+    }
+
+    public MiniRuleGetFromETicket miniRuleGetFromETicket(String ticketNumber) {
+        MiniRuleGetFromETicket miniRuleGetFromETicket = new MiniRuleGetFromETicket();
+        //List<ItemReferencesAndVersionsType> itemReferencesAndVersionsTypeList = miniRuleGetFromPricingRec.getRecordId();
+        TicketNumberDetailsTypeI ticketNumberDetailsTypeI = new TicketNumberDetailsTypeI();
+        com.amadeus.xml.tmrerq_13_1_1a.TicketNumberTypeI ticketNumberTypeI = new com.amadeus.xml.tmrerq_13_1_1a.TicketNumberTypeI();
+        ticketNumberDetailsTypeI.setNumber(ticketNumber);
+        miniRuleGetFromETicket.setTicketNumber(ticketNumberTypeI);
+        miniRuleGetFromETicket.getTicketNumber().setDocumentDetails(ticketNumberDetailsTypeI);
+        return miniRuleGetFromETicket;
+    }
+
+    public MiniRuleGetFromPricing miniRuleGetFromPricing() {
+        MiniRuleGetFromPricing miniRuleGetFromPricing = new MiniRuleGetFromPricing();
+        com.amadeus.xml.tmrcrq_11_1_1a.ItemReferencesAndVersionsType itemReferencesAndVersionsType = new com.amadeus.xml.tmrcrq_11_1_1a.ItemReferencesAndVersionsType();
+        itemReferencesAndVersionsType.setReferenceType("FRN");
+        itemReferencesAndVersionsType.setUniqueReference("ALL");
+        miniRuleGetFromPricing.getFareRecommendationId().add(itemReferencesAndVersionsType);
+
+        return miniRuleGetFromPricing;
     }
 }

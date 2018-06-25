@@ -1,11 +1,16 @@
 package services;
 
+import models.MiniRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.compassites.GDSWrapper.mystifly.Mystifly;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchParameters;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Santhosh
@@ -65,4 +70,17 @@ public class FlightInfoServiceWrapper {
 		return fareRules;
 	}
 
+	public List<HashMap> getMiniRuleFeeFromFlightItenary(FlightItinerary flightItinerary,
+                                        SearchParameters searchParams, String provider, boolean seamen) {
+		List<HashMap> miniRule = new ArrayList<>();
+		if ("Travelport".equalsIgnoreCase(provider)) {
+			// MiniRule not avaliable
+		} else if ("Amadeus".equalsIgnoreCase(provider)) {
+			miniRule = amadeusFlightInfoService.getMiniRulesFromFlightItenary(
+					flightItinerary, searchParams, seamen);
+		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
+			// MiniRule not avaliable
+		}
+		return miniRule;
+	}
 }
