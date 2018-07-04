@@ -28,7 +28,7 @@ public class SegmentPricing {
 
     private String passengerType;
 
-    private BigInteger segmentSequenceNumber;
+    private BigInteger tstSequenceNumber;
 
     private List<TaxDetails> taxDetailsList;      //store just the ids instead of the object, one to many relationship with the tax
 
@@ -144,8 +144,8 @@ public class SegmentPricing {
         this.bookingVerificationContactMappingId = bookingVerificationContactMappingId;
     }
 
-    public BigInteger getSegmentSequenceNumber() { return segmentSequenceNumber; }
+    public BigInteger getTstSequenceNumber() { return tstSequenceNumber; }
 
-    public void setSegmentSequenceNumber(BigInteger segmentSequenceNumber) { this.segmentSequenceNumber = segmentSequenceNumber; }
+    public void setTstSequenceNumber(BigInteger tstSequenceNumber) { this.tstSequenceNumber = tstSequenceNumber; }
 
 }
