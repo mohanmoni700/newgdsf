@@ -87,6 +87,8 @@ public class AirSegmentInformation implements Serializable{
 
     private String airLinePnr;
 
+    private String cabinClass;
+
     private List<HoppingFlightInformation> hoppingFlightInformations = null;
     
     public List<HoppingFlightInformation> getHoppingFlightInformations() {
@@ -408,5 +410,13 @@ public class AirSegmentInformation implements Serializable{
 
     public void setAirLinePnr(String airLinePnr) {
         this.airLinePnr = airLinePnr;
+    }
+
+    public String getCabinClass() {
+        return cabinClass;
+    }
+
+    public void setCabinClass(String cabinClass) {
+        this.cabinClass = cabinClass;
     }
 }
