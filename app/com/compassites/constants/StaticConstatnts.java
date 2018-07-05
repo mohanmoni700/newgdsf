@@ -6,4 +6,6 @@ package com.compassites.constants;
 public class StaticConstatnts {
 
     public static final String DEFAULT_CURRENCY = "INR";
+
+    public static final String NO_SEAT = "NO SEAT";
 }

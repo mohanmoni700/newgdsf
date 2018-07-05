@@ -655,6 +655,7 @@ public class AmadeusBookingHelper {
                 airSegmentInformation.setFromLocation(fromLoc);
                 airSegmentInformation.setToLocation(toLoc);
                 airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct().getProductDetails().getClassOfService());
+                airSegmentInformation.setCabinClass(itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator());
                 Airport fromAirport = Airport
                         .getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
                 Airport toAirport = Airport.getAirport(airSegmentInformation
@@ -1143,7 +1144,7 @@ public class AmadeusBookingHelper {
             segmentPricing.setPassengerType(paxType);
             segmentPricing.setPassengerTax(passengerTax);
             segmentPricing.setPassengerCount(new Long(paxCount));
-            segmentPricing.setSegmentSequenceNumber(fare.getFareReference().getIDDescription().getIDSequenceNumber());
+            segmentPricing.setTstSequenceNumber(fare.getFareReference().getIDDescription().getIDSequenceNumber());
             segmentPricingList.add(segmentPricing);
             if("CHD".equalsIgnoreCase(paxType)){
                 chdBaseFare = chdBaseFare.add(baseFare);

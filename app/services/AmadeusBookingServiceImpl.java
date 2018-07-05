@@ -25,11 +25,11 @@ import com.amadeus.xml.tmrqrr_11_1_1a.ReferencingDetailsType152449C;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.StructuredDateTimeType;
-import com.amadeus.xml.ttstrr_13_1_1a.OriginAndDestinationDetailsTypeI;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
+import com.compassites.constants.StaticConstatnts;
 import com.compassites.exceptions.BaseCompassitesException;
 import com.compassites.model.*;
 import com.compassites.model.traveller.PersonalDetails;
@@ -114,6 +114,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         PNRReply gdsPNRReply = null;
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		Session session = null;
+		String tstRefNo = "";
 		try {
 			serviceHandler = new ServiceHandler();
             session = amadeusSessionManager.getActiveSession(travellerMasterInfo.getSessionIdRef());
@@ -137,7 +138,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 return pnrResponse;
             }
             gdsPNRReply = serviceHandler.savePNR();
-            String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+            tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 			Thread.sleep(10000);
 			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo);
             Date lastPNRAddMultiElements = new Date();
@@ -172,9 +173,19 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("error in generatePNR : ", e);
-			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
-					"error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
-			pnrResponse.setErrorMessage(errorMessage);
+			if(BaseCompassitesException.ExceptionCode.NO_SEAT.toString().equalsIgnoreCase(e.getMessage().toString())){
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setErrorCode(StaticConstatnts.NO_SEAT);
+				errorMessage.setType(ErrorMessage.ErrorType.ERROR);
+				errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
+				errorMessage.setMessage(e.getMessage());
+				errorMessage.setGdsPNR(tstRefNo);
+				pnrResponse.setErrorMessage(errorMessage);
+			} else {
+				ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
+						"error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+				pnrResponse.setErrorMessage(errorMessage);
+			}
 		}finally {
 			if(session != null){
 				serviceHandler.logOut();
@@ -429,7 +440,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
 				for(String status : itineraryInfo.getRelatedProduct().getStatus()){
 					if(!AmadeusConstants.SEGMENT_HOLDING_CONFIRMED.equalsIgnoreCase(status)){
-						throw new BaseCompassitesException("No seats available please try again later.s");
+						logger.debug("No Seats Available as segment status is : "+status);
+						throw new BaseCompassitesException(BaseCompassitesException.ExceptionCode.NO_SEAT.getExceptionCode());
 					}
 
 				}
@@ -502,7 +514,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 //        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
 		return pricePNRReply;
 	}
-	
+
 
 
 	@Override

@@ -13,6 +13,7 @@ public class ErrorMessage {
 
     private String provider;
 
+    private String gdsPNR;
 
     public String getErrorCode() {
         return errorCode;
@@ -45,6 +46,11 @@ public class ErrorMessage {
     public void setProvider(String provider) {
         this.provider = provider;
     }
+
+    public String getGdsPNR() { return gdsPNR; }
+
+    public void setGdsPNR(String gdsPNR) { this.gdsPNR = gdsPNR;    }
+
 
     public enum ErrorType{
         ERROR,WARNING;
