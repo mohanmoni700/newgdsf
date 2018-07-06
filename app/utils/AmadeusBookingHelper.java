@@ -655,6 +655,7 @@ public class AmadeusBookingHelper {
                 airSegmentInformation.setFromLocation(fromLoc);
                 airSegmentInformation.setToLocation(toLoc);
                 airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct().getProductDetails().getClassOfService());
+                airSegmentInformation.setCabinClass(itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator());
                 Airport fromAirport = Airport
                         .getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
                 Airport toAirport = Airport.getAirport(airSegmentInformation

@@ -26,4 +26,22 @@ public class BaseCompassitesException extends Exception {
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
     }
+
+    public static enum ExceptionCode {
+        NO_SEAT("No seats available please try again later");
+
+        private String exceptionCode;
+
+        private ExceptionCode(String exceptionCode) {
+            this.exceptionCode = exceptionCode;
+        }
+
+        public String getExceptionCode() {
+            return exceptionCode;
+        }
+
+        public String toString() {
+            return exceptionCode;
+        }
+    }
 }
