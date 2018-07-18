@@ -792,7 +792,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 
 			//PassengerType map
-            Map<String, String> passengerType = new HashMap<>();
+            HashMap<String, String> passengerType = new HashMap<>();
             for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
                 String key = "PA" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
                 PassengerData paxData = travellerInfo.getPassengerData().get(0);
@@ -810,9 +810,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     passengerType.put("PI"+ travellerInfo.getElementManagementPassenger().getReference().getNumber(), "INF");
                 }
             }
-
-
-					miniRules=addMiniFareRules(miniRuleGetFromPricingRecReply, gdsPNRReply,passengerType,segmentRefMap);
+			miniRules=addMiniFareRules(miniRuleGetFromPricingRecReply, gdsPNRReply,passengerType,segmentRefMap);
 
 
 		}catch (Exception e) {
@@ -846,11 +844,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
         return miniRule;
     }
 
-	public List<HashMap> addMiniFareRules(MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply, PNRReply gdsPNRReply,Map<String, String> passengerType,Map<String, String> segmentRefMap){
+	public List<HashMap> addMiniFareRules(MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply, PNRReply gdsPNRReply,HashMap<String, String> passengerType,Map<String, String> segmentRefMap){
         logger.info("addMinirules form pnr reply and MiniRuleGetFromPricingRecReply start");
 		HashMap<String,MiniRule> AdultMap = new HashMap<>();
 		HashMap<String,MiniRule> ChildMap = new HashMap<>();
 		HashMap<String,MiniRule> InfantMap = new HashMap<>();
+
 
 		List<com.amadeus.xml.tmrqrr_11_1_1a.MiniRulesRegulPropertiesType.MnrMonInfoGrp> monetaryInformationType = null;
 		List<HashMap> paxTypeMap = new ArrayList<>();
@@ -926,6 +925,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		paxTypeMap.add(AdultMap);
         paxTypeMap.add(ChildMap);
         paxTypeMap.add(InfantMap);
+        paxTypeMap.add(passengerType);
+
         logger.info("addMinirules form pnr reply and MiniRuleGetFromPricingRecReply end");
 		return paxTypeMap;
 	}
