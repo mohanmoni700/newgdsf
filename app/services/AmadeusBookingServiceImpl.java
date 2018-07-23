@@ -1129,6 +1129,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			readBaggageInfoFromTST(gdsPNRReply, ticketDisplayTSTReply.getFareList(), pnrResponse);
             json.put("travellerMasterInfo", masterInfo);
             json.put("pnrResponse", pnrResponse);
+            json.put("miniRuleResponse", getMiniRuleFeeFromPNR(gdsPNR));
 
 		} catch (Exception e) {
 			e.printStackTrace();
