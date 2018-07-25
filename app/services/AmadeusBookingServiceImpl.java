@@ -1123,16 +1123,17 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
                     pnrResponse.setAirlinePNR(airlinePnr);
                 }
-            }            
+            }
+            List<HashMap> miniRules = getMiniRuleFeeFromPNR(gdsPNR);
+            logger.debug("mini rules in getbooking details is "+Json.toJson(miniRules));
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
 			readBaggageInfoFromTST(gdsPNRReply, ticketDisplayTSTReply.getFareList(), pnrResponse);
             json.put("travellerMasterInfo", masterInfo);
             json.put("pnrResponse", pnrResponse);
-            json.put("miniRuleResponse", getMiniRuleFeeFromPNR(gdsPNR));
+            json.put("miniRuleResponse", miniRules);
 
 		} catch (Exception e) {
-			e.printStackTrace();
             logger.error("Error in Amadeus getBookingDetails : ", e);
 		}finally {
 			serviceHandler.logOut();
