@@ -1125,7 +1125,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 }
             }
             List<HashMap> miniRules = getMiniRuleFeeFromPNR(gdsPNR);
-            logger.debug("mini rules in getbooking details is "+miniRules);
+            logger.debug("mini rules in getbooking details is "+Json.toJson(miniRules));
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
 			readBaggageInfoFromTST(gdsPNRReply, ticketDisplayTSTReply.getFareList(), pnrResponse);
@@ -1134,7 +1134,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
             json.put("miniRuleResponse", miniRules);
 
 		} catch (Exception e) {
-			e.printStackTrace();
             logger.error("Error in Amadeus getBookingDetails : ", e);
 		}finally {
 			serviceHandler.logOut();
