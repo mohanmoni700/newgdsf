@@ -90,8 +90,6 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		HashMap<String,MiniRule> InfantMap = new HashMap<>();
 		List<HashMap> paxTypeMap = new ArrayList<>();
 
-
-
 		for(MiniRuleGetFromPricingReply.MnrByFareRecommendation mnrByFareRecommendation: miniRuleGetFromPricingReply.getMnrByFareRecommendation()){
 			for(ReferencingDetailsType152449C paxRef:mnrByFareRecommendation.getPaxRef().getPassengerReference()){
 				BigDecimal cancellationFeeBeforeDept,cancellationFeeAfterDept,cancellationFeeNoShow = new BigDecimal(0);
@@ -100,49 +98,67 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 				String paxType = paxRef.getType();
 				MiniRule miniRule = new MiniRule();
 				int size = mnrByFareRecommendation.getMnrRulesInfoGrp().size() -1;
-				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> mnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size-1).getMnrMonInfoGrp();
-				if(mnrMonInfoGrp.size() > 1) {
-					cancellationFeeAfterDept=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
-					miniRule.setCancellationFeeAfterDeptCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
-					cancellationFeeBeforeDept=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
-					miniRule.setCancellationFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
-					cancellationFeeNoShow=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
-					miniRule.setCancellationNoShowCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
-					changeFeeNoShow=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
-					miniRule.setChangeFeeNoShowFeeCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
-					changeFeeAfterDept=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
-					miniRule.setChangeFeeFeeAfterDeptCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
-					changeFeeBeforeDept=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
-					miniRule.setChangeFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
-				}
-				else {
-                    cancellationFeeAfterDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
-                    miniRule.setCancellationFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
-                    cancellationFeeBeforeDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
-                    miniRule.setCancellationFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
-                    cancellationFeeNoShow = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(8).getAmount()));
-                    miniRule.setCancellationNoShowCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(8).getCurrency());
-                    changeFeeNoShow = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(18).getAmount()));
-                    miniRule.setChangeFeeNoShowFeeCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(18).getCurrency());
-                    changeFeeAfterDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getAmount()));
-                    miniRule.setChangeFeeFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(13).getCurrency());
-                    changeFeeBeforeDept = (new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getAmount()));
-                    miniRule.setChangeFeeFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(3).getCurrency());
-                }
-				BigDecimal markUp = new BigDecimal(play.Play.application().configuration().getDouble("markup"));
-				cancellationFeeBeforeDept= cancellationFeeBeforeDept.add(cancellationFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
-				cancellationFeeAfterDept= cancellationFeeAfterDept.add(cancellationFeeAfterDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
-				cancellationFeeNoShow= cancellationFeeNoShow.add(cancellationFeeNoShow.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
-				changeFeeNoShow = changeFeeNoShow.add(changeFeeNoShow.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
-				changeFeeAfterDept = changeFeeAfterDept.add(changeFeeAfterDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
-				changeFeeBeforeDept = changeFeeBeforeDept.add(changeFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> mnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size).getMnrMonInfoGrp();
+				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> changeMnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size-1).getMnrMonInfoGrp();
+				List<MiniRulesRegulPropertiesType.MnrRestriAppInfoGrp> restriAppInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size).getMnrRestriAppInfoGrp();
+				List<MiniRulesRegulPropertiesType.MnrRestriAppInfoGrp> changeRestriAppInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size-1).getMnrRestriAppInfoGrp();
+				if(mnrMonInfoGrp.size()>1) {
+                    cancellationFeeAfterDept=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(4).getAmount()));
+                    miniRule.setCancellationFeeAfterDeptCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(4).getCurrency());
+                    cancellationFeeBeforeDept=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount()));
+                    miniRule.setCancellationFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getCurrency());
+                    cancellationFeeNoShow=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(9).getAmount()));
+                    miniRule.setCancellationNoShowCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(9).getCurrency());
 
-				miniRule.setCancellationFeeAfterDept(cancellationFeeAfterDept);
-				miniRule.setCancellationFeeBeforeDept(cancellationFeeBeforeDept);
-				miniRule.setCancellationFeeNoShow(cancellationFeeNoShow);
-				miniRule.setChangeFeeNoShow(changeFeeNoShow);
-				miniRule.setChangeFeeAfterDept(changeFeeAfterDept);
-				miniRule.setChangeFeeBeforeDept(changeFeeBeforeDept);
+                }else {
+                    cancellationFeeAfterDept=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(14).getAmount()));
+                    miniRule.setCancellationFeeAfterDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(14).getCurrency());
+                    cancellationFeeBeforeDept=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount()));
+                    miniRule.setCancellationFeeBeforeDeptCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getCurrency());
+                    cancellationFeeNoShow=(new BigDecimal(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(19).getAmount()));
+                    miniRule.setCancellationNoShowCurrency(mnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(19).getCurrency());
+
+                }
+                if(changeMnrMonInfoGrp.size() > 1){
+					changeFeeNoShow=(new BigDecimal(changeMnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(14).getAmount()));
+					miniRule.setChangeFeeNoShowFeeCurrency(changeMnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(14).getCurrency());
+					changeFeeAfterDept=(new BigDecimal(changeMnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(4).getAmount()));
+					miniRule.setChangeFeeFeeAfterDeptCurrency(changeMnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(4).getCurrency());
+					changeFeeBeforeDept=(new BigDecimal(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount()));
+					miniRule.setChangeFeeBeforeDeptCurrency(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getCurrency());
+				}else{
+					changeFeeNoShow=(new BigDecimal(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(19).getAmount()));
+					miniRule.setChangeFeeNoShowFeeCurrency(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(19).getCurrency());
+					changeFeeAfterDept=(new BigDecimal(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(14).getAmount()));
+					miniRule.setChangeFeeFeeAfterDeptCurrency(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(14).getCurrency());
+					changeFeeBeforeDept=(new BigDecimal(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount()));
+					miniRule.setChangeFeeBeforeDeptCurrency(changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(4).getCurrency());
+				}
+
+                BigDecimal markUp =new BigDecimal(play.Play.application().configuration().getDouble("markup"));
+                cancellationFeeBeforeDept= cancellationFeeBeforeDept.add(cancellationFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                cancellationFeeAfterDept= cancellationFeeAfterDept.add(cancellationFeeAfterDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                cancellationFeeNoShow= cancellationFeeNoShow.add(cancellationFeeNoShow.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                changeFeeNoShow = changeFeeNoShow.add(changeFeeNoShow.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                changeFeeAfterDept = changeFeeAfterDept.add(changeFeeAfterDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                changeFeeBeforeDept = changeFeeBeforeDept.add(changeFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+                miniRule.setCancellationFeeAfterDept(cancellationFeeAfterDept);
+                miniRule.setCancellationFeeBeforeDept(cancellationFeeBeforeDept);
+                miniRule.setCancellationFeeNoShow(cancellationFeeNoShow);
+                miniRule.setChangeFeeNoShow(changeFeeNoShow);
+                miniRule.setChangeFeeAfterDept(changeFeeAfterDept);
+                miniRule.setChangeFeeBeforeDept(changeFeeBeforeDept);
+
+				miniRule.setCancellationRefundableBeforeDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(1).getAction().equalsIgnoreCase("0") ? false : true));
+				miniRule.setCancellationRefundableAfterDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(3).getAction().equalsIgnoreCase("0") ? false : true));
+				miniRule.setCancellationNoShowBeforeDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(2).getAction().equalsIgnoreCase("0") ? false : true));
+				miniRule.setCancellationNoShowAfterDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(4).getAction().equalsIgnoreCase("0") ? false : true));
+
+				miniRule.setChangeRefundableBeforeDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(3).getAction().equalsIgnoreCase("0") ? false : true));
+				miniRule.setChangeRefundableAfterDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(9).getAction().equalsIgnoreCase("0") ? false : true));
+				miniRule.setChangeNoShowBeforeDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(6).getAction().equalsIgnoreCase("0") ? false : true));
+				miniRule.setChangeNoShowAfterDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(13).getAction().equalsIgnoreCase("0") ? false : true));
 
 				if (paxType.equalsIgnoreCase("PA") && AdultMap.size() == 0) {
 					AdultMap.put("ADT", miniRule);

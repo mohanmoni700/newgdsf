@@ -8,56 +8,57 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
-@Entity
-@Table(name = "mini_rule_fares")
+
 public class MiniRule extends Model {
 
-    @Id
     private Long id;
 
-    @Column(name ="changefee_before_dept")
     private BigDecimal changeFeeBeforeDept;
 
-    @Column(name ="changefee_after_dept")
     private BigDecimal changeFeeAfterDept;
 
-    @Column(name ="changefee_noshow")
     private BigDecimal changeFeeNoShow;
 
-    @Column(name ="cancellationfee_before_dept")
     private BigDecimal cancellationFeeBeforeDept;
 
-    @Column(name ="cancellationfee_after_dept")
     private BigDecimal cancellationFeeAfterDept;
 
-    @Column(name ="cancellation_noshow")
     private BigDecimal cancellationFeeNoShow;
 
-    @Column(name ="changefee_before_dept_currency")
     private String changeFeeBeforeDeptCurrency;
 
-    @Column(name ="changefee_after_dept_currency")
     private String changeFeeFeeAfterDeptCurrency;
 
-    @Column(name ="changefee_noshow_currency")
     private String changeFeeNoShowFeeCurrency;
 
-    @Column(name ="cancellationfee_before_dept_currency")
     private String cancellationFeeBeforeDeptCurrency;
 
-    @Column(name ="cancellationfee_after_dept_currency")
     private String cancellationFeeAfterDeptCurrency;
 
 
-    @Column(name ="cancellation_noshow_currency")
     private String cancellationNoShowCurrency;
 
-    @Column(name = "api_call")
     private String apiCall;
 
-    @Column(name = "insert_date")
-    @CreatedTimestamp
+    @Transient
     private Date insertDate;
+
+    private Boolean isCancellationRefundableBeforeDept;
+
+    private Boolean isCancellationRefundableAfterDept;
+
+    private Boolean isCancellationNoShowBeforeDept;
+
+    private Boolean isCancellationNoShowAfterDept;
+
+    private Boolean isChangeRefundableBeforeDept;
+
+    private Boolean isChangeRefundableAfterDept;
+
+    private Boolean isChangeNoShowBeforeDept;
+
+    private Boolean isChangeNoShowAfterDept;
+
 
   /*  @JsonIgnore
     @ManyToOne
@@ -190,5 +191,69 @@ public class MiniRule extends Model {
 
     public void setInsertDate(Date insertDate) {
         this.insertDate = insertDate;
+    }
+
+    public Boolean getCancellationRefundableBeforeDept() {
+        return isCancellationRefundableBeforeDept;
+    }
+
+    public void setCancellationRefundableBeforeDept(Boolean cancellationRefundableBeforeDept) {
+        isCancellationRefundableBeforeDept = cancellationRefundableBeforeDept;
+    }
+
+    public Boolean getCancellationRefundableAfterDept() {
+        return isCancellationRefundableAfterDept;
+    }
+
+    public void setCancellationRefundableAfterDept(Boolean cancellationRefundableAfterDept) {
+        isCancellationRefundableAfterDept = cancellationRefundableAfterDept;
+    }
+
+    public Boolean getCancellationNoShowBeforeDept() {
+        return isCancellationNoShowBeforeDept;
+    }
+
+    public void setCancellationNoShowBeforeDept(Boolean cancellationNoShowBeforeDept) {
+        isCancellationNoShowBeforeDept = cancellationNoShowBeforeDept;
+    }
+
+    public Boolean getCancellationNoShowAfterDept() {
+        return isCancellationNoShowAfterDept;
+    }
+
+    public void setCancellationNoShowAfterDept(Boolean cancellationNoShowAfterDept) {
+        isCancellationNoShowAfterDept = cancellationNoShowAfterDept;
+    }
+
+    public Boolean getChangeRefundableBeforeDept() {
+        return isChangeRefundableBeforeDept;
+    }
+
+    public void setChangeRefundableBeforeDept(Boolean changeRefundableBeforeDept) {
+        isChangeRefundableBeforeDept = changeRefundableBeforeDept;
+    }
+
+    public Boolean getChangeRefundableAfterDept() {
+        return isChangeRefundableAfterDept;
+    }
+
+    public void setChangeRefundableAfterDept(Boolean changeRefundableAfterDept) {
+        isChangeRefundableAfterDept = changeRefundableAfterDept;
+    }
+
+    public Boolean getChangeNoShowBeforeDept() {
+        return isChangeNoShowBeforeDept;
+    }
+
+    public void setChangeNoShowBeforeDept(Boolean changeNoShowBeforeDept) {
+        isChangeNoShowBeforeDept = changeNoShowBeforeDept;
+    }
+
+    public Boolean getChangeNoShowAfterDept() {
+        return isChangeNoShowAfterDept;
+    }
+
+    public void setChangeNoShowAfterDept(Boolean changeNoShowAfterDept) {
+        isChangeNoShowAfterDept = changeNoShowAfterDept;
     }
 }
