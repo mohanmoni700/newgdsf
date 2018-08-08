@@ -97,11 +97,12 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 				String paxType = paxRef.getType();
 				MiniRule miniRule = new MiniRule();
-				int size = mnrByFareRecommendation.getMnrRulesInfoGrp().size() -1;
-				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> mnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size).getMnrMonInfoGrp();
-				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> changeMnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size-1).getMnrMonInfoGrp();
-				List<MiniRulesRegulPropertiesType.MnrRestriAppInfoGrp> restriAppInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size).getMnrRestriAppInfoGrp();
-				List<MiniRulesRegulPropertiesType.MnrRestriAppInfoGrp> changeRestriAppInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size-1).getMnrRestriAppInfoGrp();
+				//int size = mnrByFareRecommendation.getMnrRulesInfoGrp().size() -1;
+				List<Integer> size = getMnrInfo(mnrByFareRecommendation);
+				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> mnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size.get(0)).getMnrMonInfoGrp();
+				List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> changeMnrMonInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size.get(1)).getMnrMonInfoGrp();
+				List<MiniRulesRegulPropertiesType.MnrRestriAppInfoGrp> restriAppInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size.get(0)).getMnrRestriAppInfoGrp();
+				List<MiniRulesRegulPropertiesType.MnrRestriAppInfoGrp> changeRestriAppInfoGrp = mnrByFareRecommendation.getMnrRulesInfoGrp().get(size.get(1)).getMnrRestriAppInfoGrp();
 				if(mnrMonInfoGrp.size()>1) {
                     cancellationFeeAfterDept=(new BigDecimal(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(4).getAmount()));
                     miniRule.setCancellationFeeAfterDeptCurrency(mnrMonInfoGrp.get(1).getMonetaryInfo().getMonetaryDetails().get(4).getCurrency());
@@ -177,6 +178,76 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 		return paxTypeMap;
 	}
+
+	public List<Integer> getMnrInfo(MiniRuleGetFromPricingReply.MnrByFareRecommendation mnrByFareRecommendation){
+		List<Integer> returnList= new ArrayList<Integer>();
+		int size = mnrByFareRecommendation.getMnrRulesInfoGrp().size();
+		List< List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> > cancelMonInfo = new ArrayList<>();
+		List< List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> > changeMonInfo = new ArrayList<>();
+		HashMap<List<MiniRulesRegulPropertiesType.MnrMonInfoGrp>,Integer> hash = new HashMap<>();
+		for(int i = 0 ; i<size ;i++){
+			if(mnrByFareRecommendation.getMnrRulesInfoGrp().get(i).getMnrCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("33"))){
+				cancelMonInfo.add(mnrByFareRecommendation.getMnrRulesInfoGrp().get(i).getMnrMonInfoGrp());
+				hash.put(mnrByFareRecommendation.getMnrRulesInfoGrp().get(i).getMnrMonInfoGrp(),i);
+
+			}
+			if(mnrByFareRecommendation.getMnrRulesInfoGrp().get(i).getMnrCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("31"))){
+				changeMonInfo.add(mnrByFareRecommendation.getMnrRulesInfoGrp().get(i).getMnrMonInfoGrp());
+				hash.put(mnrByFareRecommendation.getMnrRulesInfoGrp().get(i).getMnrMonInfoGrp(),i);
+			}
+		}
+		List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> res = null;
+		if(cancelMonInfo.size()>1){
+			res = comparePrice(cancelMonInfo);
+		}
+		else {
+			res = cancelMonInfo.get(0);
+		}
+		returnList.add(hash.get(res));
+		if(changeMonInfo.size()>1){
+			res = comparePrice(changeMonInfo);
+		}
+		else {
+			res = changeMonInfo.get(0);
+		}
+		returnList.add(hash.get(res));
+		return returnList;
+	}
+
+
+	public List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> comparePrice(List<List<MiniRulesRegulPropertiesType.MnrMonInfoGrp>> list) {
+		int res = 0;
+		List<MiniRulesRegulPropertiesType.MnrMonInfoGrp> high = new ArrayList<>();
+		if (list.size() < 3) {
+			BigInteger b1 = new BigInteger(list.get(0).get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount());
+			BigInteger b2 = new BigInteger(list.get(1).get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount());
+			res = b1.compareTo(b2);
+			if (res == 1) {
+				return list.get(0);
+			} else
+				return list.get(1);
+		} else {
+			BigInteger max = new BigInteger(list.get(0).get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount());
+			int index= 0;
+			for (int i = 1; i < list.size(); i++) {
+				BigInteger b2 = new BigInteger(list.get(i).get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount());
+				res = max.compareTo(b2);
+				if (res == 1) {
+					high = list.get(index);
+					max = new BigInteger(list.get(index).get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount());
+				} else if (res == -1) {
+					index = i;
+					high = list.get(index);
+					max = new BigInteger(list.get(index).get(0).getMonetaryInfo().getMonetaryDetails().get(4).getAmount());
+				} else
+					high = list.get(i);
+			}
+
+		}
+		return high;
+	}
+
+
 	
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
