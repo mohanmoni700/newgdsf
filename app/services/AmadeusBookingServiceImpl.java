@@ -22,6 +22,7 @@ import com.amadeus.xml.tmrerq_13_1_1a.MiniRuleGetFromETicket;
 import com.amadeus.xml.tmrerr_13_1_1a.MiniRuleGetFromETicketReply;
 import com.amadeus.xml.tmrqrq_11_1_1a.ItemReferencesAndVersionsType;
 import com.amadeus.xml.tmrqrq_11_1_1a.MiniRuleGetFromPricingRec;
+import com.amadeus.xml.tmrqrr_11_1_1a.ElementManagementSegmentType;
 import com.amadeus.xml.tmrqrr_11_1_1a.MiniRuleGetFromPricingRecReply;
 import com.amadeus.xml.tmrqrr_11_1_1a.ReferencingDetailsType152449C;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
@@ -949,11 +950,20 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				BigDecimal changeFeeBeforeDept,changeFeeAfterDept,changeFeeNoShow = new BigDecimal(0);
 
 				String paxRef = mnrPaxRef.getType() + mnrPaxRef.getValue();
-                int sizeOfFareComponentInfo = monetaryInformationType1.getFareComponentInfo().size() - 1;
+                /*int sizeOfFareComponentInfo = monetaryInformationType1.getFareComponentInfo().size() - 1;
 				int sizeOfSegmentRef = monetaryInformationType1.getFareComponentInfo().get(sizeOfFareComponentInfo).getSegmentRefernce().size() - 1;
 				String src = monetaryInformationType1.getFareComponentInfo().get(0).getSegmentRefernce().get(0).getReference().getType() + monetaryInformationType1.getFareComponentInfo().get(0).getSegmentRefernce().get(0).getReference().getValue();
 				String dest = monetaryInformationType1.getFareComponentInfo().get(sizeOfFareComponentInfo).getSegmentRefernce().get(sizeOfSegmentRef).getReference().getType() + monetaryInformationType1.getFareComponentInfo().get(sizeOfFareComponentInfo).getSegmentRefernce().get(sizeOfSegmentRef).getReference().getValue();
-				String key = (segmentRefMap.get(src)).substring(0, 3) + (segmentRefMap.get(dest)).substring(3, 6);
+				String key = (segmentRefMap.get(src)).substring(0, 3) + (segmentRefMap.get(dest)).substring(3, 6);*/
+				List<String> keys = new ArrayList<>();
+				for(MiniRuleGetFromPricingRecReply.MnrByPricingRecord.FareComponentInfo fareComponentInfo : monetaryInformationType1.getFareComponentInfo()){
+					for(ElementManagementSegmentType segmentType : fareComponentInfo.getSegmentRefernce()) {
+						keys.add(segmentType.getReference().getType()+segmentType.getReference().getValue());
+					}
+				}
+				Collections.sort(keys);
+				String key = (segmentRefMap.get(keys.get(0))).substring(0, 3) + (segmentRefMap.get(keys.get(keys.size() - 1))).substring(3, 6);
+
 				String paxType = passengerType.get(paxRef);
 				MiniRule miniRule = new MiniRule();
 				if(monetaryInformationType.size()>1) {
