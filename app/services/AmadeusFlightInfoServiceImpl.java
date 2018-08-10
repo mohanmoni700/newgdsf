@@ -159,15 +159,21 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
                 miniRule.setChangeFeeAfterDept(changeFeeAfterDept);
                 miniRule.setChangeFeeBeforeDept(changeFeeBeforeDept);
 
-				miniRule.setCancellationRefundableBeforeDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(1).getAction().equalsIgnoreCase("0") ? false : true));
-				miniRule.setCancellationRefundableAfterDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(3).getAction().equalsIgnoreCase("0") ? false : true));
-				miniRule.setCancellationNoShowBeforeDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(2).getAction().equalsIgnoreCase("0") ? false : true));
-				miniRule.setCancellationNoShowAfterDept(Boolean.valueOf(restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(4).getAction().equalsIgnoreCase("0") ? false : true));
+				List<com.amadeus.xml.tmrcrr_11_1_1a.StatusDetailsType> cancelStatuslist =  restriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation();
+				HashMap<String,String> cancelKeys = mapFlags(cancelStatuslist);
 
-				miniRule.setChangeRefundableBeforeDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(3).getAction().equalsIgnoreCase("0") ? false : true));
-				miniRule.setChangeRefundableAfterDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(9).getAction().equalsIgnoreCase("0") ? false : true));
-				miniRule.setChangeNoShowBeforeDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(6).getAction().equalsIgnoreCase("0") ? false : true));
-				miniRule.setChangeNoShowAfterDept(Boolean.valueOf(changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation().get(13).getAction().equalsIgnoreCase("0") ? false : true));
+				miniRule.setCancellationRefundableBeforeDept(Boolean.valueOf(cancelKeys.get("BDA").equalsIgnoreCase("0") ? false : true));
+				miniRule.setCancellationRefundableAfterDept(Boolean.valueOf(cancelKeys.get("ADA").equalsIgnoreCase("0") ? false : true));
+				miniRule.setCancellationNoShowBeforeDept(Boolean.valueOf(cancelKeys.get("BNA").equalsIgnoreCase("0") ? false : true));
+				miniRule.setCancellationNoShowAfterDept(Boolean.valueOf(cancelKeys.get("ANA").equalsIgnoreCase("0") ? false : true));
+
+				List<com.amadeus.xml.tmrcrr_11_1_1a.StatusDetailsType> changeStatuslist =  changeRestriAppInfoGrp.get(0).getMnrRestriAppInfo().getStatusInformation();
+				HashMap<String,String> changeKeys = mapFlags(changeStatuslist);
+
+				miniRule.setChangeRefundableBeforeDept(Boolean.valueOf(changeKeys.get("BDA").equalsIgnoreCase("0") ? false : true));
+				miniRule.setChangeRefundableAfterDept(Boolean.valueOf(changeKeys.get("ADA").equalsIgnoreCase("0") ? false : true));
+				miniRule.setChangeNoShowBeforeDept(Boolean.valueOf(changeKeys.get("BNA").equalsIgnoreCase("0") ? false : true));
+				miniRule.setChangeNoShowAfterDept(Boolean.valueOf(changeKeys.get("ANA").equalsIgnoreCase("0") ? false : true));
 
 				int res = cancellationFeeNoShowAfterDept.compareTo(cancellationFeeNoShowBeforeDept);
 				if(res == 1){
@@ -215,6 +221,15 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		paxTypeMap.add(InfantMap);
 
 		return paxTypeMap;
+	}
+
+	public HashMap mapFlags(List<com.amadeus.xml.tmrcrr_11_1_1a.StatusDetailsType> statusList){
+		HashMap<String,String> keyMap = new HashMap<>();
+		for(int i=0;i<statusList.size();i++)
+		{
+			keyMap.put(statusList.get(i).getIndicator(),statusList.get(i).getAction());
+		}
+		return keyMap;
 	}
 
 	public List<Integer> getMnrInfo(MiniRuleGetFromPricingReply.MnrByFareRecommendation mnrByFareRecommendation){

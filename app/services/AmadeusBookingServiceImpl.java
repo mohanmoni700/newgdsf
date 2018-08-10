@@ -40,6 +40,7 @@ import com.compassites.model.traveller.Preferences;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import models.MiniRule;
 import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
@@ -921,7 +922,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		HashMap<String,MiniRule> AdultMap = new HashMap<>();
 		HashMap<String,MiniRule> ChildMap = new HashMap<>();
 		HashMap<String,MiniRule> InfantMap = new HashMap<>();
-
+		HashMap<String,String> isSeamenMap = new HashMap<>();
 
 		List<com.amadeus.xml.tmrqrr_11_1_1a.MiniRulesRegulPropertiesType.MnrMonInfoGrp> monetaryInformationType = null;
         List<com.amadeus.xml.tmrqrr_11_1_1a.MiniRulesRegulPropertiesType.MnrRestriAppInfoGrp> restriAppInfoGrp = null;
@@ -1041,30 +1042,30 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				if(res == 1){
 					miniRule.setCancellationFeeNoShow(cancellationFeeNoShowAfterDept);
 					miniRule.setCancellationNoShowCurrency(cancellationNoShowAfterDeptCurrency);
-					miniRule.setCancellationNoShowAfterDept(miniRule.getCancellationRefundableAfterDept());
+					miniRule.setCancellationNoShowAfterDept(miniRule.getCancellationNoShowAfterDept());
 				} else if(res == -1){
 					miniRule.setCancellationFeeNoShow(cancellationFeeNoShowBeforeDept);
 					miniRule.setCancellationNoShowCurrency(cancellationFeeNoShowBeforeDeptCurrency);
-					miniRule.setCancellationNoShowAfterDept(miniRule.getCancellationRefundableBeforeDept());
+					miniRule.setCancellationNoShowAfterDept(miniRule.getCancellationNoShowBeforeDept());
 				}else{
 					miniRule.setCancellationFeeNoShow(cancellationFeeNoShowAfterDept);
 					miniRule.setCancellationNoShowCurrency(cancellationNoShowAfterDeptCurrency);
-					miniRule.setCancellationNoShowAfterDept(miniRule.getCancellationRefundableAfterDept());
+					miniRule.setCancellationNoShowAfterDept(miniRule.getCancellationNoShowAfterDept());
 				}
 
 				int res1 = changeFeeNoShowAfterDept.compareTo(changeFeeNoShowBeforeDept);
 				if(res1 == 1){
 					miniRule.setChangeFeeNoShow(changeFeeNoShowAfterDept);
 					miniRule.setChangeFeeNoShowFeeCurrency(changeFeeNoShowAfterDeptCurrency);
-					miniRule.setChangeNoShowAfterDept(miniRule.getCancellationRefundableAfterDept());
+					miniRule.setChangeNoShowAfterDept(miniRule.getChangeNoShowAfterDept());
 				} else if(res1 == -1){
 					miniRule.setChangeFeeNoShow(changeFeeNoShowBeforeDept);
 					miniRule.setChangeFeeNoShowFeeCurrency(changeFeeNoShowBeforeDeptCurrency);
-					miniRule.setChangeNoShowAfterDept(miniRule.getCancellationRefundableBeforeDept());
+					miniRule.setChangeNoShowAfterDept(miniRule.getChangeNoShowBeforeDept());
 				}else{
 					miniRule.setChangeFeeNoShow(changeFeeNoShowAfterDept);
 					miniRule.setChangeFeeNoShowFeeCurrency(changeFeeNoShowAfterDeptCurrency);
-					miniRule.setChangeNoShowAfterDept(miniRule.getCancellationRefundableAfterDept());
+					miniRule.setChangeNoShowAfterDept(miniRule.getChangeNoShowAfterDept());
 				}
 
 				if (paxType.equalsIgnoreCase("ADT")) {
@@ -1077,10 +1078,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		}
     }
+
+		String paxType = gdsPNRReply.getTravellerInfo().get(0).getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getType();
+		String isSeamen = "false";
+		if ("sea".equalsIgnoreCase(paxType)	|| "sc".equalsIgnoreCase(paxType))
+			isSeamen = "true";
+		isSeamenMap.put("isSeamen",isSeamen);
+
 		paxTypeMap.add(AdultMap);
         paxTypeMap.add(ChildMap);
         paxTypeMap.add(InfantMap);
         paxTypeMap.add(passengerType);
+        paxTypeMap.add(isSeamenMap);
 
         logger.info("addMinirules form pnr reply and MiniRuleGetFromPricingRecReply end");
 		return paxTypeMap;
