@@ -176,7 +176,7 @@ public class AmadeusBookingHelper {
                 String[] names = name1.split("\\s");
                 String fstName = "";
                 for(int i=0;i<names.length-1;i++){
-                    fstName = fstName+" "+names[i];
+                        fstName = fstName+" "+names[i];
                 }
                 String name = fstName.trim();
                 String ticketText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
@@ -212,7 +212,13 @@ public class AmadeusBookingHelper {
                     if (name.equalsIgnoreCase("FNU")) {
                         name = names[len];
                     } else {
-                        name = name + names[len];
+                        String salutatio="";
+                        if("Ms".equalsIgnoreCase(names[len])){
+                            salutatio="Mrs";
+                        } else {
+                            salutatio = names[len];
+                        }
+                        name = name + salutatio;
                     }
                 }
                 lastName = lastName.replaceAll("\\s+", "");
@@ -234,6 +240,9 @@ public class AmadeusBookingHelper {
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
                     }*/
+                    if("Ms".equalsIgnoreCase(salutation)){
+                        salutation="Mrs";
+                    }
                     contactName = contactName +salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
@@ -392,7 +401,13 @@ public class AmadeusBookingHelper {
                     if (name.equalsIgnoreCase("FNU")) {
                         name = names[len];
                     } else {
-                        name = name + names[len];
+                        String salutatio="";
+                        if("Ms".equalsIgnoreCase(names[len])){
+                            salutatio="Mrs";
+                        } else {
+                            salutatio = names[len];
+                        }
+                        name = name + salutatio;
                     }
                 }
                 lastName = lastName.replaceAll("\\s+", "");
@@ -414,6 +429,9 @@ public class AmadeusBookingHelper {
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
                     }*/
+                    if("Ms".equalsIgnoreCase(salutation)){
+                        salutation="Mrs";
+                    }
                     contactName = contactName +salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
@@ -552,7 +570,13 @@ public class AmadeusBookingHelper {
                     if (name.equalsIgnoreCase("FNU")) {
                         name = names[len];
                     } else {
-                        name = name + names[len];
+                        String salutatio="";
+                        if("Ms".equalsIgnoreCase(names[len])){
+                            salutatio="Mrs";
+                        } else {
+                            salutatio = names[len];
+                        }
+                        name = name + salutatio;
                     }
                 }
                 lastName = lastName.replaceAll("\\s+", "");
@@ -573,6 +597,9 @@ public class AmadeusBookingHelper {
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
                     }*/
+                    if("Ms".equalsIgnoreCase(salutation)){
+                        salutation = "Mrs";
+                    }
                     contactName = contactName + salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
