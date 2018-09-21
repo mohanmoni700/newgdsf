@@ -68,6 +68,16 @@ public class AmadeusIssuanceServiceImpl {
             serviceHandler.logIn();
             PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
 
+            List<String> segmentStatusList =  segmentStatus(gdsPNRReply);
+            if(segmentStatusList.contains("HX")){
+                issuanceResponse.setErrorCode("INFORMATIVE_SEGMENT");
+                issuanceResponse.setSuccess(true);
+                ErrorMessage errorMessage = ErrorMessageHelper
+                        .createErrorMessage("error",
+                                ErrorMessage.ErrorType.ERROR, "Amadeus");
+                issuanceResponse.setErrorMessage(errorMessage);
+                return issuanceResponse;
+            }
             for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
                 if ("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
                     logger.debug("Tickets are already issued cannot reprice the pnr: " + issuanceRequest.getGdsPNR());
@@ -243,6 +253,20 @@ public class AmadeusIssuanceServiceImpl {
             e.printStackTrace();
         }
         return issuanceResponse;
+    }
+
+    private List<String> segmentStatus(PNRReply pnrReply){
+        List<String> segmentStatusList = new ArrayList<>();
+        List<PNRReply.OriginDestinationDetails> originDestinationDetailsList = pnrReply.getOriginDestinationDetails();
+        for(PNRReply.OriginDestinationDetails originDestinationDetails: originDestinationDetailsList){
+            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
+                for(String statusList : itineraryInfo.getRelatedProduct().getStatus()){
+                    segmentStatusList.add(statusList);
+                }
+            }
+        }
+
+        return segmentStatusList;
     }
 
     private boolean repricingErrors(IssuanceResponse issuanceResponse, FarePricePNRWithBookingClassReply pricePNRReply) {
