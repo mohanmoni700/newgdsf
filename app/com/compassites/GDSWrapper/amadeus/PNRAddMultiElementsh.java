@@ -8,6 +8,8 @@ import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
 import com.compassites.constants.AmadeusConstants;
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.Journey;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.*;
 import models.NationalityDao;
@@ -20,6 +22,7 @@ import utils.DateUtility;
 import utils.StringUtility;
 
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -33,6 +36,7 @@ public class PNRAddMultiElementsh {
         pnrActions.getOptionCode().add(new BigInteger("0"));
         element.setPnrActions(pnrActions);
 
+        addLiveEntry(element,travellerMasterInfo);
         //element.getTravellerInfo().add(addPassenger());
         //element.getTravellerInfo().add(addChildPassenger());
         //element.getTravellerInfo().add(addInfantPassenger());
@@ -49,6 +53,79 @@ public class PNRAddMultiElementsh {
 
         element.setDataElementsMaster(dem);
         return element;
+    }
+
+    public void addLiveEntry(PNRAddMultiElements element,TravellerMasterInfo travellerMasterInfo){
+        List<Journey> journeyList = travellerMasterInfo.getItinerary().getJourneys(travellerMasterInfo.isSeamen());
+        List<AirSegmentInformation> airSegmentInformations = journeyList.get(journeyList.size()-1).getAirSegmentList();
+        BigInteger paxCount = BigInteger.valueOf(travellerMasterInfo.getTravellersList().size());
+        String fromLocation = journeyList.get(0).getAirSegmentList().get(0).getFromLocation();
+        String toLocation = journeyList.get(journeyList.size()-1).getAirSegmentList().get(airSegmentInformations.size()-1).getToLocation();
+
+        Date bookingDate = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(bookingDate);
+        cal.add(Calendar.MONTH, 11);
+        Integer month = cal.get(Calendar.MONTH)+1;
+        Integer year = cal.get(Calendar.YEAR);
+        String bookingMonth = String.format("%02d",month);
+        String depDate = "01"+bookingMonth+year.toString().substring(2,4);
+
+        List<PNRAddMultiElements.OriginDestinationDetails> originDestinationDetailsList = new ArrayList<>();
+        PNRAddMultiElements.OriginDestinationDetails originDestinationDetails = new PNRAddMultiElements.OriginDestinationDetails();
+        OriginAndDestinationDetailsTypeI originAndDestinationDetailsTypeI = new OriginAndDestinationDetailsTypeI();
+        originAndDestinationDetailsTypeI.setOrigin(fromLocation);
+        originAndDestinationDetailsTypeI.setDestination(toLocation);
+        originDestinationDetails.setOriginDestination(originAndDestinationDetailsTypeI);
+
+        List<PNRAddMultiElements.OriginDestinationDetails.ItineraryInfo> itineraryInfos = new ArrayList<>();
+        PNRAddMultiElements.OriginDestinationDetails.ItineraryInfo itineraryInfo = new PNRAddMultiElements.OriginDestinationDetails.ItineraryInfo();
+        ElementManagementSegmentType elementManagementItinerary = new ElementManagementSegmentType();
+        ReferencingDetailsType referencingDetailsType = new ReferencingDetailsType();
+        referencingDetailsType.setNumber("1");
+        referencingDetailsType.setQualifier("OT");
+        elementManagementItinerary.setSegmentName("RU");
+        elementManagementItinerary.setReference(referencingDetailsType);
+        itineraryInfo.setElementManagementItinerary(elementManagementItinerary);
+
+        PNRAddMultiElements.OriginDestinationDetails.ItineraryInfo.AirAuxItinerary airAuxItinerary = new PNRAddMultiElements.OriginDestinationDetails.ItineraryInfo.AirAuxItinerary();
+        TravelProductInformationType travelProduct = new TravelProductInformationType();
+        ProductDateTimeTypeI product = new ProductDateTimeTypeI();
+        product.setDepDate(depDate);
+        travelProduct.setProduct(product);
+
+        LocationTypeI boardpointDetail = new LocationTypeI();
+        boardpointDetail.setCityCode(fromLocation);
+        travelProduct.setBoardpointDetail(boardpointDetail);
+
+        CompanyIdentificationTypeI company = new CompanyIdentificationTypeI();
+        company.setIdentification("1A");
+        travelProduct.setCompany(company);
+
+        airAuxItinerary.setTravelProduct(travelProduct);
+
+        MessageActionDetailsTypeI messageActionDetailsTypeI = new MessageActionDetailsTypeI();
+        MessageFunctionBusinessDetailsTypeI business = new MessageFunctionBusinessDetailsTypeI();
+        business.setFunction("32");
+        messageActionDetailsTypeI.setBusiness(business);
+        airAuxItinerary.setMessageAction(messageActionDetailsTypeI);
+
+        RelatedProductInformationTypeI relatedProductInformationTypeI = new RelatedProductInformationTypeI();
+        relatedProductInformationTypeI.setQuantity(paxCount);
+        relatedProductInformationTypeI.setStatus("HK");
+        airAuxItinerary.setRelatedProduct(relatedProductInformationTypeI);
+
+        LongFreeTextType freetextItinerary = new LongFreeTextType();
+        FreeTextQualificationType freetextDetail1 = new FreeTextQualificationType();
+        freetextDetail1.setSubjectQualifier("3");
+        freetextItinerary.setLongFreetext("THANK YOU FOR CHOOSING Flyhi TRAVELS");
+        airAuxItinerary.setFreetextItinerary(freetextItinerary);
+        itineraryInfo.setAirAuxItinerary(airAuxItinerary);
+        itineraryInfos.add(itineraryInfo);
+        originDestinationDetails.getItineraryInfo().addAll(itineraryInfos);
+        originDestinationDetailsList.add(originDestinationDetails);
+
+        element.getOriginDestinationDetails().addAll(originDestinationDetailsList);
     }
 
     public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo, List<String> segmentNumbers, Map<String,String> travellerMap) {
