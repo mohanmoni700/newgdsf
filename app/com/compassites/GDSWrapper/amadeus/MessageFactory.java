@@ -57,9 +57,11 @@ public class MessageFactory {
 		// passwordInfo
 		PasswordInfo passwordInfo = factory
 				.createSecurityAuthenticatePasswordInfo();
-		passwordInfo.setDataLength(new BigDecimal(Play.application().configuration().getString("amadeus.DATA_LENGTH")));
 		passwordInfo.setDataType(Play.application().configuration().getString("amadeus.DATA_TYPE"));
-		passwordInfo.setBinaryData(Play.application().configuration().getString("amadeus.BINARY_DATA"));
+		String binary = Play.application().configuration().getString("amadeus.BINARY_DATA");
+		passwordInfo.setBinaryData(binary);
+		passwordInfo.setDataLength(new BigDecimal(Play.application().configuration().getString("amadeus.DATA_LENGTH")));
+
 		authenticateRequest.getPasswordInfo().add(passwordInfo);
 
 		return authenticateRequest;

@@ -58,7 +58,7 @@ public class SearchParameters implements Serializable,Cloneable{
     private String transit;
     private String nationality;
 
-    private List<String> preferredAirlinesList;
+    private List<String> preferredAirlinesList = new ArrayList<>();
     public String getNationality() {
         return nationality;
     }
