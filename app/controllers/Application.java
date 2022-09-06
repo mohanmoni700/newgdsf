@@ -347,4 +347,8 @@ public class Application {
         return ok(Json.toJson(airMessageQueue));
     }
 
+
+    public Result home(){
+        return ok("GDS Service running.....");
+    }
 }
