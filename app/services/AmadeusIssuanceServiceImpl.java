@@ -418,10 +418,11 @@ public class AmadeusIssuanceServiceImpl {
                 issuanceResponse = ignoreAndRetrievePNR(serviceHandler, issuanceRequest, issuanceResponse , pnrResponseReceivedAt);
             }
         } else {
-            logger.debug(pnr + " Amadeus docIssuance  failed status returned " + issuanceIssueTicketReply.getProcessingStatus().getStatusCode());
             String errorDescription = issuanceIssueTicketReply
                     .getErrorGroup().getErrorWarningDescription()
                     .getFreeText();
+            logger.debug(pnr + " Amadeus docIssuance  failed status returned " + issuanceIssueTicketReply.getProcessingStatus().getStatusCode() + " : " + errorDescription);
+
             if (errorDescription.contains(AmadeusConstants.CAPPING_LIMIT_STRING)) {
                 logger.debug("Send Email to operator saying capping limit is reached");
                 issuanceResponse.setCappingLimitReached(true);
