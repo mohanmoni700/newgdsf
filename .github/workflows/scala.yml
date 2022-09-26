@@ -34,4 +34,4 @@ jobs:
       with:
         source: "target/universal/gdsservice-1.0-SNAPSHOT.zip"
         target: "deployments"
-        strip_components: 2
+        strip_components: 1
