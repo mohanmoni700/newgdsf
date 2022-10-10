@@ -34,4 +34,16 @@ jobs:
       with:
         source: "target/universal/gdsservice-1.0-SNAPSHOT.zip"
         target: "deployments"
-        strip_components: 1
+        strip_components: 2
+    - name: Install Dependencies
+      uses: appleboy/ssh-action@master
+      with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script_stop: true
+          script: |
+            sudo systemctl stop gdsapp.service
+            ~/deployments/scripts/gdsdeploy.sh
+            ls -al
+            sudo systemctl start gdsapp.service
