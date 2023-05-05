@@ -23,27 +23,96 @@ import static com.avaje.ebean.Expr.like;
 public class Airline {
 	@Id
 	private long id;
-	
-	@Column(name = "airline_name")
-	private String airlineName;
-	
-	@Column(name = "iata_code")
-	private String iataCode;
-	
+
+	@Column(name = "instagram")
+	private String instagram;
+
+	@Column(name = "linkedin")
+	private String linkedin;
+
+	@Column(name = "is_passenger")
+	private Long isPassenger;
+
+	@Column(name = "twitter")
+	private String twitter;
+
+	@Column(name = "iosa_registered")
+	private Long iosaRegistered;
+
 	@Column(name = "three_letter_code")
 	private String threeLetterCode;
-	
+
+	@Column(name = "airline_name", unique =true )
+	private String airlineName;
+
+	@Column(name = "iata_code" )
+	private String iataCode;
+
+	@Column(name = "accidents_last_5y")
+	private Long accidentsLast5y;
+
+	@Column(name = "total_aircrafts")
+	private Long totalAircrafts;
+
+	@Column(name = "callsign")
+	private String callsign;
+
+	@Column(name = "is_scheduled")
+	private Long isScheduled;
+
+	@Column(name = "slug")
+	private String slug;
+
+	@Column(name = "email")
+	private String email;
+
+	@Column(name = "is_cargo")
+	private Long isCargo;
+
+	@Column(name = "website")
+	private String website;
+
+	@Column(name = "average_fleet_age")
+	private Long averageFleetAge;
+
+	@Column(name = "kind")
+	private String kind;
+
+	@Column(name = "facebook")
+	private String facebook;
+
+	@Column(name = "icao_code")
+	private String icaoCode;
+
+	@Column(name = "country_code")
+	private String countryCode;
+
+	@Column(name = "crashes_last_5y")
+	private Long crashesLast5y;
+
+	@Column(name = "phone")
+	private String phone;
+
+	@Column(name = "iata_prefix")
+	private Long iataPrefix;
+
+	@Column(name = "is_international")
+	private Long isInternational;
+
+	@Column(name = "updated")
+	private String updated;
+
 	@Column(name = "seamen_commission")
 	private String seamenCommission;
-	
+
 	@Column(name = "non_seamen_commission")
 	private String nonSeamenCommission;
-	
+
 	@Column(name = "commission_basis")
 	private String commissionBasis;
 
-    @Column(name = "logo_url")
-    private String logoUrl;
+	@Column(name = "logo_url")
+	private String logoUrl;
 
 	@Lob
 	@Column(name = "airline_logo")
@@ -140,7 +209,191 @@ public class Airline {
         this.logoUrl = logoUrl;
     }
 
-    public static List<SqlRow> findCommissionbasicList()
+	public String getInstagram() {
+		return instagram;
+	}
+
+	public void setInstagram(String instagram) {
+		this.instagram = instagram;
+	}
+
+	public String getLinkedin() {
+		return linkedin;
+	}
+
+	public void setLinkedin(String linkedin) {
+		this.linkedin = linkedin;
+	}
+
+	public Long getIsPassenger() {
+		return isPassenger;
+	}
+
+	public void setIsPassenger(Long isPassenger) {
+		this.isPassenger = isPassenger;
+	}
+
+	public String getTwitter() {
+		return twitter;
+	}
+
+	public void setTwitter(String twitter) {
+		this.twitter = twitter;
+	}
+
+	public Long getIosaRegistered() {
+		return iosaRegistered;
+	}
+
+	public void setIosaRegistered(Long iosaRegistered) {
+		this.iosaRegistered = iosaRegistered;
+	}
+
+	public Long getAccidentsLast5y() {
+		return accidentsLast5y;
+	}
+
+	public void setAccidentsLast5y(Long accidentsLast5y) {
+		this.accidentsLast5y = accidentsLast5y;
+	}
+
+	public Long getTotalAircrafts() {
+		return totalAircrafts;
+	}
+
+	public void setTotalAircrafts(Long totalAircrafts) {
+		this.totalAircrafts = totalAircrafts;
+	}
+
+	public String getCallsign() {
+		return callsign;
+	}
+
+	public void setCallsign(String callsign) {
+		this.callsign = callsign;
+	}
+
+	public Long getIsScheduled() {
+		return isScheduled;
+	}
+
+	public void setIsScheduled(Long isScheduled) {
+		this.isScheduled = isScheduled;
+	}
+
+	public String getSlug() {
+		return slug;
+	}
+
+	public void setSlug(String slug) {
+		this.slug = slug;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public Long getIsCargo() {
+		return isCargo;
+	}
+
+	public void setIsCargo(Long isCargo) {
+		this.isCargo = isCargo;
+	}
+
+	public String getWebsite() {
+		return website;
+	}
+
+	public void setWebsite(String website) {
+		this.website = website;
+	}
+
+	public Long getAverageFleetAge() {
+		return averageFleetAge;
+	}
+
+	public void setAverageFleetAge(Long averageFleetAge) {
+		this.averageFleetAge = averageFleetAge;
+	}
+
+	public String getKind() {
+		return kind;
+	}
+
+	public void setKind(String kind) {
+		this.kind = kind;
+	}
+
+	public String getFacebook() {
+		return facebook;
+	}
+
+	public void setFacebook(String facebook) {
+		this.facebook = facebook;
+	}
+
+	public String getIcaoCode() {
+		return icaoCode;
+	}
+
+	public void setIcaoCode(String icaoCode) {
+		this.icaoCode = icaoCode;
+	}
+
+	public String getCountryCode() {
+		return countryCode;
+	}
+
+	public void setCountryCode(String countryCode) {
+		this.countryCode = countryCode;
+	}
+
+	public Long getCrashesLast5y() {
+		return crashesLast5y;
+	}
+
+	public void setCrashesLast5y(Long crashesLast5y) {
+		this.crashesLast5y = crashesLast5y;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public Long getIataPrefix() {
+		return iataPrefix;
+	}
+
+	public void setIataPrefix(Long iataPrefix) {
+		this.iataPrefix = iataPrefix;
+	}
+
+	public Long getIsInternational() {
+		return isInternational;
+	}
+
+	public void setIsInternational(Long isInternational) {
+		this.isInternational = isInternational;
+	}
+
+	public String getUpdated() {
+		return updated;
+	}
+
+	public void setUpdated(String updated) {
+		this.updated = updated;
+	}
+
+	public static List<SqlRow> findCommissionbasicList()
 	{
 		String sqlQuery = "SELECT distinct commission_basis FROM airline WHERE  commission_basis != '' ";
 
