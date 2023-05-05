@@ -22,44 +22,124 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "id")
 	@Id
 	private Integer id;
-	// @Column(name = "ident")
-	// private String ident;
+
+	/*@Column(name = "ident")
+	private String ident;*/
+
 	@Column(name = "type")
 	private String type;
+
 	@Column(name = "airport_name")
 	private String airportName;
+
 	@Column(name = "latitude")
 	private String latitude;
+
 	@Column(name = "longitude")
 	private String longitude;
-	// @Column(name = "elevation_ft")
-	// private String elevation_ft;
-	// @Column(name = "continent")
-	// private String continent;
+
+	/*@Column(name = "elevation_ft")
+	private String elevation_ft;*/
+
+	/*@Column(name = "continent")
+	private String continent;*/
 
 	@Column(name = "iso_country")
 	private String iso_country;
-	// @Column(name = "iso_region")
-	// private String iso_region;
-	// @Column(name = "scheduled_service")
-	// private String scheduled_service;
+
+/*	@Column(name = "iso_region")
+	private String iso_region;
+
+	@Column(name = "scheduled_service")
+	private String scheduled_service;*/
+
 	@Column(name = "city_name")
 	private String cityName;
+
 	@Column(name = "iata_code")
 	private String iata_code;
-	/*
-	 * @Column(name = "gps_code") private String gps_code;
-	 */
+
+	/*@Column(name = "gps_code")
+	private String gps_code;*/
+
 	@Column(name = "local_code")
 	private String local_code;
+
 	@Column(name = "time_zone")
 	private String time_zone;
+
 	@Column(name = "dst")
 	private String dst;
+
 	@Column(name = "country")
 	private String country;
-	@Column(name = "gmtOffset")
+
+	@Column(name = "gmt_offset")
 	private String gmtOffset;
+
+
+	@Column(name = "alt")
+	private Long alt;
+
+	@Column(name = "alternatenames")
+	private String alternateNames;
+
+	@Column(name = "connections")
+	private Long connections;
+
+	@Column(name = "departures")
+	private Long departures;
+
+	@Column(name = "facebook")
+	private String facebook;
+
+	@Column(name = "icao_code")
+	private String icaoCode;
+
+	@Column(name = "instagram")
+	private String instagram;
+
+	@Column(name = "is_international")
+	private Long isInternational;
+
+	@Column(name = "is_major")
+	private boolean isMajor;
+
+	@Column(name = "phone")
+	private String phone;
+
+	@Column(name = "phone_formatted")
+	private String phoneFormatted;
+
+	@Column(name = "popularity")
+	private Long popularity;
+
+	@Column(name = "postal_code")
+	private String postalCode;
+
+	@Column(name = "runways")
+	private Long runways;
+
+	@Column(name = "slug")
+	private String slug;
+
+	@Column(name = "state")
+	private String state;
+
+	@Column(name = "time_now")
+	private String timeNow;
+
+	@Column(name = "twitter")
+	private String twitter;
+
+	@Column(name = "un_locode")
+	private String unLocode;
+
+	@Column(name = "weather_zone")
+	private String weatherZone;
+
+	@Column(name = "website")
+	private String website;
 
 	@Transient
 	private String distance;
@@ -196,7 +276,183 @@ public class Airport extends Model implements Serializable {
         this.cityCode = cityCode;
     }
 
-    private static Airport getAiport(String iataCode) {
+	public Long getAlt() {
+		return alt;
+	}
+
+	public void setAlt(Long alt) {
+		this.alt = alt;
+	}
+
+	public String getAlternateNames() {
+		return alternateNames;
+	}
+
+	public void setAlternateNames(String alternateNames) {
+		this.alternateNames = alternateNames;
+	}
+
+	public Long getConnections() {
+		return connections;
+	}
+
+	public void setConnections(Long connections) {
+		this.connections = connections;
+	}
+
+	public Long getDepartures() {
+		return departures;
+	}
+
+	public void setDepartures(Long departures) {
+		this.departures = departures;
+	}
+
+	public String getFacebook() {
+		return facebook;
+	}
+
+	public void setFacebook(String facebook) {
+		this.facebook = facebook;
+	}
+
+	public String getIcaoCode() {
+		return icaoCode;
+	}
+
+	public void setIcaoCode(String icaoCode) {
+		this.icaoCode = icaoCode;
+	}
+
+	public String getInstagram() {
+		return instagram;
+	}
+
+	public void setInstagram(String instagram) {
+		this.instagram = instagram;
+	}
+
+	public Long getIsInternational() {
+		return isInternational;
+	}
+
+	public void setIsInternational(Long isInternational) {
+		this.isInternational = isInternational;
+	}
+
+	public boolean isMajor() {
+		return isMajor;
+	}
+
+	public void setMajor(boolean major) {
+		isMajor = major;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getPhoneFormatted() {
+		return phoneFormatted;
+	}
+
+	public void setPhoneFormatted(String phoneFormatted) {
+		this.phoneFormatted = phoneFormatted;
+	}
+
+	public Long getPopularity() {
+		return popularity;
+	}
+
+	public void setPopularity(Long popularity) {
+		this.popularity = popularity;
+	}
+
+	public String getPostalCode() {
+		return postalCode;
+	}
+
+	public void setPostalCode(String postalCode) {
+		this.postalCode = postalCode;
+	}
+
+	public Long getRunways() {
+		return runways;
+	}
+
+	public void setRunways(Long runways) {
+		this.runways = runways;
+	}
+
+	public String getSlug() {
+		return slug;
+	}
+
+	public void setSlug(String slug) {
+		this.slug = slug;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public String getTimeNow() {
+		return timeNow;
+	}
+
+	public void setTimeNow(String timeNow) {
+		this.timeNow = timeNow;
+	}
+
+	public String getTwitter() {
+		return twitter;
+	}
+
+	public void setTwitter(String twitter) {
+		this.twitter = twitter;
+	}
+
+	public String getUnLocode() {
+		return unLocode;
+	}
+
+	public void setUnLocode(String unLocode) {
+		this.unLocode = unLocode;
+	}
+
+	public String getWeatherZone() {
+		return weatherZone;
+	}
+
+	public void setWeatherZone(String weatherZone) {
+		this.weatherZone = weatherZone;
+	}
+
+	public String getWebsite() {
+		return website;
+	}
+
+	public void setWebsite(String website) {
+		this.website = website;
+	}
+
+	public static Finder<Integer, Airport> getFind() {
+		return find;
+	}
+
+	public static void setFind(Finder<Integer, Airport> find) {
+		Airport.find = find;
+	}
+
+	private static Airport getAiport(String iataCode) {
 		Jedis j = new Jedis("localhost", 6379);
 		j.connect();
 		String airportJson = j.get(iataCode);
