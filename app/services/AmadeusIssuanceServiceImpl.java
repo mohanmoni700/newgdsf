@@ -102,7 +102,7 @@ public class AmadeusIssuanceServiceImpl {
 
             String carrierCode = "";
 
-            carrierCode = issuanceRequest.getFlightItinerary().getJourneys(isSeamen).get(0).getAirSegmentList().get(0).getValidatingCarrierCode();
+            //carrierCode = issuanceRequest.getFlightItinerary().getJourneys(isSeamen).get(0).getAirSegmentList().get(0).getValidatingCarrierCode();
 
             boolean isDomestic = AmadeusHelper.checkAirportCountry("India", issuanceRequest.getFlightItinerary().getJourneys(isSeamen));
             FarePricePNRWithBookingClassReply pricePNRReply = new FarePricePNRWithBookingClassReply();
@@ -135,6 +135,9 @@ public class AmadeusIssuanceServiceImpl {
                         airSegment.add(segmentsInfo.get(segmentKey));
                     }
                     carrierCode = airSegment.get(airSegment.size()-1).getValidatingCarrierCode();
+                    if(carrierCode == null) {
+                        carrierCode = airSegment.get(airSegment.size()-1).getOperatingCarrierCode();
+                    }
 
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
@@ -176,6 +179,9 @@ public class AmadeusIssuanceServiceImpl {
 //is SegmentWisePricing ==false
             } else {
                 String validatingcarrierCode = travellerMasterInfo.getItinerary().getJourneys(isSeamen).get(0).getAirSegmentList().get(0).getValidatingCarrierCode();
+                if (validatingcarrierCode == null) {
+                     validatingcarrierCode = issuanceRequest.getFlightItinerary().getJourneyList().get(0).getAirSegmentList().get(0).getOperatingCarrierCode();
+                }
                 pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply,
                         issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing);
 
