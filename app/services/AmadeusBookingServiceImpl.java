@@ -397,7 +397,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }else {
                 Thread.sleep(3000);
                 pnrReply = serviceHandler.ignoreAndRetrievePNR();
-                lastPNRAddMultiElements = new Date();
+                //lastPNRAddMultiElements = new Date();
                 readAirlinePNR(serviceHandler, pnrReply, lastPNRAddMultiElements, pnrResponse);
             }
         }
