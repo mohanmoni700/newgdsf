@@ -2,6 +2,7 @@ package com.compassites.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
@@ -16,6 +17,8 @@ import java.util.List;
  * Time: 4:35 PM
  * To change this template use File | Settings | File Templates.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+
 public class SearchParameters implements Serializable,Cloneable{
     @Property
     private List<SearchJourney> journeyList;

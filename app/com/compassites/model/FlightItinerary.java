@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  * Time: 4:30 PM
  * To change this template use File | Settings | File Templates.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FlightItinerary implements Serializable{
 
     public FlightItinerary() {
