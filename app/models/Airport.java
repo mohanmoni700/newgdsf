@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.redis.core.RedisTemplate;
 import play.db.ebean.Model;
 import play.libs.Json;
@@ -14,6 +15,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "airport")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Airport extends Model implements Serializable {
 	public Airport() {
 
@@ -81,7 +83,7 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "alt")
 	private Long alt;
 
-	@Column(name = "alternatenames")
+	/*@Column(name = "alternatenames")
 	private String alternateNames;
 
 	@Column(name = "connections")
@@ -91,13 +93,13 @@ public class Airport extends Model implements Serializable {
 	private Long departures;
 
 	@Column(name = "facebook")
-	private String facebook;
+	private String facebook;*/
 
 	@Column(name = "icao_code")
 	private String icaoCode;
 
-	@Column(name = "instagram")
-	private String instagram;
+	/*@Column(name = "instagram")
+	private String instagram;*/
 
 	@Column(name = "is_international")
 	private Long isInternational;
@@ -114,14 +116,14 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "popularity")
 	private Long popularity;
 
-	@Column(name = "postal_code")
+	/*@Column(name = "postal_code")
 	private String postalCode;
 
 	@Column(name = "runways")
 	private Long runways;
 
 	@Column(name = "slug")
-	private String slug;
+	private String slug;*/
 
 	@Column(name = "state")
 	private String state;
@@ -129,7 +131,7 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "time_now")
 	private String timeNow;
 
-	@Column(name = "twitter")
+	/*@Column(name = "twitter")
 	private String twitter;
 
 	@Column(name = "un_locode")
@@ -139,7 +141,7 @@ public class Airport extends Model implements Serializable {
 	private String weatherZone;
 
 	@Column(name = "website")
-	private String website;
+	private String website;*/
 
 	@Transient
 	private String distance;
@@ -284,7 +286,7 @@ public class Airport extends Model implements Serializable {
 		this.alt = alt;
 	}
 
-	public String getAlternateNames() {
+	/*public String getAlternateNames() {
 		return alternateNames;
 	}
 
@@ -314,7 +316,7 @@ public class Airport extends Model implements Serializable {
 
 	public void setFacebook(String facebook) {
 		this.facebook = facebook;
-	}
+	}*/
 
 	public String getIcaoCode() {
 		return icaoCode;
@@ -324,13 +326,13 @@ public class Airport extends Model implements Serializable {
 		this.icaoCode = icaoCode;
 	}
 
-	public String getInstagram() {
+	/*public String getInstagram() {
 		return instagram;
 	}
 
 	public void setInstagram(String instagram) {
 		this.instagram = instagram;
-	}
+	}*/
 
 	public Long getIsInternational() {
 		return isInternational;
@@ -372,7 +374,7 @@ public class Airport extends Model implements Serializable {
 		this.popularity = popularity;
 	}
 
-	public String getPostalCode() {
+	/*public String getPostalCode() {
 		return postalCode;
 	}
 
@@ -394,7 +396,7 @@ public class Airport extends Model implements Serializable {
 
 	public void setSlug(String slug) {
 		this.slug = slug;
-	}
+	}*/
 
 	public String getState() {
 		return state;
@@ -412,7 +414,7 @@ public class Airport extends Model implements Serializable {
 		this.timeNow = timeNow;
 	}
 
-	public String getTwitter() {
+	/*public String getTwitter() {
 		return twitter;
 	}
 
@@ -442,7 +444,7 @@ public class Airport extends Model implements Serializable {
 
 	public void setWebsite(String website) {
 		this.website = website;
-	}
+	}*/
 
 	public static Finder<Integer, Airport> getFind() {
 		return find;
