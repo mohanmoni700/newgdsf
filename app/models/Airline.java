@@ -4,6 +4,7 @@ import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 import com.compassites.constants.CacheConstants;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.redis.core.RedisTemplate;
 import play.db.ebean.Model.Finder;
 import play.libs.Json;
@@ -20,21 +21,22 @@ import static com.avaje.ebean.Expr.like;
  */
 @Entity
 @Table(name = "airline")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Airline {
 	@Id
 	private long id;
 
-	@Column(name = "instagram")
+	/*@Column(name = "instagram")
 	private String instagram;
 
 	@Column(name = "linkedin")
-	private String linkedin;
+	private String linkedin;*/
 
 	@Column(name = "is_passenger")
 	private Long isPassenger;
 
-	@Column(name = "twitter")
-	private String twitter;
+	/*@Column(name = "twitter")
+	private String twitter;*/
 
 	@Column(name = "iosa_registered")
 	private Long iosaRegistered;
@@ -48,23 +50,23 @@ public class Airline {
 	@Column(name = "iata_code" )
 	private String iataCode;
 
-	@Column(name = "accidents_last_5y")
+	/*@Column(name = "accidents_last_5y")
 	private Long accidentsLast5y;
 
 	@Column(name = "total_aircrafts")
 	private Long totalAircrafts;
 
 	@Column(name = "callsign")
-	private String callsign;
+	private String callsign;*/
 
 	@Column(name = "is_scheduled")
 	private Long isScheduled;
 
-	@Column(name = "slug")
+	/*@Column(name = "slug")
 	private String slug;
 
 	@Column(name = "email")
-	private String email;
+	private String email;*/
 
 	@Column(name = "is_cargo")
 	private Long isCargo;
@@ -78,8 +80,8 @@ public class Airline {
 	@Column(name = "kind")
 	private String kind;
 
-	@Column(name = "facebook")
-	private String facebook;
+	/*@Column(name = "facebook")
+	private String facebook;*/
 
 	@Column(name = "icao_code")
 	private String icaoCode;
@@ -87,8 +89,8 @@ public class Airline {
 	@Column(name = "country_code")
 	private String countryCode;
 
-	@Column(name = "crashes_last_5y")
-	private Long crashesLast5y;
+	/*@Column(name = "crashes_last_5y")
+	private Long crashesLast5y;*/
 
 	@Column(name = "phone")
 	private String phone;
@@ -99,7 +101,7 @@ public class Airline {
 	@Column(name = "is_international")
 	private Long isInternational;
 
-	@Column(name = "updated")
+	/*@Column(name = "updated")
 	private String updated;
 
 	@Column(name = "seamen_commission")
@@ -112,7 +114,7 @@ public class Airline {
 	private String commissionBasis;
 
 	@Column(name = "logo_url")
-	private String logoUrl;
+	private String logoUrl;*/
 
 	@Lob
 	@Column(name = "airline_logo")
@@ -153,7 +155,7 @@ public class Airline {
 		this.threeLetterCode = threeLetterCode;
 	}
 
-	public String getSeamenCommission() {
+	/*public String getSeamenCommission() {
 		return seamenCommission;
 	}
 
@@ -176,7 +178,7 @@ public class Airline {
 
 	public void setCommissionBasis(String commissionBasis) {
 		this.commissionBasis = commissionBasis;
-	}
+	}*/
 
 	
 	public byte[] getAirlineLogo() {
@@ -201,7 +203,7 @@ public class Airline {
 		return find.byId(id);
 	}
 
-    public String getLogoUrl() {
+   /* public String getLogoUrl() {
         return logoUrl;
     }
 
@@ -223,7 +225,7 @@ public class Airline {
 
 	public void setLinkedin(String linkedin) {
 		this.linkedin = linkedin;
-	}
+	}*/
 
 	public Long getIsPassenger() {
 		return isPassenger;
@@ -233,13 +235,13 @@ public class Airline {
 		this.isPassenger = isPassenger;
 	}
 
-	public String getTwitter() {
+	/*public String getTwitter() {
 		return twitter;
 	}
 
 	public void setTwitter(String twitter) {
 		this.twitter = twitter;
-	}
+	}*/
 
 	public Long getIosaRegistered() {
 		return iosaRegistered;
@@ -249,7 +251,7 @@ public class Airline {
 		this.iosaRegistered = iosaRegistered;
 	}
 
-	public Long getAccidentsLast5y() {
+	/*public Long getAccidentsLast5y() {
 		return accidentsLast5y;
 	}
 
@@ -271,7 +273,7 @@ public class Airline {
 
 	public void setCallsign(String callsign) {
 		this.callsign = callsign;
-	}
+	}*/
 
 	public Long getIsScheduled() {
 		return isScheduled;
@@ -281,7 +283,7 @@ public class Airline {
 		this.isScheduled = isScheduled;
 	}
 
-	public String getSlug() {
+	/*public String getSlug() {
 		return slug;
 	}
 
@@ -295,7 +297,7 @@ public class Airline {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
+	}*/
 
 	public Long getIsCargo() {
 		return isCargo;
@@ -329,13 +331,13 @@ public class Airline {
 		this.kind = kind;
 	}
 
-	public String getFacebook() {
+	/*public String getFacebook() {
 		return facebook;
 	}
 
 	public void setFacebook(String facebook) {
 		this.facebook = facebook;
-	}
+	}*/
 
 	public String getIcaoCode() {
 		return icaoCode;
@@ -353,13 +355,13 @@ public class Airline {
 		this.countryCode = countryCode;
 	}
 
-	public Long getCrashesLast5y() {
+	/*public Long getCrashesLast5y() {
 		return crashesLast5y;
 	}
 
 	public void setCrashesLast5y(Long crashesLast5y) {
 		this.crashesLast5y = crashesLast5y;
-	}
+	}*/
 
 	public String getPhone() {
 		return phone;
@@ -385,13 +387,13 @@ public class Airline {
 		this.isInternational = isInternational;
 	}
 
-	public String getUpdated() {
+	/*public String getUpdated() {
 		return updated;
 	}
 
 	public void setUpdated(String updated) {
 		this.updated = updated;
-	}
+	}*/
 
 	public static List<SqlRow> findCommissionbasicList()
 	{
