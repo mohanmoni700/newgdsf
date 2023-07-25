@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import models.Airline;
 import models.Airport;
 import org.pojomatic.Pojomatic;
@@ -17,6 +18,7 @@ import java.util.List;
  * Time: 4:34 PM
  * To change this template use File | Settings | File Templates.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AirSegmentInformation implements Serializable{
     
 	public static final long serialVersionUID = 42L;
