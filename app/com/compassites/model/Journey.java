@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * Created by Renu on 7/18/14.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Journey
 {
 

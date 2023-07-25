@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.redis.core.RedisTemplate;
 import play.db.ebean.Model;
@@ -16,6 +17,7 @@ import java.util.List;
 @Entity
 @Table(name = "airport")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Airport extends Model implements Serializable {
 	public Airport() {
 

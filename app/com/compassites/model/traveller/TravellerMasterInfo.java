@@ -4,6 +4,7 @@ import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.PassengerTypeCode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import utils.DateUtility;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Map;
 /**
  * Created by user on 06-08-2014.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TravellerMasterInfo {
 
     private List<Traveller> travellersList;
