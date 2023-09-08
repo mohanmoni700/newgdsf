@@ -110,7 +110,7 @@ public class ServiceHandler {
 
     public SessionReply logIn() {
         logger.debug("amadeus login called ....................");
-        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(new MessageFactory().buildAuthenticationRequest(), mSession.getSession());
+        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(MessageFactory.getInstance().getAuthenticationRequest(), mSession.getSession());
         SessionReply sessionReply=new SessionReply();
         sessionReply.setSecurityAuthenticateReply(securityAuthenticate);
         sessionReply.setSession(mSession.getSession().value);
@@ -119,7 +119,7 @@ public class ServiceHandler {
 
     public SessionHandler logIn(SessionHandler mSession) {
         logger.debug("amadeus login called....................");
-        SecurityAuthenticate securityAuthenticateReq = new MessageFactory().buildAuthenticationRequest();
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
         logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
         SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());

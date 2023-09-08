@@ -6,7 +6,7 @@ import javax.xml.ws.Holder;
 
 public class SessionHandler {
 
-	private Holder<Session> mSession;
+	private final Holder<Session> mSession;
 	
 	public SessionHandler() {
 		mSession = new Holder<Session>();
