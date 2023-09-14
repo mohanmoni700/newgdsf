@@ -4,6 +4,7 @@ import com.compassites.constants.CacheConstants;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,41 +52,44 @@ public class FlightSearchWrapper {
         ConcurrentHashMap<Integer,FlightItinerary> hashMap =  new ConcurrentHashMap<>();
         for (final FlightSearch flightSearch: flightSearchList) {
         	//if( !(searchParameters.getBookingType() == BookingType.SEAMEN && flightSearch.provider().equals("Mystifly")) ) {
-	            final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
-	
-	            try {
-	                logger.debug("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
-	                
-	                //Call provider if response is not already present;
-	                if (!checkOrSetStatus(providerStatusCacheKey)) {
-	                    futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
-	                        public SearchResponse call() throws Exception {
-	                            SearchResponse response = flightSearch.search(searchParameters);
-	                            logger.debug("[" + redisKey + "]Response from provider:" + flightSearch.provider());
-	                            checkResponseAndSetStatus(response, providerStatusCacheKey);
-	                            return response;
-	                        }
-	                    }));
-	                } else {
-	                    String cachedResponse = (String) redisTemplate.opsForValue().get(redisKey);
-	                    JsonNode rs = null;
-	                    if (cachedResponse != null)
-	                        rs = Json.parse(cachedResponse);
-	                    SearchResponse chachedRespons = null;
-	                    if (rs != null){
-	                        SearchResponse chachedResponse = Json.fromJson(rs, SearchResponse.class);
-	                        for(FlightItinerary flightItinerary : chachedResponse.getAirSolution().getFlightItineraryList()){
-	                            hashMap.put(flightItinerary.hashCode(),flightItinerary);
-	                        }
-	                    }
-	                }
-	            } catch (Exception e) {
-	                checkResponseAndSetStatus(null, providerStatusCacheKey);
-	                logger.debug("["+redisKey+"]Response from provider:" +flightSearch.provider());
-	                e.printStackTrace();
-	            }
-        	//}
-        }
+	            //final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
+                 String providerStatusCacheKey = "";
+                    try {
+                        logger.debug("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
+                       for(FlightSearchOffice office: flightSearch.getOfficeList()) {
+                        //Call provider if response is not already present;
+                            providerStatusCacheKey = redisKey + flightSearch.provider() +":"+ office.getGetOfficeId()+ "status";
+                            if (!checkOrSetStatus(providerStatusCacheKey)) {
+                                String finalProviderStatusCacheKey = providerStatusCacheKey;
+                                futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
+                                    public SearchResponse call() throws Exception {
+                                        SearchResponse response = flightSearch.search(searchParameters, office);
+                                        logger.debug("[" + redisKey + "]Response from provider:" + flightSearch.provider());
+                                        checkResponseAndSetStatus(response, finalProviderStatusCacheKey);
+                                        return response;
+                                    }
+                            }));
+                            } else {
+                                String cachedResponse = (String) redisTemplate.opsForValue().get(redisKey);
+                                JsonNode rs = null;
+                                if (cachedResponse != null)
+                                    rs = Json.parse(cachedResponse);
+                                SearchResponse chachedRespons = null;
+                                if (rs != null){
+                                    SearchResponse chachedResponse = Json.fromJson(rs, SearchResponse.class);
+                                    for(FlightItinerary flightItinerary : chachedResponse.getAirSolution().getFlightItineraryList()){
+                                        hashMap.put(flightItinerary.hashCode(),flightItinerary);
+                                    }
+                                }
+                            }
+                       }
+                    } catch (Exception e) {
+                        checkResponseAndSetStatus(null, providerStatusCacheKey);
+                        logger.debug("["+redisKey+"]Response from provider:" +flightSearch.provider());
+                        e.printStackTrace();
+                    }
+                //}
+            }
 
         logger.debug("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
         int counter = 0;
@@ -339,7 +343,7 @@ public class FlightSearchWrapper {
             allFightItineraries.putAll(airSolution.getNonSeamenHashMap());
             return allFightItineraries;
         } else if(airSolution.getNonSeamenHashMap() == null || airSolution.getNonSeamenHashMap().isEmpty()){
-        	for (Entry<Integer, FlightItinerary> entry : airSolution.getSeamenHashMap().entrySet()) { 
+        	for (Entry<Integer, FlightItinerary> entry : airSolution.getSeamenHashMap().entrySet()) {
         		FlightItinerary itinerary = entry.getValue();
         		itinerary.setSeamanPricingInformation(itinerary.getPricingInformation());
         	}
@@ -349,7 +353,7 @@ public class FlightSearchWrapper {
         ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
         ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
         allFightItineraries.putAll(nonSeamenFareHash);
-        
+
         for (Integer hashKey : seamenFareHash.keySet()) {
             FlightItinerary seamenItinerary = null;
             if (allFightItineraries.containsKey(hashKey)) {
@@ -370,5 +374,5 @@ public class FlightSearchWrapper {
         }
         return allFightItineraries;
     }
-    
+
 }
