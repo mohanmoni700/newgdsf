@@ -96,16 +96,16 @@ public class AmadeusFlightSearch implements FlightSearch{
         try {
             amadeusSessionWrapper = amadeusSessionManager.getSession(office);
             ServiceHandler serviceHandler = new ServiceHandler();
-            SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
+            //SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
 
-            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(sessionHandler.getSession().value));
+            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
 //            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-                seamenReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
                 
                 searchParameters.setBookingType(BookingType.NON_MARINE);
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
                 
                 searchParameters.setBookingType(BookingType.SEAMEN);
@@ -115,7 +115,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                // amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
 //                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }

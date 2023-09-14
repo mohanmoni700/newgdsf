@@ -90,8 +90,8 @@ public class AmadeusSessionManager {
         logger.debug("creating new  session .........................................office_id :" + office.getGetOfficeId());
         try {
             ServiceHandler serviceHandler = new ServiceHandler();
-            SessionHandler sessionHandler = serviceHandler.logIn(office);
-            return createSessionWrapper(sessionHandler.getSession().value, office);
+            AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(office);
+            return createSessionWrapper(amadeusSessionWrapper, office);
         } catch (Exception e) {
             logger.error("Amadeus createSession error " ,e);
             e.printStackTrace();
@@ -157,12 +157,12 @@ public class AmadeusSessionManager {
         return amadeusSessionWrapper;
     }
 
-    public AmadeusSessionWrapper createSessionWrapper(Session session,FlightSearchOffice office){
-        AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
+    public AmadeusSessionWrapper createSessionWrapper(AmadeusSessionWrapper amadeusSessionWrapper,FlightSearchOffice office){
+        //AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
         amadeusSessionWrapper.setActiveContext(false);
         amadeusSessionWrapper.setQueryInProgress(false);
         amadeusSessionWrapper.setLastQueryDate(new Date());
-        amadeusSessionWrapper.setmSession(new Holder<>(session));
+        //amadeusSessionWrapper.setmSession(new Holder<>(session));
         amadeusSessionWrapper.setOfficeId(office.getGetOfficeId());
         if(office.isPartner()) {
             amadeusSessionWrapper.setPartnerName("Benji");
@@ -176,10 +176,10 @@ public class AmadeusSessionManager {
         amadeusSessionWrapper.update();
     }
 
-    public String storeActiveSession(Session session, String pnr){
+    public String storeActiveSession(AmadeusSessionWrapper amadeusSessionWrapper, String pnr){
 
         String uuid = UUID.randomUUID().toString();
-        AmadeusSessionWrapper amadeusSessionWrapper = createSessionWrapper(session);
+        //AmadeusSessionWrapper amadeusSessionWrapper = createSessionWrapper(session);
         amadeusSessionWrapper.setSessionUUID(uuid);
         amadeusSessionWrapper.setActiveContext(true);
         amadeusSessionWrapper.setGdsPNR(pnr);
@@ -190,6 +190,11 @@ public class AmadeusSessionManager {
     public Session getActiveSession(String sessionIdRef){
         AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findSessionByUUID(sessionIdRef);
         return amadeusSessionWrapper.getmSession().value;
+    }
+
+    public AmadeusSessionWrapper getActiveSessionByRef(String sessionIdRef){
+        AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findSessionByUUID(sessionIdRef);
+        return amadeusSessionWrapper;
     }
 
     public void removeActiveSession(Session session){

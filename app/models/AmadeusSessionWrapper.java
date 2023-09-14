@@ -187,4 +187,19 @@ public class AmadeusSessionWrapper extends Model{
         return amadeusSessions;
     }
 
+    /**************/
+    public void resetSession() {
+        mSession.value = new Session();
+        mSession.value.setSecurityToken("");
+        mSession.value.setSequenceNumber("");
+        mSession.value.setSessionId("");
+    }
+
+    public void incrementSequenceNumber() {
+        Integer sequenceNumber = Integer.parseInt(mSession.value
+                .getSequenceNumber());
+        sequenceNumber++;
+        mSession.value.setSequenceNumber(sequenceNumber.toString());
+    }
+
 }

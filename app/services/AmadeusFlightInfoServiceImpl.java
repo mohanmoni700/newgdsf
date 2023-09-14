@@ -62,10 +62,10 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
 			ServiceHandler serviceHandler = new ServiceHandler();
 //			serviceHandler.logIn();
-			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
+			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList);
+			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 			
 		} catch (ServerSOAPFaultException ssf) {
@@ -308,11 +308,11 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
 			ServiceHandler serviceHandler = new ServiceHandler();
 //			serviceHandler.logIn();
-			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
+			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			for(Journey journey : journeyList) {
 				for(AirSegmentInformation segment : journey.getAirSegmentList()) {
-					AirFlightInfoReply flightInfoReply = serviceHandler.getFlightInfo(segment);
+					AirFlightInfoReply flightInfoReply = serviceHandler.getFlightInfo(segment, amadeusSessionWrapper);
 					List<String> amenities = new ArrayList<>();
 					for(InteractiveFreeText freeText : flightInfoReply.getFlightScheduleDetails().getInteractiveFreeText()) {
 						amenities.add(freeText.getFreeText());
@@ -345,14 +345,14 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
         try {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
         	ServiceHandler serviceHandler = new ServiceHandler();
-			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
+			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
-							searchParams.getInfantCount(), paxFareDetailsList);
+							searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
             amadeusLogger.debug("FareInformativePricingWithoutPNRReply "+ new Date()+" ------->>"+ new XStream().toXML(pricingReply));
-			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules();
+			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
 			//System.out.println("fareCheckRulesReply ***"+fareCheckRulesReply);
             StringBuilder fareRule = new StringBuilder();
 			if(fareCheckRulesReply.getErrorInfo() != null){
@@ -366,7 +366,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 					for(FareCheckRulesReply.FlightDetails.TravellerGrp travellerGrp : flightDetails.getTravellerGrp()){
 						for(FareCheckRulesReply.FlightDetails.TravellerGrp.TravellerIdentRef.ReferenceDetails referenceDetails : travellerGrp.getTravellerIdentRef().getReferenceDetails()){
 							if("FC".equalsIgnoreCase(referenceDetails.getType())){
-								FareCheckRulesReply fcFareRulesReply = serviceHandler.getFareRulesForFCType(referenceDetails.getValue());
+								FareCheckRulesReply fcFareRulesReply = serviceHandler.getFareRulesForFCType(referenceDetails.getValue(), amadeusSessionWrapper);
 								fareRule.append(getFareRuleFromTariffInfo(fcFareRulesReply));
 							}
 						}
@@ -396,13 +396,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		try {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
 			ServiceHandler serviceHandler = new ServiceHandler();
-			serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
+			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
-					searchParams.getInfantCount(), paxFareDetailsList);
-			MiniRuleGetFromPricingReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing();
+					searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
+			MiniRuleGetFromPricingReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
 			if(miniRuleGetFromPricingReply.getErrorWarningGroup() != null){
 				if(miniRuleGetFromPricingReply.getErrorWarningGroup().getErrorWarningDescription()!=null){
 					amadeusLogger.debug("MiniRuleGetFromPricingReply Error"+miniRuleGetFromPricingReply.getErrorWarningGroup().getErrorWarningDescription());

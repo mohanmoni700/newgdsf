@@ -4,6 +4,7 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
+import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
@@ -32,12 +33,13 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
     public LowFareResponse getLowestFare(IssuanceRequest issuanceRequest) {
         LowFareResponse lowestFare = new LowFareResponse();
         ServiceHandler serviceHandler = null;
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
         boolean isSeamen = issuanceRequest.isSeamen();
         try {
 
             serviceHandler = new ServiceHandler();
-            serviceHandler.logIn();
-            PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR());
+            amadeusSessionWrapper = serviceHandler.logIn();
+            PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR(), amadeusSessionWrapper);
 
 
             String carrierCode = "";
@@ -75,7 +77,7 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
                     }
                     carrierCode = airSegment.get(0).getCarrierCode();
                     pricePNRReply = serviceHandler.getLowestFare(carrierCode, gdsPNRReply,
-                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing);
+                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, amadeusSessionWrapper);
                     List<FarePricePNRWithLowestFareReply.FareList> tempPricePNRReplyFareList = pricePNRReply.getFareList();
                     int numberOfTst = (issuanceRequest.isSeamen()) ? 1
                             : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
@@ -89,7 +91,7 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
 
             } else {
                 pricePNRReply = serviceHandler.getLowestFare(carrierCode,gdsPNRReply, isSeamen,
-                        isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing);
+                        isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper);
                 pricePNRReplyFareList = pricePNRReply.getFareList();
                 int numberOfTst = (issuanceRequest.isSeamen()) ? 1
                         : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
@@ -137,7 +139,7 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
             lowestFare.setGdsPnr(issuanceRequest.getGdsPNR());
             lowestFare.setAmount(newPrice);
             logger.debug("lowestFare: " + Json.toJson(lowestFare));
-            serviceHandler.logOut();
+            serviceHandler.logOut(amadeusSessionWrapper);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Error in getLowestFare", e);
