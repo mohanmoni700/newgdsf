@@ -45,10 +45,16 @@ public class AmadeusSessionWrapper extends Model{
     @Column(name = "gds_pnr")
     private String gdsPNR;
 
+    @Column(name = "office_id")
+    private String officeId;
+
+    @Column(name = "partner_name")
+    private String partnerName;
+
     @Transient
     private Holder<Session> mSession;
 
-    private static Finder<Integer, AmadeusSessionWrapper> find = new Finder<Integer, AmadeusSessionWrapper>(
+    private static final Finder<Integer, AmadeusSessionWrapper> find = new Finder<Integer, AmadeusSessionWrapper>(
             Integer.class, AmadeusSessionWrapper.class);
 
     public Holder<Session> getmSession() {
@@ -127,6 +133,13 @@ public class AmadeusSessionWrapper extends Model{
     public static List<AmadeusSessionWrapper> findAllInactiveContextList(){
 
         List<AmadeusSessionWrapper> amadeusSessions = find.where().eq("active_context", 0).eq("session_uuid",null).findList();
+
+        return amadeusSessions;
+    }
+
+    public static List<AmadeusSessionWrapper> findAllInactiveContextListByOfficeId(String officeId){
+
+        List<AmadeusSessionWrapper> amadeusSessions = find.where().eq("active_context", 0).eq("session_uuid",null).eq("office_id",officeId).findList();
 
         return amadeusSessions;
     }

@@ -3,8 +3,6 @@ package services;
 import com.amadeus.xml.fmptbr_14_2_1a.*;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails;
-import com.compassites.GDSWrapper.amadeus.SearchFlights;
-import com.compassites.GDSWrapper.amadeus.SearchServiceHandler;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
@@ -13,10 +11,10 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
-import com.thoughtworks.xstream.XStream;
 import models.Airline;
 import models.Airport;
 import models.AmadeusSessionWrapper;
+import models.FlightSearchOffice;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
@@ -26,10 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import play.Play;
 import play.libs.Json;
 import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
-import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -63,7 +61,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
 //    private ServiceHandler serviceHandler;
 
-    private AmadeusSessionManager amadeusSessionManager;
+    private final AmadeusSessionManager amadeusSessionManager;
 
 
     @Autowired
@@ -84,18 +82,19 @@ public class AmadeusFlightSearch implements FlightSearch{
     }
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
-    public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
+    public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         logger.debug("#####################AmadeusFlightSearch started  : ");
         logger.debug("#####################SearchParameters: \n"+Json.toJson(searchParameters));
         //SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         searchResponse.setProvider("Amadeus");
+        searchResponse.setFlightSearchOffice(office);
         FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply = null;
         FareMasterPricerTravelBoardSearchReply seamenReply = null;
 
         try {
-            amadeusSessionWrapper = amadeusSessionManager.getSession();
+            amadeusSessionWrapper = amadeusSessionManager.getSession(office);
             ServiceHandler serviceHandler = new ServiceHandler();
             SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
 
@@ -195,7 +194,18 @@ public class AmadeusFlightSearch implements FlightSearch{
         return "Amadeus";
     }
 
-
+    public List<FlightSearchOffice> getOfficeList() {
+        List<FlightSearchOffice> offices = new ArrayList<>();
+        List<String> officeIdList = Play.application().configuration().getStringList("amadeus.SOURCE_OFFICE");
+        for(String officeId : officeIdList) {
+            offices.add(new FlightSearchOffice(officeId));
+        }
+        List<String> partnerOfficeIdList = Play.application().configuration().getStringList("amadeus.PARTNER_SOURCE_OFFICE");
+        for(String officeId : partnerOfficeIdList) {
+            offices.add(new FlightSearchOffice(officeId,true));
+        }
+        return offices;
+    }
 
     //for round trip and refactored
     private AirSolution createAirSolutionFromRecommendation(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {

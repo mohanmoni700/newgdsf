@@ -5,16 +5,19 @@ import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
 import models.AmadeusSessionWrapper;
+import models.FlightSearchOffice;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import play.Play;
 
 import javax.xml.ws.Holder;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.*;
 
 /**
  * Created by Yaseen on 18-06-2015.
@@ -22,17 +25,88 @@ import java.util.UUID;
 @Service
 public class AmadeusSessionManager {
 
-//    private static List<AmadeusSessionWrapper> sessionList = new ArrayList<>();
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
+    List<String> officeIdList = Play.application().configuration().getStringList("amadeus.SOURCE_OFFICE");
 
-    /*private ServiceHandler serviceHandler;
 
-    @Autowired
-    public AmadeusSessionManager(ServiceHandler serviceHandler) {
-        this.serviceHandler = serviceHandler;
-    }*/
+//    private static final ConcurrentHashMap<String, BlockingQueue<AmadeusSessionWrapper>> officeSessionMap = new ConcurrentHashMap<>();
 
-    public AmadeusSessionWrapper getSession() throws InterruptedException {
+//    public AmadeusSessionWrapper getSession(String officeId) throws Exception {
+//        logger.debug("AmadeusSessionManager getSession called");
+//        // Check if there is a queue for the specified officeId
+//        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextList();
+//        BlockingQueue<AmadeusSessionWrapper> sessionQueue = officeSessionMap.get(officeId);
+//        if (sessionQueue == null) {
+//            sessionQueue = new LinkedBlockingQueue<>();
+//            officeSessionMap.put(officeId, sessionQueue);
+//        }
+//        try {
+//            // Try to take an available session from the queue
+//            AmadeusSessionWrapper availableSession = sessionQueue.poll(2, TimeUnit.SECONDS);
+//            if (availableSession != null) {
+//                if (isValidSession(availableSession)) {
+//                    return availableSession;
+//                }
+//            }
+//            // Check the pool size
+//            if (sessionQueue.size() >= AmadeusConstants.SESSION_POOL_SIZE) {
+//                logger.debug("Amadeus session pooling max connection size reached. Waiting for connection...");
+//                throw new TimeoutException("Max session pool size reached, cannot create new sessions.");
+//            }
+//
+//            AmadeusSessionWrapper newSession = createSession(officeId);
+//            if (newSession != null) {
+//                sessionQueue.offer(newSession);
+//                return newSession;
+//            } else {
+//                throw new Exception("Failed to create a new session.");
+//            }
+//        } catch (InterruptedException ie) {
+//            logger.error("Thread was interrupted while waiting for a session.", ie);
+//        }
+//        return null;
+//    }
+
+    private boolean isValidSession(AmadeusSessionWrapper session) {
+        if (session.isQueryInProgress()) {
+            return false;
+        }
+
+        Period p = new Period(new DateTime(session.getLastQueryDate()), new DateTime(), PeriodType.minutes());
+        int inactivityTimeInMinutes = p.getMinutes();
+
+        if (inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT) {
+            session.delete();
+            return false;
+        }
+
+        session.setQueryInProgress(true);
+        session.setLastQueryDate(new Date());
+        session.save();
+        return true;
+    }
+
+    public AmadeusSessionWrapper createSession(FlightSearchOffice office){
+        logger.debug("creating new  session .........................................office_id :" + office.getGetOfficeId());
+        try {
+            ServiceHandler serviceHandler = new ServiceHandler();
+            SessionHandler sessionHandler = serviceHandler.logIn(office.getGetOfficeId());
+            return createSessionWrapper(sessionHandler.getSession().value);
+        } catch (Exception e) {
+            logger.error("Amadeus createSession error " ,e);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+//    //todo
+    public AmadeusSessionWrapper getSession() throws Exception {
+        String officeId = Play.application().configuration().getString("amadeus.SOURCE_OFFICE_DEFAULT");
+        logger.debug("default officeId used in getSession");
+        return getSession(new FlightSearchOffice(officeId));
+    }
+
+    public AmadeusSessionWrapper getSession(FlightSearchOffice office) throws InterruptedException {
 
         logger.debug("AmadeusSessionManager getSession called");
        /* HashMap<String, AmadeusSessionWrapper> sessionHashMap = (HashMap<String, AmadeusSessionWrapper>) Cache.get(AmadeusConstants.AMADEUS_SESSION_LIST);
@@ -40,7 +114,7 @@ public class AmadeusSessionManager {
         if(sessionHashMap == null) {
             sessionHashMap = new HashMap<>();
         }*/
-        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextList();
+        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextListByOfficeId(office.getGetOfficeId());
         int count = 0;
         for(AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList){
             count++;
@@ -63,31 +137,15 @@ public class AmadeusSessionManager {
         if(count >= AmadeusConstants.SESSION_POOL_SIZE){
             logger.debug("Amadeus session pooling max connection size reached waiting for connection...................");
             Thread.sleep(2000);
-            getSession();
+            getSession(office);
         }else {
-            AmadeusSessionWrapper amadeusSessionWrapper = createSession();
+            AmadeusSessionWrapper amadeusSessionWrapper = createSession(office);
 /*            sessionHashMap.put(amadeusSessionWrapper.getmSession().value.getSecurityToken(),amadeusSessionWrapper);
             Cache.set(AmadeusConstants.AMADEUS_SESSION_LIST, sessionHashMap);*/
             return amadeusSessionWrapper;
         }
-
         return null;
     }
-
-
-    public AmadeusSessionWrapper createSession(){
-        System.out.println("creating new  session .........................................");
-        try {
-            ServiceHandler serviceHandler = new ServiceHandler();
-            SessionHandler sessionHandler = serviceHandler.logIn(new SessionHandler());
-            return createSessionWrapper(sessionHandler.getSession().value);
-        } catch (Exception e) {
-            logger.error("Amadeus createSession error " ,e);
-            e.printStackTrace();
-        }
-        return null;
-    }
-
 
     public AmadeusSessionWrapper createSessionWrapper(Session session){
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
