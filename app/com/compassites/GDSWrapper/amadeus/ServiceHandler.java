@@ -46,6 +46,8 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
+import models.AmadeusSessionWrapper;
+import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -117,9 +119,21 @@ public class ServiceHandler {
         return sessionReply;
     }
 
-    public SessionHandler logIn(SessionHandler mSession) {
+//    public SessionHandler logIn(SessionHandler mSession) {
+//        logger.debug("amadeus login called....................");
+//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+//        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
+//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
+//
+//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//        return mSession;
+//    }
+
+    public SessionHandler logIn(FlightSearchOffice office) {
         logger.debug("amadeus login called....................");
-        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+        SessionHandler mSession = new SessionHandler();
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getGetOfficeId());
         logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
         SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
@@ -224,7 +238,7 @@ public class ServiceHandler {
         return pnrReply;
     }
 
-    public PNRReply retrivePNR(String num){
+    public PNRReply retrivePNR(String num, AmadeusSessionWrapper amadeusSessionWrapper){
     	//change here
         mSession.incrementSequenceNumber();
         logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ mSession.getSessionId());
@@ -315,7 +329,7 @@ public class ServiceHandler {
         return fareCheckRulesReply;
     }
 
-    public FareCheckRulesReply getFareRulesForFCType(String fcNumber){
+    public FareCheckRulesReply getFareRulesForFCType(String fcNumber, AmadeusSessionWrapper amadeusSessionWrapper){
         mSession.incrementSequenceNumber();
         logger.debug("amadeus getFareRulesForFCType called at " + new Date() + "....................Session Id: " + mSession.getSessionId());
         FareCheckRules fareCheckRules = new FareRules().getFareInfoForFCType(fcNumber);

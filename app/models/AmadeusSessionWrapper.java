@@ -74,6 +74,14 @@ public class AmadeusSessionWrapper extends Model{
         this.sequenceNumber = mSession.value.getSequenceNumber();
     }
 
+    public String getOfficeId() { return officeId; }
+
+    public void setOfficeId(String officeId) { this.officeId = officeId; }
+
+    public String getPartnerName() { return partnerName; }
+
+    public void setPartnerName(String partnerName) { this.partnerName = partnerName; }
+
     public Date getLastQueryDate() {
         return lastQueryDate;
     }
@@ -178,4 +186,5 @@ public class AmadeusSessionWrapper extends Model{
 
         return amadeusSessions;
     }
+
 }

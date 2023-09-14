@@ -4,6 +4,7 @@ import akka.dispatch.Futures;
 import com.compassites.constants.CacheConstants;
 import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ public class MergeSearchResults {
                 if (!checkOrSetStatus(providerStatusCacheKey)) {
                     futureSearchResponseList.add(Futures.future(new Callable<SearchResponse>() {
                         public SearchResponse call() throws Exception {
-                            SearchResponse response = flightSearch.search(searchParameters);
+                            SearchResponse response = flightSearch.search(searchParameters, new FlightSearchOffice(""));
                             logger.debug("[" + redisKey + "]Response from provider:" + flightSearch.provider());
                             checkResponseAndSetStatus(response, providerStatusCacheKey);
                             return response;

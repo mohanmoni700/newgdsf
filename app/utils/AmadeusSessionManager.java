@@ -90,8 +90,8 @@ public class AmadeusSessionManager {
         logger.debug("creating new  session .........................................office_id :" + office.getGetOfficeId());
         try {
             ServiceHandler serviceHandler = new ServiceHandler();
-            SessionHandler sessionHandler = serviceHandler.logIn(office.getGetOfficeId());
-            return createSessionWrapper(sessionHandler.getSession().value);
+            SessionHandler sessionHandler = serviceHandler.logIn(office);
+            return createSessionWrapper(sessionHandler.getSession().value, office);
         } catch (Exception e) {
             logger.error("Amadeus createSession error " ,e);
             e.printStackTrace();
@@ -153,6 +153,20 @@ public class AmadeusSessionManager {
         amadeusSessionWrapper.setQueryInProgress(false);
         amadeusSessionWrapper.setLastQueryDate(new Date());
         amadeusSessionWrapper.setmSession(new Holder<>(session));
+        amadeusSessionWrapper.save();
+        return amadeusSessionWrapper;
+    }
+
+    public AmadeusSessionWrapper createSessionWrapper(Session session,FlightSearchOffice office){
+        AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
+        amadeusSessionWrapper.setActiveContext(false);
+        amadeusSessionWrapper.setQueryInProgress(false);
+        amadeusSessionWrapper.setLastQueryDate(new Date());
+        amadeusSessionWrapper.setmSession(new Holder<>(session));
+        amadeusSessionWrapper.setOfficeId(office.getGetOfficeId());
+        if(office.isPartner()) {
+            amadeusSessionWrapper.setPartnerName("Benji");
+        }
         amadeusSessionWrapper.save();
         return amadeusSessionWrapper;
     }

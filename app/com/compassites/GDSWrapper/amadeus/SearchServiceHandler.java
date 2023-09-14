@@ -114,7 +114,7 @@ public class SearchServiceHandler {
 
     public SessionReply logIn() {
         logger.debug("amadeus login called ....................");
-        SecurityAuthenticate securityAuthenticateReq = new MessageFactory().buildAuthenticationRequest();
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
         SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
         amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
@@ -128,7 +128,7 @@ public class SearchServiceHandler {
 
     public SessionHandler logIn(SessionHandler mSession) {
         logger.debug("amadeus login called....................");
-        SecurityAuthenticate securityAuthenticateReq = new MessageFactory().buildAuthenticationRequest();
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
         logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
         SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
@@ -158,9 +158,6 @@ public class SearchServiceHandler {
         logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
         return  SearchReply;
     }
-    
-
-
 
 
 //    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {

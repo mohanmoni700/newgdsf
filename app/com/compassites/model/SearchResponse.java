@@ -1,5 +1,7 @@
 package com.compassites.model;
 
+import models.FlightSearchOffice;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,8 @@ public class SearchResponse {
     //private AirSolution airSolutionReturn;
     private String provider; //Amedeus or Travelport (Galileo)
 
+    private FlightSearchOffice flightSearchOffice;
+
     private List<ErrorMessage> errorMessageList;
 
     public SearchResponse() {
@@ -28,6 +32,14 @@ public class SearchResponse {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public FlightSearchOffice getFlightSearchOffice() {
+        return flightSearchOffice;
+    }
+
+    public void setFlightSearchOffice(FlightSearchOffice flightSearchOffice) {
+        this.flightSearchOffice = flightSearchOffice;
     }
 
     public AirSolution getAirSolution() {
