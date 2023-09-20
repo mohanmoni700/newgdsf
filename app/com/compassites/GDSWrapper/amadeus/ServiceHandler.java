@@ -119,22 +119,23 @@ public class ServiceHandler {
 //        return sessionReply;
 //    }
 
-//    public SessionHandler logIn(SessionHandler mSession) {
-//        logger.debug("amadeus login called....................");
-//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
-//        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
-//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
-//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
-//
-//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
-//        return mSession;
-//    }
+    public SessionHandler logIn(SessionHandler mSession) {
+        logger.debug("amadeus login called....................");
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
+        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
+
+        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+        return mSession;
+    }
 
     //todo
     public AmadeusSessionWrapper logIn() {
         logger.debug("amadeus login called....................");
-        //SessionHandler mSession = new SessionHandler();
+        SessionHandler mSession = new SessionHandler();
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
+        amadeusSessionWrapper.initSession();
         FlightSearchOffice office = new FlightSearchOffice();
         SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getGetOfficeId());
         logger.debug("amadeus login called at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
@@ -149,6 +150,7 @@ public class ServiceHandler {
         logger.debug("amadeus login called....................");
         //SessionHandler mSession = new SessionHandler();
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
+        amadeusSessionWrapper.initSession();
         SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getGetOfficeId());
         logger.debug("amadeus login called at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));

@@ -202,8 +202,13 @@ public class AmadeusSessionManager {
         amadeusSessionWrapper.delete();
     }
 
-    public Session getActiveSessionByGdsPNR(String pnr){
+//    public Session getActiveSessionByGdsPNR(String pnr){
+//        AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findByPNR(pnr);
+//        return amadeusSessionWrapper.getmSession().value;
+//    }
+
+    public AmadeusSessionWrapper getActiveSessionByGdsPNR(String pnr){
         AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findByPNR(pnr);
-        return amadeusSessionWrapper.getmSession().value;
+        return amadeusSessionWrapper;
     }
 }

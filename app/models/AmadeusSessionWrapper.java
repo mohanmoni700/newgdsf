@@ -67,6 +67,11 @@ public class AmadeusSessionWrapper extends Model{
         return sessionHolder;
     }
 
+    public void initSession() {
+        mSession = new Holder<Session>();
+        resetSession();
+    }
+
     public void setmSession(Holder<Session> mSession) {
         this.mSession = mSession;
         this.sessionId = mSession.value.getSessionId();
