@@ -70,6 +70,7 @@ public class AmadeusSessionWrapper extends Model{
     public void initSession() {
         mSession = new Holder<Session>();
         resetSession();
+        setmSession(mSession);
     }
 
     public void setmSession(Holder<Session> mSession) {

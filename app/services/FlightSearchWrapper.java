@@ -40,7 +40,7 @@ public class FlightSearchWrapper {
 
 
         SearchResponse searchResponseList = new SearchResponse();
-        int maxThreads = flightSearchList.size();
+        int maxThreads = flightSearchList.size()*3;
         int queueSize = 10;
 
         redisTemplate.opsForValue().set(redisKey + ":status", "started");

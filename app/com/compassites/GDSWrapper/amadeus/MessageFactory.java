@@ -38,7 +38,6 @@ public class MessageFactory {  //todo rename
 	public SecurityAuthenticate getAuthenticationRequest(String officeId) {
 		SecurityAuthenticate authenticateRequest = securityAuthMap.get(officeId);
 		if(authenticateRequest == null){
-			buildAuthenticationRequest(officeId);
 			authenticateRequest = buildAuthenticationRequest(officeId);
 			securityAuthMap.put(officeId, authenticateRequest);
 		}

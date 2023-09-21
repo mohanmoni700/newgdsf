@@ -3,6 +3,7 @@ package com.compassites.service.login;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.GDSWrapper.amadeus.SessionReply;
 import com.compassites.model.amadeus.AmadeusSession;
+import models.AmadeusSessionWrapper;
 
 import java.io.Serializable;
 
@@ -19,6 +20,14 @@ public class AmadeusLogin implements Serializable{
             e.printStackTrace();
         }
         AmadeusSession amadeusSession=map(serviceHandler.logIn());
+        return amadeusSession;
+    }
+
+    private AmadeusSession map(AmadeusSessionWrapper amadeusSessionWrapper){
+        AmadeusSession amadeusSession=new AmadeusSession();
+        amadeusSession.setSecurityToken(amadeusSessionWrapper.getmSession().value.getSecurityToken());
+        amadeusSession.setSequenceNumber(amadeusSessionWrapper.getmSession().value.getSequenceNumber());
+        amadeusSession.setSessionId(amadeusSessionWrapper.getmSession().value.getSessionId());
         return amadeusSession;
     }
 
