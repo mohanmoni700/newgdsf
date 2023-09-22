@@ -6,6 +6,7 @@ import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
 import models.AmadeusSessionWrapper;
 import models.FlightSearchOffice;
+import org.hibernate.annotations.Synchronize;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
@@ -106,7 +107,7 @@ public class AmadeusSessionManager {
         return getSession(new FlightSearchOffice(officeId));
     }
 
-    public AmadeusSessionWrapper getSession(FlightSearchOffice office) throws InterruptedException {
+    public synchronized AmadeusSessionWrapper getSession(FlightSearchOffice office) throws InterruptedException {
 
         logger.debug("AmadeusSessionManager getSession called");
        /* HashMap<String, AmadeusSessionWrapper> sessionHashMap = (HashMap<String, AmadeusSessionWrapper>) Cache.get(AmadeusConstants.AMADEUS_SESSION_LIST);
@@ -131,6 +132,7 @@ public class AmadeusSessionManager {
             amadeusSessionWrapper.setLastQueryDate(new Date());
 //            updateAmadeusSession(amadeusSessionWrapper);
             amadeusSessionWrapper.save();
+            logger.debug("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
             System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
             return amadeusSessionWrapper;
         }
@@ -162,11 +164,11 @@ public class AmadeusSessionManager {
         amadeusSessionWrapper.setActiveContext(false);
         amadeusSessionWrapper.setQueryInProgress(false);
         amadeusSessionWrapper.setLastQueryDate(new Date());
-        //amadeusSessionWrapper.setmSession(new Holder<>(session));
-        amadeusSessionWrapper.setOfficeId(office.getGetOfficeId());
-        if(office.isPartner()) {
-            amadeusSessionWrapper.setPartnerName("Benji");
-        }
+//        //amadeusSessionWrapper.setmSession(new Holder<>(session));
+//        amadeusSessionWrapper.setOfficeId(office.getGetOfficeId());
+//        if(office.isPartner()) {
+//            amadeusSessionWrapper.setPartnerName("Benji");
+//        }
         amadeusSessionWrapper.save();
         return amadeusSessionWrapper;
     }
@@ -186,8 +188,10 @@ public class AmadeusSessionManager {
 //    }
 
     public void updateAmadeusSession(AmadeusSessionWrapper amadeusSessionWrapper){
-        amadeusSessionWrapper.setQueryInProgress(false);
-        amadeusSessionWrapper.update();
+        if(amadeusSessionWrapper != null) {
+            amadeusSessionWrapper.setQueryInProgress(false);
+            amadeusSessionWrapper.update();
+        }
     }
 
     public String storeActiveSession(AmadeusSessionWrapper amadeusSessionWrapper, String pnr){

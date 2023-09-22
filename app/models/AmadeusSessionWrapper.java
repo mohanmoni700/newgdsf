@@ -57,16 +57,6 @@ public class AmadeusSessionWrapper extends Model{
     private static final Finder<Integer, AmadeusSessionWrapper> find = new Finder<Integer, AmadeusSessionWrapper>(
             Integer.class, AmadeusSessionWrapper.class);
 
-    public Holder<Session> getmSession1() {
-        mSession = new Holder<Session>();
-        Session session = new Session();
-        session.setSecurityToken(this.securityToken);
-        session.setSequenceNumber(this.sequenceNumber);
-        session.setSessionId(this.sessionId);
-        Holder<Session> sessionHolder = new Holder<>();
-        sessionHolder.value = session;
-        return sessionHolder;
-    }
 
     public Holder<Session> getmSession() {
         Holder<Session> mSession = new Holder<>();
@@ -74,6 +64,7 @@ public class AmadeusSessionWrapper extends Model{
         mSession.value.setSecurityToken(this.securityToken);
         mSession.value.setSequenceNumber(this.sequenceNumber);
         mSession.value.setSessionId(this.sessionId);
+        this.mSession = mSession;
         return mSession;
     }
     //todo
@@ -82,12 +73,6 @@ public class AmadeusSessionWrapper extends Model{
         String printString = "Stoken:" +mSession.value.getSecurityToken() + "  SNum:"+ mSession.value.getSequenceNumber()+ "  id:"+mSession.value.getSessionId();
         System.out.println(printString);
         return printString;
-    }
-
-    public void initSession() {
-        mSession = new Holder<Session>();
-        resetSession();
-        setmSession(mSession);
     }
 
     public void setmSession(Holder<Session> mSession) {
@@ -210,20 +195,22 @@ public class AmadeusSessionWrapper extends Model{
         return amadeusSessions;
     }
 
-    /**************/
-    public void resetSession() {
+    public Holder<Session> resetSession() {
+        Holder<Session> mSession = new Holder<>();
         mSession.value = new Session();
         mSession.value.setSecurityToken("");
         mSession.value.setSequenceNumber("");
         mSession.value.setSessionId("");
+        setmSession(mSession);
+        return this.mSession;
     }
 
     public void incrementSequenceNumber() {
+        getmSession();
         Integer sequenceNumber = Integer.parseInt(mSession.value
                 .getSequenceNumber());
         sequenceNumber++;
         mSession.value.setSequenceNumber(sequenceNumber.toString());
-        mSession.value.setSequenceNumber("1");
     }
 
 }
