@@ -57,7 +57,8 @@ public class AmadeusSessionWrapper extends Model{
     private static final Finder<Integer, AmadeusSessionWrapper> find = new Finder<Integer, AmadeusSessionWrapper>(
             Integer.class, AmadeusSessionWrapper.class);
 
-    public Holder<Session> getmSession() {
+    public Holder<Session> getmSession1() {
+        mSession = new Holder<Session>();
         Session session = new Session();
         session.setSecurityToken(this.securityToken);
         session.setSequenceNumber(this.sequenceNumber);
@@ -65,6 +66,22 @@ public class AmadeusSessionWrapper extends Model{
         Holder<Session> sessionHolder = new Holder<>();
         sessionHolder.value = session;
         return sessionHolder;
+    }
+
+    public Holder<Session> getmSession() {
+        Holder<Session> mSession = new Holder<>();
+        mSession.value = new Session();
+        mSession.value.setSecurityToken(this.securityToken);
+        mSession.value.setSequenceNumber(this.sequenceNumber);
+        mSession.value.setSessionId(this.sessionId);
+        return mSession;
+    }
+    //todo
+    public String printSession(){
+        Holder<Session> mSession = getmSession();
+        String printString = "Stoken:" +mSession.value.getSecurityToken() + "  SNum:"+ mSession.value.getSequenceNumber()+ "  id:"+mSession.value.getSessionId();
+        System.out.println(printString);
+        return printString;
     }
 
     public void initSession() {
@@ -206,6 +223,7 @@ public class AmadeusSessionWrapper extends Model{
                 .getSequenceNumber());
         sequenceNumber++;
         mSession.value.setSequenceNumber(sequenceNumber.toString());
+        mSession.value.setSequenceNumber("1");
     }
 
 }

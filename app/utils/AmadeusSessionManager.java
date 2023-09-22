@@ -171,6 +171,20 @@ public class AmadeusSessionManager {
         return amadeusSessionWrapper;
     }
 
+//    public AmadeusSessionWrapper createSessionWrapper(AmadeusSessionWrapper amadeusSessionWrapper,FlightSearchOffice office){
+//        //AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
+//        amadeusSessionWrapper.setActiveContext(false);
+//        amadeusSessionWrapper.setQueryInProgress(false);
+//        amadeusSessionWrapper.setLastQueryDate(new Date());
+//        //amadeusSessionWrapper.setmSession(new Holder<>(session));
+//        amadeusSessionWrapper.setOfficeId(office.getGetOfficeId());
+//        if(office.isPartner()) {
+//            amadeusSessionWrapper.setPartnerName("Benji");
+//        }
+//        amadeusSessionWrapper.save();
+//        return amadeusSessionWrapper;
+//    }
+
     public void updateAmadeusSession(AmadeusSessionWrapper amadeusSessionWrapper){
         amadeusSessionWrapper.setQueryInProgress(false);
         amadeusSessionWrapper.update();
