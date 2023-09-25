@@ -1,34 +1,50 @@
 package models;
 
-import play.Play;
-
-import java.util.List;
-
 public class FlightSearchOffice {
-    String getOfficeId;
+
+    String officeId;
+    String name = "";
     boolean isPartner = false;
 
-    public FlightSearchOffice(String getOfficeId, boolean isPartner) {
-        this.getOfficeId = getOfficeId;
+
+    public FlightSearchOffice(String officeId, String name, boolean isPartner) {
+        this.officeId = officeId;
+        this.name = name;
         this.isPartner = isPartner;
     }
 
-    public FlightSearchOffice(String getOfficeId) {
-        this.getOfficeId = getOfficeId;
+    public FlightSearchOffice(String officeId) {
+        this.officeId = officeId;
     }
 
     //todo
     public FlightSearchOffice() {
-        List<String> officeIdList = Play.application().configuration().getStringList("amadeus.SOURCE_OFFICE");
-        this.getOfficeId = officeIdList.get(0);
+        this.officeId = "BOMVS34C3";
     }
 
     public String getGetOfficeId() {
-        return getOfficeId;
+        return officeId;
+    }
+
+    public void setGetOfficeId(String officeId) {
+        this.officeId = officeId;
     }
 
     public boolean isPartner() {
         return isPartner;
     }
+
+    public void setPartner(boolean partner) {
+        isPartner = partner;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 
 }

@@ -101,15 +101,15 @@ public class ServiceHandler {
         mSession = new SessionHandler();
     }
 
-    public SessionHandler logIn(SessionHandler mSession) {
-        logger.debug("amadeus login called....................");
-        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
-        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
-        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
-        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
-        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
-        return mSession;
-    }
+//    public SessionHandler logIn(SessionHandler mSession) {
+//        logger.debug("amadeus login called....................");
+//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+//        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
+//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
+//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//        return mSession;
+//    }
 
     //todo
     public AmadeusSessionWrapper logIn() {
@@ -137,6 +137,8 @@ public class ServiceHandler {
         amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
         amadeusSessionWrapper.setmSession(sessionHolder);
         amadeusSessionWrapper.setOfficeId(office.getGetOfficeId());
+        amadeusSessionWrapper.setPartnerName(office.getName());
+
         return amadeusSessionWrapper;
     }
 

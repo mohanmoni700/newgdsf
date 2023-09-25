@@ -59,10 +59,12 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
-//    private ServiceHandler serviceHandler;
+    private final ServiceHandler serviceHandler;
 
     private final AmadeusSessionManager amadeusSessionManager;
 
+   @Autowired
+   private AmadeusSourceOfficeService sourceOfficeService;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -77,7 +79,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     @Autowired
     public AmadeusFlightSearch(ServiceHandler serviceHandler, AmadeusSessionManager amadeusSessionManager) {
-//        this.serviceHandler = serviceHandler;
+        this.serviceHandler = serviceHandler;
         this.amadeusSessionManager = amadeusSessionManager;
     }
 
@@ -95,7 +97,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         try {
             amadeusSessionWrapper = amadeusSessionManager.getSession(office);
-            ServiceHandler serviceHandler = new ServiceHandler();
+            //ServiceHandler serviceHandler = new ServiceHandler();
             //SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
 
             logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
@@ -185,7 +187,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             }
         }
         searchResponse.setAirSolution(airSolution);
-
+        searchResponse.setFlightSearchOffice(office);
         return searchResponse;
     }
 
@@ -195,16 +197,7 @@ public class AmadeusFlightSearch implements FlightSearch{
     }
 
     public List<FlightSearchOffice> getOfficeList() {
-        List<FlightSearchOffice> offices = new ArrayList<>();
-        List<String> officeIdList = Play.application().configuration().getStringList("amadeus.SOURCE_OFFICE");
-        for(String officeId : officeIdList) {
-            offices.add(new FlightSearchOffice(officeId));
-        }
-        List<String> partnerOfficeIdList = Play.application().configuration().getStringList("amadeus.PARTNER_SOURCE_OFFICE");
-        for(String officeId : partnerOfficeIdList) {
-            offices.add(new FlightSearchOffice(officeId,true));
-        }
-        return offices;
+        return sourceOfficeService.getAllOffices();
     }
 
     //for round trip and refactored

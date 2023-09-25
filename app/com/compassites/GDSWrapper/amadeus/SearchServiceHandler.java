@@ -112,30 +112,30 @@ public class SearchServiceHandler {
         return mSession.getSession().value;
     }
 
-    public SessionReply logIn() {
-        logger.debug("amadeus login called ....................");
-        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
-        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
-        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
-        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//    public SessionReply logIn() {
+//        logger.debug("amadeus login called ....................");
+//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
+//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//
+//        SessionReply sessionReply=new SessionReply();
+//        sessionReply.setSecurityAuthenticateReply(securityAuthenticate);
+//        sessionReply.setSession(mSession.getSession().value);
+//
+//        return sessionReply;
+//    }
 
-        SessionReply sessionReply=new SessionReply();
-        sessionReply.setSecurityAuthenticateReply(securityAuthenticate);
-        sessionReply.setSession(mSession.getSession().value);
-
-        return sessionReply;
-    }
-
-    public SessionHandler logIn(SessionHandler mSession) {
-        logger.debug("amadeus login called....................");
-        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
-        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
-        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
-        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
-
-        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
-        return mSession;
-    }
+//    public SessionHandler logIn(SessionHandler mSession) {
+//        logger.debug("amadeus login called....................");
+//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+//        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
+//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
+//
+//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//        return mSession;
+//    }
 
     public SecuritySignOutReply logOut() {
         SecuritySignOutReply signOutReply = null;

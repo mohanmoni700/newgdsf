@@ -48,8 +48,11 @@ public class AmadeusSessionWrapper extends Model{
     @Column(name = "office_id")
     private String officeId;
 
-    @Column(name = "partner_name")
-    private String partnerName;
+    @Column(name = "office_name")
+    private String officeName;
+
+    @Column(name = "is_partner")
+    private boolean isPartner;
 
     @Transient
     private Holder<Session> mSession;
@@ -86,9 +89,13 @@ public class AmadeusSessionWrapper extends Model{
 
     public void setOfficeId(String officeId) { this.officeId = officeId; }
 
-    public String getPartnerName() { return partnerName; }
+    public String getOfficeName() { return officeName; }
 
-    public void setPartnerName(String partnerName) { this.partnerName = partnerName; }
+    public void setPartnerName(String partnerName) { this.officeName = officeName; }
+
+    public boolean isPartner() { return isPartner; }
+
+    public void setPartner(boolean partner) { isPartner = partner; }
 
     public Date getLastQueryDate() {
         return lastQueryDate;

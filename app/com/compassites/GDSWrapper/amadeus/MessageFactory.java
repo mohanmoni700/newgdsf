@@ -32,8 +32,8 @@ public class MessageFactory {  //todo rename
 
 	//todo
 	public SecurityAuthenticate getAuthenticationRequest(){
-		String officeId = Play.application().configuration().getString("amadeus.SOURCE_OFFICE_DEFAULT");
-		return getAuthenticationRequest(officeId);
+		//String officeId = Play.application().configuration().getString("amadeus.SOURCE_OFFICE_DEFAULT");
+		return getAuthenticationRequest("BOMVS34C3");
 	}
 	public SecurityAuthenticate getAuthenticationRequest(String officeId) {
 		SecurityAuthenticate authenticateRequest = securityAuthMap.get(officeId);

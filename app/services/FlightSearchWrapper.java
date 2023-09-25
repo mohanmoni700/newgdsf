@@ -58,14 +58,17 @@ public class FlightSearchWrapper {
                         logger.debug("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
                        for(FlightSearchOffice office: flightSearch.getOfficeList()) {
                         //Call provider if response is not already present;
+                           logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
                             providerStatusCacheKey = redisKey + flightSearch.provider() +":"+ office.getGetOfficeId()+ "status";
                             if (!checkOrSetStatus(providerStatusCacheKey)) {
                                 String finalProviderStatusCacheKey = providerStatusCacheKey;
                                 futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                                     public SearchResponse call() throws Exception {
                                         SearchResponse response = flightSearch.search(searchParameters, office);
-                                        logger.debug("[" + redisKey + "]Response from provider:" + flightSearch.provider());
-                                        checkResponseAndSetStatus(response, finalProviderStatusCacheKey);
+                                        logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getGetOfficeId());
+                                        if(checkResponseAndSetStatus(response, finalProviderStatusCacheKey)){
+                                            logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getGetOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
+                                        }
                                         return response;
                                     }
                             }));
@@ -151,9 +154,10 @@ public class FlightSearchWrapper {
                     counter++;
 
                     if(searchResponse != null){
-                        logger.debug("["+redisKey+"]Received Response "+ counter +" from : " + searchResponse.getProvider()+" Size: " + searchResponse.getAirSolution().getFlightItineraryList().size());
+                        logger.debug("3-["+redisKey+"]Received Response "+ counter +"  | from : " + searchResponse.getProvider()+  "   | office:"+ searchResponse.getFlightSearchOffice().getGetOfficeId()  +"  | Seaman size: " + searchResponse.getAirSolution().getSeamenHashMap().size() + " | normal size:"+searchResponse.getAirSolution().getNonSeamenHashMap().size() );
                         SearchResponse searchResponseCache=new SearchResponse();
-
+                        searchResponseCache.setFlightSearchOffice(searchResponse.getFlightSearchOffice());
+                        searchResponseCache.setProvider(searchResponse.getProvider());
                         //logger.debug("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
                        /* for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()) {
                             //logger.debug("FlightItinary string :"+flightItinerary.toString());
@@ -204,7 +208,7 @@ public class FlightSearchWrapper {
                         redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;
-                        logger.debug("["+redisKey+"]Added response to final hashmap"+ counter +" from : " + searchResponse.getProvider()+": hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size());
+                        logger.debug("4-["+redisKey+"]Added response to final hashmap"+ counter +"  | from:" + searchResponseCache.getProvider()+ "  | office:"+ searchResponseCache.getFlightSearchOffice().getGetOfficeId()+"  | hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size() +" | search:"+ searchResponse.getAirSolution().getNonSeamenHashMap().size() + " + "+ searchResponse.getAirSolution().getNonSeamenHashMap().size());
                     }
                     else
                     {
@@ -262,11 +266,12 @@ public class FlightSearchWrapper {
         return false;
     }
 
-    private void checkResponseAndSetStatus(SearchResponse response, String providerStatusCacheKey) {
+    private boolean checkResponseAndSetStatus(SearchResponse response, String providerStatusCacheKey) {
         String status = "invalid";
         if (validResponse(response))
             status = "success";
         setCacheValue(providerStatusCacheKey, status);
+        return status=="success";
     }
 
     private Boolean checkOrSetStatus(String key){

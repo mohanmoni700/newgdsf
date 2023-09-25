@@ -11,8 +11,10 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.Play;
+import services.AmadeusSourceOfficeService;
 
 import javax.xml.ws.Holder;
 import java.util.Date;
@@ -27,8 +29,12 @@ import java.util.concurrent.*;
 public class AmadeusSessionManager {
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
-    List<String> officeIdList = Play.application().configuration().getStringList("amadeus.SOURCE_OFFICE");
 
+    @Autowired
+    private ServiceHandler serviceHandler;
+
+    @Autowired
+    private AmadeusSourceOfficeService sourceOfficeService;
 
 //    private static final ConcurrentHashMap<String, BlockingQueue<AmadeusSessionWrapper>> officeSessionMap = new ConcurrentHashMap<>();
 
@@ -90,7 +96,7 @@ public class AmadeusSessionManager {
     public AmadeusSessionWrapper createSession(FlightSearchOffice office){
         logger.debug("creating new  session .........................................office_id :" + office.getGetOfficeId());
         try {
-            ServiceHandler serviceHandler = new ServiceHandler();
+            //ServiceHandler serviceHandler = new ServiceHandler();
             AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(office);
             return createSessionWrapper(amadeusSessionWrapper, office);
         } catch (Exception e) {
@@ -102,9 +108,9 @@ public class AmadeusSessionManager {
 
 //    //todo
     public AmadeusSessionWrapper getSession() throws Exception {
-        String officeId = Play.application().configuration().getString("amadeus.SOURCE_OFFICE_DEFAULT");
-        logger.debug("default officeId used in getSession");
-        return getSession(new FlightSearchOffice(officeId));
+        FlightSearchOffice office = sourceOfficeService.getSourceOffices().get(0);
+        logger.debug("default officeId used in getSession :" + office.getGetOfficeId());
+        return getSession(office);
     }
 
     public synchronized AmadeusSessionWrapper getSession(FlightSearchOffice office) throws InterruptedException {
