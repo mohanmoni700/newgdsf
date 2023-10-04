@@ -126,11 +126,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			serviceHandler = new ServiceHandler();
             amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByRef(travellerMasterInfo.getSessionIdRef());
             //serviceHandler.setSession(session);
-
+			logger.debug("generatePNR called 1........"+ Json.stringify(Json.toJson(amadeusSessionWrapper)));
             int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
 
             TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, amadeusSessionWrapper);
             if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
+				logger.debug("generatePNR called 2........");
                 String errorCode = ticketCreateTSTFromPricingReply
                         .getApplicationError()
                         .getApplicationErrorInfo()
@@ -146,13 +147,16 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
             gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
             tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+			logger.debug("todo generatePNR called 3........tstRefNo:"+ tstRefNo);
 			Thread.sleep(10000);
 			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo,amadeusSessionWrapper);
+			logger.debug("todo generatePNR called 4........gdsPNRReply:"+ Json.stringify(Json.toJson(gdsPNRReply)));
             Date lastPNRAddMultiElements = new Date();
 
             gdsPNRReply = readAirlinePNR(serviceHandler,gdsPNRReply,lastPNRAddMultiElements,pnrResponse, amadeusSessionWrapper);
 
 			checkSegmentStatus(gdsPNRReply);
+			logger.debug("todo generatePNR called 5........gdsPNRReply:"+ Json.stringify(Json.toJson(gdsPNRReply)));
 
 			List<String> segmentNumbers = new ArrayList<>();
 			for(PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()){
@@ -172,12 +176,16 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 
 			addSSRDetailsToPNR(serviceHandler, travellerMasterInfo, 1, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
+			logger.debug("todo generatePNR called 6........addSSRDetailsToPNR:");
 			Thread.sleep(5000);
             gdsPNRReply = serviceHandler.retrivePNR(tstRefNo,amadeusSessionWrapper);
-
+			logger.debug("todo generatePNR called 7........gdsPNRReply:"+ Json.stringify(Json.toJson(gdsPNRReply)));
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse,travellerMasterInfo);
+			logger.debug("todo generatePNR called 8........gdsPNRReply:"+ Json.stringify(Json.toJson(gdsPNRReply)) + "   ***** pricePNRReply:");
 
 		} catch (Exception e) {
+			System.out.println("todo error in generating PNR"+ e.getMessage());
+			logger.error("todo error in generating PNR"+ e.getMessage());
 			e.printStackTrace();
 			logger.error("error in generatePNR : ", e);
 			if(BaseCompassitesException.ExceptionCode.NO_SEAT.toString().equalsIgnoreCase(e.getMessage().toString())){
@@ -195,11 +203,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		}finally {
 			if(amadeusSessionWrapper != null){
-				serviceHandler.logOut(amadeusSessionWrapper);
-				amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
+				//serviceHandler.logOut(amadeusSessionWrapper);
+				//amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
 			}
-
 		}
+		logger.debug("todo generatePNR called 9........pnrResponse:"+ Json.stringify(Json.toJson(pnrResponse)));
 		return pnrResponse;
 	}
 
@@ -554,6 +562,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 //		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
 //				.getTaxDetails(pricePNRReply));
+		logger.debug("todo createPNRResponse: "+ Json.stringify(Json.toJson(pnrResponse)) );
 		return pnrResponse;
 	}
 
@@ -834,6 +843,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	}
 
     public MiniRule getMiniRuleFeeFromEticket(String gdsPNR,String Eticket,MiniRule miniRule){
+		logger.info("Amadeus get mini rule from ticket called");
         PNRReply gdsPNRReply = null;
         MiniRuleGetFromETicketReply miniRuleGetFromETicketReply = null;
         ServiceHandler serviceHandler = null;
