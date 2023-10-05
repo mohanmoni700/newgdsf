@@ -2,25 +2,21 @@ package utils;
 
 import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
 import models.AmadeusSessionWrapper;
 import models.FlightSearchOffice;
-import org.hibernate.annotations.Synchronize;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import play.Play;
 import services.AmadeusSourceOfficeService;
 
 import javax.xml.ws.Holder;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.*;
 
 /**
  * Created by Yaseen on 18-06-2015.
@@ -94,7 +90,7 @@ public class AmadeusSessionManager {
     }
 
     public AmadeusSessionWrapper createSession(FlightSearchOffice office){
-        logger.debug("creating new  session .........................................office_id :" + office.getGetOfficeId());
+        logger.debug("creating new  session .........................................office_id :" + office.getOfficeId());
         try {
             //ServiceHandler serviceHandler = new ServiceHandler();
             AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(office);
@@ -108,8 +104,8 @@ public class AmadeusSessionManager {
 
 //    //todo
     public AmadeusSessionWrapper getSession() throws Exception {
-        FlightSearchOffice office = sourceOfficeService.getSourceOffices().get(0);
-        logger.debug("default officeId used in getSession :" + office.getGetOfficeId());
+        FlightSearchOffice office = sourceOfficeService.getAllOffices().get(0);
+        logger.debug("default officeId used in getSession :" + office.getOfficeId());
         return getSession(office);
     }
 
@@ -121,7 +117,7 @@ public class AmadeusSessionManager {
         if(sessionHashMap == null) {
             sessionHashMap = new HashMap<>();
         }*/
-        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextListByOfficeId(office.getGetOfficeId());
+        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextListByOfficeId(office.getOfficeId());
         int count = 0;
         for(AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList){
             count++;

@@ -203,8 +203,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		}finally {
 			if(amadeusSessionWrapper != null){
-				//serviceHandler.logOut(amadeusSessionWrapper);
-				//amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
+				serviceHandler.logOut(amadeusSessionWrapper);
+				amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
 			}
 		}
 		logger.debug("todo generatePNR called 9........pnrResponse:"+ Json.stringify(Json.toJson(pnrResponse)));

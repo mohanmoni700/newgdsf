@@ -88,4 +88,15 @@ public class AmadeusSourceOfficeService {
         allOffices.addAll(partnerOffices);
         return allOffices;
     }
+
+    public FlightSearchOffice getOfficeById(String officeId) {
+        Optional<FlightSearchOffice> foundOffice = getAllOffices().stream()
+                .filter(office -> officeId.equals(office.getOfficeId()))
+                .findFirst();
+        if (foundOffice.isPresent()) {
+            return foundOffice.get();
+        } else {
+            return null;
+        }
+    }
 }

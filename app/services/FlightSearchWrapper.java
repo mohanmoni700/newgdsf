@@ -59,15 +59,15 @@ public class FlightSearchWrapper {
                        for(FlightSearchOffice office: flightSearch.getOfficeList()) {
                         //Call provider if response is not already present;
                            logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
-                            providerStatusCacheKey = redisKey + flightSearch.provider() +":"+ office.getGetOfficeId()+ "status";
+                            providerStatusCacheKey = redisKey + flightSearch.provider() +":"+ office.getOfficeId()+ "status";
                             if (!checkOrSetStatus(providerStatusCacheKey)) {
                                 String finalProviderStatusCacheKey = providerStatusCacheKey;
                                 futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                                     public SearchResponse call() throws Exception {
                                         SearchResponse response = flightSearch.search(searchParameters, office);
-                                        logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getGetOfficeId());
+                                        logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId());
                                         if(checkResponseAndSetStatus(response, finalProviderStatusCacheKey)){
-                                            logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getGetOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
+                                            logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
                                         }
                                         return response;
                                     }
@@ -154,7 +154,7 @@ public class FlightSearchWrapper {
                     counter++;
 
                     if(searchResponse != null){
-                        logger.debug("3-["+redisKey+"]Received Response "+ counter +"  | from : " + searchResponse.getProvider()+  "   | office:"+ searchResponse.getFlightSearchOffice().getGetOfficeId()  +"  | Seaman size: " + searchResponse.getAirSolution().getSeamenHashMap().size() + " | normal size:"+searchResponse.getAirSolution().getNonSeamenHashMap().size() );
+                        logger.debug("3-["+redisKey+"]Received Response "+ counter +"  | from : " + searchResponse.getProvider()+  "   | office:"+ searchResponse.getFlightSearchOffice().getOfficeId()  +"  | Seaman size: " + searchResponse.getAirSolution().getSeamenHashMap().size() + " | normal size:"+searchResponse.getAirSolution().getNonSeamenHashMap().size() );
                         SearchResponse searchResponseCache=new SearchResponse();
                         searchResponseCache.setFlightSearchOffice(searchResponse.getFlightSearchOffice());
                         searchResponseCache.setProvider(searchResponse.getProvider());
@@ -208,7 +208,7 @@ public class FlightSearchWrapper {
                         redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         //searchResponseList.remove(0);
                         searchResponseList = searchResponseCache;
-                        logger.debug("4-["+redisKey+"]Added response to final hashmap"+ counter +"  | from:" + searchResponseCache.getProvider()+ "  | office:"+ searchResponseCache.getFlightSearchOffice().getGetOfficeId()+"  | hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size() +" | search:"+ searchResponse.getAirSolution().getNonSeamenHashMap().size() + " + "+ searchResponse.getAirSolution().getNonSeamenHashMap().size());
+                        logger.debug("4-["+redisKey+"]Added response to final hashmap"+ counter +"  | from:" + searchResponseCache.getProvider()+ "  | office:"+ searchResponseCache.getFlightSearchOffice().getOfficeId()+"  | hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size() +" | search:"+ searchResponse.getAirSolution().getNonSeamenHashMap().size() + " + "+ searchResponse.getAirSolution().getNonSeamenHashMap().size());
                     }
                     else
                     {

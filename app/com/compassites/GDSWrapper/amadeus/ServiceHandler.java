@@ -117,7 +117,7 @@ public class ServiceHandler {
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
         Holder<Session> sessionHolder = amadeusSessionWrapper.resetSession();
         FlightSearchOffice office = new FlightSearchOffice();
-        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getGetOfficeId());
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getOfficeId());
         logger.debug("amadeus login called at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
         SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, sessionHolder);
@@ -131,12 +131,12 @@ public class ServiceHandler {
         logger.debug("amadeus login called....................");
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
         Holder<Session> sessionHolder = amadeusSessionWrapper.resetSession();
-        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getGetOfficeId());
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getOfficeId());
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
         SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, sessionHolder);
         amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
         amadeusSessionWrapper.setmSession(sessionHolder);
-        amadeusSessionWrapper.setOfficeId(office.getGetOfficeId());
+        amadeusSessionWrapper.setOfficeId(office.getOfficeId());
         amadeusSessionWrapper.setPartnerName(office.getName());
 
         return amadeusSessionWrapper;

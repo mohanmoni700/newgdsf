@@ -22,11 +22,11 @@ public class FlightSearchOffice {
         this.officeId = "BOMVS34C3";
     }
 
-    public String getGetOfficeId() {
+    public String getOfficeId() {
         return officeId;
     }
 
-    public void setGetOfficeId(String officeId) {
+    public void setOfficeId(String officeId) {
         this.officeId = officeId;
     }
 

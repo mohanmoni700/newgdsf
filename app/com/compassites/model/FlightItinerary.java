@@ -32,6 +32,8 @@ public class FlightItinerary implements Serializable{
     private boolean priceOnlyPTC;
     
 //    private String provider; //travelport or amadeus
+
+    private String amadeusOfficeId;
     
     private String fareSourceCode; // for Mystifly
     
@@ -76,6 +78,13 @@ public class FlightItinerary implements Serializable{
         this.journeyList = journeyList;
     }
 
+    public String getAmadeusOfficeId() {
+        return amadeusOfficeId;
+    }
+
+    public void setAmadeusOfficeId(String amadeusOfficeId) {
+        this.amadeusOfficeId = amadeusOfficeId;
+    }
 //    public String getProvider() {
 //        return provider;
 //    }

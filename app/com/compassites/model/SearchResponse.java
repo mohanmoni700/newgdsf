@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import models.FlightSearchOffice;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
  * Time: 2:14 PM
  * To change this template use File | Settings | File Templates.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchResponse {
     private AirSolution airSolution;
     //private AirSolution airSolutionReturn;
