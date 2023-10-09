@@ -439,16 +439,23 @@ public class ServiceHandler {
         return pnrReply;
     }
 
+    //todo for time being removing it as compulsary steps in ticket booking
     public MiniRuleGetFromPricingRecReply retriveMiniRuleFromPNR(AmadeusSessionWrapper amadeusSessionWrapper){
         //change here
-        amadeusSessionWrapper.incrementSequenceNumber();
-        logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ amadeusSessionWrapper.getSessionId());
-        MiniRuleGetFromPricingRec miniRuleGetFromPricingRec = new PNRRetriev().miniRuleGetFromPricingRec();
-        amadeusLogger.debug("miniRuleGetFromPricingRecReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricingRec));
-        MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply = mPortType.miniRuleGetFromPricingRec(miniRuleGetFromPricingRec, amadeusSessionWrapper.getmSession());
+        try {
+            amadeusSessionWrapper.incrementSequenceNumber();
+            logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+            MiniRuleGetFromPricingRec miniRuleGetFromPricingRec = new PNRRetriev().miniRuleGetFromPricingRec();
+            amadeusLogger.debug("miniRuleGetFromPricingRecReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(miniRuleGetFromPricingRec));
+            MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply = mPortType.miniRuleGetFromPricingRec(miniRuleGetFromPricingRec, amadeusSessionWrapper.getmSession());
 
-        amadeusLogger.debug("miniRuleGetFromPricingRecReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricingRecReply));
-        return miniRuleGetFromPricingRecReply;
+            amadeusLogger.debug("miniRuleGetFromPricingRecReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(miniRuleGetFromPricingRecReply));
+            return miniRuleGetFromPricingRecReply;
+        }catch (Exception e){
+            logger.error("error in retriveMiniRuleFromPNR:"+ e.getMessage());
+        }finally {
+            return null;
+        }
     }
 
 
