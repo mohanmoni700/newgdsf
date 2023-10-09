@@ -32,12 +32,14 @@ import java.util.*;
 @Service
 public class AmadeusIssuanceServiceImpl {
 
-
     static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
     private AmadeusSessionManager amadeusSessionManager;
+
+    @Autowired
+    private ServiceHandler serviceHandler;
 
     @Autowired
     AmadeusBookingServiceImpl amadeusBookingService;
@@ -49,7 +51,7 @@ public class AmadeusIssuanceServiceImpl {
 
     public IssuanceResponse priceBookedPNR(IssuanceRequest issuanceRequest){
         logger.debug("=======================  pricePNR called =========================");
-        ServiceHandler serviceHandler = null;
+        //ServiceHandler serviceHandler = null;
         IssuanceResponse issuanceResponse = new IssuanceResponse();
         issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
 
@@ -66,7 +68,7 @@ public class AmadeusIssuanceServiceImpl {
         boolean isSeamen = issuanceRequest.isSeamen();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
-            serviceHandler = new ServiceHandler();
+            //serviceHandler = new ServiceHandler();
             amadeusSessionWrapper = serviceHandler.logIn();
             PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR(), amadeusSessionWrapper);
 
@@ -324,13 +326,13 @@ public class AmadeusIssuanceServiceImpl {
 
     public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
         logger.debug("=======================  Issuance called =========================");
-        ServiceHandler serviceHandler = null;
+        //ServiceHandler serviceHandler = null;
         IssuanceResponse issuanceResponse = new IssuanceResponse();
         issuanceResponse.setPnrNumber(issuanceRequest.getGdsPNR());
         //Session session = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
-            serviceHandler = new ServiceHandler();
+            //serviceHandler = new ServiceHandler();
             amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByGdsPNR(issuanceRequest.getGdsPNR());
             //serviceHandler.setSession(session);
 
@@ -349,8 +351,8 @@ public class AmadeusIssuanceServiceImpl {
             e.printStackTrace();
             logger.error("docIssuance Exception ", e);
         }finally {
-            serviceHandler.logOut(amadeusSessionWrapper);
             amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
+            serviceHandler.logOut(amadeusSessionWrapper);
 //			amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
         }
         return issuanceResponse;

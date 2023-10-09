@@ -31,6 +31,9 @@ public class CronJobs {
     }
 
     @Autowired
+    private ServiceHandler serviceHandler;
+
+    @Autowired
     public void setQueueListService(QueueListService queueListService) {
         this.queueListService = queueListService;
     }
@@ -47,7 +50,7 @@ public class CronJobs {
                     int inactivityTimeInMinutes = p.getMinutes();
                     if(inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT){
                         try {
-                            ServiceHandler serviceHandler = new ServiceHandler();
+                            //ServiceHandler serviceHandler = new ServiceHandler();
                             //serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
                             serviceHandler.logOut(amadeusSessionWrapper);
                             logger.debug("Deleted an session .................... " + amadeusSessionWrapper.getmSession().value.getSessionId());

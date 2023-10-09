@@ -39,6 +39,9 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	private AmadeusSessionManager amadeusSessionManager;
 
 	@Autowired
+	private ServiceHandler serviceHandler;
+
+	@Autowired
 	public void setAmadeusSessionManager(AmadeusSessionManager amadeusSessionManager){
 		this.amadeusSessionManager = amadeusSessionManager;
 	}
@@ -60,7 +63,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
-			ServiceHandler serviceHandler = new ServiceHandler();
+			//ServiceHandler serviceHandler = new ServiceHandler();
 //			serviceHandler.logIn();
 			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
@@ -306,7 +309,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
-			ServiceHandler serviceHandler = new ServiceHandler();
+			//ServiceHandler serviceHandler = new ServiceHandler();
 //			serviceHandler.logIn();
 			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
@@ -344,7 +347,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
-        	ServiceHandler serviceHandler = new ServiceHandler();
+        	//ServiceHandler serviceHandler = new ServiceHandler();
 			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
@@ -395,7 +398,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		List<HashMap> miniRule = new ArrayList<>();
 		try {
 			amadeusSessionWrapper = amadeusSessionManager.getSession();
-			ServiceHandler serviceHandler = new ServiceHandler();
+			//ServiceHandler serviceHandler = new ServiceHandler();
 			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();

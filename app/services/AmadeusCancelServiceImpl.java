@@ -7,6 +7,7 @@ import com.compassites.model.ErrorMessage;
 import com.compassites.model.PROVIDERS;
 import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utils.ErrorMessageHelper;
 
@@ -18,14 +19,17 @@ public class AmadeusCancelServiceImpl implements CancelService {
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
+    @Autowired
+    private ServiceHandler serviceHandler;
+
     @Override
     public CancelPNRResponse cancelPNR(String pnr) {
         logger.debug("cancelPNR called for PNR : " + pnr);
         CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
-        ServiceHandler serviceHandler = null;
+        //ServiceHandler serviceHandler = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
-            serviceHandler = new ServiceHandler();
+            //serviceHandler = new ServiceHandler();
             amadeusSessionWrapper = serviceHandler.logIn();
 
             PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);

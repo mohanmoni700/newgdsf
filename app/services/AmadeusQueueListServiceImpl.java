@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import models.AmadeusSessionWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.libs.F;
 import play.libs.Json;
@@ -31,15 +32,18 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
 
     Logger gdsLogger = LoggerFactory.getLogger("gds");
 
+    @Autowired
+    private ServiceHandler serviceHandler;
+
     @Override
     public QueueListReply getWaitListConfirmRequest() {
         gdsLogger.debug("getWaitListConfirmRequest called ........");
-        ServiceHandler serviceHandler = null;
-        try {
-            serviceHandler = new ServiceHandler();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        ServiceHandler serviceHandler = null;
+//        try {
+//            serviceHandler = new ServiceHandler();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
 
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getWaitListConfirmRequest(), amadeusSessionWrapper);
@@ -95,13 +99,13 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
     @Override
     public QueueListReply getSegmentWaitListConfirmReq() {
         gdsLogger.debug("getWaitListConfirmRequest called ........");
-        ServiceHandler serviceHandler = null;
+        //ServiceHandler serviceHandler = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
-        try {
-            serviceHandler = new ServiceHandler();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            serviceHandler = new ServiceHandler();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         amadeusSessionWrapper = serviceHandler.logIn();
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getSegmentWaitListConfirmReq(), amadeusSessionWrapper);
         if(queueListReply.getQueueView() == null){
@@ -153,12 +157,12 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
     @Override
     public QueueListReply getScheduleChange() {
         gdsLogger.debug("getScheduleChange called ........");
-        ServiceHandler serviceHandler = null;
-        try {
-            serviceHandler = new ServiceHandler();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        ServiceHandler serviceHandler = null;
+//        try {
+//            serviceHandler = new ServiceHandler();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getScheduleChangesRequest(),amadeusSessionWrapper);
         if(queueListReply.getQueueView() == null){
@@ -214,13 +218,13 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
     @Override
     public QueueListReply getExpiryTimeQueueRequest() {
         gdsLogger.debug("getExpiryTimeQueueRequest called ........");
-        ServiceHandler serviceHandler = null;
+        //ServiceHandler serviceHandler = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
-        try {
-            serviceHandler = new ServiceHandler();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            serviceHandler = new ServiceHandler();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         amadeusSessionWrapper = serviceHandler.logIn();
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getExpiryTimeRequest(), amadeusSessionWrapper);
         if(queueListReply.getQueueView() == null){
