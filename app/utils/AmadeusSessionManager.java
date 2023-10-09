@@ -217,9 +217,11 @@ public class AmadeusSessionManager {
         return amadeusSessionWrapper;
     }
 
+    //todo
     public void removeActiveSession(Session session){
         AmadeusSessionWrapper amadeusSessionWrapper = AmadeusSessionWrapper.findBySessionId(session.getSessionId());
-        amadeusSessionWrapper.delete();
+        if(amadeusSessionWrapper != null)
+            amadeusSessionWrapper.delete();
     }
 
 //    public Session getActiveSessionByGdsPNR(String pnr){

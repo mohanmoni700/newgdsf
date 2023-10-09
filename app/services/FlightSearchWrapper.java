@@ -77,7 +77,7 @@ public class FlightSearchWrapper {
                                 JsonNode rs = null;
                                 if (cachedResponse != null)
                                     rs = Json.parse(cachedResponse);
-                                SearchResponse chachedRespons = null;
+                                //SearchResponse chachedRespons = null;
                                 if (rs != null){
                                     SearchResponse chachedResponse = Json.fromJson(rs, SearchResponse.class);
                                     for(FlightItinerary flightItinerary : chachedResponse.getAirSolution().getFlightItineraryList()){
