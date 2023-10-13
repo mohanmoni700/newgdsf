@@ -186,15 +186,17 @@ public class AmadeusFlightSearch implements FlightSearch{
             }
         }
         searchResponse.setAirSolution(airSolution);
+        searchResponse.setProvider(provider());
         searchResponse.setFlightSearchOffice(office);
         return searchResponse;
     }
 
-    //@Override
+    @Override
     public String provider() {
         return "Amadeus";
     }
 
+    @Override
     public List<FlightSearchOffice> getOfficeList() {
         return sourceOfficeService.getAllOffices();
     }

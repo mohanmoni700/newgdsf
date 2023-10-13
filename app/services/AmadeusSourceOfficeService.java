@@ -16,6 +16,32 @@ public class AmadeusSourceOfficeService {
         populateOffices();
     }
 
+    public enum EOffice_source {
+        eMumbai_id("BOMVS34C3"),
+        eDelhi_id("DELVS38LF"),
+        eBenzy_id("BOMAK38SN");
+
+        private final String type;
+
+        EOffice_source(String type) {
+            this.type = type;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public static EOffice_source fromString(String text) {
+            for (EOffice_source vehicleType : EOffice_source.values()) {
+                if (vehicleType.type.equalsIgnoreCase(text)) {
+                    return vehicleType;
+                }
+            }
+            throw new IllegalArgumentException("No enum constant with text " + text);
+        }
+    }
+
+
     private void populateOffices() {
         Configuration config = Play.application().configuration();
 
@@ -52,7 +78,6 @@ public class AmadeusSourceOfficeService {
 
     private void populateOfficesOld() {
         Configuration config = Play.application().configuration();
-        //String officeId = Play.application().configuration().getString("amadeus.SOURCE_OFFICE_DEFAULT");
         Configuration sourceOfficeConfig = config.getConfig("amadeus.SOURCE_OFFICE");
         Configuration partnerOfficeConfig = config.getConfig("amadeus.SOURCE_OFFICE_OF_PARTNERS");
 
@@ -99,4 +124,25 @@ public class AmadeusSourceOfficeService {
             return null;
         }
     }
+
+    public FlightSearchOffice getPrioritySourceOffice(){
+        Optional<FlightSearchOffice> foundOffice = getAllOffices().stream()
+                .filter(office -> office.getOfficeId().equalsIgnoreCase(EOffice_source.eMumbai_id.type))
+                .findFirst();
+        if (foundOffice.isPresent()) {
+            return foundOffice.get();
+        } else {
+            return null;
+        }
+    }
+
+
+    public boolean isPriorityOffice(String officeId){
+        FlightSearchOffice off1 = getOfficeById(officeId);
+        if(off1.getOfficeId().equalsIgnoreCase(getPrioritySourceOffice().getOfficeId())){
+            return true;
+        }
+        return false;
+    }
+
 }

@@ -64,7 +64,7 @@ public class ServiceHandler {
 
     AmadeusWebServicesPT mPortType;
 
-    SessionHandler mSession;
+    //SessionHandler mSession;
 
     public static URL wsdlUrl;
 
@@ -98,7 +98,7 @@ public class ServiceHandler {
         Map reqContext = ((BindingProvider) mPortType).getRequestContext();
         reqContext.put(MessageContext.HTTP_REQUEST_HEADERS, httpHeaders);
         reqContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endPoint);
-        mSession = new SessionHandler();
+        //mSession = new SessionHandler();
     }
 
 //    public SessionHandler logIn(SessionHandler mSession) {
