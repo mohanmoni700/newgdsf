@@ -375,27 +375,38 @@ public class FlightSearchWrapper {
     private void compareItinerary(FlightItinerary mainFlightItinerary, FlightItinerary itinerary, boolean isSeaman, String provider){
        if(provider.equalsIgnoreCase("Amadeus")){
            AmadeusSourceOfficeService.EOffice_source office_type = AmadeusSourceOfficeService.EOffice_source.fromString(itinerary.getAmadeusOfficeId());
+           //logger.debug("office Id:"+ itinerary.getAmadeusOfficeId()+ "  ::itinerary-TotalPriceValue():"+ itinerary.getPricingInformation().getTotalPriceValue().longValue()+ "   ::mainItinerary:price:"+ itinerary.getPricingInformation().getTotalPriceValue().longValue());
            switch (office_type){
                case eMumbai_id:
                    mainFlightItinerary.setAmadeusOfficeId(itinerary.getAmadeusOfficeId());
-
+                   break;
                case eDelhi_id:
-                   if(itinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue()){
-                       mainFlightItinerary.setAmadeusOfficeId(itinerary.getAmadeusOfficeId());
-                   }
-
-               case eBenzy_id:
-                   if(itinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue())
-                   {
-                       if(isSeaman)
+                   if(isSeaman) {
+                       if (itinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue()) {
                            mainFlightItinerary.setAmadeusOfficeId(itinerary.getAmadeusOfficeId());
-                       else{
-                           //todo travelmatrix
-                           //if(itinerary.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode().equalsIgnoreCase())//airlinesStrForFilter
+                       }
+                   }else{
+                       if (itinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getPricingInformation().getTotalPriceValue().longValue()) {
                            mainFlightItinerary.setAmadeusOfficeId(itinerary.getAmadeusOfficeId());
                        }
                    }
+                   break;
+               case eBenzy_id:
+                  if(isSeaman)
+                       if (itinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue()) {
+                           mainFlightItinerary.setAmadeusOfficeId(itinerary.getAmadeusOfficeId());
+                       }
+
+                   else{
+                       //todo travelmatrix
+                       //if(itinerary.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode().equalsIgnoreCase())//airlinesStrForFilter
+                       if (itinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getPricingInformation().getTotalPriceValue().longValue()) {
+                           mainFlightItinerary.setAmadeusOfficeId(itinerary.getAmadeusOfficeId());
+                       }
+                   }
+                   break;
               default:
+                  break;
            }
        }
     else if(provider.equalsIgnoreCase("Travelport")){ }
