@@ -23,12 +23,8 @@ import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
-import com.amadeus.xml.tmrcrq_11_1_1a.MiniRuleGetFromPricing;
-import com.amadeus.xml.tmrcrr_11_1_1a.MiniRuleGetFromPricingReply;
-import com.amadeus.xml.tmrerq_13_1_1a.MiniRuleGetFromETicket;
-import com.amadeus.xml.tmrerr_13_1_1a.MiniRuleGetFromETicketReply;
-import com.amadeus.xml.tmrqrq_11_1_1a.MiniRuleGetFromPricingRec;
-import com.amadeus.xml.tmrqrr_11_1_1a.MiniRuleGetFromPricingRecReply;
+import com.amadeus.xml.tmrxrq_18_1_1a.MiniRuleGetFromRec;
+import com.amadeus.xml.tmrxrr_18_1_1a.MiniRuleGetFromRecReply;
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
@@ -439,45 +435,45 @@ public class ServiceHandler {
         return pnrReply;
     }
 
-    //todo for time being removing it as compulsary steps in ticket booking
-    public MiniRuleGetFromPricingRecReply retriveMiniRuleFromPNR(AmadeusSessionWrapper amadeusSessionWrapper){
-        //change here
-        try {
-            amadeusSessionWrapper.incrementSequenceNumber();
-            logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
-            MiniRuleGetFromPricingRec miniRuleGetFromPricingRec = new PNRRetriev().miniRuleGetFromPricingRec();
-            amadeusLogger.debug("miniRuleGetFromPricingRecReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(miniRuleGetFromPricingRec));
-            MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply = mPortType.miniRuleGetFromPricingRec(miniRuleGetFromPricingRec, amadeusSessionWrapper.getmSession());
+//    //todo for time being removing it as compulsary steps in ticket booking
+//    public MiniRuleGetFromPricingRecReply retriveMiniRuleFromPNR(AmadeusSessionWrapper amadeusSessionWrapper){
+//        //change here
+//        try {
+//            amadeusSessionWrapper.incrementSequenceNumber();
+//            logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+//            MiniRuleGetFromPricingRec miniRuleGetFromPricingRec = new PNRRetriev().miniRuleGetFromPricingRec();
+//            amadeusLogger.debug("miniRuleGetFromPricingRecReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(miniRuleGetFromPricingRec));
+//            MiniRuleGetFromPricingRecReply miniRuleGetFromPricingRecReply = mPortType.miniRuleGetFromPricingRec(miniRuleGetFromPricingRec, amadeusSessionWrapper.getmSession());
+//
+//            amadeusLogger.debug("miniRuleGetFromPricingRecReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(miniRuleGetFromPricingRecReply));
+//            return miniRuleGetFromPricingRecReply;
+//        }catch (Exception e){
+//            logger.error("error in retriveMiniRuleFromPNR:"+ e.getMessage());
+//        }finally {
+//            return null;
+//        }
+//    }
+////
+////
+//    public MiniRuleGetFromETicketReply retriveMiniRuleFromEticket(String Eticket, AmadeusSessionWrapper amadeusSessionWrapper){
+//        //change here
+//        amadeusSessionWrapper.incrementSequenceNumber();
+//        logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ amadeusSessionWrapper.getSessionId());
+//        MiniRuleGetFromETicket miniRuleGetFromETicket = new PNRRetriev().miniRuleGetFromETicket(Eticket);
+//        amadeusLogger.debug("MiniRuleGetFromETicketReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromETicket));
+//        MiniRuleGetFromETicketReply miniRuleGetFromETicketReply = mPortType.miniRuleGetFromETicket(miniRuleGetFromETicket, amadeusSessionWrapper.getmSession());
+//
+//        amadeusLogger.debug("MiniRuleGetFromETicketReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromETicketReply));
+//        return miniRuleGetFromETicketReply;
+//    }
 
-            amadeusLogger.debug("miniRuleGetFromPricingRecReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(miniRuleGetFromPricingRecReply));
-            return miniRuleGetFromPricingRecReply;
-        }catch (Exception e){
-            logger.error("error in retriveMiniRuleFromPNR:"+ e.getMessage());
-        }finally {
-            return null;
-        }
-    }
-
-
-    public MiniRuleGetFromETicketReply retriveMiniRuleFromEticket(String Eticket, AmadeusSessionWrapper amadeusSessionWrapper){
+    public MiniRuleGetFromRecReply retriveMiniRuleFromPricing(AmadeusSessionWrapper amadeusSessionWrapper){
         //change here
         amadeusSessionWrapper.incrementSequenceNumber();
         logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ amadeusSessionWrapper.getSessionId());
-        MiniRuleGetFromETicket miniRuleGetFromETicket = new PNRRetriev().miniRuleGetFromETicket(Eticket);
-        amadeusLogger.debug("MiniRuleGetFromETicketReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromETicket));
-        MiniRuleGetFromETicketReply miniRuleGetFromETicketReply = mPortType.miniRuleGetFromETicket(miniRuleGetFromETicket, amadeusSessionWrapper.getmSession());
-
-        amadeusLogger.debug("MiniRuleGetFromETicketReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromETicketReply));
-        return miniRuleGetFromETicketReply;
-    }
-
-    public MiniRuleGetFromPricingReply retriveMiniRuleFromPricing(AmadeusSessionWrapper amadeusSessionWrapper){
-        //change here
-        amadeusSessionWrapper.incrementSequenceNumber();
-        logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ amadeusSessionWrapper.getSessionId());
-        MiniRuleGetFromPricing miniRuleGetFromPricing = new PNRRetriev().miniRuleGetFromPricing();
+        MiniRuleGetFromRec miniRuleGetFromPricing = new PNRRetriev().miniRuleGetFromPricing();
         amadeusLogger.debug("MiniRuleGetFromPricingReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricing));
-        MiniRuleGetFromPricingReply miniRuleGetFromPricingReply = mPortType.miniRuleGetFromPricing(miniRuleGetFromPricing, amadeusSessionWrapper.getmSession());
+        MiniRuleGetFromRecReply miniRuleGetFromPricingReply = mPortType.miniRuleGetFromRec(miniRuleGetFromPricing, amadeusSessionWrapper.getmSession());
 
         amadeusLogger.debug("MiniRuleGetFromPricingReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricingReply));
         return miniRuleGetFromPricingReply;

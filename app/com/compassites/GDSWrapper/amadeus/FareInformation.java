@@ -31,8 +31,6 @@ import com.compassites.model.*;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import play.libs.Json;
-import views.html.main;
 
 /**
  * @author Santhosh
