@@ -45,20 +45,37 @@ public class AmadeusSessionWrapper extends Model{
     @Column(name = "gds_pnr")
     private String gdsPNR;
 
+    @Column(name = "office_id")
+    private String officeId;
+
+    @Column(name = "office_name")
+    private String officeName;
+
+    @Column(name = "is_partner")
+    private boolean isPartner;
+
     @Transient
     private Holder<Session> mSession;
 
-    private static Finder<Integer, AmadeusSessionWrapper> find = new Finder<Integer, AmadeusSessionWrapper>(
+    private static final Finder<Integer, AmadeusSessionWrapper> find = new Finder<Integer, AmadeusSessionWrapper>(
             Integer.class, AmadeusSessionWrapper.class);
 
+
     public Holder<Session> getmSession() {
-        Session session = new Session();
-        session.setSecurityToken(this.securityToken);
-        session.setSequenceNumber(this.sequenceNumber);
-        session.setSessionId(this.sessionId);
-        Holder<Session> sessionHolder = new Holder<>();
-        sessionHolder.value = session;
-        return sessionHolder;
+        Holder<Session> mSession = new Holder<>();
+        mSession.value = new Session();
+        mSession.value.setSecurityToken(this.securityToken);
+        mSession.value.setSequenceNumber(this.sequenceNumber);
+        mSession.value.setSessionId(this.sessionId);
+        this.mSession = mSession;
+        return mSession;
+    }
+    //todo
+    public String printSession(){
+        Holder<Session> mSession = getmSession();
+        String printString = "Stoken:" +mSession.value.getSecurityToken() + "  SNum:"+ mSession.value.getSequenceNumber()+ "  id:"+mSession.value.getSessionId();
+        System.out.println(printString);
+        return printString;
     }
 
     public void setmSession(Holder<Session> mSession) {
@@ -67,6 +84,18 @@ public class AmadeusSessionWrapper extends Model{
         this.securityToken = mSession.value.getSecurityToken();
         this.sequenceNumber = mSession.value.getSequenceNumber();
     }
+
+    public String getOfficeId() { return officeId; }
+
+    public void setOfficeId(String officeId) { this.officeId = officeId; }
+
+    public String getOfficeName() { return officeName; }
+
+    public void setPartnerName(String partnerName) { this.officeName = officeName; }
+
+    public boolean isPartner() { return isPartner; }
+
+    public void setPartner(boolean partner) { isPartner = partner; }
 
     public Date getLastQueryDate() {
         return lastQueryDate;
@@ -131,6 +160,13 @@ public class AmadeusSessionWrapper extends Model{
         return amadeusSessions;
     }
 
+    public static List<AmadeusSessionWrapper> findAllInactiveContextListByOfficeId(String officeId){
+
+        List<AmadeusSessionWrapper> amadeusSessions = find.where().eq("active_context", 0).eq("session_uuid",null).eq("office_id",officeId).findList();
+
+        return amadeusSessions;
+    }
+
     public static List<AmadeusSessionWrapper> findAllContextList(){
 
         List<AmadeusSessionWrapper> amadeusSessions = find.where().eq("active_context", 0).findList();
@@ -165,4 +201,23 @@ public class AmadeusSessionWrapper extends Model{
 
         return amadeusSessions;
     }
+
+    public Holder<Session> resetSession() {
+        Holder<Session> mSession = new Holder<>();
+        mSession.value = new Session();
+        mSession.value.setSecurityToken("");
+        mSession.value.setSequenceNumber("");
+        mSession.value.setSessionId("");
+        setmSession(mSession);
+        return this.mSession;
+    }
+
+    public void incrementSequenceNumber() {
+        getmSession();
+        Integer sequenceNumber = Integer.parseInt(mSession.value
+                .getSequenceNumber());
+        sequenceNumber++;
+        mSession.value.setSequenceNumber(sequenceNumber.toString());
+    }
+
 }

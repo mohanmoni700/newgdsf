@@ -23,12 +23,6 @@ import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
-import com.amadeus.xml.tmrcrq_11_1_1a.MiniRuleGetFromPricing;
-import com.amadeus.xml.tmrcrr_11_1_1a.MiniRuleGetFromPricingReply;
-import com.amadeus.xml.tmrerq_13_1_1a.MiniRuleGetFromETicket;
-import com.amadeus.xml.tmrerr_13_1_1a.MiniRuleGetFromETicketReply;
-import com.amadeus.xml.tmrqrq_11_1_1a.MiniRuleGetFromPricingRec;
-import com.amadeus.xml.tmrqrr_11_1_1a.MiniRuleGetFromPricingRecReply;
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
@@ -112,30 +106,30 @@ public class SearchServiceHandler {
         return mSession.getSession().value;
     }
 
-    public SessionReply logIn() {
-        logger.debug("amadeus login called ....................");
-        SecurityAuthenticate securityAuthenticateReq = new MessageFactory().buildAuthenticationRequest();
-        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
-        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
-        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//    public SessionReply logIn() {
+//        logger.debug("amadeus login called ....................");
+//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
+//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//
+//        SessionReply sessionReply=new SessionReply();
+//        sessionReply.setSecurityAuthenticateReply(securityAuthenticate);
+//        sessionReply.setSession(mSession.getSession().value);
+//
+//        return sessionReply;
+//    }
 
-        SessionReply sessionReply=new SessionReply();
-        sessionReply.setSecurityAuthenticateReply(securityAuthenticate);
-        sessionReply.setSession(mSession.getSession().value);
-
-        return sessionReply;
-    }
-
-    public SessionHandler logIn(SessionHandler mSession) {
-        logger.debug("amadeus login called....................");
-        SecurityAuthenticate securityAuthenticateReq = new MessageFactory().buildAuthenticationRequest();
-        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
-        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
-        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
-
-        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
-        return mSession;
-    }
+//    public SessionHandler logIn(SessionHandler mSession) {
+//        logger.debug("amadeus login called....................");
+//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest();
+//        logger.debug("amadeus login called at : " + new Date() + " " + mSession.getSessionId());
+//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, mSession.getSession());
+//
+//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//        return mSession;
+//    }
 
     public SecuritySignOutReply logOut() {
         SecuritySignOutReply signOutReply = null;
@@ -158,9 +152,6 @@ public class SearchServiceHandler {
         logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
         return  SearchReply;
     }
-    
-
-
 
 
 //    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {

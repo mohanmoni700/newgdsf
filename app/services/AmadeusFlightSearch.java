@@ -3,20 +3,17 @@ package services;
 import com.amadeus.xml.fmptbr_14_2_1a.*;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails;
-import com.compassites.GDSWrapper.amadeus.SearchFlights;
-import com.compassites.GDSWrapper.amadeus.SearchServiceHandler;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.GDSWrapper.amadeus.SessionHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
-import com.thoughtworks.xstream.XStream;
 import models.Airline;
 import models.Airport;
 import models.AmadeusSessionWrapper;
+import models.FlightSearchOffice;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
@@ -29,7 +26,6 @@ import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
-import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -61,10 +57,12 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
-//    private ServiceHandler serviceHandler;
+    private final ServiceHandler serviceHandler;
 
-    private AmadeusSessionManager amadeusSessionManager;
+    private final AmadeusSessionManager amadeusSessionManager;
 
+   @Autowired
+   private AmadeusSourceOfficeService sourceOfficeService;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -79,34 +77,35 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     @Autowired
     public AmadeusFlightSearch(ServiceHandler serviceHandler, AmadeusSessionManager amadeusSessionManager) {
-//        this.serviceHandler = serviceHandler;
+        this.serviceHandler = serviceHandler;
         this.amadeusSessionManager = amadeusSessionManager;
     }
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
-    public SearchResponse search(SearchParameters searchParameters) throws Exception, IncompleteDetailsMessage {
+    public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         logger.debug("#####################AmadeusFlightSearch started  : ");
         logger.debug("#####################SearchParameters: \n"+Json.toJson(searchParameters));
         //SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         searchResponse.setProvider("Amadeus");
+        searchResponse.setFlightSearchOffice(office);
         FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply = null;
         FareMasterPricerTravelBoardSearchReply seamenReply = null;
 
         try {
-            amadeusSessionWrapper = amadeusSessionManager.getSession();
-            ServiceHandler serviceHandler = new ServiceHandler();
-            SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
+            amadeusSessionWrapper = amadeusSessionManager.getSession(office);
+            //ServiceHandler serviceHandler = new ServiceHandler();
+            //SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
 
-            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(sessionHandler.getSession().value));
+            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
 //            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-                seamenReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
                 
                 searchParameters.setBookingType(BookingType.NON_MARINE);
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
                 
                 searchParameters.setBookingType(BookingType.SEAMEN);
@@ -116,7 +115,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                // amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, sessionHandler);
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
 //                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
@@ -176,43 +175,45 @@ public class AmadeusFlightSearch implements FlightSearch{
         } else {
             //return flight
         	logger.debug("#####################errorMessage is null");
-            airSolution = createAirSolutionFromRecommendation(fareMasterPricerTravelBoardSearchReply);
+            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office));
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
-                AirSolution seamenSolution = new AirSolution();
-                seamenSolution = createAirSolutionFromRecommendation(seamenReply);
-                airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
-                seamenSolution.setNonSeamenHashMap(null);
+                ///AirSolution seamenSolution = new AirSolution();
+                ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
+                ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
+                airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office));
+                ///seamenSolution.setNonSeamenHashMap(null);
                 //addSeamenFareToSolution(airSolution, seamenSolution);
             }
         }
         searchResponse.setAirSolution(airSolution);
-
+        searchResponse.setProvider(provider());
+        searchResponse.setFlightSearchOffice(office);
         return searchResponse;
     }
 
-    //@Override
+    @Override
     public String provider() {
         return "Amadeus";
     }
 
-
+    @Override
+    public List<FlightSearchOffice> getOfficeList() {
+        return sourceOfficeService.getAllOffices();
+    }
 
     //for round trip and refactored
-    private AirSolution createAirSolutionFromRecommendation(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
-        AirSolution airSolution = new AirSolution();
-        //airSolution.setFlightItineraryList(createFlightItineraryList(airSolution, fareMasterPricerTravelBoardSearchReply));
-        airSolution.setNonSeamenHashMap(createFlightItineraryList(airSolution, fareMasterPricerTravelBoardSearchReply));
-        return airSolution;
-    }
+//    private AirSolution createAirSolutionFromRecommendation(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
+//        AirSolution airSolution = new AirSolution();
+//        //airSolution.setFlightItineraryList(createFlightItineraryList(airSolution, fareMasterPricerTravelBoardSearchReply));
+//        airSolution.setNonSeamenHashMap(getFlightItineraryHashmap( fareMasterPricerTravelBoardSearchReply, new FlightSearchOffice()));
+//        return airSolution;
+//    }
 
     //list with all flight informaition
 //    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
-    private ConcurrentHashMap<Integer, FlightItinerary> createFlightItineraryList(AirSolution airSolution, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply) {
-        //List<FlightItinerary> flightItineraryList = new ArrayList<>();
-
+    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
-
         String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
         List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
         for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
@@ -224,6 +225,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                 List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
                 flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList);
                 flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
+                flightItinerary.setAmadeusOfficeId(office.getOfficeId());
                 flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
             }
         }

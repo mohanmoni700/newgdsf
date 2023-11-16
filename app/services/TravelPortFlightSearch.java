@@ -9,18 +9,17 @@ import com.compassites.model.*;
 import com.compassites.model.AirSolution;
 import com.compassites.model.FlightInfo;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.gson.JsonObject;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.ResponseMessage;
 import com.travelport.service.air_v26_0.AirFaultMessage;
 import models.Airline;
 import models.Airport;
+import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.StringUtility;
@@ -57,7 +56,7 @@ public class TravelPortFlightSearch implements FlightSearch {
     }
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class )
-    public SearchResponse search (SearchParameters searchParameters) throws IncompleteDetailsMessage, RetryException, IOException {
+    public SearchResponse search (SearchParameters searchParameters, FlightSearchOffice office) throws IncompleteDetailsMessage, RetryException, IOException {
         logger.debug("[TravelPort] search started at " + new Date());
 
         SearchResponse seamanResponse = null;
@@ -69,7 +68,7 @@ public class TravelPortFlightSearch implements FlightSearch {
             Return null if search Date type is arrival
          */
         JsonNode jsonNode =  Json.toJson(searchParameters);
-        if(jsonNode.findValue("dateType").asText().equals(DateType.ARRIVAL.name().toString())){
+        if(jsonNode.findValue("dateType").asText().equals(DateType.ARRIVAL.name())){
             return null;
         }
 
@@ -107,6 +106,11 @@ public class TravelPortFlightSearch implements FlightSearch {
     //@Override
     public String provider() {
         return "Travelport";
+    }
+
+    @Override
+    public List<FlightSearchOffice> getOfficeList() {
+        return new ArrayList<>(null);
     }
 
     /*private SearchResponse mergeResponse(SearchResponse nonSeamanResponse, SearchResponse seamanResponse) {
@@ -197,7 +201,7 @@ public class TravelPortFlightSearch implements FlightSearch {
         String errorCode = null;
         SearchResponse searchResponse=new SearchResponse();
         try {
-            response = lowFareRequestClient.search(searchParameters);
+            response = LowFareRequestClient.search(searchParameters);
             logger.debug("[TravelPort] FlightSearch search response at " + new Date());
             List<ResponseMessage> responseMessageList = response.getResponseMessage();
             errorExist = ((response.getAirPricingSolution() == null) || ( response.getAirPricingSolution().size() == 0)) ;
@@ -279,7 +283,7 @@ public class TravelPortFlightSearch implements FlightSearch {
 
         flightIteratorLoop: for (Iterator<AirPricingSolution> airPricingSolutionIterator = airPricingSolutions.iterator(); airPricingSolutionIterator.hasNext();){
 
-            AirPricingSolution airPricingSolution = (AirPricingSolution)airPricingSolutionIterator.next();
+            AirPricingSolution airPricingSolution = airPricingSolutionIterator.next();
             FlightItinerary flightItinerary=new FlightItinerary();
 //            flightItinerary.setProvider("Travelport");
 

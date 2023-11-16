@@ -6,8 +6,8 @@ import javax.xml.ws.Holder;
 
 public class SessionHandler {
 
-	private Holder<Session> mSession;
-	
+	private final Holder<Session> mSession;
+
 	public SessionHandler() {
 		mSession = new Holder<Session>();
 		resetSession();
@@ -20,7 +20,7 @@ public class SessionHandler {
     public Holder<Session> getSession() {
 		return mSession;
 	}
-	
+
 	// create an empty header where all elements are set to empty one by
 	// one. necessary to make JaxWS send a valid empty header.
 	public void resetSession() {
@@ -29,7 +29,7 @@ public class SessionHandler {
 		mSession.value.setSequenceNumber("");
 		mSession.value.setSessionId("");
 	}
-	
+
 	protected void incrementSequenceNumber() {
 		Integer sequenceNumber = Integer.parseInt(mSession.value
 				.getSequenceNumber());
@@ -40,5 +40,5 @@ public class SessionHandler {
 	public String getSessionId() {
 		return mSession.value.getSessionId();
 	}
-	
+
 }

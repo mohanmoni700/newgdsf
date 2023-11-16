@@ -64,8 +64,8 @@ public class AirReservationClient  extends TravelPortClient {
                 url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/universal_v26_0/UniversalRecord.wsdl");
                 //url = new java.net.URL(baseUrl, "Air.wsdl");
                 airService = new AirService(url);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -1,8 +1,10 @@
 package services;
 
-import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.model.SearchParameters;
 import com.compassites.model.SearchResponse;
+import models.FlightSearchOffice;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,8 +14,8 @@ import com.compassites.model.SearchResponse;
  * To change this template use File | Settings | File Templates.
  */
 public interface FlightSearch {
-
-    public SearchResponse search(SearchParameters searchParameters) throws IncompleteDetailsMessage,Exception;
-
-    public String provider();
+    SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception;
+    String provider();
+    List<FlightSearchOffice> getOfficeList();
 }
+

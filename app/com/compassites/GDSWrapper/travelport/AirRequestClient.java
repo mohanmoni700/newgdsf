@@ -55,8 +55,8 @@ public class AirRequestClient extends TravelPortClient {
                 baseUrl = AirService.class.getResource(".");
                 url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl");
                 airService = new AirService(url);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -77,8 +77,8 @@ public class AirRequestClient extends TravelPortClient {
                 baseUrl = AirService.class.getResource(".");
                 url = new java.net.URL(baseUrl, "http://localhost:9000/wsdl/galileo/air_v26_0/Air.wsdl");
                 airService = new AirService(url);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -8,6 +8,7 @@ import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.Airline;
 import models.Airport;
+import models.FlightSearchOffice;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -17,16 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.MystiflyHelper;
-import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
-import java.math.BigDecimal;
 import java.rmi.RemoteException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -55,7 +53,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 	}
 
 	@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
-	public SearchResponse search(SearchParameters searchParameters)
+	public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office)
 			throws IncompleteDetailsMessage {
 		logger.debug("[Mystifly] search started at " + new Date());
 		searchParams = searchParameters;
@@ -64,7 +62,7 @@ public class MystiflyFlightSearch implements FlightSearch {
             Return null if search Date type is arrival
          */
         JsonNode jsonNode = Json.toJson(searchParameters);
-        if(jsonNode.findValue("dateType").asText().equals(DateType.ARRIVAL.name().toString())){
+        if(jsonNode.findValue("dateType").asText().equals(DateType.ARRIVAL.name())){
             return null;
         }
 
@@ -91,6 +89,11 @@ public class MystiflyFlightSearch implements FlightSearch {
 
 	public String provider() {
 		return Mystifly.PROVIDER;
+	}
+
+	@Override
+	public List<FlightSearchOffice> getOfficeList() {
+		return new ArrayList<>(null);
 	}
 
 	private AirSolution createAirSolution(AirLowFareSearchRS searchRS) {

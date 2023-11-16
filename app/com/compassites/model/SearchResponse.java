@@ -1,5 +1,8 @@
 package com.compassites.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import models.FlightSearchOffice;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,10 +13,13 @@ import java.util.List;
  * Time: 2:14 PM
  * To change this template use File | Settings | File Templates.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchResponse {
     private AirSolution airSolution;
     //private AirSolution airSolutionReturn;
     private String provider; //Amedeus or Travelport (Galileo)
+
+    private FlightSearchOffice flightSearchOffice;
 
     private List<ErrorMessage> errorMessageList;
 
@@ -28,6 +34,14 @@ public class SearchResponse {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public FlightSearchOffice getFlightSearchOffice() {
+        return flightSearchOffice;
+    }
+
+    public void setFlightSearchOffice(FlightSearchOffice flightSearchOffice) {
+        this.flightSearchOffice = flightSearchOffice;
     }
 
     public AirSolution getAirSolution() {
