@@ -424,9 +424,9 @@ public class FlightSearchWrapper {
         if (airSolution.getSeamenHashMap() != null && !airSolution.getSeamenHashMap().isEmpty()) {
             ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
             for (Integer hashKey : seamenFareHash.keySet()) {
-                FlightItinerary seamenItinerary = null;
+                FlightItinerary seamenItinerary = seamenFareHash.get(hashKey);
                 if (allFightItineraries.containsKey(hashKey)) {
-                    seamenItinerary = seamenFareHash.get(hashKey);
+                    //seamenItinerary = seamenFareHash.get(hashKey);
                     seamenItinerary.setPriceOnlyPTC(true);
                     seamenItinerary.setPricingMessage(seamenFareHash.get(hashKey).getPricingMessage());
                     seamenItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
@@ -434,10 +434,10 @@ public class FlightSearchWrapper {
                     seamenItinerary.setNonSeamenJourneyList(allFightItineraries.get(hashKey).getJourneyList());
                     allFightItineraries.put(hashKey, seamenItinerary);
                 } else {
-                    seamenItinerary = seamenFareHash.get(hashKey);
+                    //seamenItinerary = seamenFareHash.get(hashKey);
                     seamenItinerary.setPriceOnlyPTC(true);
                     seamenItinerary.setSeamanPricingInformation(seamenItinerary.getPricingInformation());
-                    seamenItinerary.setPricingInformation(null);
+                    //seamenItinerary.setPricingInformation(null); //to be checked
                     allFightItineraries.put(hashKey, seamenItinerary);
                 }
             }
