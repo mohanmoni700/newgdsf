@@ -203,7 +203,11 @@ public class FlightSearchWrapper {
                                 hashMap.put(flightItinerary.hashCode(), flightItinerary);
                             }
                         }*/
+                        logger.debug("\n\n----------- before MergeResults "+ counter +"--------"+ searchResponse.getFlightSearchOffice().getOfficeId());
+                        //AmadeusFlightSearch.printHashmap(hashMap,false);
                         mergeResults(hashMap, searchResponse);
+                        logger.debug("----------- After MergeResults "+ counter +"--------" +searchResponse.getFlightSearchOffice().getOfficeId());
+                        //AmadeusFlightSearch.printHashmap(hashMap,false);
                         errorMessageList.addAll(searchResponse.getErrorMessageList());
                         AirSolution airSolution = new AirSolution();
                         airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
@@ -314,6 +318,7 @@ public class FlightSearchWrapper {
             AirSolution airSolution = searchResponse.getAirSolution();
             if (allFightItineraries.isEmpty()) {
                 mergeSeamenAndNonSeamenResults(allFightItineraries, airSolution);
+
             } else {
                 ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
                 ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
@@ -409,6 +414,9 @@ public class FlightSearchWrapper {
 //
 //        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
 //        allFightItineraries.putAll(nonSeamenFareHash);
+        //System.out.println("\n\n before mergeSeamenAndNonSeamenResults");
+        //AmadeusFlightSearch.printHashmap(allFightItineraries,false);
+
         if (airSolution.getNonSeamenHashMap() != null && !airSolution.getNonSeamenHashMap().isEmpty()) {
             ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
             allFightItineraries.putAll(nonSeamenFareHash);
