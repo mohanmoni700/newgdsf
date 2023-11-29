@@ -186,13 +186,13 @@ public class AmadeusFlightSearch implements FlightSearch{
             //return flight
         	logger.debug("#####################errorMessage is null");
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office));
-            printHashmap(airSolution.getNonSeamenHashMap(),false);//to be removed
+            //printHashmap(airSolution.getNonSeamenHashMap(),false);//to be removed
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 ///AirSolution seamenSolution = new AirSolution();
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
                 ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
                 airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office));
-                printHashmap(airSolution.getSeamenHashMap(),true);//to be removed
+                //printHashmap(airSolution.getSeamenHashMap(),true);//to be removed
                 ///seamenSolution.setNonSeamenHashMap(null);
                 //addSeamenFareToSolution(airSolution, seamenSolution);
             }

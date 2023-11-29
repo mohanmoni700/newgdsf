@@ -203,10 +203,10 @@ public class FlightSearchWrapper {
                                 hashMap.put(flightItinerary.hashCode(), flightItinerary);
                             }
                         }*/
-                        System.out.println("\n\n----------- before MergeResults "+ counter +"--------"+ searchResponse.getFlightSearchOffice().getOfficeId());
+                        logger.debug("\n\n----------- before MergeResults "+ counter +"--------"+ searchResponse.getFlightSearchOffice().getOfficeId());
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         mergeResults(hashMap, searchResponse);
-                        System.out.println("----------- After MergeResults "+ counter +"--------" +searchResponse.getFlightSearchOffice().getOfficeId());
+                        logger.debug("----------- After MergeResults "+ counter +"--------" +searchResponse.getFlightSearchOffice().getOfficeId());
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         errorMessageList.addAll(searchResponse.getErrorMessageList());
                         AirSolution airSolution = new AirSolution();
@@ -324,16 +324,6 @@ public class FlightSearchWrapper {
                 ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
 
                 for (Integer hashKey : allFightItineraries.keySet()) {
-                    if(hashKey == 1521758370 || hashKey == 1521756448){
-                        FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);
-                        FlightItinerary seamenItinerary = seamenFareHash.get(hashKey);
-                        if(seamenItinerary == null )
-                            System.out.println("***** 3: hashkey:"+ hashKey + "   mainItinerary: "+ mainFlightItinerary.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() );
-                        else{
-                            System.out.println("***** 31: hashkey:"+ hashKey + "   mainItinerary: "+ mainFlightItinerary.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() + "   tempItinerary:"+ seamenItinerary.getAmadeusOfficeId()+"  temp_price:"+seamenItinerary.getPricingInformation().getTotalPriceValue());
-                        }
-                        int t =0;
-                    }
 //                if(seamenFareHash == null && nonSeamenFareHash == null){
 //                    logger.debug("==================================NULL POINTER EXECEPTION============"+ searchResponse.getProvider()+Json.toJson(searchResponse));
 //                    break;
@@ -401,30 +391,8 @@ public class FlightSearchWrapper {
                         nonSeamenFareHash.remove(hashKey);
                     }
                 }
-                if(allFightItineraries.containsKey(1521756448) || allFightItineraries.containsKey(1521758370) ){
-                    FlightItinerary mainFlightItinerary = allFightItineraries.get(1521756448);
-                    FlightItinerary mainFlightItinerary1 = allFightItineraries.get(1521758370);
-                    if(mainFlightItinerary != null){
-                        System.out.println("***** 4-: hashkey:"+ 1521756448 + "   mainItinerary: "+ mainFlightItinerary.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() );
-                    }
-                    if(mainFlightItinerary1 != null){
-                        System.out.println("***** 4-: hashkey:"+ 1521758370 + "   mainItinerary: "+ mainFlightItinerary1.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary1.getSeamanPricingInformation().getTotalPriceValue() );
-                    }
-                    int t = 0;
-                }
                 ConcurrentHashMap<Integer, FlightItinerary> list = mergeSeamenAndNonSeamenResults(new ConcurrentHashMap<Integer, FlightItinerary>(), airSolution);
                 allFightItineraries.putAll(list);
-                if(allFightItineraries.containsKey(1521756448) || allFightItineraries.containsKey(1521758370) ){
-                    FlightItinerary mainFlightItinerary = allFightItineraries.get(1521756448);
-                    FlightItinerary mainFlightItinerary1 = allFightItineraries.get(1521758370);
-                    if(mainFlightItinerary != null){
-                        System.out.println("***** 5-: hashkey:"+ 1521756448 + "   mainItinerary: "+ mainFlightItinerary.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() );
-                    }
-                    if(mainFlightItinerary1 != null){
-                        System.out.println("***** 5-: hashkey:"+ 1521758370 + "   mainItinerary: "+ mainFlightItinerary1.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary1.getSeamanPricingInformation().getTotalPriceValue() );
-                    }
-                    int t = 0;
-                }
             }
         }catch (Exception e){
             logger.error("MergeResults:: ex:"+ e.getMessage());
@@ -456,13 +424,6 @@ public class FlightSearchWrapper {
         if (airSolution.getSeamenHashMap() != null && !airSolution.getSeamenHashMap().isEmpty()) {
             ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
             for (Integer hashKey : seamenFareHash.keySet()) {
-                if(hashKey == 1521758370 || hashKey == 1521756448){
-                    FlightItinerary mainFlightItinerary = seamenFareHash.get(hashKey);
-                    if(mainFlightItinerary != null){
-                        System.out.println("***** 1: hashkey:"+ hashKey + "   mainItinerary: "+ mainFlightItinerary.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary.getPricingInformation().getTotalPriceValue() );
-                    }
-                    int t = 0;
-                }
                 FlightItinerary seamenItinerary = null;
                 if (allFightItineraries.containsKey(hashKey)) {
                     seamenItinerary = seamenFareHash.get(hashKey);
@@ -480,19 +441,6 @@ public class FlightSearchWrapper {
                     allFightItineraries.put(hashKey, seamenItinerary);
                 }
             }
-        }
-        //System.out.println("\n\n after mergeSeamenAndNonSeamenResults");
-        //AmadeusFlightSearch.printHashmap(allFightItineraries,false);
-        if(allFightItineraries.containsKey(1521756448) || allFightItineraries.containsKey(1521758370) ){
-            FlightItinerary mainFlightItinerary = allFightItineraries.get(1521756448);
-            FlightItinerary mainFlightItinerary1 = allFightItineraries.get(1521758370);
-            if(mainFlightItinerary != null){
-                System.out.println("***** 2-: hashkey:"+ 1521756448 + "   mainItinerary: "+ mainFlightItinerary.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() );
-            }
-            if(mainFlightItinerary1 != null){
-                System.out.println("***** 2-: hashkey:"+ 1521758370 + "   mainItinerary: "+ mainFlightItinerary1.getAmadeusOfficeId() +"  main_price:"+mainFlightItinerary1.getSeamanPricingInformation().getTotalPriceValue() );
-            }
-            int t = 0;
         }
         return allFightItineraries;
     }
