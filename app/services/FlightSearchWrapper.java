@@ -443,6 +443,7 @@ public class FlightSearchWrapper {
             }
         }
         return allFightItineraries;
+        
     }
 
 //    private void compareItinerary(FlightItinerary mainFlightItinerary, FlightItinerary itinerary, boolean isSeaman, String provider){
