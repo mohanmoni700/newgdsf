@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.FlightIndex;
@@ -85,7 +86,6 @@ public class AmadeusFlightSearch implements FlightSearch{
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         logger.debug("#####################AmadeusFlightSearch started  : ");
         logger.debug("#####################SearchParameters: \n"+Json.toJson(searchParameters));
-        //SearchFlights searchFlights = new SearchFlights();
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         searchResponse.setProvider("Amadeus");
@@ -95,6 +95,16 @@ public class AmadeusFlightSearch implements FlightSearch{
 
         try {
             amadeusSessionWrapper = amadeusSessionManager.getSession(office);
+            //ServiceHandler serviceHandler = new ServiceHandler();
+            //SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
+            long startTime = System.currentTimeMillis();
+            amadeusSessionWrapper = amadeusSessionManager.getSession(office);
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+
+            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
+            //System.out.println("Execution time in getting session: " + duration/1000 + " seconds");
+            logger.debug("Execution time in getting session:: " + duration/1000 + " seconds");//to be removed
             //ServiceHandler serviceHandler = new ServiceHandler();
             //SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
 
@@ -181,6 +191,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
                 ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
                 airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office));
+                //printHashmap(airSolution.getSeamenHashMap(),true);//to be removed
                 ///seamenSolution.setNonSeamenHashMap(null);
                 //addSeamenFareToSolution(airSolution, seamenSolution);
             }
@@ -191,6 +202,36 @@ public class AmadeusFlightSearch implements FlightSearch{
         return searchResponse;
     }
 
+    //todo to be removed
+    public static void printHashmap(ConcurrentHashMap<Integer, FlightItinerary> hashMap, boolean iSeaman){
+        System.out.println("Is Seaman :"+ iSeaman + "  count:"+ hashMap.values().size() );
+        logger.debug("Is Seaman :"+ iSeaman + "  count:"+ hashMap.values().size());
+        boolean isMarine = false;
+        if(iSeaman)
+            isMarine = true;
+
+        for (Map.Entry<Integer, FlightItinerary> entry : hashMap.entrySet()) {
+            FlightItinerary value = entry.getValue();
+            if(entry.getKey() == 1521758370 || entry.getKey() == 1521756448){
+                //System.out.println("");
+            }
+            if(value.getSeamanPricingInformation() != null && value.getSeamanPricingInformation().getTotalPriceValue() != null){
+                isMarine = true;
+            }
+            String v = ", " + isMarine+", "+ value.getAmadeusOfficeId() + ", "+ value.getPricingInformation().getTotalPriceValue() +
+                    ", " + value.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode() +", "+ value.getJourneyList().get(0).getAirSegmentList().get(0).getFlightNumber()+ ",  "+ value.getJourneyList().get(0).getTravelTimeStr();
+            System.out.println(entry.getKey() + ",  " + v);
+            //logger.debug(entry.getKey() + ",  " + v);
+        }
+
+//        for (FlightItinerary value : hashMap.values()) {
+//            String v = "Value: " + value.getAmadeusOfficeId() + " "+ value.getPricingInformation().getTotalPriceValue() +
+//                    "  " + value.getSeamanPricingInformation().getTotalPriceValue() + "  "+ value.getJourneyList().get(0).getTravelTimeStr();
+//           // System.out.println(v);
+//
+//        }
+
+    }
     @Override
     public String provider() {
         return "Amadeus";
@@ -214,23 +255,29 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
-        String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
-        List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
-        for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
-            for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
-                FlightItinerary flightItinerary = new FlightItinerary();
-                flightItinerary.setPassportMandatory(false);
-                flightItinerary.setPricingInformation(getPricingInformation(recommendation));
-                flightItinerary.getPricingInformation().setGdsCurrency(currency);
-                List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
-                flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList);
-                flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
-                flightItinerary.setAmadeusOfficeId(office.getOfficeId());
-                flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+        try{
+            String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
+            List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
+            for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
+                for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
+                    FlightItinerary flightItinerary = new FlightItinerary();
+                    flightItinerary.setPassportMandatory(false);
+                    flightItinerary.setPricingInformation(getPricingInformation(recommendation));
+                    flightItinerary.getPricingInformation().setGdsCurrency(currency);
+                    List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
+                    flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList);
+                    flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
+                    flightItinerary.setAmadeusOfficeId(office.getOfficeId());
+                    flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+                }
             }
-        }
 
-        return flightItineraryHashMap;
+            return flightItineraryHashMap;
+        }catch (Exception e){
+            logger.debug("error in getFlightItineraryHashmap :"+ e.getMessage());
+        }finally {
+            return flightItineraryHashMap;
+        }
     }
 
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList){

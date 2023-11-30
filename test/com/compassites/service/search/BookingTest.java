@@ -10,6 +10,7 @@ import org.junit.Test;
 import services.AmadeusBookingServiceImpl;
 import services.BookingServiceWrapper;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
@@ -26,9 +27,9 @@ public class BookingTest {
 
         FlightItinerary fi1 = new FlightItinerary();
 //        fi1.setProvider(properties.getProperty("provider"));
-        fi1.getPricingInformation().setBasePrice(properties.getProperty("price"));
-        fi1.getPricingInformation().setTax(properties.getProperty("price"));
-        fi1.getPricingInformation().setTotalPrice(properties.getProperty("price"));
+        fi1.getPricingInformation().setBasePrice(new BigDecimal(properties.getProperty("price")));
+        fi1.getPricingInformation().setTax(new BigDecimal(properties.getProperty("price")));
+        fi1.getPricingInformation().setTotalPrice(new BigDecimal(properties.getProperty("price")));
         fi1.AddBlankJourney();
         Journey journey = fi1.getJourneyList().get(0);
         AirSegmentInformation segmentInformation = new AirSegmentInformation();
