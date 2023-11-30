@@ -49,6 +49,12 @@ public class PNRResponse {
 
     private boolean isChangedPriceLow;
 
+    private String creationOfficeId;
+
+    public String getCreationOfficeId() { return creationOfficeId; }
+
+    public void setCreationOfficeId(String creationOfficeId) { this.creationOfficeId = creationOfficeId; }
+
     public String getPnrNumber() {
         return pnrNumber;
     }
