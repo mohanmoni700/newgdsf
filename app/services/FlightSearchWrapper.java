@@ -172,37 +172,6 @@ public class FlightSearchWrapper {
                         searchResponseCache.setFlightSearchOffice(searchResponse.getFlightSearchOffice());
                         searchResponseCache.setProvider(searchResponse.getProvider());
                         //logger.debug("counter :"+counter+"Search Response FligthItinary Size: "+searchResponse.getAirSolution().getFlightItineraryList().size());
-                       /* for (FlightItinerary flightItinerary : searchResponse.getAirSolution().getFlightItineraryList()) {
-                            //logger.debug("FlightItinary string :"+flightItinerary.toString());
-                            if(hashMap.containsKey(flightItinerary.hashCode())){
-                                //logger.debug("Common Flights"+Json.toJson(flightItinerary));
-                                FlightItinerary hashFlightItinerary = hashMap.get(flightItinerary.hashCode());
-                                //if(searchParameters.getBookingType().equals(BookingType.NON_MARINE)){
-                                    if (hashFlightItinerary.getPricingInformation() != null && hashFlightItinerary.getPricingInformation().getTotalPrice() != null
-                                            && flightItinerary.getPricingInformation() != null && flightItinerary.getPricingInformation().getTotalPrice() != null) {
-                                        Integer hashItineraryPrice = new Integer(hashFlightItinerary.getPricingInformation().getTotalPrice());
-                                        Integer iteratorItineraryPrice = new Integer(flightItinerary.getPricingInformation().getTotalPrice());
-                                        if (iteratorItineraryPrice < hashItineraryPrice) {
-                                            hashMap.remove(hashFlightItinerary.hashCode());
-                                            hashMap.put(flightItinerary.hashCode(), flightItinerary);
-                                        }
-                                    } *//*else {
-                                        if (hashFlightItinerary.getSeamanPricingInformation() != null && hashFlightItinerary.getSeamanPricingInformation().getTotalPrice() != null
-                                                && flightItinerary.getSeamanPricingInformation() != null && flightItinerary.getSeamanPricingInformation().getTotalPrice() != null) {
-                                            Integer hashItineraryPrice = new Integer(hashFlightItinerary.getSeamanPricingInformation().getTotalPrice());
-                                            Integer iteratorItineraryPrice = new Integer(flightItinerary.getSeamanPricingInformation().getTotalPrice());
-                                            if (iteratorItineraryPrice < hashItineraryPrice) {
-                                                hashMap.remove(hashFlightItinerary.hashCode());
-                                                hashMap.put(flightItinerary.hashCode(), flightItinerary);
-                                            }
-                                        }
-                                    }*//*
-                                //}
-
-                            } else {
-                                hashMap.put(flightItinerary.hashCode(), flightItinerary);
-                            }
-                        }*/
                         logger.debug("\n\n----------- before MergeResults "+ counter +"--------"+ searchResponse.getFlightSearchOffice().getOfficeId());
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         mergeResults(hashMap, searchResponse);
