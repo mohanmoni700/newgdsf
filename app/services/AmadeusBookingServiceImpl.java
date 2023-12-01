@@ -540,7 +540,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
         }
 		pnrResponse.setFlightAvailable(true);
-
+		if(gdsPNRReply.getSecurityInformation() != null && gdsPNRReply.getSecurityInformation().getSecondRpInformation() != null)
+			pnrResponse.setCreationOfficeId(gdsPNRReply.getSecurityInformation().getSecondRpInformation().getCreationOfficeId());
 //		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
 //				.getTaxDetails(pricePNRReply));
 		logger.debug("todo createPNRResponse: "+ Json.stringify(Json.toJson(pnrResponse)) );

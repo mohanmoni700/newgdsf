@@ -271,13 +271,11 @@ public class AmadeusFlightSearch implements FlightSearch{
                     flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
                 }
             }
-
             return flightItineraryHashMap;
         }catch (Exception e){
             logger.debug("error in getFlightItineraryHashmap :"+ e.getMessage());
-        }finally {
-            return flightItineraryHashMap;
         }
+        return flightItineraryHashMap;
     }
 
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList){
