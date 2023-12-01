@@ -43,8 +43,8 @@ public class FlightSearchWrapper {
 
         logger.debug("\n\n***********SEARCH STARTED key: [" + redisKey + "]***********");
 
-        long startTime = System.currentTimeMillis();
-        SearchResponse searchResponseList = new SearchResponse();
+        //long startTime = System.currentTimeMillis();
+        //SearchResponse searchResponseList = new SearchResponse();
         int maxThreads = 0;
         for(FlightSearch flightSearch : flightSearchList){
             if(flightSearch.getOfficeList() == null || flightSearch.getOfficeList().size() == 0)
@@ -221,7 +221,7 @@ public class FlightSearchWrapper {
                         redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "partial" + counter);
                         redisTemplate.expire(searchParameters.redisKey()+":status",CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         //searchResponseList.remove(0);
-                        searchResponseList = searchResponseCache;
+                        //searchResponseList = searchResponseCache;
                         ////logger.debug("4-["+redisKey+"]Added response to final hashmap"+ counter +"  | from:" + searchResponseCache.getProvider()+ "  | office:"+ searchResponseCache.getFlightSearchOffice().getOfficeId()+"  | hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size() +" | search:"+ searchResponse.getAirSolution().getNonSeamenHashMap().size() + " + "+ searchResponse.getAirSolution().getNonSeamenHashMap().size());
                     }
                     else
