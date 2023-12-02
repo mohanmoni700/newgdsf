@@ -94,9 +94,6 @@ public class AmadeusFlightSearch implements FlightSearch{
         FareMasterPricerTravelBoardSearchReply seamenReply = null;
 
         try {
-            amadeusSessionWrapper = amadeusSessionManager.getSession(office);
-            //ServiceHandler serviceHandler = new ServiceHandler();
-            //SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
             long startTime = System.currentTimeMillis();
             amadeusSessionWrapper = amadeusSessionManager.getSession(office);
             long endTime = System.currentTimeMillis();
@@ -105,10 +102,6 @@ public class AmadeusFlightSearch implements FlightSearch{
             logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
             //System.out.println("Execution time in getting session: " + duration/1000 + " seconds");
             logger.debug("Execution time in getting session:: " + duration/1000 + " seconds");//to be removed
-            //ServiceHandler serviceHandler = new ServiceHandler();
-            //SessionHandler sessionHandler = new SessionHandler(amadeusSessionWrapper.getmSession());
-
-            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
 //            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
                 seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
