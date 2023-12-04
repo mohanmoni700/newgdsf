@@ -66,6 +66,8 @@ public class PricingInformation {
 
 	private String fareSourceCode;
 
+	private String pricingOfficeId;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
@@ -73,6 +75,14 @@ public class PricingInformation {
 		adtBasePrice = new BigDecimal(0);
 		chdBasePrice = new BigDecimal(0);
 		infBasePrice = new BigDecimal(0);
+	}
+
+	public String getPricingOfficeId() {
+		return pricingOfficeId;
+	}
+
+	public void setPricingOfficeId(String pricingOfficeId) {
+		this.pricingOfficeId = pricingOfficeId;
 	}
 
 	public boolean isLCC() {
