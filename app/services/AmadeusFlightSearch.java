@@ -110,7 +110,6 @@ public class AmadeusFlightSearch implements FlightSearch{
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
-                
                 searchParameters.setBookingType(BookingType.SEAMEN);
 //                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
                 
@@ -119,6 +118,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
+
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
 //                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
@@ -179,6 +179,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             //return flight
         	logger.debug("#####################errorMessage is null");
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office));
+            //printHashmap(airSolution.getNonSeamenHashMap(), false);
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 ///AirSolution seamenSolution = new AirSolution();
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
@@ -211,19 +212,11 @@ public class AmadeusFlightSearch implements FlightSearch{
             if(value.getSeamanPricingInformation() != null && value.getSeamanPricingInformation().getTotalPriceValue() != null){
                 isMarine = true;
             }
-            String v = ", " + isMarine+", "+ value.getAmadeusOfficeId() + ", "+ value.getPricingInformation().getTotalPriceValue() +
+            String v = ", " + isMarine+", "+ value.getPricingInformation().getPricingOfficeId() + ", "+ value.getPricingInformation().getTotalPriceValue() +
                     ", " + value.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode() +", "+ value.getJourneyList().get(0).getAirSegmentList().get(0).getFlightNumber()+ ",  "+ value.getJourneyList().get(0).getTravelTimeStr();
             System.out.println(entry.getKey() + ",  " + v);
             //logger.debug(entry.getKey() + ",  " + v);
         }
-
-//        for (FlightItinerary value : hashMap.values()) {
-//            String v = "Value: " + value.getAmadeusOfficeId() + " "+ value.getPricingInformation().getTotalPriceValue() +
-//                    "  " + value.getSeamanPricingInformation().getTotalPriceValue() + "  "+ value.getJourneyList().get(0).getTravelTimeStr();
-//           // System.out.println(v);
-//
-//        }
-
     }
     @Override
     public String provider() {
@@ -257,10 +250,11 @@ public class AmadeusFlightSearch implements FlightSearch{
                     flightItinerary.setPassportMandatory(false);
                     flightItinerary.setPricingInformation(getPricingInformation(recommendation));
                     flightItinerary.getPricingInformation().setGdsCurrency(currency);
+                    flightItinerary.getPricingInformation().setPricingOfficeId(office.getOfficeId());
                     List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
                     flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList);
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
-                    flightItinerary.setAmadeusOfficeId(office.getOfficeId());
+                    //flightItinerary.setAmadeusOfficeId(office.getOfficeId());
                     flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
                 }
             }

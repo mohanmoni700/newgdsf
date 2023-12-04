@@ -11,14 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
-import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
 
-import java.security.Provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map.Entry;
 import java.util.concurrent.*;
 
 /**
@@ -297,12 +294,13 @@ public class FlightSearchWrapper {
                                 || mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue() == null
                                 || (seamenItinerary.getPricingInformation() != null && seamenItinerary.getPricingInformation().getTotalPriceValue() != null
                                 && seamenItinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue())
-                                || (seamenItinerary.getAmadeusOfficeId().equalsIgnoreCase(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId())
+                                || (seamenItinerary.getPricingInformation().getPricingOfficeId().equalsIgnoreCase(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId())
                                 && seamenItinerary.getPricingInformation() != null && seamenItinerary.getPricingInformation().getTotalPriceValue() != null
                                 && seamenItinerary.getPricingInformation().getTotalPriceValue().longValue() <= mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue())) {
                             mainFlightItinerary.setSeamanPricingInformation(seamenItinerary.getPricingInformation());
                             mainFlightItinerary.setJourneyList(seamenItinerary.getJourneyList());
-                            mainFlightItinerary.setAmadeusOfficeId(seamenItinerary.getAmadeusOfficeId());
+                            //mainFlightItinerary.getSeamanPricingInformation().setPricingOfficeId(seamenItinerary.getPricingInformation().getPricingOfficeId());
+                            //mainFlightItinerary.setAmadeusOfficeId(seamenItinerary.getAmadeusOfficeId());
                         }
                         allFightItineraries.put(hashKey, mainFlightItinerary);
                         seamenFareHash.remove(hashKey);
@@ -314,12 +312,13 @@ public class FlightSearchWrapper {
                                 || mainFlightItinerary.getPricingInformation().getTotalPriceValue() == null
                                 || (nonSeamenItinerary.getPricingInformation() != null && nonSeamenItinerary.getPricingInformation().getTotalPriceValue() != null
                                 && nonSeamenItinerary.getPricingInformation().getTotalPriceValue().longValue() < mainFlightItinerary.getPricingInformation().getTotalPriceValue().longValue())
-                                || (nonSeamenItinerary.getAmadeusOfficeId().equalsIgnoreCase(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId())
+                                || (nonSeamenItinerary.getPricingInformation().getPricingOfficeId().equalsIgnoreCase(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId())
                                 && nonSeamenItinerary.getPricingInformation() != null && nonSeamenItinerary.getPricingInformation().getTotalPriceValue() != null
                                 && nonSeamenItinerary.getPricingInformation().getTotalPriceValue().longValue() <= mainFlightItinerary.getPricingInformation().getTotalPriceValue().longValue())) {
                             mainFlightItinerary.setPricingInformation(nonSeamenItinerary.getPricingInformation());
                             mainFlightItinerary.setNonSeamenJourneyList(nonSeamenItinerary.getJourneyList());
-                            mainFlightItinerary.setAmadeusOfficeId(nonSeamenItinerary.getAmadeusOfficeId());
+                            //mainFlightItinerary.getPricingInformation().setPricingOfficeId(nonSeamenItinerary.getPricingInformation().getPricingOfficeId());
+                            //mainFlightItinerary.setAmadeusOfficeId(nonSeamenItinerary.getAmadeusOfficeId());
                             //compareItinerary(mainFlightItinerary,nonSeamenItinerary,false, provider);
                         }
                         allFightItineraries.put(hashKey, mainFlightItinerary);
@@ -345,16 +344,25 @@ public class FlightSearchWrapper {
                 FlightItinerary seamenItinerary = seamenFareHash.get(hashKey);
                 if (allFightItineraries.containsKey(hashKey)) {
                     //seamenItinerary = seamenFareHash.get(hashKey);
-                    seamenItinerary.setPriceOnlyPTC(true);
-                    seamenItinerary.setPricingMessage(seamenFareHash.get(hashKey).getPricingMessage());
-                    seamenItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
-                    seamenItinerary.setPricingInformation(allFightItineraries.get(hashKey).getPricingInformation());
-                    seamenItinerary.setNonSeamenJourneyList(allFightItineraries.get(hashKey).getJourneyList());
-                    allFightItineraries.put(hashKey, seamenItinerary);
+                    FlightItinerary itinerary = allFightItineraries.get(hashKey);
+                    itinerary.setPriceOnlyPTC(true);
+                    itinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
+                    itinerary.setJourneyList(seamenFareHash.get(hashKey).getJourneyList());
+                    itinerary.setNonSeamenJourneyList(allFightItineraries.get(hashKey).getJourneyList());
+
+//                    //seamenItinerary.setPriceOnlyPTC(true);
+//                    seamenItinerary.setPricingMessage(seamenFareHash.get(hashKey).getPricingMessage());
+//                    seamenItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
+//                    //seamenItinerary.getSeamanPricingInformation().setSearchOfficeId(seamenFareHash.get(hashKey).getAmadeusOfficeId());
+//                    seamenItinerary.setPricingInformation(allFightItineraries.get(hashKey).getPricingInformation());
+//                    //seamenItinerary.getPricingInformation().setSearchOfficeId(seamenFareHash.get(hashKey).getAmadeusOfficeId());
+//                    seamenItinerary.setNonSeamenJourneyList(allFightItineraries.get(hashKey).getJourneyList());
+                    allFightItineraries.put(hashKey, itinerary);
                 } else {
                     //seamenItinerary = seamenFareHash.get(hashKey);
                     seamenItinerary.setPriceOnlyPTC(true);
                     seamenItinerary.setSeamanPricingInformation(seamenItinerary.getPricingInformation());
+                    //seamenItinerary.getSeamanPricingInformation().setSearchOfficeId(seamenItinerary.getAmadeusOfficeId());
                     //seamenItinerary.setPricingInformation(null); //to be checked
                     allFightItineraries.put(hashKey, seamenItinerary);
                 }

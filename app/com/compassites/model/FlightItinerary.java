@@ -33,7 +33,9 @@ public class FlightItinerary implements Serializable{
     
 //    private String provider; //travelport or amadeus
 
-    private String amadeusOfficeId;
+    //private String amadeusOfficeId;
+
+    //private String seamenAmadeusOfficeId;
     
     private String fareSourceCode; // for Mystifly
     
@@ -78,19 +80,28 @@ public class FlightItinerary implements Serializable{
         this.journeyList = journeyList;
     }
 
-    public String getAmadeusOfficeId() {
-        return amadeusOfficeId;
-    }
-
-    public void setAmadeusOfficeId(String amadeusOfficeId) {
-        this.amadeusOfficeId = amadeusOfficeId;
-    }
+//    public String getAmadeusOfficeId() {
+//        return amadeusOfficeId;
+//    }
+//
+//    public void setAmadeusOfficeId(String amadeusOfficeId) {
+//        this.amadeusOfficeId = amadeusOfficeId;
+//    }
 //    public String getProvider() {
 //        return provider;
 //    }
 //
 //    public void setProvider(String provider) {
 //        this.provider = provider;
+//    }
+
+
+//    public String getSeamenAmadeusOfficeId() {
+//        return seamenAmadeusOfficeId;
+//    }
+//
+//    public void setSeamenAmadeusOfficeId(String seamenAmadeusOfficeId) {
+//        this.seamenAmadeusOfficeId = seamenAmadeusOfficeId;
 //    }
 
     public PricingInformation getPricingInformation() {
