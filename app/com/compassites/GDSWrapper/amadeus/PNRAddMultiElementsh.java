@@ -118,7 +118,9 @@ public class PNRAddMultiElementsh {
         LongFreeTextType freetextItinerary = new LongFreeTextType();
         FreeTextQualificationType freetextDetail1 = new FreeTextQualificationType();
         freetextDetail1.setSubjectQualifier("3");
-        freetextItinerary.setLongFreetext("THANK YOU FOR CHOOSING Flyhi TRAVELS");
+        freetextDetail1.setCompanyId("TK");
+        freetextItinerary.setFreetextDetail(freetextDetail1);
+        //freetextItinerary.setLongFreetext("THANK YOU FOR CHOOSING Flyhi TRAVELS");
         airAuxItinerary.setFreetextItinerary(freetextItinerary);
         itineraryInfo.setAirAuxItinerary(airAuxItinerary);
         itineraryInfos.add(itineraryInfo);
