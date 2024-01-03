@@ -125,17 +125,17 @@ public class AmadeusSourceOfficeService {
         }
     }
 
-    public FlightSearchOffice getPrioritySourceOffice(){
-        Optional<FlightSearchOffice> foundOffice = getAllOffices().stream()
-                .filter(office -> office.getOfficeId().equalsIgnoreCase(EOffice_source.eMumbai_id.type))
-                .findFirst();
-        if (foundOffice.isPresent()) {
-            return foundOffice.get();
-        } else {
-            return null;
-        }
+    public FlightSearchOffice getPrioritySourceOffice() {
+        return new FlightSearchOffice(EOffice_source.eMumbai_id.type, "Mumbai", false);
     }
 
+    public FlightSearchOffice getDelhiSourceOffice(){
+        return new FlightSearchOffice(EOffice_source.eDelhi_id.type,"Delhi", false );
+    }
+
+    public FlightSearchOffice getBenzySourceOffice(){
+        return new FlightSearchOffice(EOffice_source.eBenzy_id.type,"Benzy", true );
+    }
 
     public boolean isPriorityOffice(String officeId){
         FlightSearchOffice off1 = getOfficeById(officeId);
