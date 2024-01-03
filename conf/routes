@@ -18,6 +18,7 @@ POST	/getBookingDetails						   @controllers.Application.getBookingDetails()
 POST	/lowestFare                                @controllers.Application.getLowestFare()
 POST 	/cancelPNR                                 @controllers.Application.cancelPNR()
 POST    /getBookingDetailsForPNR                   @controllers.Application.getBookingDetailsForPNR()
+POST    /generateTempPNR                           @controllers.Application.generateTempPNR()
 
 GET     /getQueueListInfo                       @controllers.Application.getQueueListInfo()
 

@@ -150,6 +150,8 @@ public class AmadeusFlightSearch implements FlightSearch{
         FareMasterPricerTravelBoardSearchReply.ErrorMessage errorMessage = fareMasterPricerTravelBoardSearchReply.getErrorMessage();
         if (seamenReply != null) {
             seamenErrorMessage = seamenReply.getErrorMessage();
+            if(seamenErrorMessage != null)
+                logger.debug("seamenErrorMessage :" + seamenErrorMessage.getErrorMessageText().getDescription() + "  officeId:"+ office.getOfficeId());
         }
 
         AirSolution airSolution = new AirSolution();

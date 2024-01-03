@@ -86,6 +86,15 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
+    public Result generateTempPNR() {
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- generateTempPNR PNR Request: " + json);
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        PNRResponse pnrResponse = bookingService.createTempPNR(travellerMasterInfo);
+        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        return Controller.ok(Json.toJson(pnrResponse));
+    }
+
     public Result splitPNR(){
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);

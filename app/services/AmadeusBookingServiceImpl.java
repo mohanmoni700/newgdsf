@@ -31,6 +31,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 //import com.sun.org.apache.xpath.internal.operations.Bool;
 import models.AmadeusSessionWrapper;
+import models.FlightSearchOffice;
 import models.MiniRule;
 import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import play.libs.F;
 import play.libs.Json;
 import utils.*;
 
@@ -452,9 +454,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 	public void checkFlightAvailibility(TravellerMasterInfo travellerMasterInfo,ServiceHandler serviceHandler, PNRResponse pnrResponse, AmadeusSessionWrapper amadeusSessionWrapper) {
         logger.debug("checkFlightAvailibility called ........");
+		System.out.println("4");
 		AirSellFromRecommendationReply sellFromRecommendation = serviceHandler
 				.checkFlightAvailability(travellerMasterInfo, amadeusSessionWrapper);
-
+		System.out.println("5");
 		if (sellFromRecommendation.getErrorAtMessageLevel() != null
 				&& sellFromRecommendation.getErrorAtMessageLevel().size() > 0
 				&& (sellFromRecommendation.getItineraryDetails() == null)) {
@@ -502,6 +505,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		if(travellerMasterInfo.getItinerary().getPricingInformation()!=null) {
 			isSegmentWisePricing = travellerMasterInfo.getItinerary().getPricingInformation().isSegmentWisePricing();
 		}
+		System.out.println("10");
 		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, travellerMasterInfo.getItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper);
 		if(pricePNRReply.getApplicationError() != null) {
 			pnrResponse.setFlightAvailable(false);
@@ -617,6 +621,50 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 	}
 
+	public PNRResponse createTempPNR(TravellerMasterInfo travellerMasterInfo) {
+		logger.debug("createTempPNR called in service..");
+		PNRResponse pnrResponse = new PNRResponse();
+		FarePricePNRWithBookingClassReply pricePNRReply = null;
+		String tstRefNo = "";
+		AmadeusSessionWrapper amadeusSessionWrapper = null;
+		PNRReply gdsPNRReply = null;
+		try {
+
+			amadeusSessionWrapper = serviceHandler.logIn();
+			checkFlightAvailibility(travellerMasterInfo, serviceHandler,
+					pnrResponse, amadeusSessionWrapper);
+				serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
+				gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+				tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+				System.out.println(tstRefNo);
+				Thread.sleep(10000);
+				gdsPNRReply = serviceHandler.retrivePNR(tstRefNo,amadeusSessionWrapper);
+				createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse,travellerMasterInfo);
+		} catch (Exception e) {
+			logger.error("todo error in generating tmp PNR"+ e.getMessage());
+			e.printStackTrace();
+			logger.error("error in generateTmpPNR : ", e);
+			if(BaseCompassitesException.ExceptionCode.NO_SEAT.toString().equalsIgnoreCase(e.getMessage().toString())){
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setErrorCode(StaticConstatnts.NO_SEAT);
+				errorMessage.setType(ErrorMessage.ErrorType.ERROR);
+				errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
+				errorMessage.setMessage(e.getMessage());
+				errorMessage.setGdsPNR(tstRefNo);
+				pnrResponse.setErrorMessage(errorMessage);
+			} else {
+				ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
+						"error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+				pnrResponse.setErrorMessage(errorMessage);
+			}
+		}finally {
+			if (amadeusSessionWrapper != null) {
+				amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
+				serviceHandler.logOut(amadeusSessionWrapper);
+			}
+		}
+		return pnrResponse;
+	}
 	public PNRResponse checkFareChangeAndAvailability(
 			TravellerMasterInfo travellerMasterInfo) {
         logger.debug("checkFareChangeAndAvailability called...........");

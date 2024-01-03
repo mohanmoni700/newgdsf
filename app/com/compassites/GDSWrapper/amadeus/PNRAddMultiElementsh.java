@@ -7,6 +7,9 @@ import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
+import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
+import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
+import com.amadeus.xml.pnrxcl_11_3_1a.ReservationControlInformationType;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
@@ -75,7 +78,9 @@ public class PNRAddMultiElementsh {
         PNRAddMultiElements.OriginDestinationDetails originDestinationDetails = new PNRAddMultiElements.OriginDestinationDetails();
         OriginAndDestinationDetailsTypeI originAndDestinationDetailsTypeI = new OriginAndDestinationDetailsTypeI();
         originAndDestinationDetailsTypeI.setOrigin(fromLocation);
-        originAndDestinationDetailsTypeI.setDestination(toLocation);
+        if(!travellerMasterInfo.isCreateTmpPNR()) {
+            originAndDestinationDetailsTypeI.setDestination(toLocation);
+        }
         originDestinationDetails.setOriginDestination(originAndDestinationDetailsTypeI);
 
         List<PNRAddMultiElements.OriginDestinationDetails.ItineraryInfo> itineraryInfos = new ArrayList<>();
@@ -118,7 +123,9 @@ public class PNRAddMultiElementsh {
         LongFreeTextType freetextItinerary = new LongFreeTextType();
         FreeTextQualificationType freetextDetail1 = new FreeTextQualificationType();
         freetextDetail1.setSubjectQualifier("3");
-        freetextItinerary.setLongFreetext("THANK YOU FOR CHOOSING Flyhi TRAVELS");
+        freetextDetail1.setCompanyId("TK");
+        freetextItinerary.setFreetextDetail(freetextDetail1);
+        //freetextItinerary.setLongFreetext("THANK YOU FOR CHOOSING Flyhi TRAVELS");
         airAuxItinerary.setFreetextItinerary(freetextItinerary);
         itineraryInfo.setAirAuxItinerary(airAuxItinerary);
         itineraryInfos.add(itineraryInfo);
@@ -850,5 +857,63 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         de.setReferenceForDataElement(referenceForDataElement);
 
         return de;
+    }
+
+    public PNRAddMultiElements esxEntry() {
+        PNRAddMultiElements element = new PNRAddMultiElements();
+        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+        pnrActions.getOptionCode().add(new BigInteger("11"));
+        element.setPnrActions(pnrActions);
+
+        DataElementsMaster dataElementsMaster =  new DataElementsMaster();
+        DataElementsIndiv dataElementsIndiv = new DataElementsIndiv();
+
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+        elementManagementData.setSegmentName("ES");
+
+        IndividualPnrSecurityInformationType individualPnrSecurityInformationType = new IndividualPnrSecurityInformationType();
+        IndividualSecurityType individualSecurityType = new IndividualSecurityType();
+        individualSecurityType.setIdentification("BOMAK38SN");
+        individualSecurityType.setAccessMode("B");
+        individualPnrSecurityInformationType.getSecurity().add(individualSecurityType);
+        dataElementsIndiv.setPnrSecurity(individualPnrSecurityInformationType);
+        dataElementsIndiv.setElementManagementData(elementManagementData);
+
+        DataElementsIndiv dataElementsIndiv1 = new DataElementsIndiv();
+        ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
+        elementManagementData1.setSegmentName("RF");
+        dataElementsIndiv1.setElementManagementData(elementManagementData1);
+
+        LongFreeTextType freetextData = new LongFreeTextType();
+        FreeTextQualificationType freetextDetail = new FreeTextQualificationType();
+        freetextDetail.setSubjectQualifier("3");
+        freetextDetail.setType("P22");
+        freetextData.setFreetextDetail(freetextDetail);
+        freetextData.setLongFreetext("RF ADDED VIA PNRADD");
+        dataElementsIndiv1.setFreetextData(freetextData);
+        dataElementsMaster.getDataElementsIndiv().add(dataElementsIndiv);
+        dataElementsMaster.getDataElementsIndiv().add(dataElementsIndiv1);
+        dataElementsMaster.setMarker1(new DummySegmentTypeI());
+        element.setDataElementsMaster(dataElementsMaster);
+        return element;
+    }
+
+    public PNRCancel exitEsx(String pnr) {
+        PNRCancel pnrCancel =  new PNRCancel();
+
+        ReservationControlInformationType reservationControlInformationType = new ReservationControlInformationType();
+        com.amadeus.xml.pnrxcl_11_3_1a.ReservationControlInformationDetailsTypeI reservationControlInformationDetailsTypeI = new com.amadeus.xml.pnrxcl_11_3_1a.ReservationControlInformationDetailsTypeI();
+        reservationControlInformationDetailsTypeI.setControlNumber(pnr);
+        reservationControlInformationType.setReservation(reservationControlInformationDetailsTypeI);
+        pnrCancel.setReservationInfo(reservationControlInformationType);
+
+        com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType pnrActionsType = new com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType();
+        pnrActionsType.getOptionCode().add(new BigInteger(String.valueOf(0)));
+        pnrCancel.setPnrActions(pnrActionsType);
+
+        CancelPNRElementType cancelPNRElementType = new CancelPNRElementType();
+        cancelPNRElementType.setEntryType("S");
+        pnrCancel.getCancelElements().add(cancelPNRElementType);
+        return pnrCancel;
     }
 }
