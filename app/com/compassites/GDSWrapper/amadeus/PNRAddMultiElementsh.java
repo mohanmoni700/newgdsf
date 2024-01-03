@@ -78,7 +78,9 @@ public class PNRAddMultiElementsh {
         PNRAddMultiElements.OriginDestinationDetails originDestinationDetails = new PNRAddMultiElements.OriginDestinationDetails();
         OriginAndDestinationDetailsTypeI originAndDestinationDetailsTypeI = new OriginAndDestinationDetailsTypeI();
         originAndDestinationDetailsTypeI.setOrigin(fromLocation);
-        originAndDestinationDetailsTypeI.setDestination(toLocation);
+        if(!travellerMasterInfo.isCreateTmpPNR()) {
+            originAndDestinationDetailsTypeI.setDestination(toLocation);
+        }
         originDestinationDetails.setOriginDestination(originAndDestinationDetailsTypeI);
 
         List<PNRAddMultiElements.OriginDestinationDetails.ItineraryInfo> itineraryInfos = new ArrayList<>();

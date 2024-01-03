@@ -46,6 +46,8 @@ public class TravellerMasterInfo {
 
     private String userTimezone;
 
+    private boolean isCreateTmpPNR;
+
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
     }
@@ -176,5 +178,13 @@ public class TravellerMasterInfo {
             }
         }
         return count;
+    }
+
+    public boolean isCreateTmpPNR() {
+        return isCreateTmpPNR;
+    }
+
+    public void setCreateTmpPNR(boolean createTmpPNR) {
+        isCreateTmpPNR = createTmpPNR;
     }
 }

@@ -75,6 +75,15 @@ public class BookingServiceWrapper {
 		return pnrResponse;
 	}
 
+	public PNRResponse createTempPNR(TravellerMasterInfo travellerMasterInfo) {
+		String provider = getProvider(travellerMasterInfo);
+		PNRResponse pnrResponse = null;
+		if ("Amadeus".equalsIgnoreCase(provider)) {
+			pnrResponse = amadeusBookingService.createTempPNR(travellerMasterInfo);
+		}
+		return pnrResponse;
+	}
+
 	public SplitPNRResponse splitPNR( IssuanceRequest issuanceRequest){
 		SplitPNRResponse splitPNRResponse = null;
 		if("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
