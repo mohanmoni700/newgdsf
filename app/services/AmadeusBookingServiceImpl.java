@@ -648,8 +648,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		try {
 
 			amadeusSessionWrapper = serviceHandler.logIn();
-			checkFlightAvailibility(travellerMasterInfo, serviceHandler,
-					pnrResponse, amadeusSessionWrapper);
+			checkFlightAvailibility(travellerMasterInfo, pnrResponse, amadeusSessionWrapper);
 				serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
 				gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 				tstRefNo = getPNRNoFromResponse(gdsPNRReply);
@@ -852,7 +851,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		try {
 			amadeusSessionWrapper = serviceHandler.logIn();
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
-			miniRuleGetFromPricingRecReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
+			miniRuleGetFromPricingRecReply = serviceHandler.retriveMiniRuleFromPNR(amadeusSessionWrapper, gdsPNR);
 			Map<String, String> segmentRefMap = new HashMap<>();
 
 			//origin Destination map
