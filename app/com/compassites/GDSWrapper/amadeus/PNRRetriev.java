@@ -99,4 +99,17 @@ public class PNRRetriev {
 
         return miniRuleGetFromPricing;
     }
+    public MiniRuleGetFromRec miniRuleGetFromPNR(String pnr){
+        MiniRuleGetFromRec miniRuleGetFromPricing = new MiniRuleGetFromRec();
+        ItemReferencesAndVersionsType itemReferencesAndVersionsType = new ItemReferencesAndVersionsType();
+        itemReferencesAndVersionsType.setReferenceType("PNR");
+        itemReferencesAndVersionsType.setUniqueReference(pnr);
+        MiniRuleGetFromRec.GroupRecords groupRecord = new MiniRuleGetFromRec.GroupRecords();
+        groupRecord.setRecordID(itemReferencesAndVersionsType);
+        miniRuleGetFromPricing.getGroupRecords().add(groupRecord);
+
+        return miniRuleGetFromPricing;
+    }
+
+
 }
