@@ -19,19 +19,10 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Airport extends Model implements Serializable {
-	public Airport() {
-
-	}
 
 	@Column(name = "id")
 	@Id
-	private Integer id;
-
-	/*@Column(name = "ident")
-	private String ident;*/
-
-	@Column(name = "type")
-	private String type;
+	private Long id;
 
 	@Column(name = "airport_name")
 	private String airportName;
@@ -42,29 +33,14 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "longitude")
 	private String longitude;
 
-	/*@Column(name = "elevation_ft")
-	private String elevation_ft;*/
-
-	/*@Column(name = "continent")
-	private String continent;*/
-
 	@Column(name = "iso_country")
 	private String iso_country;
-
-/*	@Column(name = "iso_region")
-	private String iso_region;
-
-	@Column(name = "scheduled_service")
-	private String scheduled_service;*/
 
 	@Column(name = "city_name")
 	private String cityName;
 
 	@Column(name = "iata_code")
 	private String iata_code;
-
-	/*@Column(name = "gps_code")
-	private String gps_code;*/
 
 	@Column(name = "local_code")
 	private String local_code;
@@ -81,93 +57,67 @@ public class Airport extends Model implements Serializable {
 	@Column(name = "gmt_offset")
 	private String gmtOffset;
 
+	@Transient
+	private String distance;
+
+	@Column(name = "city_code")
+	private String cityCode;
 
 	@Column(name = "alt")
 	private Long alt;
 
-	/*@Column(name = "alternatenames")
-	private String alternateNames;
-
-	@Column(name = "connections")
-	private Long connections;
-
-	@Column(name = "departures")
-	private Long departures;
-
-	@Column(name = "facebook")
-	private String facebook;*/
-
 	@Column(name = "icao_code")
 	private String icaoCode;
-
-	/*@Column(name = "instagram")
-	private String instagram;*/
-
-	@Column(name = "is_international")
-	private Long isInternational;
-
-	@Column(name = "is_major")
-	private boolean isMajor;
-
-	@Column(name = "phone")
-	private String phone;
-
-	@Column(name = "phone_formatted")
-	private String phoneFormatted;
-
-	@Column(name = "popularity")
-	private Long popularity;
-
-	/*@Column(name = "postal_code")
-	private String postalCode;
-
-	@Column(name = "runways")
-	private Long runways;
-
-	@Column(name = "slug")
-	private String slug;*/
 
 	@Column(name = "state")
 	private String state;
 
-	@Column(name = "time_now")
-	private String timeNow;
-
-	/*@Column(name = "twitter")
-	private String twitter;
-
-	@Column(name = "un_locode")
-	private String unLocode;
 
 	@Column(name = "weather_zone")
 	private String weatherZone;
 
-	@Column(name = "website")
-	private String website;*/
+	@Column(name = "fs")
+	private String fs;
 
-	@Transient
-	private String distance;
+	@Column(name = "state_code")
+	private String stateCode;
 
-    @Column(name = "city_code")
-    private String cityCode;
+	@Column(name = "region_name")
+	private String regionName;
+
+	@Column(name = "weather_url")
+	private String weatherUrl;
+
+	@Column(name = "delay_index_url")
+	private String delayIndexUrl;
+
+	public static final String IATA_CODE = "iata_code";
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public String getGmtOffset() {
+		return gmtOffset;
+	}
+
+	public void setGmtOffset(String gmtOffset) {
+		this.gmtOffset = gmtOffset;
+	}
 
 	public static Finder<Integer, Airport> find = new Finder<Integer, Airport>(
 			Integer.class, Airport.class);
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
 	}
 
 	public String getAirportName() {
@@ -194,6 +144,7 @@ public class Airport extends Model implements Serializable {
 		this.longitude = longitude;
 	}
 
+
 	public String getIso_country() {
 		return iso_country;
 	}
@@ -201,6 +152,7 @@ public class Airport extends Model implements Serializable {
 	public void setIso_country(String iso_country) {
 		this.iso_country = iso_country;
 	}
+
 
 	public String getCityName() {
 		return cityName;
@@ -218,11 +170,6 @@ public class Airport extends Model implements Serializable {
 		this.iata_code = iata_code;
 	}
 
-	/*
-	 * public String getGps_code() { return gps_code; }
-	 * 
-	 * public void setGps_code(String gps_code) { this.gps_code = gps_code; }
-	 */
 
 	public String getLocal_code() {
 		return local_code;
@@ -248,22 +195,6 @@ public class Airport extends Model implements Serializable {
 		this.dst = dst;
 	}
 
-	public String getCountry() {
-		return country;
-	}
-
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	public String getGmtOffset() {
-		return gmtOffset;
-	}
-
-	public void setGmtOffset(String gmtOffset) {
-		this.gmtOffset = gmtOffset;
-	}
-
 	public String getDistance() {
 		return distance;
 	}
@@ -272,14 +203,17 @@ public class Airport extends Model implements Serializable {
 		this.distance = distance;
 	}
 
-    public String getCityCode() {
-        return cityCode;
-    }
+	public String getCityCode() {
+		return cityCode;
+	}
 
-    public void setCityCode(String cityCode) {
-        this.cityCode = cityCode;
-    }
+	public void setCityCode(String cityCode) {
+		this.cityCode = cityCode;
+	}
 
+	public static int findRowCount() {
+		return find.findRowCount();
+	}
 	public Long getAlt() {
 		return alt;
 	}
@@ -288,37 +222,6 @@ public class Airport extends Model implements Serializable {
 		this.alt = alt;
 	}
 
-	/*public String getAlternateNames() {
-		return alternateNames;
-	}
-
-	public void setAlternateNames(String alternateNames) {
-		this.alternateNames = alternateNames;
-	}
-
-	public Long getConnections() {
-		return connections;
-	}
-
-	public void setConnections(Long connections) {
-		this.connections = connections;
-	}
-
-	public Long getDepartures() {
-		return departures;
-	}
-
-	public void setDepartures(Long departures) {
-		this.departures = departures;
-	}
-
-	public String getFacebook() {
-		return facebook;
-	}
-
-	public void setFacebook(String facebook) {
-		this.facebook = facebook;
-	}*/
 
 	public String getIcaoCode() {
 		return icaoCode;
@@ -328,77 +231,7 @@ public class Airport extends Model implements Serializable {
 		this.icaoCode = icaoCode;
 	}
 
-	/*public String getInstagram() {
-		return instagram;
-	}
 
-	public void setInstagram(String instagram) {
-		this.instagram = instagram;
-	}*/
-
-	public Long getIsInternational() {
-		return isInternational;
-	}
-
-	public void setIsInternational(Long isInternational) {
-		this.isInternational = isInternational;
-	}
-
-	public boolean isMajor() {
-		return isMajor;
-	}
-
-	public void setMajor(boolean major) {
-		isMajor = major;
-	}
-
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-	public String getPhoneFormatted() {
-		return phoneFormatted;
-	}
-
-	public void setPhoneFormatted(String phoneFormatted) {
-		this.phoneFormatted = phoneFormatted;
-	}
-
-	public Long getPopularity() {
-		return popularity;
-	}
-
-	public void setPopularity(Long popularity) {
-		this.popularity = popularity;
-	}
-
-	/*public String getPostalCode() {
-		return postalCode;
-	}
-
-	public void setPostalCode(String postalCode) {
-		this.postalCode = postalCode;
-	}
-
-	public Long getRunways() {
-		return runways;
-	}
-
-	public void setRunways(Long runways) {
-		this.runways = runways;
-	}
-
-	public String getSlug() {
-		return slug;
-	}
-
-	public void setSlug(String slug) {
-		this.slug = slug;
-	}*/
 
 	public String getState() {
 		return state;
@@ -407,46 +240,6 @@ public class Airport extends Model implements Serializable {
 	public void setState(String state) {
 		this.state = state;
 	}
-
-	public String getTimeNow() {
-		return timeNow;
-	}
-
-	public void setTimeNow(String timeNow) {
-		this.timeNow = timeNow;
-	}
-
-	/*public String getTwitter() {
-		return twitter;
-	}
-
-	public void setTwitter(String twitter) {
-		this.twitter = twitter;
-	}
-
-	public String getUnLocode() {
-		return unLocode;
-	}
-
-	public void setUnLocode(String unLocode) {
-		this.unLocode = unLocode;
-	}
-
-	public String getWeatherZone() {
-		return weatherZone;
-	}
-
-	public void setWeatherZone(String weatherZone) {
-		this.weatherZone = weatherZone;
-	}
-
-	public String getWebsite() {
-		return website;
-	}
-
-	public void setWebsite(String website) {
-		this.website = website;
-	}*/
 
 	public static Finder<Integer, Airport> getFind() {
 		return find;
