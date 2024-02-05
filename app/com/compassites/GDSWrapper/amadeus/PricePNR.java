@@ -38,6 +38,7 @@ public class PricePNR {
         CodedAttributeType overrideInformation = new CodedAttributeType();
         ReferenceInformationTypeI94605S paxSegReference = new ReferenceInformationTypeI94605S();
         ReferencingDetailsTypeI142222C refDetails = new ReferencingDetailsTypeI142222C();
+        String airlineStr = play.Play.application().configuration().getString("vistara.airline.code");
 
         if(isSegmentWisePricing){
             for(AirSegmentInformation airSegment : airSegmentList)  {
@@ -100,18 +101,29 @@ public class PricePNR {
         //attributeDetails.setAttributeType("NOP");
         //attributeDetails.setAttributeDescription("XN");
         if(isSeamen) {
-            attributeDetails.setAttributeType("ptc");
-            //overrideInformation.getAttributeDetails().add(attributeDetails);
-            attributeList.add(attributeDetails);
+            if(!carrierCode.equalsIgnoreCase(airlineStr)) {
+                attributeDetails.setAttributeType("ptc");
+                //overrideInformation.getAttributeDetails().add(attributeDetails);
+                attributeList.add(attributeDetails);
+            }
             attributeDetails=new CodedAttributeInformationType();
             attributeDetails.setAttributeType("RP");
             attributeList.add(attributeDetails);
             attributeDetails=new CodedAttributeInformationType();
             attributeDetails.setAttributeType("RU");
             attributeList.add(attributeDetails);
-            attributeDetails=new CodedAttributeInformationType();
-            attributeDetails.setAttributeType("RLO");
-            attributeList.add(attributeDetails);
+
+            if(carrierCode.equalsIgnoreCase(airlineStr)) {
+                attributeDetails=new CodedAttributeInformationType();
+                attributeDetails.setAttributeType("RW");
+                attributeDetails.setAttributeDescription("029608");
+                attributeList.add(attributeDetails);
+
+            } else {
+                attributeDetails=new CodedAttributeInformationType();
+                attributeDetails.setAttributeType("RLO");
+                attributeList.add(attributeDetails);
+            }
             overrideInformation.getAttributeDetails().addAll(attributeList);
 
 
@@ -163,7 +175,11 @@ public class PricePNR {
             DiscountAndPenaltyInformationTypeI penDisInfo = new DiscountAndPenaltyInformationTypeI();
             penDisInfo.setInfoQualifier("701");
             DiscountPenaltyMonetaryInformationTypeI penDisData = new DiscountPenaltyMonetaryInformationTypeI();
-            penDisData.setDiscountCode("SEA");
+            if(carrierCode.equalsIgnoreCase("UK")) {
+                penDisData.setDiscountCode("SC");
+            } else {
+                penDisData.setDiscountCode("SEA");
+            }
             penDisInfo.getPenDisData().add(penDisData);
             discountInfo.setPenDisInformation(penDisInfo);
             pricepnr.getDiscountInformation().add(discountInfo);
