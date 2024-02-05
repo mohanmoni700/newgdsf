@@ -47,6 +47,7 @@ import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import play.Play;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
@@ -67,6 +68,7 @@ public class ServiceHandler {
     static Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
     static Logger logger = LoggerFactory.getLogger("gds");
+    static Logger loggerTemp = LoggerFactory.getLogger("gds_search");
 
     public static String endPoint = null;
 
@@ -125,16 +127,29 @@ public class ServiceHandler {
 
     public AmadeusSessionWrapper logIn(FlightSearchOffice office) {
         logger.debug("amadeus login called....................");
+        AmadeusSessionWrapper amadeusSessionWrapper = logIn(office.getOfficeId());
+//        Holder<Session> sessionHolder = amadeusSessionWrapper.resetSession();
+//        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getOfficeId());
+//        amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
+//        SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, sessionHolder);
+//        amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
+//        amadeusSessionWrapper.setmSession(sessionHolder);
+//        amadeusSessionWrapper.setOfficeId(office.getOfficeId());
+        amadeusSessionWrapper.setPartnerName(office.getName());
+
+        return amadeusSessionWrapper;
+    }
+
+    public AmadeusSessionWrapper logIn(String officeId) {
+        logger.debug("amadeus login called....................");
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
         Holder<Session> sessionHolder = amadeusSessionWrapper.resetSession();
-        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(office.getOfficeId());
+        SecurityAuthenticate securityAuthenticateReq = MessageFactory.getInstance().getAuthenticationRequest(officeId);
         amadeusLogger.debug("securityAuthenticateReq " + new Date() + " ---->" + new XStream().toXML(securityAuthenticateReq));
         SecurityAuthenticateReply securityAuthenticate = mPortType.securityAuthenticate(securityAuthenticateReq, sessionHolder);
         amadeusLogger.debug("securityAuthenticateRes " + new Date() + " ---->" + new XStream().toXML(securityAuthenticate));
         amadeusSessionWrapper.setmSession(sessionHolder);
-        amadeusSessionWrapper.setOfficeId(office.getOfficeId());
-        amadeusSessionWrapper.setPartnerName(office.getName());
-
+        amadeusSessionWrapper.setOfficeId(officeId);
         return amadeusSessionWrapper;
     }
 
@@ -159,7 +174,8 @@ public class ServiceHandler {
         FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters);
         amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession());
-        logger.debug("AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession());//todo
+        if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
+            loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
         logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
         return  SearchReply;
     }
@@ -219,6 +235,26 @@ public class ServiceHandler {
     }
 
     public PNRReply savePNR(AmadeusSessionWrapper amadeusSessionWrapper) {
+        amadeusSessionWrapper.incrementSequenceNumber();
+        logger.debug("amadeus savePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+        PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().savePnr();
+        amadeusLogger.debug("savePNRReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrAddMultiElements));
+        PNRReply pnrReply =  mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("savePNRRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
+    }
+
+    public PNRReply savePNRES(AmadeusSessionWrapper amadeusSessionWrapper, String officeId) {
+        amadeusSessionWrapper.incrementSequenceNumber();
+        logger.debug("amadeus savePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+        PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().esxEntry(officeId);
+        amadeusLogger.debug("savePNRReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrAddMultiElements));
+        PNRReply pnrReply =  mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("savePNRRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
+    }
+
+    public PNRReply savePNRES(AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber();
         logger.debug("amadeus savePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().savePnr();
@@ -364,6 +400,17 @@ public class ServiceHandler {
     	FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("FarePricePNRWithLowestFareReplyRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(farePricePNRWithLowestFareReply));
     	return farePricePNRWithLowestFareReply;
+    }
+
+    public PNRReply exitESPnr(PNRCancel pnrCancel, AmadeusSessionWrapper amadeusSessionWrapper) {
+        logger.debug("exitESPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
+        amadeusSessionWrapper.incrementSequenceNumber();
+        amadeusLogger.debug("ExitESpnrReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrCancel));
+        //PNRReply pnrReply = new PNRReply();
+        PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("ExitESRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
     }
 
 

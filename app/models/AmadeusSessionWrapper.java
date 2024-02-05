@@ -74,7 +74,7 @@ public class AmadeusSessionWrapper extends Model{
     public String printSession(){
         Holder<Session> mSession = getmSession();
         String printString = "Stoken:" +mSession.value.getSecurityToken() + "  SNum:"+ mSession.value.getSequenceNumber()+ "  id:"+mSession.value.getSessionId();
-        System.out.println(printString);
+        //System.out.println(printString);
         return printString;
     }
 

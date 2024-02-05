@@ -39,6 +39,19 @@
         </encoder>
     </appender>
 
+    <appender name="GDS_SEARCH_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${application.home}/logs/gds_search.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Daily rollover with compression -->
+            <fileNamePattern>${application.home}/logs/gds_search-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <!-- keep 30 days worth of history -->
+            <maxHistory>3</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="AMADEUS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${application.home}/logs/amadeus.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -98,6 +111,9 @@
     </logger>
     <logger name="gds" level="DEBUG" additivity="false">
         <appender-ref ref="GDS_LOG_FILE" />
+    </logger>
+    <logger name="gds_search" level="DEBUG" additivity="false">
+        <appender-ref ref="GDS_SEARCH_LOG_FILE" />
     </logger>
     <logger name="amadeus" level="DEBUG" additivity="false">
         <appender-ref ref="AMADEUS_LOG_FILE" />

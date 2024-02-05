@@ -48,6 +48,12 @@ public class TravellerMasterInfo {
 
     private boolean isCreateTmpPNR;
 
+    private String searchSelectOfficeId;
+
+    private boolean isOfficeIdPricingError = false;
+
+    private String gdsPNR;
+
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
     }
@@ -165,6 +171,15 @@ public class TravellerMasterInfo {
         this.userTimezone = userTimezone;
     }
 
+    public boolean isOfficeIdPricingError() { return isOfficeIdPricingError; }
+
+    public void setOfficeIdPricingError(boolean pricingError) { isOfficeIdPricingError = pricingError; }
+
+    public String getSearchSelectOfficeId() { return searchSelectOfficeId; }
+
+    public void setSearchSelectOfficeId(String searchSelectOfficeId) { this.searchSelectOfficeId = searchSelectOfficeId; }
+
+
     @JsonIgnore
     public int getAdultChildPaxCount(){
         int count = 0;
@@ -186,5 +201,13 @@ public class TravellerMasterInfo {
 
     public void setCreateTmpPNR(boolean createTmpPNR) {
         isCreateTmpPNR = createTmpPNR;
+    }
+
+    public String getGdsPNR() {
+        return gdsPNR;
+    }
+
+    public void setGdsPNR(String gdsPNR) {
+        this.gdsPNR = gdsPNR;
     }
 }

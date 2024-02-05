@@ -51,6 +51,12 @@ public class PNRResponse {
 
     private String creationOfficeId;
 
+    private boolean isOfficeIdPricingError = false;
+
+    public boolean isOfficeIdPricingError() { return isOfficeIdPricingError; }
+
+    public void setOfficeIdPricingError(boolean pricingError) { isOfficeIdPricingError = pricingError; }
+
     public String getCreationOfficeId() { return creationOfficeId; }
 
     public void setCreationOfficeId(String creationOfficeId) { this.creationOfficeId = creationOfficeId; }
