@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import play.Play;
 import play.libs.Json;
 import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
@@ -187,7 +188,9 @@ public class AmadeusFlightSearch implements FlightSearch{
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
                 ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
                 airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office));
-                //printHashmap(airSolution.getSeamenHashMap(),true);//to be removed
+                if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
+                    printHashmap(airSolution.getSeamenHashMap(), true);//to be removed
+                }
                 ///seamenSolution.setNonSeamenHashMap(null);
                 //addSeamenFareToSolution(airSolution, seamenSolution);
             }

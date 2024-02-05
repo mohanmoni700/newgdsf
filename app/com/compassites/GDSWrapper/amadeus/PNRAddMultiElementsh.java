@@ -1,6 +1,7 @@
 package com.compassites.GDSWrapper.amadeus;
 
 
+import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
 import com.amadeus.xml.pnradd_10_1_1a.*;
 import com.amadeus.xml.pnradd_11_3_1a.*;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
@@ -10,6 +11,7 @@ import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
 import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
 import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
 import com.amadeus.xml.pnrxcl_11_3_1a.ReservationControlInformationType;
+import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.PnrSecurity;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
@@ -395,6 +397,33 @@ public class PNRAddMultiElementsh {
         element.setDataElementsMaster(dataElementsMaster);
 
         return element;
+    }
+
+    public PNRAddMultiElements savePnr(String ESOfficeId) {
+        return esxEntry(ESOfficeId);
+//        PNRAddMultiElements element = savePnr();
+//        if(ESOfficeId != null){
+//            DataElementsIndiv dataElementsIndiv = new DataElementsIndiv();
+//            ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+//            ReferencingDetailsType reference =  new ReferencingDetailsType();
+//            reference.setNumber("1");
+//            reference.setQualifier("OT");
+//            elementManagementData.setSegmentName("ES");
+//            elementManagementData.setReference(reference);
+//            dataElementsIndiv.setElementManagementData(elementManagementData);
+//
+//            //IndividualPnrSecurityInformationType
+//            //com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.PnrSecurity pnrSecurity = new com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.PnrSecurity()
+//            IndividualPnrSecurityInformationType pnrSecurity = new IndividualPnrSecurityInformationType();
+//            IndividualSecurityType security = new IndividualSecurityType();
+//            security.setIdentification(ESOfficeId);
+//            security.setAccessMode("B");
+//            pnrSecurity.getSecurity().add(security);
+//            pnrSecurity.setIndicator("G");
+//            dataElementsIndiv.setPnrSecurity(pnrSecurity);
+//            element.getDataElementsMaster().getDataElementsIndiv().add(dataElementsIndiv);
+//        }
+//        return element;
     }
 
 
@@ -859,7 +888,7 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         return de;
     }
 
-    public PNRAddMultiElements esxEntry() {
+    public PNRAddMultiElements esxEntry(String officeId) {
         PNRAddMultiElements element = new PNRAddMultiElements();
         OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
         pnrActions.getOptionCode().add(new BigInteger("11"));
@@ -873,11 +902,15 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
 
         IndividualPnrSecurityInformationType individualPnrSecurityInformationType = new IndividualPnrSecurityInformationType();
         IndividualSecurityType individualSecurityType = new IndividualSecurityType();
-        individualSecurityType.setIdentification("BOMAK38SN");
+        individualSecurityType.setIdentification(officeId);
         individualSecurityType.setAccessMode("B");
+
+        individualPnrSecurityInformationType.setIndicator("G");
         individualPnrSecurityInformationType.getSecurity().add(individualSecurityType);
         dataElementsIndiv.setPnrSecurity(individualPnrSecurityInformationType);
         dataElementsIndiv.setElementManagementData(elementManagementData);
+
+
 
         DataElementsIndiv dataElementsIndiv1 = new DataElementsIndiv();
         ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
@@ -898,7 +931,7 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         return element;
     }
 
-    public PNRCancel exitEsx(String pnr) {
+        public PNRCancel exitEsx(String pnr) {
         PNRCancel pnrCancel =  new PNRCancel();
 
         ReservationControlInformationType reservationControlInformationType = new ReservationControlInformationType();
