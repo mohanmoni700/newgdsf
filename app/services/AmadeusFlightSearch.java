@@ -10,6 +10,7 @@ import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
+import com.thoughtworks.xstream.XStream;
 import models.Airline;
 import models.Airport;
 import models.AmadeusSessionWrapper;
@@ -115,13 +116,13 @@ public class AmadeusFlightSearch implements FlightSearch{
 //                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
                 
 //                amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
-               // amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
-//                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
 
 //            serviceHandler.logOut();
