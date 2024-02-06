@@ -93,6 +93,9 @@ public class Airport extends Model implements Serializable {
 
 	public static final String IATA_CODE = "iata_code";
 
+	@Column(name = "classification")
+	private String classification;
+
 	public String getCountry() {
 		return country;
 	}
@@ -239,6 +242,62 @@ public class Airport extends Model implements Serializable {
 
 	public void setState(String state) {
 		this.state = state;
+	}
+
+	public String getWeatherZone() {
+		return weatherZone;
+	}
+
+	public void setWeatherZone(String weatherZone) {
+		this.weatherZone = weatherZone;
+	}
+
+	public String getFs() {
+		return fs;
+	}
+
+	public void setFs(String fs) {
+		this.fs = fs;
+	}
+
+	public String getStateCode() {
+		return stateCode;
+	}
+
+	public void setStateCode(String stateCode) {
+		this.stateCode = stateCode;
+	}
+
+	public String getRegionName() {
+		return regionName;
+	}
+
+	public void setRegionName(String regionName) {
+		this.regionName = regionName;
+	}
+
+	public String getWeatherUrl() {
+		return weatherUrl;
+	}
+
+	public void setWeatherUrl(String weatherUrl) {
+		this.weatherUrl = weatherUrl;
+	}
+
+	public String getDelayIndexUrl() {
+		return delayIndexUrl;
+	}
+
+	public void setDelayIndexUrl(String delayIndexUrl) {
+		this.delayIndexUrl = delayIndexUrl;
+	}
+
+	public String getClassification() {
+		return classification;
+	}
+
+	public void setClassification(String classification) {
+		this.classification = classification;
 	}
 
 	public static Finder<Integer, Airport> getFind() {
