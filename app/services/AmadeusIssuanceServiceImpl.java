@@ -457,6 +457,25 @@ public class AmadeusIssuanceServiceImpl {
         //Session session = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
+            if(!issuanceRequest.isSeamen()) {
+                AmadeusSessionWrapper delhiSession = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId());
+                PNRReply gdsPNRReply = serviceHandler.savePNR(delhiSession);
+
+                gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR(), delhiSession);
+                amadeusLogger.debug("retrievePNRRes1 "+ new Date()+" ------->>"+ new XStream().toXML(gdsPNRReply));
+
+                issuanceResponse = docIssuance(serviceHandler, issuanceRequest, issuanceResponse, gdsPNRReply, delhiSession);
+                return issuanceResponse;
+            }
+
+            if(issuanceRequest.isSeamen()) {
+                amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByGdsPNR(issuanceRequest.getGdsPNR());
+                PNRReply gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+
+                gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR(), amadeusSessionWrapper);
+                issuanceResponse.setSuccess(false);
+                return issuanceResponse;
+            }
             //serviceHandler = new ServiceHandler();
             amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByGdsPNR(issuanceRequest.getGdsPNR());
             //serviceHandler.setSession(session);
