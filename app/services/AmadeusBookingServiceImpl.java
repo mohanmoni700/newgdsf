@@ -585,6 +585,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
 			pnrNumber = pnrHeader.getReservationInfo().getReservation()
 					.getControlNumber();
+			if(Objects.nonNull(pnrHeader))
+				break;
 		}
 
 		return pnrNumber;
