@@ -736,8 +736,25 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				if(travellerMasterInfo.isSeamen()){
 					officeId = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getPricingOfficeId();
 				}else{
-					officeId = travellerMasterInfo.getItinerary().getPricingInformation().getPricingOfficeId();
+					List<Journey> journeys = travellerMasterInfo.getItinerary().getJourneyList();
+					boolean isEkAirline = false;
+					if(journeys.size() >0) {
+						for (Journey journey: journeys) {
+							for (AirSegmentInformation airSegmentInformation: journey.getAirSegmentList()) {
+								if (airSegmentInformation.getAirline().getIataCode().equalsIgnoreCase("EK")) {
+									isEkAirline = true;
+									break;
+								}
+							}
+						}
+					}
+					if(isEkAirline) {
+						officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
+					} else {
+						officeId = travellerMasterInfo.getItinerary().getPricingInformation().getPricingOfficeId();
+					}
 				}
+				System.out.println("Off "+officeId);
 //				if(officeId.equalsIgnoreCase(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId())){
 //					officeId = amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId();
 //				}
