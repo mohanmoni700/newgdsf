@@ -693,8 +693,8 @@ public class AmadeusBookingHelper {
                         .getOffpointDetail().getCityCode();
                 airSegmentInformation.setFromLocation(fromLoc);
                 airSegmentInformation.setToLocation(toLoc);
-                airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct().getProductDetails().getClassOfService());
-                airSegmentInformation.setCabinClass(itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator());
+                airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct() != null ? itineraryInfo.getTravelProduct().getProductDetails().getClassOfService() : "");
+                airSegmentInformation.setCabinClass(itineraryInfo.getCabinDetails() != null ? itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator() : "");
                 Airport fromAirport = Airport
                         .getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
                 Airport toAirport = Airport.getAirport(airSegmentInformation
