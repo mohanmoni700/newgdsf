@@ -90,10 +90,11 @@ public class AmadeusIssuanceServiceImpl {
             }
         }*/
         boolean isSeamen = issuanceRequest.isSeamen();
+        String pricingOfficeId = isSeamen ? issuanceRequest.getFlightItinerary().getSeamanPricingInformation().getPricingOfficeId() : issuanceRequest.getFlightItinerary().getPricingInformation().getPricingOfficeId();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
             //serviceHandler = new ServiceHandler();
-            amadeusSessionWrapper = serviceHandler.logIn();
+            amadeusSessionWrapper = serviceHandler.logIn(pricingOfficeId);
             PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR(), amadeusSessionWrapper);
 
             List<String> segmentStatusList =  segmentStatus(gdsPNRReply);

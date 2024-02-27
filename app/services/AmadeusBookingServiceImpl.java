@@ -825,6 +825,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			String gdsPNR) {
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		boolean isSeamen = issuanceRequest.isSeamen();
+		String officeId = isSeamen ? issuanceRequest.getFlightItinerary().getSeamanPricingInformation().getPricingOfficeId() : issuanceRequest.getFlightItinerary().getPricingInformation().getPricingOfficeId();
 		IssuanceResponse issuanceResponse = new IssuanceResponse();
 		masterInfo.setSeamen(isSeamen);
         //ServiceHandler serviceHandler = null;
@@ -832,7 +833,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         try {
             //serviceHandler = new ServiceHandler();
             //// serviceHandler.logIn();
-			amadeusSessionWrapper = serviceHandler.logIn();
+			amadeusSessionWrapper = serviceHandler.logIn(officeId);
 			PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
 			Set<String> isTicketContainSet = new HashSet<String>();
 			for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
