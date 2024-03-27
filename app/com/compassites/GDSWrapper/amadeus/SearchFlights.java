@@ -27,6 +27,7 @@ public class SearchFlights {
     static int itineraryRef = 1;
 
     static Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
+    String vistaraAirlineStr = play.Play.application().configuration().getString("vistara.airline.code");
 
     //using deprecated methods
     //change to calendar dates everywhere
@@ -142,13 +143,15 @@ public class SearchFlights {
         CorporateIdentityType corporateIdentityType = new CorporateIdentityType();
         corporateIdentityType.setCorporateQualifier("RW");
         corporateIdentityType.getIdentity().add("061724");
-        if(searchParameters.getPreferredAirlinesList() != null ){
+        if(!searchParameters.getPreferredAirlinesList().isEmpty()){
             for(int i= 0; i < searchParameters.getPreferredAirlinesList().size(); i++) {
                 String airlineCorporateCode = CorporateCodeHelper.getAirlineCorporateCode(searchParameters.getBookingType() + "." + searchParameters.getPreferredAirlinesList().get(i));
                 if (airlineCorporateCode != null) {
                     corporateIdentityType.getIdentity().add(airlineCorporateCode);
                 }
             }
+        } else {
+            corporateIdentityType.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(searchParameters.getBookingType() + "." + vistaraAirlineStr));
         }
         corporateIdentificationType.getCorporateId().add(corporateIdentityType);
         return corporateIdentificationType;
