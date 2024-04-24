@@ -1302,6 +1302,17 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
 	public JsonNode getBookingDetails(String gdsPNR) {
+		logger.info("Amadeus getBookingDetails called for PNR: " + gdsPNR);
+		AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
+		return getBookingDetail(gdsPNR, amadeusSessionWrapper);
+	}
+	public JsonNode getBookingDetailsByOfficeId(String gdsPNR, String officeId) {
+		logger.info("Amadeus getBookingDetailsByOfficeId called for PNR: " + gdsPNR + "--OfficeID: " + officeId);
+		AmadeusSessionWrapper sessionWrapper = serviceHandler.logIn(officeId);
+		return getBookingDetail(gdsPNR, sessionWrapper);
+	}
+
+	public JsonNode getBookingDetail(String gdsPNR, AmadeusSessionWrapper amadeusSessionWrapper) {
 		logger.debug("Amadeus getBookingDetails called .......");
 		PNRReply gdsPNRReply = null;
 		MiniRuleGetFromRecReply miniRuleGetFromPricingRecReply = null;
@@ -1310,12 +1321,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		PricingInformation pricingInfo = null;
 		List<Journey> journeyList = null;
-        Map<String, Object> json = new HashMap<>();
-//		ServiceHandler serviceHandler = null;
-		AmadeusSessionWrapper amadeusSessionWrapper = null;
-        try {
-			////serviceHandler = new ServiceHandler();
-			amadeusSessionWrapper = serviceHandler.logIn();
+		Map<String, Object> json = new HashMap<>();
+		try {
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
 			List<Traveller> travellersList = new ArrayList<>();
             List<Traveller> childTravellersList = new ArrayList<>();
@@ -1357,38 +1364,38 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				personalDetails.setMiddleName("");
 				traveller.setPersonalDetails(personalDetails);
 				String infantIndicator = passengerData.getTravellerInformation().getPassenger().get(0).getInfantIndicator();
-                if(passengerType != null && passengerType != ""){
-                    if(passengerType.equals("CHD")){
+				if(passengerType != null && passengerType != ""){
+					if(passengerType.equals("CHD")){
 						personalDetails.setPaxType("CHD");
 						traveller.setPersonalDetails(personalDetails);
-                        childTravellersList.add(traveller);
-                    } else {
+						childTravellersList.add(traveller);
+					} else {
 						personalDetails.setPaxType("ADT");
 						traveller.setPersonalDetails(personalDetails);
 						travellersList.add(traveller);
 					}
-                } else {
+				} else {
 					personalDetails.setPaxType("ADT");
 					traveller.setPersonalDetails(personalDetails);
-                    travellersList.add(traveller);
-                }
+					travellersList.add(traveller);
+				}
 				if(infantIndicator != null && !"".equalsIgnoreCase(infantIndicator)){
-                    Traveller infantTraveller = new Traveller();
-                    PersonalDetails infantPersonalDetail = new PersonalDetails();
-                    String infantFirstName = "";
+					Traveller infantTraveller = new Traveller();
+					PersonalDetails infantPersonalDetail = new PersonalDetails();
+					String infantFirstName = "";
 					String infFirstName = "";
-                    String infantLastName = "";
-                    TravellerDetailsTypeI infantPassenger = (passengerData.getTravellerInformation().getPassenger().size() > 1) ? passengerData.getTravellerInformation().getPassenger().get(1) : null;
-                    if(infantPassenger != null && ("inf".equalsIgnoreCase(infantPassenger.getType()) || "in".equalsIgnoreCase(infantPassenger.getType()))){
-                        infantFirstName = passengerData.getTravellerInformation().getPassenger().get(1).getFirstName();
-                        infantLastName = lastName;
-                    }else {
-                        infantLastName = travellerInfo.getPassengerData().get(1).getTravellerInformation().getTraveller().getSurname();
-                        infantFirstName = travellerInfo.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getFirstName();
-                    }
-                    infantPersonalDetail.setLastName(infantLastName);
-                    names = infantFirstName.split("\\s");
-                   // infantPersonalDetail.setFirstName(names[0]);
+					String infantLastName = "";
+					TravellerDetailsTypeI infantPassenger = (passengerData.getTravellerInformation().getPassenger().size() > 1) ? passengerData.getTravellerInformation().getPassenger().get(1) : null;
+					if(infantPassenger != null && ("inf".equalsIgnoreCase(infantPassenger.getType()) || "in".equalsIgnoreCase(infantPassenger.getType()))){
+						infantFirstName = passengerData.getTravellerInformation().getPassenger().get(1).getFirstName();
+						infantLastName = lastName;
+					}else {
+						infantLastName = travellerInfo.getPassengerData().get(1).getTravellerInformation().getTraveller().getSurname();
+						infantFirstName = travellerInfo.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getFirstName();
+					}
+					infantPersonalDetail.setLastName(infantLastName);
+					names = infantFirstName.split("\\s");
+					// infantPersonalDetail.setFirstName(names[0]);
 
 					if(names.length >= 1){
 						//personalDetails.setSalutation(names[names.length-1]);
@@ -1414,8 +1421,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
                     /*if(names.length > 1)
                         infantPersonalDetail.setMiddleName(names[1]);*/
-                    infantTraveller.setPersonalDetails(infantPersonalDetail);
-                    infantTravellersList.add(infantTraveller);
+					infantTraveller.setPersonalDetails(infantPersonalDetail);
+					infantTravellersList.add(infantTraveller);
 				}
 
 			}
@@ -1424,7 +1431,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 			if(infantTravellersList.size() > 0){
 				travellersList.addAll(infantTravellersList);
-            }
+			}
 			masterInfo.setTravellersList(travellersList);
 			Map<String, Integer> paxTypeCount = AmadeusBookingHelper.getPaxTypeCount(travellerinfoList);
 			String paxType = travellerinfoList.get(0).getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getType();
@@ -1444,7 +1451,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 //			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
 
-            //todo -- added for segment wise pricing
+			//todo -- added for segment wise pricing
 			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
 
 //			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
@@ -1468,32 +1475,32 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			masterInfo.setSeamen(isSeamen);
 			masterInfo.setItinerary(flightItinerary);
 
-            // TODO: change hardcoded value
-            masterInfo.setCabinClass(CabinClass.ECONOMY);
+			// TODO: change hardcoded value
+			masterInfo.setCabinClass(CabinClass.ECONOMY);
 
-            pnrResponse.setPnrNumber(gdsPNR);
-            pricingInfo.setProvider("Amadeus");
-            pnrResponse.setPricingInfo(pricingInfo);
+			pnrResponse.setPnrNumber(gdsPNR);
+			pricingInfo.setProvider("Amadeus");
+			pnrResponse.setPricingInfo(pricingInfo);
 
-            List<ItineraryInfo> itineraryInfos = null;
-            if(gdsPNRReply.getOriginDestinationDetails()!=null && gdsPNRReply.getOriginDestinationDetails().size()>0){
-            	itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
-                if(itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getItineraryReservationInfo() != null) {
-                    String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
-                    pnrResponse.setAirlinePNR(airlinePnr);
-                }
-            }
-            List<HashMap> miniRules = getMiniRuleFeeFromPNR(gdsPNR);
-            logger.debug("mini rules in getbooking details is "+Json.toJson(miniRules));
+			List<ItineraryInfo> itineraryInfos = null;
+			if(gdsPNRReply.getOriginDestinationDetails()!=null && gdsPNRReply.getOriginDestinationDetails().size()>0){
+				itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+				if(itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getItineraryReservationInfo() != null) {
+					String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
+					pnrResponse.setAirlinePNR(airlinePnr);
+				}
+			}
+			List<HashMap> miniRules = getMiniRuleFeeFromPNR(gdsPNR);
+			logger.debug("mini rules in getbooking details is "+Json.toJson(miniRules));
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
-            createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
+			createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, masterInfo);
 			readBaggageInfoFromTST(gdsPNRReply, ticketDisplayTSTReply.getFareList(), pnrResponse);
-            json.put("travellerMasterInfo", masterInfo);
-            json.put("pnrResponse", pnrResponse);
-            json.put("miniRuleResponse", miniRules);
+			json.put("travellerMasterInfo", masterInfo);
+			json.put("pnrResponse", pnrResponse);
+			json.put("miniRuleResponse", miniRules);
 
 		} catch (Exception e) {
-            logger.error("Error in Amadeus getBookingDetails : ", e);
+			logger.error("Error in Amadeus getBookingDetails : ", e);
 		}finally {
 			serviceHandler.logOut(amadeusSessionWrapper);
 		}

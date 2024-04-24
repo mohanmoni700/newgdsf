@@ -235,6 +235,19 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
+    public Result getBookingDetailsByOfficeId() {
+    	JsonNode json = request().body().asJson();
+    	String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
+        String provider = Json.fromJson(json.findPath("provider"), String.class);
+        String officeId = Json.fromJson(json.findPath("officeId"), String.class);
+        logger.debug("getBookingDetails request : "+ json);
+        logger.debug("officeId : "+ officeId);
+        JsonNode res = bookingService.getBookingDetailsByOfficeId(provider, pnr, officeId);
+        logger.debug("getBookingDetails response =>>>>>>>>>>>> " + res);
+		return ok(res);
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
     public Result getLowestFare() {
     	JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
