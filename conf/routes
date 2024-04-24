@@ -15,6 +15,7 @@ POST	/issueTicket                               @controllers.Application.issueTi
 POST	/checkFareChangeAndAvailability            @controllers.Application.checkFareChangeAndAvailability
 POST	/getPnrDetails							   @controllers.Application.getPnrDetails()
 POST	/getBookingDetails						   @controllers.Application.getBookingDetails()
+POST	/getBookingDetailsByOfficeId			   @controllers.Application.getBookingDetailsByOfficeId()
 POST	/lowestFare                                @controllers.Application.getLowestFare()
 POST 	/cancelPNR                                 @controllers.Application.cancelPNR()
 POST    /getBookingDetailsForPNR                   @controllers.Application.getBookingDetailsForPNR()

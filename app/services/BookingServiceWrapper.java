@@ -175,6 +175,17 @@ public class BookingServiceWrapper {
 		}
 		return json;
 	}
+	public JsonNode getBookingDetailsByOfficeId(String provider, String gdsPNR, String officeId) {
+		JsonNode json = null;
+		if("Travelport".equalsIgnoreCase(provider) || "Galileo".equalsIgnoreCase(provider)){
+			json = travelPortBookingService.getBookingDetails(gdsPNR);
+    	} else if("Amadeus".equalsIgnoreCase(provider)){
+    		json = amadeusBookingService.getBookingDetailsByOfficeId(gdsPNR, officeId);
+    	}else if ("Mystifly".equalsIgnoreCase(provider)){
+			json =  mystiflyBookingService.getBookingDetails(gdsPNR);
+		}
+		return json;
+	}
 	
 	public LowFareResponse getLowestFare(IssuanceRequest issuanceRequest) {
 		LowFareResponse lowFareRS = null;
