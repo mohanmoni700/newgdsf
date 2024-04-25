@@ -124,20 +124,23 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByRef(travellerMasterInfo.getSessionIdRef());
 			logger.debug("generatePNR called........"+ Json.stringify(Json.toJson(amadeusSessionWrapper)));
 			int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
-			TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, amadeusSessionWrapper);
-			if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
-				String errorCode = ticketCreateTSTFromPricingReply
-						.getApplicationError()
-						.getApplicationErrorInfo()
-						.getApplicationErrorDetail()
-						.getApplicationErrorCode();
-				ErrorMessage errorMessage = new ErrorMessage();
-				//ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error",ErrorMessage.ErrorType.ERROR, "Amadeus");
-				String errorMsg = ticketCreateTSTFromPricingReply.getApplicationError().getErrorText().getErrorFreeText();
-				errorMessage.setMessage(errorMsg);
-				pnrResponse.setErrorMessage(errorMessage);
-				pnrResponse.setFlightAvailable(false);
-				return pnrResponse;
+			// Ticket Creation flow is already done during the pricing with Benzy. So, Skippy this flow for Benzy OID.
+			if(!travellerMasterInfo.getSearchSelectOfficeId().equals("BOMAK38SN")) {
+				TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, amadeusSessionWrapper);
+				if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
+					String errorCode = ticketCreateTSTFromPricingReply
+							.getApplicationError()
+							.getApplicationErrorInfo()
+							.getApplicationErrorDetail()
+							.getApplicationErrorCode();
+					ErrorMessage errorMessage = new ErrorMessage();
+					//ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error",ErrorMessage.ErrorType.ERROR, "Amadeus");
+					String errorMsg = ticketCreateTSTFromPricingReply.getApplicationError().getErrorText().getErrorFreeText();
+					errorMessage.setMessage(errorMsg);
+					pnrResponse.setErrorMessage(errorMessage);
+					pnrResponse.setFlightAvailable(false);
+					return pnrResponse;
+				}
 			}
 			gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 			tstRefNo = getPNRNoFromResponse(gdsPNRReply);
@@ -725,7 +728,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	}
 	public PNRResponse checkFareChangeAndAvailability(
 			TravellerMasterInfo travellerMasterInfo) {
-        logger.debug("checkFareChangeAndAvailability called...........");
+		logger.debug("checkFareChangeAndAvailability called...........");
 		PNRResponse pnrResponse = new PNRResponse();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
@@ -734,7 +737,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			officeId = getSpecificOfficeIdforAirline(travellerMasterInfo.getItinerary());
 			if(officeId == null) {
 				if(travellerMasterInfo.isSeamen()){
-					officeId = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getPricingOfficeId();
+					if(travellerMasterInfo.getItinerary().getSeamanPricingInformation().getPricingOfficeId().equals("BOMAK38SN")){
+						officeId = "BOMVS34C3";
+					}else {
+						officeId = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getPricingOfficeId();
+					}
 				}else{
 					List<Journey> journeys = travellerMasterInfo.getItinerary().getJourneyList();
 					boolean isEkAirline = false;
@@ -751,58 +758,46 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					if(isEkAirline) {
 						officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
 					} else {
-						officeId = travellerMasterInfo.getItinerary().getPricingInformation().getPricingOfficeId();
+						if(travellerMasterInfo.getItinerary().getPricingInformation().getPricingOfficeId().equals("BOMAK38SN")){
+							officeId = "BOMVS34C3";
+						}else{
+							officeId = travellerMasterInfo.getItinerary().getPricingInformation().getPricingOfficeId();
+						}
 					}
 				}
 				System.out.println("Off "+officeId);
-//				if(officeId.equalsIgnoreCase(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId())){
-//					officeId = amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId();
-//				}
 			}
 			amadeusSessionWrapper = serviceHandler.logIn(officeId);
 			checkFlightAvailibility(travellerMasterInfo, pnrResponse, amadeusSessionWrapper);
-
+			System.out.println("CheckedFlightavailibity");
 			if (pnrResponse.isFlightAvailable()) {
 				PNRReply gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
-//				gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-//				String tstRefNos = getPNRNoFromResponse(gdsPNRReply);
-//				gdsPNRReply = serviceHandler.retrivePNR(tstRefNos, amadeusSessionWrapper);
+				System.out.println("PNR Prising is done");
 				pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
 				/* Benzy changes */
 				PNRReply gdsPNRReplyBenzy = null;
 				FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
 				if(pnrResponse.isOfficeIdPricingError()) {
-
-					String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
-					System.out.println(tstRefNo);
+					logger.debug("Pricing with Benzy flow");
 					logger.debug("checkFareChangeAndAvailability called..........."+pnrResponse);
-					int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
-					gdsPNRReplyBenzy = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
-					gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-
-
 					AmadeusSessionWrapper benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+					gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+					String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 					pnrResponse.setPnrNumber(tstRefNo);
-					serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
+					gdsPNRReplyBenzy =	serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
 					pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
-					serviceHandler.createTST(numberOfTst, benzyAmadeusSessionWrapper);
-					/*if(pricePNRReplyBenzy.getApplicationError() != null){
-						return pnrResponse;
-					}*/
-					//PNRResponse pnrResponsePricingBenzy = getPNRPRicing(numberOfTst, benzyAmadeusSessionWrapper);
-					/*if(pnrResponsePricingBenzy.getErrorMessage() != null){
-						return pnrResponse;
-					}*/
+					int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
+					TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, benzyAmadeusSessionWrapper);
 					setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
-					gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
+					PNRReply bompnrreply = serviceHandler.retrivePNR(tstRefNo,amadeusSessionWrapper);
 					PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
+					FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
 					serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
-					//serviceHandler.cancelPNR(tstRefNo, gdsPNRReplyBenzy,amadeusSessionWrapper);
 					if(benzyAmadeusSessionWrapper != null){
 						amadeusSessionManager.removeActiveSession(benzyAmadeusSessionWrapper.getmSession().value);
 						serviceHandler.logOut(benzyAmadeusSessionWrapper);
 					}
-					//gdsPNRReply = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
+
 				} else {
 					setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
 				}
