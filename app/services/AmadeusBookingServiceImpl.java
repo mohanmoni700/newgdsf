@@ -33,7 +33,6 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 //import com.sun.org.apache.xpath.internal.operations.Bool;
 import models.AmadeusSessionWrapper;
-import models.FlightSearchOffice;
 import models.MiniRule;
 import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
@@ -60,7 +59,7 @@ import java.util.*;
 @Service
 public class AmadeusBookingServiceImpl implements BookingService {
 
-    static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
+	static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
@@ -123,26 +122,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		try {
 			amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByRef(travellerMasterInfo.getSessionIdRef());
 			logger.debug("generatePNR called........"+ Json.stringify(Json.toJson(amadeusSessionWrapper)));
-			int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
-			TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, amadeusSessionWrapper);
-			if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
-				String errorCode = ticketCreateTSTFromPricingReply
-						.getApplicationError()
-						.getApplicationErrorInfo()
-						.getApplicationErrorDetail()
-						.getApplicationErrorCode();
-				ErrorMessage errorMessage = new ErrorMessage();
-				//ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error",ErrorMessage.ErrorType.ERROR, "Amadeus");
-				String errorMsg = ticketCreateTSTFromPricingReply.getApplicationError().getErrorText().getErrorFreeText();
-				errorMessage.setMessage(errorMsg);
-				pnrResponse.setErrorMessage(errorMessage);
-				pnrResponse.setFlightAvailable(false);
-				return pnrResponse;
+			tstRefNo = travellerMasterInfo.getGdsPNR();
+			if (tstRefNo == null) {
+				gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+				tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+				System.out.println(tstRefNo);
+				Thread.sleep(10000);
 			}
-			gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-			tstRefNo = getPNRNoFromResponse(gdsPNRReply);
-			System.out.println(tstRefNo);
-			Thread.sleep(10000);
 			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo,amadeusSessionWrapper);
 			Date lastPNRAddMultiElements = new Date();
 
@@ -194,7 +180,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				serviceHandler.logOut(amadeusSessionWrapper);
 			}
 		}
-		//logger.debug("generatePNR final pnrResponse:"+ Json.stringify(Json.toJson(pnrResponse)));
+		logger.info("generatePNR :"+ Json.stringify(Json.toJson(pnrResponse)));
 		return pnrResponse;
 	}
 
@@ -330,9 +316,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		Configuration airlineBookingOfficeConfig = config.getConfig("amadeus.AIRLINE_BOOKING_OFFICE");
 		for(Journey journey: itinerary.getJourneyList() ){
 			for( AirSegmentInformation segmentInfo : journey.getAirSegmentList()){
-				String CarrierCode = segmentInfo.getCarrierCode();
 				//String officeId = config.getString("amadeus.AIRLINE_BOOKING_OFFICE."+carcode);
-				String officeId = airlineBookingOfficeConfig.getString(CarrierCode);
+				String officeId = airlineBookingOfficeConfig.getString(segmentInfo.getCarrierCode());
 				if(officeId != null){
 					return officeId;
 				}
@@ -732,23 +717,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		String officeId = null;
 		try {
 			officeId = getSpecificOfficeIdforAirline(travellerMasterInfo.getItinerary());
+			boolean isDelIdAirline = isDelIdAirlines(travellerMasterInfo);
+			boolean isDelIdSeamen = (isDelIdAirline && travellerMasterInfo.isSeamen()) ? true : false;
 			if(officeId == null) {
 				if(travellerMasterInfo.isSeamen()){
 					officeId = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getPricingOfficeId();
 				}else{
-					List<Journey> journeys = travellerMasterInfo.getItinerary().getJourneyList();
-					boolean isEkAirline = false;
-					if(journeys.size() >0) {
-						for (Journey journey: journeys) {
-							for (AirSegmentInformation airSegmentInformation: journey.getAirSegmentList()) {
-								if (airSegmentInformation.getAirline().getIataCode().equalsIgnoreCase("EK")) {
-									isEkAirline = true;
-									break;
-								}
-							}
-						}
-					}
-					if(isEkAirline) {
+					if(isDelIdAirline) {
 						officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
 					} else {
 						officeId = travellerMasterInfo.getItinerary().getPricingInformation().getPricingOfficeId();
@@ -759,6 +734,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 //					officeId = amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId();
 //				}
 			}
+			/**
+			 * check for non batk and set booking office to BOM
+			 */
+			if (officeId.equals(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId()) && !isBATK(travellerMasterInfo)) {
+				officeId = amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId();
+			}
 			amadeusSessionWrapper = serviceHandler.logIn(officeId);
 			checkFlightAvailibility(travellerMasterInfo, pnrResponse, amadeusSessionWrapper);
 
@@ -767,16 +748,20 @@ public class AmadeusBookingServiceImpl implements BookingService {
 //				gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 //				String tstRefNos = getPNRNoFromResponse(gdsPNRReply);
 //				gdsPNRReply = serviceHandler.retrivePNR(tstRefNos, amadeusSessionWrapper);
-				pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
 				/* Benzy changes */
 				PNRReply gdsPNRReplyBenzy = null;
 				FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
-				if(pnrResponse.isOfficeIdPricingError()) {
-
+				pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
+				int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
+				/**
+				 * isEkAndSeamen flag to check Emirates flight and Seamen booking
+				 * Price the PNR in Benzy if its EK-Seamen
+				 */
+				if(pnrResponse.isOfficeIdPricingError() || isDelIdSeamen) {
+					gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 					String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 					System.out.println(tstRefNo);
 					logger.debug("checkFareChangeAndAvailability called..........."+pnrResponse);
-					int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
 					gdsPNRReplyBenzy = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
 					gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 
@@ -785,7 +770,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					pnrResponse.setPnrNumber(tstRefNo);
 					serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
 					pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
-					serviceHandler.createTST(numberOfTst, benzyAmadeusSessionWrapper);
+					//serviceHandler.createTST(numberOfTst, benzyAmadeusSessionWrapper);
+					createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
+
 					/*if(pricePNRReplyBenzy.getApplicationError() != null){
 						return pnrResponse;
 					}*/
@@ -802,10 +789,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						amadeusSessionManager.removeActiveSession(benzyAmadeusSessionWrapper.getmSession().value);
 						serviceHandler.logOut(benzyAmadeusSessionWrapper);
 					}
+					serviceHandler.savePNR(amadeusSessionWrapper);
 					//gdsPNRReply = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
 				} else {
+					createTST(pnrResponse, amadeusSessionWrapper, numberOfTst);
+					gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+					pnrResponse.setPnrNumber(getPNRNoFromResponse(gdsPNRReply));
 					setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
 				}
+				Thread.sleep(10000);
 				return pnrResponse;
 			} else {
 				pnrResponse.setFlightAvailable(false);
@@ -819,6 +811,57 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 
 		return pnrResponse;
+	}
+
+	/**
+	 * Check for Airlines that has to be priced in DELHI Office ID
+	 */
+	private static boolean isDelIdAirlines(TravellerMasterInfo travellerMasterInfo) {
+		String airlineStr = play.Play.application().configuration().getString("joc.DELHI_ID.airlines");
+		List<String> specialAirline = new ArrayList<String>(Arrays.asList(airlineStr.split(",")));
+		List<Journey> journeys = travellerMasterInfo.getItinerary().getJourneyList();
+		if(journeys.size() >0) {
+			for (Journey journey: journeys) {
+				for (AirSegmentInformation airSegmentInformation: journey.getAirSegmentList()) {
+					if (specialAirline.contains(airSegmentInformation.getCarrierCode())) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean isBATK(TravellerMasterInfo travellerMasterInfo) {
+		String airlineStr = play.Play.application().configuration().getString("joc.special.airlines");
+		List<String> specialAirline = new ArrayList<String>(Arrays.asList(airlineStr.split(",")));
+		for (Journey journey: travellerMasterInfo.getItinerary().getJourneyList()) {
+			for (AirSegmentInformation airSegmentInformation: journey.getAirSegmentList()) {
+				if(specialAirline.contains(airSegmentInformation.getCarrierCode())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private void createTST(PNRResponse pnrResponse, AmadeusSessionWrapper amadeusSessionWrapper, int numberOfTst) {
+		TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, amadeusSessionWrapper);
+		logger.info("createTST Called : {}", ticketCreateTSTFromPricingReply.getTstList().size());
+		if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
+			logger.error("Error in createTST: {}", ticketCreateTSTFromPricingReply.getApplicationError().toString());
+			String errorCode = ticketCreateTSTFromPricingReply
+					.getApplicationError()
+					.getApplicationErrorInfo()
+					.getApplicationErrorDetail()
+					.getApplicationErrorCode();
+			ErrorMessage errorMessage = new ErrorMessage();
+			//ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error",ErrorMessage.ErrorType.ERROR, "Amadeus");
+			String errorMsg = ticketCreateTSTFromPricingReply.getApplicationError().getErrorText().getErrorFreeText();
+			errorMessage.setMessage(errorMsg);
+			pnrResponse.setErrorMessage(errorMessage);
+			pnrResponse.setFlightAvailable(false);
+		}
 	}
 
 	public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest,
