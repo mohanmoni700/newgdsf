@@ -524,13 +524,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		if (travellerMasterInfo.isSeamen()) {
 			int size = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList().size();
 			carrierCode = travellerMasterInfo.getItinerary().getJourneyList()
-					.get(0).getAirSegmentList().get(size-1).getCarrierCode();
+					.get(0).getAirSegmentList().get(size-1).getValidatingCarrierCode();
 			journeys = travellerMasterInfo.getItinerary().getJourneyList();
 		} else {
 			int size = travellerMasterInfo.getItinerary().getNonSeamenJourneyList().get(0).getAirSegmentList().size();
 			carrierCode = travellerMasterInfo.getItinerary()
 					.getNonSeamenJourneyList().get(0).getAirSegmentList()
-					.get(size-1).getCarrierCode();
+					.get(size-1).getValidatingCarrierCode();
 			journeys = travellerMasterInfo.getItinerary().getNonSeamenJourneyList();
 		}
 
