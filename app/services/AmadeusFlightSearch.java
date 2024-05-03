@@ -329,8 +329,13 @@ public class AmadeusFlightSearch implements FlightSearch{
         //get farebases
         String fareBasis = getFareBasis(recommendation.getPaxFareProduct().get(0).getFareDetails().get(0));
         //set segments information
+
+        String validatingCarrierCode = null;
+        if(recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getTransportStageQualifier().equals("V")) {
+            validatingCarrierCode = recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getCompany();
+        }
         for(FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlight.getFlightDetails()){
-            journey.getAirSegmentList().add(setSegmentInformation(flightDetails, fareBasis));
+            journey.getAirSegmentList().add(setSegmentInformation(flightDetails, fareBasis, validatingCarrierCode));
             journey.setProvider("Amadeus");
         }
         getConnectionTime(journey.getAirSegmentList());
@@ -359,16 +364,15 @@ public class AmadeusFlightSearch implements FlightSearch{
 		}
 	}
     
-    private AirSegmentInformation setSegmentInformation(FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis){
+    private AirSegmentInformation setSegmentInformation(FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis,String validatingCarrierCode){
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         TravelProductType flightInformation=flightDetails.getFlightInformation();
-        
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
         if(flightInformation.getCompanyId().getOperatingCarrier() != null)
         	airSegmentInformation.setOperatingCarrierCode(flightInformation.getCompanyId().getOperatingCarrier());
         airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
         airSegmentInformation.setEquipment(flightInformation.getProductDetail().getEquipmentType());
-
+        airSegmentInformation.setValidatingCarrierCode(validatingCarrierCode);
         //airSegmentInformation.setArrivalTime(flightInformation.getProductDateTime().getTimeOfArrival());
         //airSegmentInformation.setDepartureTime(flightInformation.getProductDateTime().getDateOfDeparture());
         airSegmentInformation.setFromTerminal(flightInformation.getLocation().get(0).getTerminal());
