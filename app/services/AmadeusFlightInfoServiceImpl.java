@@ -47,13 +47,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		this.amadeusSessionManager = amadeusSessionManager;
 	}
 
-    static {
-		baggageCodes.put("700", "Kilos");
-		baggageCodes.put("K", "Kilos");
-		baggageCodes.put("701", "Pounds");
-		baggageCodes.put("L", "Pounds");
+	static {
+		baggageCodes.put("700", "KG");
+		baggageCodes.put("K", "KG");
+		baggageCodes.put("701", "Lb");
+		baggageCodes.put("L", "Lb");
 		baggageCodes.put("C", "Special Charge");
-		baggageCodes.put("N", "Number of pieces");
+		baggageCodes.put("N", "Pc");
 		baggageCodes.put("S", "Size");
 		baggageCodes.put("V", "Value");
 		baggageCodes.put("W", "Weight");
