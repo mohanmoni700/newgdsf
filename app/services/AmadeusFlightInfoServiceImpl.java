@@ -53,7 +53,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 		baggageCodes.put("701", "Lb");
 		baggageCodes.put("L", "Lb");
 		baggageCodes.put("C", "Special Charge");
-		baggageCodes.put("N", "Pc");
+		baggageCodes.put("N", "PC");
 		baggageCodes.put("S", "Size");
 		baggageCodes.put("V", "Value");
 		baggageCodes.put("W", "Weight");
