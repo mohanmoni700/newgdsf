@@ -806,14 +806,16 @@ public class AmadeusBookingServiceImpl implements BookingService {
 								gdsPNRReply =   serviceHandler.ignoreAndRetrievePNR(benzyAmadeusSessionWrapper);
 							}
 						}
+						serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
 						pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
 						createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
 						setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
 						gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
 					}
 					if(pnrResponse.getPricingInfo() != null)
-					pnrResponse.getPricingInfo().setPricingOfficeId("BOMAK38SN");
-					Map<String,Map> benzyFareRulesMap = getFareCheckRules(benzyAmadeusSessionWrapper);
+					pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
+					FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
+					Map<String,Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
 					pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
 					PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
 					serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
@@ -821,6 +823,33 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					Thread.sleep(10000);
 				} else {
 					setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
+					String benzyOfficeId = amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString();
+					if(travellerMasterInfo.getSearchSelectOfficeId().equalsIgnoreCase(benzyOfficeId)) {
+						boolean seamen = travellerMasterInfo.isSeamen();
+						List<HashMap> miniRule = new ArrayList<>();
+						FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+						try {
+							AmadeusSessionWrapper benzyamadeusSessionWrapper = serviceHandler.logIn(benzyOfficeId);
+						List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+						List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
+						FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, 1, 0, 0, paxFareDetailsList, amadeusSessionWrapper);
+						if(reply.getErrorGroup() != null){
+							amadeusLogger.debug("Not able to fetch FareInformativePricingWithoutPNRReply: "+ reply.getErrorGroup().getErrorWarningDescription().getFreeText() );
+						}else {
+							String fare = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getAmount();
+							BigDecimal totalFare = new BigDecimal(fare);
+							String currency = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getCurrency();
+							FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+							Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+							pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
+							pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
+						}
+
+						} catch (Exception e) {
+							amadeusLogger.debug("An exception while fetching the genericfareRule:"+ e.getMessage());
+						}
+					}
+
 				}
 				return pnrResponse;
 			} else {
@@ -837,69 +866,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return pnrResponse;
 	}
 
-	// This code is done for Fare_check_rules.
-	public Map<String,Map> getFareCheckRules(AmadeusSessionWrapper amadeusSessionWrapper){
-		FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-		      List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList=     fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText();
-			  Map<String,String> changeMap = new ConcurrentHashMap<>();
-		      Map<String,String>  cancelMap = new ConcurrentHashMap<>();
-			  int index =0;
-			  for(;index < fareRuleTextList.size();index++){
-				 String trimmedValue = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
-				 if(trimmedValue.equals("CHANGES")){
-					 int counter= index;
-					 for( ; counter < fareRuleTextList.size() ; counter++){
-						 String text = fareRuleTextList.get(counter).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
-						 if(text.equals("CANCELLATIONS")){
-							 break;
-						 }
-						 if(text.equals("ANY TIME")){
-							 changeMap.put(text,
-									 fareRuleTextList.get(++counter).getFreeText().toString());
-						 }else if(text.equals("BEFORE DEPARTURE")){
-							 changeMap.put(text,
-									 fareRuleTextList.get(++counter).getFreeText().toString());
-						 }else if(text.equals("AFTER DEPARTURE")){
-							 changeMap.put(text,
-									 fareRuleTextList.get(++counter).getFreeText().toString());
-						 }else if((text.endsWith("NO-SHOW.") &&
-								 text.startsWith("CHARGE")) ||
-								 text.equals("CHANGES PERMITTED FOR NO-SHOW.") ||
-								 text.equals("CHANGES AGAINST NO SHOW - FREE")){
-							 changeMap.put("NO-SHOW",fareRuleTextList.get(counter).getFreeText().toString());
-						 }
-					 }
-					 index = counter-1;
-				 }else  if(trimmedValue.equals("CANCELLATIONS")) {
-					 int counter= index;
-					 for(; counter < fareRuleTextList.size() ; counter++){
-						 String canceltext = fareRuleTextList.get(counter).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
-						 if(canceltext.equals("CHANGES")){
-							 break;
-						 }
-						 if(canceltext.equals("ANY TIME")){
-							 cancelMap.put(canceltext,
-									 fareRuleTextList.get(++counter).getFreeText().toString());
-						 }else if(canceltext.equals("BEFORE DEPARTURE")){
-							 cancelMap.put(canceltext,
-									 fareRuleTextList.get(++counter).getFreeText().toString());
-						 }else if(canceltext.equals("AFTER DEPARTURE")){
-							 cancelMap.put(canceltext,
-									 fareRuleTextList.get(++counter).getFreeText().toString());
-						 }else if((canceltext.endsWith("NO-SHOW.") &&
-								 canceltext.startsWith("CHARGE")) ||
-								 canceltext.equals("CANCELLATIONS PERMITTED FOR NO-SHOW.")){
-							 cancelMap.put("NO-SHOW",fareRuleTextList.get(counter).getFreeText().toString());
-						 }
-					 }
-					 index = counter-1;
-				 }
-			  }
-		Map<String, Map> finalMap = new ConcurrentHashMap<>();
-		finalMap.put("ChangeRules",changeMap);
-		finalMap.put("CancellationRules",cancelMap);
-		return finalMap;
-	}
 
 	/**
 	 * Check for Airlines that has to be priced in DELHI Office ID
@@ -1270,7 +1236,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				}
 				Collections.sort(keys);
 				String key = (segmentRefMap.get(keys.get(0))).substring(0, 3) + (segmentRefMap.get(keys.get(keys.size() - 1))).substring(3, 6);
-
 				String paxType = passengerType.get(paxRef);
 				MiniRule miniRule = new MiniRule();
 				if(monetaryInformationType.size()>1) {
@@ -1311,7 +1276,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					changeFeeNoShowBeforeDept=((changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(9).getAmount()));
 					changeFeeNoShowBeforeDeptCurrency = (changeMnrMonInfoGrp.get(0).getMonetaryInfo().getMonetaryDetails().get(9).getCurrency());
                 }
-
 
                 BigDecimal markUp =new BigDecimal(play.Play.application().configuration().getDouble("markup"));
 				cancellationFeeBeforeDept= cancellationFeeBeforeDept.add(cancellationFeeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -1815,5 +1779,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			e.printStackTrace();
 		}
 		pnrResponse.setSegmentBaggageMap(map);
+	}
+
+	public Boolean isBenzyFare(FlightItinerary flightItinerary, boolean seamen){
+		if((seamen && flightItinerary.getSeamanPricingInformation().getPricingOfficeId().equalsIgnoreCase(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId())) ||
+		    !seamen && flightItinerary.getPricingInformation().getPricingOfficeId().equalsIgnoreCase(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId())){
+	      return Boolean.TRUE;
+		}
+		return Boolean.FALSE;
 	}
 }

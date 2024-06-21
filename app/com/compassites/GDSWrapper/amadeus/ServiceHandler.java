@@ -173,8 +173,8 @@ public class ServiceHandler {
         FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters);
         amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession());
-        if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
-            loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
+       if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
+          loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
         logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
         return  SearchReply;
     }
@@ -519,7 +519,6 @@ public class ServiceHandler {
         MiniRuleGetFromRec miniRuleGetFromPricing = new PNRRetriev().miniRuleGetFromPricing();
         amadeusLogger.debug("MiniRuleGetFromPricingReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricing));
         MiniRuleGetFromRecReply miniRuleGetFromPricingReply = mPortType.miniRuleGetFromRec(miniRuleGetFromPricing, amadeusSessionWrapper.getmSession());
-
         amadeusLogger.debug("MiniRuleGetFromPricingReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricingReply));
         return miniRuleGetFromPricingReply;
     }
