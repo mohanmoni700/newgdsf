@@ -156,9 +156,8 @@ public class ServiceHandler {
     public synchronized SecuritySignOutReply logOut(AmadeusSessionWrapper amadeusSessionWrapper) {
         if(amadeusSessionWrapper != null) {
             SecuritySignOutReply signOutReply = null;
-            amadeusSessionWrapper.incrementSequenceNumber();
+            amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
             logger.debug("AmadeusFlightSearch securitySignOut at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
-
             signOutReply = mPortType.securitySignOut(new SecuritySignOut(), amadeusSessionWrapper.getmSession());
             amadeusLogger.debug("signOutReplyRes " + new Date() + " ---->" + new XStream().toXML(signOutReply));
             amadeusSessionWrapper.resetSession();
@@ -515,7 +514,7 @@ public class ServiceHandler {
 
     public MiniRuleGetFromRecReply retriveMiniRuleFromPricing(AmadeusSessionWrapper amadeusSessionWrapper){
         //change here
-        amadeusSessionWrapper.incrementSequenceNumber();
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ amadeusSessionWrapper.getSessionId());
         MiniRuleGetFromRec miniRuleGetFromPricing = new PNRRetriev().miniRuleGetFromPricing();
         amadeusLogger.debug("MiniRuleGetFromPricingReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricing));

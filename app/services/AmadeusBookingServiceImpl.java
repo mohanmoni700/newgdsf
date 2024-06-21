@@ -1716,8 +1716,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				if (!fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier().equals("PI")
 					&& passengerType.get("P" + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber()).equals(PassengerTypeCode.ADT.toString())) {
 					for (FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
-						String temp = "S" + segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber();
-						if (airSegmentRefMap.get(temp) != null && !map.containsKey(temp)) {
+						String temp = (segmentInformation.getSegmentReference() != null) ?
+								("S" + segmentInformation.getSegmentReference().getRefDetails().get(0).getRefNumber()) : null;
+						if (temp != null && airSegmentRefMap.get(temp) != null && !map.containsKey(temp)) {
 							String key = airSegmentRefMap.get(temp).toString();
 							String baggage = null;
 							if(segmentInformation.getBagAllowanceInformation().getBagAllowanceDetails().getBaggageQuantity()==null) {

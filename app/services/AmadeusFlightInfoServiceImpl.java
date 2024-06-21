@@ -14,6 +14,7 @@ import com.compassites.model.*;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import models.AmadeusSessionWrapper;
+import models.FlightSearchOffice;
 import models.MiniRule;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -398,8 +399,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	    AmadeusSessionWrapper amadeusSessionWrapper = null;
 		List<HashMap> miniRule = new ArrayList<>();
 		try {
-			amadeusSessionWrapper = amadeusSessionManager.getSession();
+			FlightSearchOffice flightSearchOffice = new FlightSearchOffice(flightItinerary.getPricingInformation(seamen).getPricingOfficeId().toString());
+			//amadeusSessionWrapper = amadeusSessionManager.getSession();
+			amadeusSessionWrapper = amadeusSessionManager.getSession(flightSearchOffice);
+			amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
+			amadeusSessionWrapper = amadeusSessionManager.getSession(flightSearchOffice);
 			//ServiceHandler serviceHandler = new ServiceHandler();
+
 			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
@@ -419,9 +425,15 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			//System.out.println("getCancellationFee fare rule exception..........");
 			e.printStackTrace();
 		}finally {
-			if(amadeusSessionWrapper != null) {
-				amadeusSessionWrapper.setQueryInProgress(false);
-				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+//			if(amadeusSessionWrapper != null) {
+//				amadeusSessionWrapper.setQueryInProgress(false);
+//				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+//				//serviceHandler.logOut(amadeusSessionWrapper);
+//			}
+
+			if(amadeusSessionWrapper != null){
+				amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
+				serviceHandler.logOut(amadeusSessionWrapper);
 			}
 		}
 		amadeusLogger.info("miniRule: " + Json.toJson(miniRule));

@@ -219,4 +219,13 @@ public class AmadeusSessionWrapper extends Model{
         sequenceNumber++;
         mSession.value.setSequenceNumber(sequenceNumber.toString());
     }
+
+    public void incrementSequenceNumber(AmadeusSessionWrapper amadeusSessionWrapper) {
+         getmSession();
+        Integer sequenceNumber = Integer.parseInt(mSession.value
+                .getSequenceNumber());
+        sequenceNumber++;
+        mSession.value.setSequenceNumber(sequenceNumber.toString());
+        amadeusSessionWrapper.setmSession(mSession);
+    }
 }
