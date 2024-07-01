@@ -1,0 +1,45 @@
+name: Prod CI
+
+on:
+  push:
+    branches: [ "release-V1.0.0" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: 'sbt'
+      - name: compile code
+        run: sbt dist
+      - name: copy file via ssh key
+        uses: appleboy/scp-action@v0.1.4
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PORT: ${{ secrets.PORT }}
+          KEY: ${{ secrets.KEY }}
+        with:
+          source: "target/universal/gdsservice-1.0-SNAPSHOT.zip"
+          target: "prod"
+          strip_components: 2
+      - name: Install Dependencies
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script_stop: true
+          script: |
+            scp prod/gdsservice-1.0-SNAPSHOT.zip ec2-user@${{ secrets.PRODJOCHOST }}:deployments/
