@@ -42,4 +42,4 @@ jobs:
           key: ${{ secrets.KEY }}
           script_stop: true
           script: |
-            scp prod/gdsservice-1.0-SNAPSHOT.zip ec2-user@${{ secrets.PRODJOCHOST }}:deployments/
+            scp prod/gdsservice-1.0-SNAPSHOT.zip ec2-user@${{ secrets.PRODGDSHOST }}:deployments/
