@@ -215,8 +215,7 @@ public class AmadeusIssuanceServiceImpl {
                         AmadeusSessionWrapper benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                         System.out.println(tstRefNo);
                         serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
-                        pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
-                                issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, benzyAmadeusSessionWrapper);
+                        pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, benzyAmadeusSessionWrapper);
 
                         gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
                         PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
@@ -275,8 +274,7 @@ public class AmadeusIssuanceServiceImpl {
                 }
 
 
-                pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply,
-                        issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper);
+                pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper);
 
                 if(pricePNRReply.getApplicationError() != null) {
                     if(pricePNRReply.getApplicationError().getErrorOrWarningCodeDetails().getErrorDetails().getErrorCode().equalsIgnoreCase("0")
@@ -304,11 +302,8 @@ public class AmadeusIssuanceServiceImpl {
                     AmadeusSessionWrapper benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 
                     serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
-                    pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply,
-                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, benzyAmadeusSessionWrapper);
-
+                    pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, benzyAmadeusSessionWrapper);
                     gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
-
                     PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
                     serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
                     //serviceHandler.cancelPNR(tstRefNo, gdsPNRReplyBenzy,amadeusSessionWrapper);
@@ -325,20 +320,14 @@ public class AmadeusIssuanceServiceImpl {
                         return issuanceResponse;
                     }
 
-                        int numberOfTst = (issuanceRequest.isSeamen()) ? 1
-                                : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
+                        int numberOfTst = (issuanceRequest.isSeamen()) ? 1 : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
                  if(!isOfficeIdError) {
-                        TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler
-                                .createTST(numberOfTst, amadeusSessionWrapper);
+                        TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, amadeusSessionWrapper);
 
                         if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
-                            String errorCode = ticketCreateTSTFromPricingReply
-                                    .getApplicationError().getApplicationErrorInfo()
-                                    .getApplicationErrorDetail().getApplicationErrorCode();
+                            String errorCode = ticketCreateTSTFromPricingReply.getApplicationError().getApplicationErrorInfo().getApplicationErrorDetail().getApplicationErrorCode();
                             logger.debug("Amadeus Issuance TST creation error " + errorCode);
-                            ErrorMessage errorMessage = ErrorMessageHelper
-                                    .createErrorMessage("error",
-                                            ErrorMessage.ErrorType.ERROR, "Amadeus");
+                            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
                             issuanceResponse.setErrorMessage(errorMessage);
                             issuanceResponse.setSuccess(false);
                             return issuanceResponse;
@@ -353,13 +342,9 @@ public class AmadeusIssuanceServiceImpl {
 
 //            PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfo(pricePNRReplyFareList, issuanceRequest.getAdultCount(),
 //                    issuanceRequest.getChildCount(), issuanceRequest.getInfantCount());
-                PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoWithSegmentPricing(gdsPNRReply, pricePNRReplyFareList,
-                        issuanceRequest.isSeamen(), airSegmentList);
+                PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoWithSegmentPricing(gdsPNRReply, pricePNRReplyFareList, issuanceRequest.isSeamen(), airSegmentList);
                 BigDecimal bookedPrice = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getTotalPriceValue();
                 BigDecimal newPrice = pricingInformation.getTotalPriceValue();
-
-
-
 
                     if(bookedPrice.compareTo(newPrice) < 0) {
                         issuanceResponse.setIsPriceChanged(true);
