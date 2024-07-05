@@ -918,8 +918,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 	}
 
-	public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest,
-			String gdsPNR) {
+	public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest, String gdsPNR) {
+
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		boolean isSeamen = issuanceRequest.isSeamen();
 		String officeId = isSeamen ? issuanceRequest.getFlightItinerary().getSeamanPricingInformation().getPricingOfficeId() : issuanceRequest.getFlightItinerary().getPricingInformation().getPricingOfficeId();

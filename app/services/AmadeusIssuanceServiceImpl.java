@@ -89,6 +89,13 @@ public class AmadeusIssuanceServiceImpl {
                 return issuanceResponse;
             }
         }*/
+
+        //This is when the itinerary is returned null because the airline has cancelled the flight
+        if(travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList().size()==0){
+            issuanceResponse.setSuccess(false);
+            return issuanceResponse;
+        }
+
         boolean isSeamen = issuanceRequest.isSeamen();
         String pricingOfficeId = isSeamen ? issuanceRequest.getFlightItinerary().getSeamanPricingInformation().getPricingOfficeId() : issuanceRequest.getFlightItinerary().getPricingInformation().getPricingOfficeId();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
