@@ -773,7 +773,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					System.out.println(tstRefNo);
 					logger.debug("checkFareChangeAndAvailability called..........."+pnrResponse);
 					gdsPNRReplyBenzy = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
-					pnrResponse.setPnrNumber(tstRefNo);
+					//pnrResponse.setPnrNumber(tstRefNo);
 					gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 					benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 					serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
@@ -815,12 +815,17 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					if(pnrResponse.getPricingInfo() != null)
 					pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
 					FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
-					Map<String,Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
-					pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
-					PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
-					serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
-					serviceHandler.savePNR(amadeusSessionWrapper);
-					Thread.sleep(10000);
+					try{
+						Map<String,Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+						pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
+						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
+						serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
+						serviceHandler.savePNR(amadeusSessionWrapper);
+						pnrResponse.setPnrNumber(tstRefNo);
+						Thread.sleep(10000);
+					}catch (Exception e){
+						throw new Exception();
+					}
 				} else {
 					setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
 					String benzyOfficeId = amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString();
@@ -840,9 +845,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
 							BigDecimal totalFare = new BigDecimal(fare);
 							String currency = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getCurrency();
 							FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-							Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
-							pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
-							pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
+							try{
+								Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+								pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
+							}catch (Exception e){
+								amadeusLogger.debug("An exception while fetching the fareCheckRules:"+ e.getMessage());
+							}
 						}
 
 						} catch (Exception e) {
@@ -918,8 +926,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 	}
 
-	public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest,
-			String gdsPNR) {
+	public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest, String gdsPNR) {
+
 		TravellerMasterInfo masterInfo = new TravellerMasterInfo();
 		boolean isSeamen = issuanceRequest.isSeamen();
 		String officeId = isSeamen ? issuanceRequest.getFlightItinerary().getSeamanPricingInformation().getPricingOfficeId() : issuanceRequest.getFlightItinerary().getPricingInformation().getPricingOfficeId();
