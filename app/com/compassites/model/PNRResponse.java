@@ -53,6 +53,16 @@ public class PNRResponse {
 
     private boolean isOfficeIdPricingError = false;
 
+    private Map<String,Map> benzyFareRuleMap;
+
+    public Map<String, Map> getBenzyFareRuleMap() {
+        return benzyFareRuleMap;
+    }
+
+    public void setBenzyFareRuleMap(Map<String, Map> benzyFareRuleMap) {
+        this.benzyFareRuleMap = benzyFareRuleMap;
+    }
+
     public boolean isOfficeIdPricingError() { return isOfficeIdPricingError; }
 
     public void setOfficeIdPricingError(boolean pricingError) { isOfficeIdPricingError = pricingError; }

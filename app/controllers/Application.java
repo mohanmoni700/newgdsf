@@ -107,9 +107,7 @@ public class Application {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
-
         PNRResponse pnrResponse = bookingService.checkFareChangeAndAvailability(travellerMasterInfo);
-
         logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
@@ -156,13 +154,19 @@ public class Application {
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getMiniRuleFromFlightItenary() {
+
         List<HashMap> miniRules = new ArrayList<>();
         JsonNode json = request().body().asJson();
         SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
         FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
         String provider = json.get("provider").asText();
         Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-        miniRules = flightInfoService.getMiniRuleFeeFromFlightItenary(flightItinerary, searchParams, provider, seamen);
+        Boolean isBenzyFare = amadeusBookingService.isBenzyFare(flightItinerary,seamen);
+        if(isBenzyFare){
+            miniRules = flightInfoService.getGenericFareRuleFlightItenary(flightItinerary,searchParams,seamen,provider);
+        }else {
+            miniRules = flightInfoService.getMiniRuleFeeFromFlightItenary(flightItinerary, searchParams, provider, seamen);
+        }
         return Controller.ok(Json.toJson(miniRules));
     }
 

@@ -54,6 +54,16 @@ public class TravellerMasterInfo {
 
     private String gdsPNR;
 
+    private Map<String,Map> benzyFareRuleMap;
+
+    public Map<String, Map> getBenzyFareRuleMap() {
+        return benzyFareRuleMap;
+    }
+
+    public void setBenzyFareRuleMap(Map<String, Map> benzyFareRuleMap) {
+        this.benzyFareRuleMap = benzyFareRuleMap;
+    }
+
     public TravellerMasterInfo() {
         this.travellersList = new ArrayList<>();
     }

@@ -1,5 +1,7 @@
 package services;
 
+import com.compassites.model.Journey;
+import com.compassites.model.PAXFareDetails;
 import models.MiniRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,6 +82,15 @@ public class FlightInfoServiceWrapper {
 					flightItinerary, searchParams, seamen);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
 			// MiniRule not avaliable
+		}
+		return miniRule;
+	}
+
+	public List<HashMap> getGenericFareRuleFlightItenary(FlightItinerary flightItinerary,SearchParameters searchParameters,
+														 boolean seamen,String provider){
+		List<HashMap> miniRule = new ArrayList<>();
+		if ("Amadeus".equalsIgnoreCase(provider)) {
+			miniRule = amadeusFlightInfoService.getGenericFareRuleFlightItenary(flightItinerary,searchParameters,seamen);
 		}
 		return miniRule;
 	}
