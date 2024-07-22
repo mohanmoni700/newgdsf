@@ -848,6 +848,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 							try{
 								Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
 								pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
+								pnrResponse.getPricingInfo().setPricingOfficeId(benzyOfficeId);
 							}catch (Exception e){
 								amadeusLogger.debug("An exception while fetching the fareCheckRules:"+ e.getMessage());
 							}
