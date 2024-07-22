@@ -816,7 +816,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
 					FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
 					try{
-						Map<String,Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+						Map<String,Map> benzyFareRulesMap = null;
+						if(fareCheckRulesReply.getErrorInfo() == null)
+						 benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+
 						pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
 						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
 						serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
