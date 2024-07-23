@@ -816,7 +816,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
 					FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
 					try{
-						Map<String,Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+						Map<String,Map> benzyFareRulesMap = null;
+						if(fareCheckRulesReply.getErrorInfo() == null)
+						 benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+
 						pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
 						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
 						serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
@@ -848,6 +851,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 							try{
 								Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
 								pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
+								pnrResponse.getPricingInfo().setPricingOfficeId(benzyOfficeId);
 							}catch (Exception e){
 								amadeusLogger.debug("An exception while fetching the fareCheckRules:"+ e.getMessage());
 							}
