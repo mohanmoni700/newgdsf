@@ -32,6 +32,26 @@ public class IssuanceRequest implements Serializable{
 
     private String jocPNR;
 
+    private String bookingId;
+
+    private String appRef;
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public String getAppRef() {
+        return appRef;
+    }
+
+    public void setAppRef(String appRef) {
+        this.appRef = appRef;
+    }
+
     public int getAdultCount() {
         return adultCount;
     }

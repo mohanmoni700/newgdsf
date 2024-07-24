@@ -1,6 +1,7 @@
 package services;
 
 import com.compassites.GDSWrapper.mystifly.Mystifly;
+import com.compassites.constants.TraveloMatrixConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +34,10 @@ public class BookingServiceWrapper {
 
 	@Autowired
 	private TravelportIssuanceServiceImpl travelportIssuanceService;
+
+	@Autowired
+	private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
+
 
 	private LowestFareService amadeusLowestFareService;
 
@@ -71,6 +76,8 @@ public class BookingServiceWrapper {
 				CancelServiceWrapper cancelServiceWrapper = null;
 				cancelServiceWrapper.cancelPNR(pnrResponse.getPnrNumber(),"Mystifly");
 			}
+		} else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)) {
+			pnrResponse =	traveloMatrixBookingService.generatePNR(travellerMasterInfo);
 		}
 		return pnrResponse;
 	}
@@ -104,6 +111,8 @@ public class BookingServiceWrapper {
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
 			pnrResponse = mystiflyBookingService
 					.priceChangePNR(travellerMasterInfo);
+		}else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)) {
+			pnrResponse = traveloMatrixBookingService.priceChangePNR(travellerMasterInfo);
 		}
 		return pnrResponse;
 	}
@@ -119,6 +128,9 @@ public class BookingServiceWrapper {
 				.getProvider())) {
 			issuanceResponse = mystiflyBookingService
 					.issueTicket(issuanceRequest);
+		}else if (TraveloMatrixConstants.provider.equalsIgnoreCase(issuanceRequest
+				.getProvider())) {
+			issuanceResponse = traveloMatrixBookingService.issueTicket(issuanceRequest);
 		}
 		return issuanceResponse;
 	}
@@ -148,6 +160,8 @@ public class BookingServiceWrapper {
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
 			pnrResponse = mystiflyBookingService
 					.checkFareChangeAndAvailability(travellerMasterInfo);
+		}else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)){
+			pnrResponse =traveloMatrixBookingService.checkFareChangeAndAvailability(travellerMasterInfo);
 		}
 		return pnrResponse;
 	}

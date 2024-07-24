@@ -41,6 +41,8 @@ public class PNRResponse {
 
     private Map<String, String> airlinePNRMap;
 
+    private Map<String, String> ticketNumberMap;
+
     private Map<String, FlightInfo> flightInfoMap;
 
     private Map<String, String> segmentBaggageMap;
@@ -53,6 +55,12 @@ public class PNRResponse {
 
     private boolean isOfficeIdPricingError = false;
 
+    private String resultToken;
+
+    private String bookingId;
+
+    private String appReference;
+
     private Map<String,Map> benzyFareRuleMap;
 
     public Map<String, Map> getBenzyFareRuleMap() {
@@ -61,6 +69,40 @@ public class PNRResponse {
 
     public void setBenzyFareRuleMap(Map<String, Map> benzyFareRuleMap) {
         this.benzyFareRuleMap = benzyFareRuleMap;
+    }
+
+
+    public Map<String, String> getTicketNumberMap() {
+        return ticketNumberMap;
+    }
+
+    public void setTicketNumberMap(Map<String, String> ticketNumberMap) {
+        this.ticketNumberMap = ticketNumberMap;
+    }
+
+    public String getAppReference() {
+        return appReference;
+    }
+
+    public void setAppReference(String appReference) {
+        this.appReference = appReference;
+    }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+
+    public String getResultToken() {
+        return resultToken;
+    }
+
+    public void setResultToken(String resultToken) {
+        this.resultToken = resultToken;
     }
 
     public boolean isOfficeIdPricingError() { return isOfficeIdPricingError; }

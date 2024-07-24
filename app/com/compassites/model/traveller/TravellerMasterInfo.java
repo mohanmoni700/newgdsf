@@ -54,7 +54,20 @@ public class TravellerMasterInfo {
 
     private String gdsPNR;
 
+    private String appReference;
+
     private Map<String,Map> benzyFareRuleMap;
+
+    private boolean bookAndHold;
+
+    public boolean isBookAndHold() {
+        return bookAndHold;
+    }
+
+    public void setBookAndHold(boolean bookAndHold) {
+        this.bookAndHold = bookAndHold;
+    }
+
 
     public Map<String, Map> getBenzyFareRuleMap() {
         return benzyFareRuleMap;
@@ -62,6 +75,14 @@ public class TravellerMasterInfo {
 
     public void setBenzyFareRuleMap(Map<String, Map> benzyFareRuleMap) {
         this.benzyFareRuleMap = benzyFareRuleMap;
+    }
+
+    public String getAppReference() {
+        return appReference;
+    }
+
+    public void setAppReference(String appReference) {
+        this.appReference = appReference;
     }
 
     public TravellerMasterInfo() {

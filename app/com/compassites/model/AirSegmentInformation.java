@@ -91,6 +91,34 @@ public class AirSegmentInformation implements Serializable{
 
     private String cabinClass;
 
+    private String baggage;
+    private String cabinBaggage;
+    private Long availbleSeats;
+
+    public String getBaggage() {
+        return baggage;
+    }
+
+    public void setBaggage(String baggage) {
+        this.baggage = baggage;
+    }
+
+    public String getCabinBaggage() {
+        return cabinBaggage;
+    }
+
+    public void setCabinBaggage(String cabinBaggage) {
+        this.cabinBaggage = cabinBaggage;
+    }
+
+    public Long getAvailbleSeats() {
+        return availbleSeats;
+    }
+
+    public void setAvailbleSeats(Long availbleSeats) {
+        this.availbleSeats = availbleSeats;
+    }
+
     private List<HoppingFlightInformation> hoppingFlightInformations = null;
     
     public List<HoppingFlightInformation> getHoppingFlightInformations() {

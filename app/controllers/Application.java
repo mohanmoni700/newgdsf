@@ -6,6 +6,7 @@ import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.GDSWrapper.mystifly.AirTripDetailsClient;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.travelomatrix.ResponseModels.UpdatePNR.UpdatePNRResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
@@ -222,7 +223,7 @@ public class Application {
     	String gdsPNR = issuanceRequest.getGdsPNR();
     	String provider = issuanceRequest.getProvider();
         logger.debug("==== in Application RQ ==== >>>>>>" + Json.toJson(issuanceRequest));
-    	TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest, gdsPNR, provider);
+        TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest, gdsPNR, provider);
     	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
 		return ok(Json.toJson(masterInfo));
     }
@@ -261,6 +262,16 @@ public class Application {
     	LowFareResponse lowestFare = bookingService.getLowestFare(issuanceRequest);
     	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
     	return ok(Json.toJson(lowestFare));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getFareRuleFromTmx() {
+        List<HashMap> miniRules = new ArrayList<>();
+        JsonNode json = request().body().asJson();
+        String resultToken = Json.fromJson(json,String.class);
+        //String resultToken = json.get("flightItinerary").get("resultToken").asText();
+        miniRules = flightInfoService.getFareRuleFromTmx(resultToken);
+        return Controller.ok(Json.toJson(miniRules));
     }
 
     public Result cancelPNR(){
@@ -373,6 +384,17 @@ public class Application {
         return ok(Json.toJson(airMessageQueue));
     }
 
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result uploadTicket(){
+        UpdatePNRResponse updatePNRResponse = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String appRef = json.get("appRef").asText();
+        if(PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)){
+            updatePNRResponse = new TraveloMatrixBookingServiceImpl().getUpdatePnr(appRef);
+        }
+        return ok(Json.toJson(updatePNRResponse));
+    }
 
     public Result home(){
         return ok("GDS Service running.....");
