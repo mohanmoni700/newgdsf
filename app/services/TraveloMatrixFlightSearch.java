@@ -63,17 +63,12 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         SearchResponse sr = null;
         isRefundable = searchParameters.getRefundableFlights();
         nonStop = searchParameters.getDirectFlights();
-        logger.debug("#####################TraveloMatrixFlightSearch started  : ");
-        logger.debug("#####################TraveloMatrixFlightSearch : SearchParameters: \n" + Json.toJson(searchParameters));
+        travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch started  : ");
+        travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch : SearchParameters: \n" + Json.toJson(searchParameters));
         JsonNode jsonResponse = searchFlights.getFlights(searchParameters);
         try {
             TravelomatrixSearchReply response = new ObjectMapper().treeToValue(jsonResponse, TravelomatrixSearchReply.class);
             if(!response.getStatus()){
-                //Testing Logic:
-//                String file = "/home/sri/Joco/gdsservice/conf/TMResponse.json";
-//                String json = new String(Files.readAllBytes(Paths.get(file)));;
-//                System.out.println(json);
-//                response= new ObjectMapper().readValue(json,TravelomatrixSearchReply.class);
                 sr = new SearchResponse();
                 travelomatrixLogger.debug("Converted Travelomatrix Reply:"+response.getMessage().toString());
                 ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("travelomatrix.2000", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
@@ -91,7 +86,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 sr.getErrorMessageList().add(errorMessage);
             }
         }catch(Exception e) {
-            logger.info("TimeOut during Travelomagrix flight search ");
+            travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
             e.printStackTrace();
         }
         travelomatrixLogger.debug("TraveloMatrix SearchResponse created:"+ sr.toString());
@@ -122,34 +117,39 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
     public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
-        List<List<JourneyList>> journeyList = flightDataList.getJourneyList();
-        for (List<JourneyList>journey : journeyList) {
-            for (JourneyList journeyDetails : journey) {
-                FlightItinerary flightItinerary = new FlightItinerary();
-                List<Journey> consolidatedJourney = new LinkedList<>();
-                if(isRefundable && !journeyDetails.getAttr().getIsRefundable()){
-                    continue;
-                }
-                if(nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1){
-                    continue;
-                }
-                consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
-                flightItinerary.setJourneyList(consolidatedJourney);
-                flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
-                flightItinerary.setPassportMandatory(Boolean.FALSE);
-                PricingInformation pricingInformation = getPricingInformation(journeyDetails);
-                flightItinerary.setPricingInformation(pricingInformation);
-                if(journeyDetails.getFlightDetails().getDetails().get(0).get(0).getFlightNumber().equalsIgnoreCase("809")){
-                    System.out.println("Flightnumber");
-                }
-                flightItinerary.setResultToken(journeyDetails.getResultToken());
-                if (journeyDetails.getAttr().getIsLCC() != null)
-                    flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
-                else
-                    flightItinerary.setIsLCC(false);
+        try {
+           List<List<JourneyList>> journeyList = flightDataList.getJourneyList();
+           for (List<JourneyList> journey : journeyList) {
+               for (JourneyList journeyDetails : journey) {
+                   FlightItinerary flightItinerary = new FlightItinerary();
+                   List<Journey> consolidatedJourney = new LinkedList<>();
+                   if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
+                       continue;
+                   }
+                   if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
+                       continue;
+                   }
+                   consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
+                   flightItinerary.setJourneyList(consolidatedJourney);
+                   flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
+                   flightItinerary.setPassportMandatory(Boolean.FALSE);
+                   PricingInformation pricingInformation = getPricingInformation(journeyDetails);
+                   flightItinerary.setPricingInformation(pricingInformation);
+//                if(journeyDetails.getFlightDetails().getDetails().get(0).get(0).getFlightNumber().equalsIgnoreCase("809")){
+//                    System.out.println("Flightnumber");
+//                }
+                   flightItinerary.setResultToken(journeyDetails.getResultToken());
+                   if (journeyDetails.getAttr().getIsLCC() != null)
+                       flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
+                   else
+                       flightItinerary.setIsLCC(false);
 
-                flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
-            }
+                   flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+               }
+           }
+       }catch(Exception e){
+            logger.error("Error while creating the airsolution for travelomatrix"+ e.getMessage());
+            e.printStackTrace();
         }
         return flightItineraryHashMap;
     }
@@ -252,10 +252,13 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 airSegmentInformation.setAirline(Airline.getAirlineByCode(journeyData.getOperatorCode(), redisTemplate));
                 airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(journeyData.getOperatorCode(), redisTemplate));
                 airSegmentInformation.setCabinClass(journeyData.getCabinClass());
-                airSegmentInformation.setFareBasis(journeyData.getAttr().getAirlineRemark());
-                airSegmentInformation.setCabinBaggage(journeyData.getAttr().getCabinBaggage());
-                airSegmentInformation.setBaggage(journeyData.getAttr().getBaggage());
-                airSegmentInformation.setAvailbleSeats(journeyData.getAttr().getAvailableSeats());
+                if(journeyData.getAttr() != null) {
+                    airSegmentInformation.setFareBasis(journeyData.getAttr().getAirlineRemark());
+                    airSegmentInformation.setCabinBaggage(journeyData.getAttr().getCabinBaggage());
+                    airSegmentInformation.setBaggage(journeyData.getAttr().getBaggage());
+                    airSegmentInformation.setAvailbleSeats(journeyData.getAttr().getAvailableSeats());
+                }
+                travelomatrixLogger.debug("TMX Proccessed the flight no:"+ airSegmentInformation.getFlightNumber() +" carrier code:" + airSegmentInformation.getCarrierCode());
                 airSegmentInformationList.add(airSegmentInformation);
             }
             Journey asJourney = new Journey();

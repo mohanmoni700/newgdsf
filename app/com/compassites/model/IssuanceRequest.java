@@ -36,6 +36,16 @@ public class IssuanceRequest implements Serializable{
 
     private String appRef;
 
+    private String resultToken;
+
+    public String getResultToken() {
+        return resultToken;
+    }
+
+    public void setResultToken(String resultToken) {
+        this.resultToken = resultToken;
+    }
+
     public String getBookingId() {
         return bookingId;
     }

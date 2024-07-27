@@ -44,3 +44,6 @@ POST   /getFareRuleFromTmx           @controllers.Application.getFareRuleFromTmx
 
 #upload ticket for travelomatrix
 POST  /uploadTicket               @controllers.Application.uploadTicket()
+
+#upload ticket for travelomatrix
+POST  /commitBooking               @controllers.Application.commitBooking()

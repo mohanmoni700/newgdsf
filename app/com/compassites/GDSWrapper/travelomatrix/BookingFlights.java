@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.travelomatrix;
 
+import com.compassites.model.IssuanceRequest;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.CommitBookingRequest;
@@ -65,8 +66,8 @@ public class BookingFlights {
         return node;
     }
 
-    public JsonNode commitBooking(TravellerMasterInfo travellerMasterInfo){
-        JsonNode jsonRequest = getJsonFromCommitBookingRequest(travellerMasterInfo);
+    public JsonNode commitBooking(IssuanceRequest issuanceRequest){
+        JsonNode jsonRequest = getJsonFromCommitBookingRequest(issuanceRequest);
         JsonNode response = null;
         try {
             wsrholder= wsconf.getRequestHolder("/CommitBooking");
@@ -83,16 +84,16 @@ public class BookingFlights {
 
     }
 
-    public JsonNode getJsonFromCommitBookingRequest(TravellerMasterInfo travellerMasterInfo){
+    public JsonNode getJsonFromCommitBookingRequest(IssuanceRequest issuanceRequest){
         JsonNode node = null;
         CommitBookingRequest commitBookingRequest = new CommitBookingRequest();
-        commitBookingRequest.setAppReference(travellerMasterInfo.getAppReference());
+        commitBookingRequest.setAppReference(issuanceRequest.getAppRef());
         commitBookingRequest.setSequenceNumber("0");
-        commitBookingRequest.setResultToken(travellerMasterInfo.getItinerary().getResultToken());
+        commitBookingRequest.setResultToken(issuanceRequest.getResultToken());
         List<Passenger>  passengerList = new ArrayList<>();
 
         //ADT
-        for( Traveller traveller : travellerMasterInfo.getTravellersList()) {
+        for( Traveller traveller : issuanceRequest.getTravellerList()) {
             Passenger passenger = new Passenger();
             passenger.setEmail(traveller.getPersonalDetails().getEmail());
             passenger.setCountryCode(traveller.getPersonalDetails().getCountryCode());

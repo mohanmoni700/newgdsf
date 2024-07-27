@@ -40,4 +40,13 @@ public class CommitBookingReply {
         this.status = status;
     }
 
+    @Override
+    public String toString() {
+        return "CommitBookingReply{" +
+                "commitBooking=" + commitBooking +
+                ", message='" + message + '\'' +
+                ", status='" + status + '\'' +
+                '}';
+    }
+
 }

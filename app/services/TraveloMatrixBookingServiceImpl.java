@@ -58,19 +58,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
         PNRResponse pnrResponse = null;
         travelomatrixLogger.debug("generatePNR called...........");
-        if(!travellerMasterInfo.isBookAndHold()) {
-            JsonNode jsonResponse = bookingFlights.commitBooking(travellerMasterInfo);
 
-                travelomatrixLogger.debug("Response for generatePNR: " + jsonResponse);
-//                CommitBookingReply response = new ObjectMapper().treeToValue(jsonResponse, CommitBookingReply.class);
-//                if (response.getStatus().equalsIgnoreCase("0")) {
-//                    travelomatrixLogger.debug("No Response receieved for CommitBooking from Travelomatrix : " + response);
-//                } else {
-                    pnrResponse = getBookingPNRResponse(travellerMasterInfo);
-
-                //}
-
-        }else{
+        if(travellerMasterInfo.isBookAndHold()) {
             //Book and Hold
             JsonNode jsonResponse = holdTicketTMX.HoldBooking(travellerMasterInfo);
             try {
@@ -85,9 +74,30 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
-
+        }else{
+            pnrResponse = getBookingPNRResponse(travellerMasterInfo);
         }
+
         return pnrResponse;
+    }
+
+
+    public IssuanceResponse commitBooking(IssuanceRequest issuanceRequest)  {
+        IssuanceResponse issuanceResponse = new IssuanceResponse();
+        JsonNode jsonResponse = bookingFlights.commitBooking(issuanceRequest);
+        travelomatrixLogger.debug("Response for generatePNR: " + jsonResponse);
+        CommitBookingReply commitBookingReply = null;
+        try {
+            commitBookingReply = new ObjectMapper().treeToValue(jsonResponse, CommitBookingReply.class);
+            if (commitBookingReply.getStatus().equalsIgnoreCase("0")) {
+                travelomatrixLogger.debug("No Response receieved for CommitBooking from Travelomatrix : " + commitBookingReply);
+            } else {
+             issuanceResponse = getCommitBookingResponse(commitBookingReply);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return issuanceResponse;
     }
 
     public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
@@ -207,11 +217,40 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         return pnrResponse;
     }
 
+    public IssuanceResponse getCommitBookingResponse(CommitBookingReply commitBookingReply){
+        IssuanceResponse issuanceResponse = new IssuanceResponse();
+        String airlinePNR=commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
+        issuanceResponse.setAirlinePnr(airlinePNR);
+        issuanceResponse.setSuccess(true);
+        List<Detail> details = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
+        int segmentnumber = 1;
+        Map<String,String> airlinePNRMap = new HashMap<>();
+        for(Detail detail:details) {
+            String segments = detail.getOrigin().getAirportCode().toLowerCase() + detail.getDestination().getAirportCode().toLowerCase() + String.valueOf(segmentnumber);
+            String airlinePnr = detail.getAirlinePNR();
+            airlinePNRMap.put(segments,airlinePnr);
+            segmentnumber++;
+        }
+        issuanceResponse.setAirlinePNRMap(airlinePNRMap);
+        issuanceResponse.setIssued(true);
+        Map<String,String> tickenetNumberMap = new HashMap<>();
+        List<PassengerDetail> passengerDetailList =  commitBookingReply.getCommitBooking().getBookingDetails().getPassengerDetails();
+        for(PassengerDetail passengerDetail:passengerDetailList){
+            String passengerType = passengerDetail.getPassengerType();
+            String ticketNumber  = passengerDetail.getTicketNumber();
+            tickenetNumberMap.put(passengerType,ticketNumber);
+        }
+        issuanceResponse.setTicketNumberMap(tickenetNumberMap);
+        issuanceResponse.setBookingId(commitBookingReply.getCommitBooking().getBookingDetails().getBookingId());
+        //issuanceResponse.setBaggage(commitBookingReply.getCommitBooking().getBookingDetails().getAttr().getBaggage().toString());
+        return issuanceResponse;
+    }
+
     public PNRResponse getBookingPNRResponse(TravellerMasterInfo travellerMasterInfo){
         PNRResponse pnrResponse = new PNRResponse();
        // String airlinePNR=commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
-       pnrResponse.setAirlinePNR("NA");
-        pnrResponse.setPnrNumber("NA");
+      // pnrResponse.setAirlinePNR("NA");
+       // pnrResponse.setPnrNumber("NA");
         pnrResponse.setFlightAvailable(true);
         pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId);
         pnrResponse.setAirlinePNRError(false);

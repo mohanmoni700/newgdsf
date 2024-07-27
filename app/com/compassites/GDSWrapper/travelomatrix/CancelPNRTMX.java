@@ -1,0 +1,65 @@
+package com.compassites.GDSWrapper.travelomatrix;
+
+import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.travelomatrix.CancellationRequest;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import configs.WsConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import play.libs.ws.WSRequestHolder;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CancelPNRTMX {
+    static Logger logger = LoggerFactory.getLogger("gds");
+
+    static Logger travelomatrixLogger = LoggerFactory.getLogger("travelomatrix");
+
+    public WsConfig wsconf = new WsConfig();
+
+    @Autowired
+    public WSRequestHolder wsrholder;
+
+    public JsonNode CancelPNR(String pnr,String appRef,String bookingId){
+        JsonNode jsonRequest = getJsonforCancelPNRRequest(pnr,appRef,bookingId);
+        JsonNode response = null;
+        try {
+            wsrholder= wsconf.getRequestHolder("/CancelBooking");
+            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
+            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
+            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
+        }catch(Exception e){
+            travelomatrixLogger.error(e.getMessage());
+            e.printStackTrace();
+        }
+        return response;
+
+    }
+
+    public JsonNode getJsonforCancelPNRRequest(String pnr,String appRef,String bookingId){
+        JsonNode jsonNode = null;
+        CancellationRequest cancellationRequest = new CancellationRequest();
+        cancellationRequest.setSequenceNumber(0);
+        cancellationRequest.setpNR(pnr);
+        cancellationRequest.setAppReference(appRef);
+        cancellationRequest.setBookingId(bookingId);
+        cancellationRequest.setisFullBookingCancel(Boolean.TRUE);
+        ArrayList<String> ticketIdList = new ArrayList<>();
+        ticketIdList.add(bookingId);
+        cancellationRequest.setTicketId(ticketIdList);
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            jsonNode= mapper.valueToTree(cancellationRequest);
+
+        }catch(Exception e){
+            travelomatrixLogger.error("Exception Occured while creating Cancellation Request:"+ e.getMessage());
+            e.printStackTrace();
+        }
+        return jsonNode;
+    }
+}

@@ -13,6 +13,7 @@ import com.fasterxml.jackson.datatype.joda.JodaModule;
 import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
+import org.hamcrest.core.Is;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,9 @@ public class Application {
 
     @Autowired
     MystiflyBookingServiceImpl mystiflyBookingService;
+
+    @Autowired
+    TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -265,6 +269,13 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
+    public Result commitBooking(){
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json,IssuanceRequest.class);
+        IssuanceResponse issuanceResponse = traveloMatrixBookingService.commitBooking(issuanceRequest);
+        return ok(Json.toJson(issuanceResponse));
+    }
+    @BodyParser.Of(BodyParser.Json.class)
     public Result getFareRuleFromTmx() {
         List<HashMap> miniRules = new ArrayList<>();
         JsonNode json = request().body().asJson();
@@ -279,9 +290,11 @@ public class Application {
         JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
+        String appRef = Json.fromJson(json.findPath("appRef"), String.class);
+        String bookingId = Json.fromJson(json.findPath("bookingId"), String.class);
         logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
 
-        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider);
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId);
 
         logger.debug("cancel pnr response " + Json.toJson(cancelPNRResponse));
         return ok(Json.toJson(cancelPNRResponse));
