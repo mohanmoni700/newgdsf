@@ -143,7 +143,6 @@ public class AmadeusFlightSearch implements FlightSearch{
             searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
         }finally {
-
             amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
         }
 
