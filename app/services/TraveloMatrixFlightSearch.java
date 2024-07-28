@@ -61,36 +61,40 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
     @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         SearchResponse sr = null;
-        isRefundable = searchParameters.getRefundableFlights();
-        nonStop = searchParameters.getDirectFlights();
-        travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch started  : ");
-        travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch : SearchParameters: \n" + Json.toJson(searchParameters));
-        JsonNode jsonResponse = searchFlights.getFlights(searchParameters);
-        try {
-            TravelomatrixSearchReply response = new ObjectMapper().treeToValue(jsonResponse, TravelomatrixSearchReply.class);
-            if(!response.getStatus()){
-                sr = new SearchResponse();
-                travelomatrixLogger.debug("Converted Travelomatrix Reply:"+response.getMessage().toString());
-                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("travelomatrix.2000", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
-                sr.getErrorMessageList().add(errorMessage);
+        if(!searchParameters.getJourneyType().equals(JourneyType.ROUND_TRIP)) {
+            isRefundable = searchParameters.getRefundableFlights();
+            nonStop = searchParameters.getDirectFlights();
+            travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch started  : ");
+            travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch : SearchParameters: \n" + Json.toJson(searchParameters));
+            JsonNode jsonResponse = searchFlights.getFlights(searchParameters);
+            try {
+                TravelomatrixSearchReply response = new ObjectMapper().treeToValue(jsonResponse, TravelomatrixSearchReply.class);
+                if (!response.getStatus()) {
+                    sr = new SearchResponse();
+                    travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.getMessage().toString());
+                    ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("travelomatrix.2000", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                    sr.getErrorMessageList().add(errorMessage);
+                }
+                if (response.getStatus()) {
+                    travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
+                    AirSolution airSolution = getAirSolution(response);
+                    sr = new SearchResponse();
+                    sr.setFlightSearchOffice(getOfficeList().get(0));
+                    sr.setAirSolution(airSolution);
+                    sr.setProvider(TraveloMatrixConstants.provider);
+                } else {
+                    ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(response.getMessage(), ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                    sr.getErrorMessageList().add(errorMessage);
+                }
+
+            } catch (Exception e) {
+                travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
+                e.printStackTrace();
             }
-            if (response.getStatus()) {
-                travelomatrixLogger.debug("Converted Travelomatrix Reply:"+response.toString());
-                AirSolution airSolution = getAirSolution(response);
-                sr = new SearchResponse();
-                sr.setFlightSearchOffice(getOfficeList().get(0));
-                sr.setAirSolution(airSolution);
-                sr.setProvider(TraveloMatrixConstants.provider);
-            } else {
-                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(response.getMessage(), ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
-                sr.getErrorMessageList().add(errorMessage);
-            }
-        }catch(Exception e) {
-            travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
-            e.printStackTrace();
+
+            travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
+            logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################" + sr.toString());
         }
-        travelomatrixLogger.debug("TraveloMatrix SearchResponse created:"+ sr.toString());
-        logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################"+ sr.toString());
         return sr;
     }
 

@@ -79,12 +79,14 @@ public class FlightSearchWrapper {
                                 futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                                     public SearchResponse call() throws Exception {
                                         SearchResponse response = flightSearch.search(searchParameters, office);
-                                        logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId());
-                                        logger.debug("response "+Json.toJson(response));
-                                        if(checkResponseAndSetStatus(response, finalProviderStatusCacheKey)){
-                                            logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
-                                        }
-                                        return response;
+                                            logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId());
+                                            logger.debug("response " + Json.toJson(response));
+                                            if (checkResponseAndSetStatus(response, finalProviderStatusCacheKey)) {
+                                                logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
+                                            }
+
+                                            return response;
+
                                     }
                             }));
                             } else {
