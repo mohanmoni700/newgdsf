@@ -65,6 +65,33 @@ public class IssuanceResponse implements Serializable{
     public void setCappingLimitReached(boolean isCappingLimitReached) {
         this.isCappingLimitReached = isCappingLimitReached;
     }
+    private String baggage ;
+    private String bookingId;
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public String getBaggage() {
+        return baggage;
+    }
+
+    public void setBaggage(String baggage) {
+        this.baggage = baggage;
+    }
+
+    private Map<String, String> ticketNumberMap;
+
+    public Map<String, String> getTicketNumberMap() {
+        return ticketNumberMap;
+    }
+
+    public void setTicketNumberMap(Map<String, String> ticketNumberMap) {
+        this.ticketNumberMap = ticketNumberMap;
+    }
 
     public Date getValidTillDate() {
         return validTillDate;
