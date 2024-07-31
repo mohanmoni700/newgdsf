@@ -28,7 +28,7 @@ public class Passenger {
     @JsonProperty("Gender")
     private Long gender;
     @JsonProperty("IsLeadPax")
-    private Long isLeadPax;
+    private String isLeadPax;
     @JsonProperty("LastName")
     private String lastName;
     @JsonProperty("PassportNumber")
@@ -112,11 +112,11 @@ public class Passenger {
         this.gender = gender;
     }
 
-    public Long getIsLeadPax() {
+    public String getIsLeadPax() {
         return isLeadPax;
     }
 
-    public void setIsLeadPax(Long isLeadPax) {
+    public void setIsLeadPax(String isLeadPax) {
         this.isLeadPax = isLeadPax;
     }
 

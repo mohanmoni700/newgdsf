@@ -84,9 +84,9 @@ public class HoldTicketTMX {
             Long paxType = getPaxType(formattedDate);
             passenger.setPaxType(paxType);
             if(paxType == 1)
-                passenger.setIsLeadPax(new Long(1));
+                passenger.setIsLeadPax("1");
             else
-                passenger.setIsLeadPax(null);
+                passenger.setIsLeadPax("");
             passengerList.add(passenger);
         }
 
