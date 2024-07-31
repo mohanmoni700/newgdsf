@@ -2,10 +2,7 @@ package services;
 
 import com.compassites.GDSWrapper.travelomatrix.FareRulesTMX;
 import com.compassites.exceptions.RetryException;
-import com.compassites.model.ErrorMessage;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.SearchParameters;
-import com.compassites.model.SearchResponse;
+import com.compassites.model.*;
 import com.compassites.model.travelomatrix.ResponseModels.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 
@@ -55,10 +53,15 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        BigDecimal zeroDecimal = new BigDecimal(0);
        String currency = "INR";
        if(response.getFareRule().getFareRuleDetail() != null){
-           // Coding to be done
-           List<Rule>  cancellationChargeList = response.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
-           List<Rule>  dateChangesList = response.getFareRule().getFareRuleDetail().get(0).getDateChange();
-           List<Rule> noShowChargesList = response.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
+           List<Rule> cancellationChargeList = null;
+           List<Rule> dateChangesList = null;
+           List<Rule> noShowChargesList = null;
+           if(response.getFareRule().getFareRuleDetail().get(0) != null) {
+               // Coding to be done
+               cancellationChargeList = response.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
+               dateChangesList = response.getFareRule().getFareRuleDetail().get(0).getDateChange();
+               noShowChargesList = response.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
+           }
            BigDecimal cancellationChargeBeforeDept = null;
            BigDecimal dateChangeBeforeDept = null;
            BigDecimal cancellationChargeAfterDept = null;
@@ -100,7 +103,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
 
            miniRule.setCancellationFeeBeforeDept(cancellationChargeBeforeDept);
            miniRule.setChangeFeeBeforeDept(dateChangeBeforeDept);
-           if(cancellationChargeBeforeDept.compareTo(zeroDecimal) == 1) {
+           if(cancellationChargeBeforeDept!= null && cancellationChargeBeforeDept.compareTo(zeroDecimal) == 1) {
                miniRule.setCancellationRefundableBeforeDept(true);
            }
 
@@ -115,7 +118,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
 //       miniRule.setCancellationNoShowCurrency(currency);
            miniRule.setCancellationFeeBeforeDeptCurrency(currency);
 
-           if(dateChangeBeforeDept.compareTo(zeroDecimal) == 1) {
+           if(dateChangeBeforeDept != null && dateChangeBeforeDept.compareTo(zeroDecimal) == 1) {
                miniRule.setChangeRefundableBeforeDept(true);
            }
 //       miniRule.setChangeRefundableAfterDept(false);
@@ -132,4 +135,39 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        }
        return miniRules;
    }
+   //this is retrieve flight info
+   public FlightItinerary getFlightInfo(FlightItinerary flightItinerary){
+       FlightItinerary flightItinerary1 = new FlightItinerary();
+       flightItinerary1.setIsLCC(flightItinerary.getLCC());
+       flightItinerary1.setResultToken(flightItinerary.getResultToken());
+       flightItinerary1.setId(flightItinerary.getId());
+       flightItinerary1.setPricingInformation(flightItinerary.getPricingInformation());
+       List<Journey> journeyList = flightItinerary.getNonSeamenJourneyList();
+       for(Journey journey:journeyList){
+           List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
+           for(AirSegmentInformation airSegmentInformation:airSegmentInformationList){
+               FlightInfo flightInfo = new FlightInfo();
+               String baggage = airSegmentInformation.getBaggage();
+               String numericPart = baggage.replaceAll("[^0-9]", "");
+               String nonNumericPart = baggage.replaceAll("[0-9]", "").trim();
+               BigInteger baga = new BigInteger(numericPart);
+               flightInfo.setBaggageAllowance(baga);
+               flightInfo.setBaggageUnit(nonNumericPart);
+               flightInfo.setAmenities(null);
+               airSegmentInformation.setFlightInfo(flightInfo);
+           }
+       }
+       flightItinerary1.setNonSeamenJourneyList(journeyList);
+       flightItinerary1.setJourneyList(journeyList);
+       flightItinerary1.setSeamanPricingInformation(flightItinerary.getSeamanPricingInformation());
+       flightItinerary1.setFareSourceCode(flightItinerary.getFareSourceCode());
+       flightItinerary1.setFareType(flightItinerary.getFareType());
+       flightItinerary1.setPriceOnlyPTC(flightItinerary.isPriceOnlyPTC());
+       flightItinerary1.setPassportMandatory(flightItinerary.isPassportMandatory());
+       flightItinerary1.setRefundable(flightItinerary.getRefundable());
+       flightItinerary1.setTotalTravelTime(flightItinerary.getTotalTravelTime());
+       flightItinerary1.setTotalTravelTimeStr(flightItinerary.getTotalTravelTimeStr());
+       return flightItinerary1;
+   }
+
 }

@@ -90,6 +90,8 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             } catch (Exception e) {
                 travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
                 e.printStackTrace();
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                sr.getErrorMessageList().add(errorMessage);
             }
 
             travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
@@ -262,8 +264,9 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     airSegmentInformation.setBaggage(journeyData.getAttr().getBaggage());
                     airSegmentInformation.setAvailbleSeats(journeyData.getAttr().getAvailableSeats());
                 }
-                travelomatrixLogger.debug("TMX Proccessed the flight no:"+ airSegmentInformation.getFlightNumber() +" carrier code:" + airSegmentInformation.getCarrierCode());
-                airSegmentInformationList.add(airSegmentInformation);
+
+                if(toAirport.getAirportName() != null && fromAirport.getAirportName() != null)
+                 airSegmentInformationList.add(airSegmentInformation);
             }
             Journey asJourney = new Journey();
             asJourney.setProvider(TraveloMatrixConstants.provider);

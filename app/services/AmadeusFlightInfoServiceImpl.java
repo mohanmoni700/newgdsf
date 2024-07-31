@@ -68,7 +68,8 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
-			amadeusSessionWrapper = amadeusSessionManager.getSession();
+			FlightSearchOffice office = new FlightSearchOffice("BOMAK38SN");
+			amadeusSessionWrapper = amadeusSessionManager.getSession(office);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);

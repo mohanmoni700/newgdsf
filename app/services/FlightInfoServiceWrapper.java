@@ -1,15 +1,13 @@
 package services;
 
-import com.compassites.model.Journey;
-import com.compassites.model.PAXFareDetails;
+import com.compassites.model.*;
+import com.compassites.model.travelomatrix.ResponseModels.JourneyList;
 import com.compassites.model.travelomatrix.ResponseModels.TraveloMatrixFaruleReply;
 import models.MiniRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.compassites.GDSWrapper.mystifly.Mystifly;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.SearchParameters;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +46,8 @@ public class FlightInfoServiceWrapper {
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
 			response = mystiflyFlightInfoService.getBaggageInfo(
 					flightItinerary, searchParams, seamen);
+		}else if ("TraveloMatrix".equalsIgnoreCase(provider)) {
+			response = traveloMatrixFlightInfoServiceImpl.getFlightInfo(flightItinerary);
 		}
 		return response;
 	}

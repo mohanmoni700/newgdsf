@@ -21,7 +21,7 @@ public class BookingCustomer {
     @JsonProperty("TicketId")
     private String ticketId;
     @JsonProperty("TicketNumber")
-    private Object ticketNumber;
+    private String ticketNumber;
     @Expose
     private String title;
 
@@ -65,11 +65,11 @@ public class BookingCustomer {
         this.ticketId = ticketId;
     }
 
-    public Object getTicketNumber() {
+    public String getTicketNumber() {
         return ticketNumber;
     }
 
-    public void setTicketNumber(Object ticketNumber) {
+    public void setTicketNumber(String ticketNumber) {
         this.ticketNumber = ticketNumber;
     }
 

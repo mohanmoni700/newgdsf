@@ -334,8 +334,11 @@ public class AmadeusFlightSearch implements FlightSearch{
             validatingCarrierCode = recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getCompany();
         }
         for(FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlight.getFlightDetails()){
-            journey.getAirSegmentList().add(setSegmentInformation(flightDetails, fareBasis, validatingCarrierCode));
-            journey.setProvider("Amadeus");
+            AirSegmentInformation airSegmentInformation = setSegmentInformation(flightDetails, fareBasis, validatingCarrierCode);
+            if(airSegmentInformation.getToAirport().getAirportName() != null && airSegmentInformation.getFromAirport().getAirportName() != null) {
+                journey.getAirSegmentList().add(airSegmentInformation);
+                journey.setProvider("Amadeus");
+            }
         }
         getConnectionTime(journey.getAirSegmentList());
         return journey;

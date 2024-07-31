@@ -66,13 +66,19 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 travelomatrixLogger.debug("Response for generatePNR: " + jsonResponse);
                 HoldTicketResponse response = new ObjectMapper().treeToValue(jsonResponse, HoldTicketResponse.class);
                 if (response.getStatus().equalsIgnoreCase("0")) {
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setMessage(response.getMessage());
+                    pnrResponse = new PNRResponse();
+                    pnrResponse.setErrorMessage(errorMessage);
                     travelomatrixLogger.debug("Response is not valid for HoldBooking: " + response.getMessage());
                 } else {
                     pnrResponse = getPNRResponseFromHoldTicket(travellerMasterInfo, response);
                 }
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
+                travelomatrixLogger.error("Error in json parsor :HoldBooking: " + e.getMessage());
                 throw new RuntimeException(e);
+
             }
         }else{
             pnrResponse = getBookingPNRResponse(travellerMasterInfo);
@@ -90,6 +96,10 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         try {
             commitBookingReply = new ObjectMapper().treeToValue(jsonResponse, CommitBookingReply.class);
             if (commitBookingReply.getStatus().equalsIgnoreCase("0")) {
+                issuanceResponse = new IssuanceResponse();
+                ErrorMessage em = new ErrorMessage();
+                em.setMessage(commitBookingReply.getMessage());
+                issuanceResponse.setErrorMessage(em);
                 travelomatrixLogger.debug("No Response receieved for CommitBooking from Travelomatrix : " + commitBookingReply);
             } else {
              issuanceResponse = getCommitBookingResponse(commitBookingReply);
@@ -160,7 +170,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
        Double totalFareFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getTotalDisplayFare();
        String currency = travellerMasterInfo.getItinerary().getPricingInformation().getCurrency();
        BigDecimal totalPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPrice();
-       if(currency.equalsIgnoreCase(currencyFromReply) && totalFareFromReply == totalPrice.doubleValue()){
+       if(totalFareFromReply == totalPrice.doubleValue()){
            pnrResponse.setPriceChanged(false);
        }else{
         pnrResponse.setPriceChanged(true);
@@ -208,11 +218,22 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             infPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getINF().getTax()));
             passengerTaxList.add(infPassengerTax);
         }
+
         pricingInformation.setPassengerTaxes(passengerTaxList);
         pricingInformation.setLCC(updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getAttr().getIsLCC());
         pricingInformation.setProvider(TraveloMatrixConstants.provider);
         pnrResponse.setPricingInfo(pricingInformation);
         pnrResponse.setCappingLimitReached(false);
+        Map<String,String> baggageMap = new HashMap<>();
+        List<com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.Detail> details = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getFlightDetails().getDetails().get(0);
+        for(com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.Detail detail : details){
+            if(detail.getAttr() != null){
+                String key =  detail.getOrigin().getAirportCode().toUpperCase().toString()+detail.getDestination().getAirportCode().toUpperCase().toString();
+                String baggage = detail.getAttr().getBaggage();
+                baggageMap.put(key,baggage);
+            }
+        }
+        pnrResponse.setSegmentBaggageMap(baggageMap);
         pnrResponse.setHoldTime(updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getHoldTicket());
         return pnrResponse;
     }
@@ -242,7 +263,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         }
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
         issuanceResponse.setBookingId(commitBookingReply.getCommitBooking().getBookingDetails().getBookingId());
-        //issuanceResponse.setBaggage(commitBookingReply.getCommitBooking().getBookingDetails().getAttr().getBaggage().toString());
+        String baggage = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
+        issuanceResponse.setBaggage(baggage);
         return issuanceResponse;
     }
 
