@@ -253,7 +253,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 airSegmentInformation.setToAirport(toAirport);
                 DateTime departure = DateUtility.convertTimewithZone(fromAirport.getTime_zone(),journeyData.getOrigin().getDateTime());
                 airSegmentInformation.setDepartureDate(departure.toDate());
-                airSegmentInformation.setDepartureTime(journeyData.getOrigin().getDateTime());
+                airSegmentInformation.setDepartureTime(departure.toString());
                 DateTime arrival = DateUtility.convertTimewithZone(toAirport.getTime_zone(), journeyData.getDestination().getDateTime());
                 airSegmentInformation.setArrivalTime(arrival.toString());
                 airSegmentInformation.setArrivalDate(arrival.toDate());

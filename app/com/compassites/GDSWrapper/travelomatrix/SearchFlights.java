@@ -81,7 +81,7 @@ public class SearchFlights {
            List<Segment> segments  = getSegments(journeyList1,flightSearchRq.getJourneyType());
            flightSearchRq.setSegmentsdata(segments);
            ObjectMapper mapper = new ObjectMapper();
-           mapper.setTimeZone(TimeZone.getDefault());
+           //mapper.setTimeZone(TimeZone.getDefault());
            node= mapper.valueToTree(flightSearchRq);
        }catch(Exception e){
            travelomatrixLogger.error("Exception Occured:"+ e.getMessage());
