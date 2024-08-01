@@ -83,8 +83,6 @@ public class SearchFlights {
            List<Segment> segments  = getSegments(journeyList1,flightSearchRq.getJourneyType());
            flightSearchRq.setSegmentsdata(segments);
            ObjectMapper mapper = new ObjectMapper();
-           mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-           mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
            node= mapper.valueToTree(flightSearchRq);
        }catch(Exception e){
            travelomatrixLogger.error("Exception Occured:"+ e.getMessage());
@@ -100,15 +98,15 @@ public class SearchFlights {
                 Segment segment = new Segment();
                 segment.setOrigin(journey.getOrigin());
                 segment.setDestination(journey.getDestination());
-                segment.setDepartureDate(journey.getTravelDate());
+                segment.setDepartureDate(journey.getTravelDateStr());
                 segments.add(segment);
             }
         }else if(journeyType.equals("Return")){
             Segment segment = new Segment();
             segment.setOrigin(journeyList.get(0).getOrigin());
             segment.setDestination(journeyList.get(0).getDestination());
-            segment.setDepartureDate(journeyList.get(0).getTravelDate());
-            segment.setReturnDate(journeyList.get(1).getTravelDate());
+            segment.setDepartureDate(journeyList.get(0).getTravelDateStr());
+            segment.setReturnDate(journeyList.get(1).getTravelDateStr());
             segments.add(segment);
         }
      return segments;
