@@ -142,6 +142,10 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             UpdateFareQuotesReply response = new ObjectMapper().treeToValue(jsonResponse, UpdateFareQuotesReply.class);
             if(response.getStatus() == 0){
                 travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
+                pnrResponse = new PNRResponse();
+                ErrorMessage em = new ErrorMessage();
+                em.setMessage(response.getMessage());
+                pnrResponse.setErrorMessage(em);
             }else{
                 pnrResponse = getPNRResponse(travellerMasterInfo,response);
             }
