@@ -41,7 +41,7 @@ public class SearchFlights {
             wsrholder= wsconf.getRequestHolder("/Search");
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(40000).asJson();
+            response = wsrholder.post(jsonRequest).get(30000).asJson();
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
         }catch(Exception e){
