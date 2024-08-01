@@ -3,8 +3,10 @@ package com.compassites.GDSWrapper.travelomatrix;
 import com.compassites.model.*;
 import com.compassites.model.travelomatrix.FlightSearchRequest;
 import com.compassites.model.travelomatrix.Segment;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
 import configs.WsConfig;
 import org.slf4j.Logger;
@@ -81,7 +83,8 @@ public class SearchFlights {
            List<Segment> segments  = getSegments(journeyList1,flightSearchRq.getJourneyType());
            flightSearchRq.setSegmentsdata(segments);
            ObjectMapper mapper = new ObjectMapper();
-           //mapper.setTimeZone(TimeZone.getDefault());
+           mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+           mapper.configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false);
            node= mapper.valueToTree(flightSearchRq);
        }catch(Exception e){
            travelomatrixLogger.error("Exception Occured:"+ e.getMessage());
