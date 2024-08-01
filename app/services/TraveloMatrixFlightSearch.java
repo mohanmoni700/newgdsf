@@ -28,7 +28,9 @@ import utils.ErrorMessageHelper;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -251,7 +253,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 airSegmentInformation.setToAirport(toAirport);
                 DateTime departure = DateUtility.convertTimewithZone(fromAirport.getTime_zone(),journeyData.getOrigin().getDateTime());
                 airSegmentInformation.setDepartureDate(departure.toDate());
-                airSegmentInformation.setDepartureTime(departure.toString());
+                airSegmentInformation.setDepartureTime(journeyData.getOrigin().getDateTime());
                 DateTime arrival = DateUtility.convertTimewithZone(toAirport.getTime_zone(), journeyData.getDestination().getDateTime());
                 airSegmentInformation.setArrivalTime(arrival.toString());
                 airSegmentInformation.setArrivalDate(arrival.toDate());
