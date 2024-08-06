@@ -16,6 +16,8 @@ public class Detail {
     private Destination destination;
     @JsonProperty("Duration")
     private Long duration;
+    @JsonProperty("AccumulatedDuration")
+    private Long accumulatedDuration;
     @JsonProperty("FlightNumber")
     private String flightNumber;
     @JsonProperty("Operatedbyairline")
@@ -34,9 +36,19 @@ public class Detail {
     private String validatingAirline;
     @JsonProperty("stop_over")
     private String stopOver;
-
     @JsonProperty("LayOverTime")
     private Long layOverTime;
+
+
+    public Long getAccumulatedDuration() {
+        return accumulatedDuration;
+    }
+
+    public void setAccumulatedDuration(Long accumulatedDuration) {
+        this.accumulatedDuration = accumulatedDuration;
+    }
+
+
 
     public String getStopOver() {
         return stopOver;

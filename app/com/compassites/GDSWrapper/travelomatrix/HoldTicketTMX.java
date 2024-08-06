@@ -67,7 +67,9 @@ public class HoldTicketTMX {
             else
                 passenger.setGender(new Long(1));
 
-            String dateStr = traveller.getPassportDetails().getDateOfBirth().toString();
+            String dateStr = null;
+            if(traveller.getPassportDetails().getDateOfBirth() != null)
+            dateStr = traveller.getPassportDetails().getDateOfBirth().toString();
             SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
             SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date date = null;

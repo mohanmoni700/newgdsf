@@ -22,6 +22,27 @@ public class Attr {
     private Boolean isLCC;
     @JsonProperty("IsRefundable")
     private Boolean isRefundable;
+    @JsonProperty("LastTicketDate")
+    private String lastTicketDate;
+    @JsonProperty("ExtraBaggage")
+    private boolean extraBaggage;
+
+    public boolean isExtraBaggage() {
+        return extraBaggage;
+    }
+
+    public void setExtraBaggage(boolean extraBaggage) {
+        this.extraBaggage = extraBaggage;
+    }
+
+    public String getLastTicketDate() {
+        return lastTicketDate;
+    }
+
+    public void setLastTicketDate(String lastTicketDate) {
+        this.lastTicketDate = lastTicketDate;
+    }
+
 
     public String getAirlineRemark() {
         return airlineRemark;

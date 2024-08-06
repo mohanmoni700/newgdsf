@@ -265,6 +265,7 @@ public class SearchFlights {
 
         pit.getPriceType().add("ET");
         pit.getPriceType().add("RW");
+        pit.getPriceType().add("MNR");
        /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");
         pit.getPriceType().add("NSD");*/

@@ -160,16 +160,17 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
     public PNRResponse getPNRResponse(TravellerMasterInfo travellerMasterInfo,UpdateFareQuotesReply updateFareQuotesReply){
         PNRResponse pnrResponse = new PNRResponse();
         Boolean availbleFlights = false;
-       // pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId.toString());
+        pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId.toString());
         List<AirSegmentInformation> journeyList= travellerMasterInfo.getItinerary().getNonSeamenJourneyList().get(0).getAirSegmentList();
         for(AirSegmentInformation airSegmentInformation : journeyList){
             if(airSegmentInformation.getAvailbleSeats() != null && airSegmentInformation.getAvailbleSeats() > 0){
                 availbleFlights = true;
-            }else {
+            }else{
                 availbleFlights = false;
             }
         }
 
+        availbleFlights = true;
        String currencyFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getCurrency();
        Double totalFareFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getTotalDisplayFare();
        String currency = travellerMasterInfo.getItinerary().getPricingInformation().getCurrency();
