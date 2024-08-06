@@ -19,6 +19,8 @@ public class Detail {
     private String displayOperatorCode;
      @JsonProperty("Duration")
     private Long duration;
+    @JsonProperty("AccumulatedDuration")
+     private Long accumulatedDuration;
      @JsonProperty("FlightNumber")
     private String flightNumber;
      @JsonProperty("Operatedbyairline")
@@ -45,6 +47,16 @@ public class Detail {
     public void setAttr(Attr attr) {
         this.attr = attr;
     }
+
+
+    public Long getAccumulatedDuration() {
+        return accumulatedDuration;
+    }
+
+    public void setAccumulatedDuration(Long accumulatedDuration) {
+        this.accumulatedDuration = accumulatedDuration;
+    }
+
 
     public String getCabinClass() {
         return cabinClass;
