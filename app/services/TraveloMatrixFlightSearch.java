@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,9 +62,6 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
     @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
-        LocalDateTime start = LocalDateTime.now();
-        logger.debug("Performance logs : TravelomatrixFlightSearch: Search: search: start: Current Date and Time: " + start);
-
         SearchResponse sr = null;
         if(!searchParameters.getJourneyType().equals(JourneyType.ROUND_TRIP)) {
             isRefundable = searchParameters.getRefundableFlights();
@@ -83,13 +79,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
                 if (response.getStatus()) {
                     travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
-                    LocalDateTime getairsolution = LocalDateTime.now();
-                    logger.debug("Performance logs : TravelomatrixFlightSearch: getairsolution: start: Current Date and Time: " + getairsolution);
-
                     AirSolution airSolution = getAirSolution(response);
-                    LocalDateTime getairsolution1 = LocalDateTime.now();
-                    logger.debug("Performance logs : TravelomatrixFlightSearch: getairsolution1: end: Current Date and Time: " + getairsolution1);
-
                     sr = new SearchResponse();
                     sr.setFlightSearchOffice(getOfficeList().get(0));
                     sr.setAirSolution(airSolution);
@@ -109,9 +99,6 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
             logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################" + sr.toString());
         }
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : TravelomatrixFlightSearch: Search: search: end: Current Date and Time: " + end);
-
         return sr;
     }
 
