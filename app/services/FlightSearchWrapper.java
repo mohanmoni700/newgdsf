@@ -19,7 +19,6 @@ import scala.util.parsing.json.JSONObject;
 import utils.ErrorMessageHelper;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import play.libs.F.Function;
@@ -45,9 +44,6 @@ public class FlightSearchWrapper {
     public void search(final SearchParameters searchParameters) {
         final String redisKey = searchParameters.redisKey();
 
-        LocalDateTime now = LocalDateTime.now();
-        logger.debug("Performance logs : FlightSearchWrapper: Search: start: Current Date and Time: " + now);
-
         logger.debug("\n\n***********SEARCH STARTED key: [" + redisKey + "]***********");
 
         //long startTime = System.currentTimeMillis();
@@ -69,8 +65,6 @@ public class FlightSearchWrapper {
         List<ErrorMessage> errorMessageList = new ArrayList<>();
         ConcurrentHashMap<Integer,FlightItinerary> hashMap =  new ConcurrentHashMap<>();
         for (final FlightSearch flightSearch: flightSearchList) {
-            LocalDateTime forLoopNow = LocalDateTime.now();
-            logger.debug("Performance logs : FlightSearchWrapper: Search: ForLoop start: Current Date and Time: " + forLoopNow +" officeList: " + flightSearch.getOfficeList().toString());
         	//if( !(searchParameters.getBookingType() == BookingType.SEAMEN && flightSearch.provider().equals("Mystifly")) ) {
 	            //final String providerStatusCacheKey = redisKey + flightSearch.provider() + "status";
                  String providerStatusCacheKey = "";
@@ -78,53 +72,36 @@ public class FlightSearchWrapper {
                         logger.debug("Flight Search Provider["+redisKey+"] : "+flightSearch.provider());
                         for(FlightSearchOffice office: flightSearch.getOfficeList()) {
                         //Call provider if response is not already present;
-                            LocalDateTime forloopnow = LocalDateTime.now();
-                            logger.debug("Performance logs : FlightSearchWrapper: Search: ForLoop start: Current Date and Time: " + forloopnow +" officeId: " + office.getOfficeId());
                            logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
                             providerStatusCacheKey = redisKey + flightSearch.provider() +":"+ office.getOfficeId()+ "status";
                             if (!checkOrSetStatus(providerStatusCacheKey)) {
                                 String finalProviderStatusCacheKey = providerStatusCacheKey;
                                 futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                                     public SearchResponse call() throws Exception {
-                                        LocalDateTime asynccallnow = LocalDateTime.now();
-                                        logger.debug("Performance logs : FlightSearchWrapper: Search: Asynchrouscall start: Current Date and Time: " + asynccallnow +" officeId: " + office.getOfficeId());
                                         SearchResponse response = flightSearch.search(searchParameters, office);
-                                        LocalDateTime asynccallnow1 = LocalDateTime.now();
-                                        logger.debug("Performance logs : FlightSearchWrapper: Search: Asynchrouscall response recieved: Current Date and Time: " + asynccallnow1 +" officeId: " + response.getProvider());
                                             logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId());
                                             logger.debug("response " + Json.toJson(response));
                                             if (checkResponseAndSetStatus(response, finalProviderStatusCacheKey)) {
                                                 logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
                                             }
-                                        LocalDateTime asynccallnow2 = LocalDateTime.now();
-                                        logger.debug("Performance logs : FlightSearchWrapper: Search: Asynchrouscall response recieved: Current Date and Time: " + asynccallnow2 +" officeId: " + response.getProvider());
-                                        return response;
+
+                                            return response;
 
                                     }
                             }));
                             } else {
-                                LocalDateTime catchedtimenow = LocalDateTime.now();
-                                logger.debug("Performance logs : FlightSearchWrapper: Search: getting cached response start: Current Date and Time: " + catchedtimenow +" rediskey: "+redisKey);
                                 String cachedResponse = (String) redisTemplate.opsForValue().get(redisKey);
-                                LocalDateTime catchedtimenow2 = LocalDateTime.now();
-                                logger.debug("Performance logs : FlightSearchWrapper: Search: received cached response end: Current Date and Time: " + catchedtimenow2 + " rediskey: "+redisKey + " catchedResponse: "+cachedResponse );
                                 JsonNode rs = null;
                                 if (cachedResponse != null)
                                     rs = Json.parse(cachedResponse);
                                 //SearchResponse chachedRespons = null;
                                 if (rs != null){
                                     SearchResponse chachedResponse = Json.fromJson(rs, SearchResponse.class);
-                                    LocalDateTime catchedtimenow3 = LocalDateTime.now();
-                                    logger.debug("Performance logs : FlightSearchWrapper: Search: convert cached response to hashmap: Current Date and Time: " + catchedtimenow3 + " rediskey: "+redisKey + " catchedResponse: "+cachedResponse );
                                     for(FlightItinerary flightItinerary : chachedResponse.getAirSolution().getFlightItineraryList()){
                                         hashMap.put(flightItinerary.hashCode(),flightItinerary);
                                     }
-                                    LocalDateTime catchedtimenow4 = LocalDateTime.now();
-                                    logger.debug("Performance logs : FlightSearchWrapper: Search: End of convert cached response to hashmap: Current Date and Time: " + catchedtimenow4 + " rediskey: "+redisKey + " catchedResponse: "+cachedResponse );
                                 }
                             }
-                            LocalDateTime forloopnow1 = LocalDateTime.now();
-                            logger.debug("Performance logs : FlightSearchWrapper: Search: ForLoop end: Current Date and Time: " + forloopnow1 +" officeId: " + office.getOfficeId());
                        }
                     } catch (Exception e) {
                         checkResponseAndSetStatus(null, providerStatusCacheKey);
@@ -196,9 +173,6 @@ public class FlightSearchWrapper {
                     //counter++;
 
                     if(searchResponse != null && searchResponse.getErrorMessageList().size() == 0){
-                        LocalDateTime beforemerge = LocalDateTime.now();
-                        logger.debug("Performance logs : FlightSearchWrapper: Search: merge the results: Current Date and Time: " + beforemerge);
-
                         logger.debug("3-["+redisKey+"]Received Response "+ counter +"  | from : " + searchResponse.getProvider()+  "   | office:"+ searchResponse.getFlightSearchOffice().getOfficeId()  +"  | Seaman size: " + searchResponse.getAirSolution().getSeamenHashMap().size() + " | normal size:"+searchResponse.getAirSolution().getNonSeamenHashMap().size() );
                         SearchResponse searchResponseCache=new SearchResponse();
                         searchResponseCache.setFlightSearchOffice(searchResponse.getFlightSearchOffice());
@@ -207,9 +181,6 @@ public class FlightSearchWrapper {
                         logger.debug("\n\n----------- before MergeResults "+ counter +"--------"+ searchResponse.getFlightSearchOffice().getOfficeId());
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         mergeResults(hashMap, searchResponse);
-                        LocalDateTime aftermerge = LocalDateTime.now();
-                        logger.debug("Performance logs : FlightSearchWrapper: Search: after merge the results: Current Date and Time: " + aftermerge);
-
                         logger.debug("----------- After MergeResults "+ counter +"--------" +searchResponse.getFlightSearchOffice().getOfficeId());
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         errorMessageList.addAll(searchResponse.getErrorMessageList());
@@ -227,9 +198,6 @@ public class FlightSearchWrapper {
                         //searchResponseList.remove(0);
                         //searchResponseList = searchResponseCache;
                         ////logger.debug("4-["+redisKey+"]Added response to final hashmap"+ counter +"  | from:" + searchResponseCache.getProvider()+ "  | office:"+ searchResponseCache.getFlightSearchOffice().getOfficeId()+"  | hashmap size: "+ searchResponseCache.getAirSolution().getFlightItineraryList().size() +" | search:"+ searchResponse.getAirSolution().getNonSeamenHashMap().size() + " + "+ searchResponse.getAirSolution().getNonSeamenHashMap().size());
-                        LocalDateTime addmergedtoradis = LocalDateTime.now();
-                        logger.debug("Performance logs : FlightSearchWrapper: Search: add merge results to radiscache: Current Date and Time: " + addmergedtoradis);
-
                     }
                     else
                     {
@@ -238,12 +206,8 @@ public class FlightSearchWrapper {
 
                 }
             }
-            LocalDateTime beforeshutdown = LocalDateTime.now();
-            logger.debug("Performance logs : FlightSearchWrapper: Search: beforeshutdown: Current Date and Time: " + beforeshutdown);
-            newExecutor.shutdown();
-            LocalDateTime aftershutdown = LocalDateTime.now();
-            logger.debug("Performance logs : FlightSearchWrapper: Search: aftershutdown: Current Date and Time: " + aftershutdown);
 
+            newExecutor.shutdown();
             if(counter == searchResponseListSize){
 
                 /*** cache for very short time(only for the purpose for JustOneClick to receive the response )if there is error. ***/
@@ -285,10 +249,7 @@ public class FlightSearchWrapper {
         searchResponseList.add(searchResponse);
         logger.debug("***********SEARCH END***********");
         */
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : FlightSearchWrapper: Search: end: Current Date and Time: " + end);
         return ;
-
     }
 
     private boolean validResponse(SearchResponse response){

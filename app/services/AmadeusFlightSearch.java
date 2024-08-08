@@ -37,7 +37,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -87,9 +86,6 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
-        LocalDateTime now = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: start: Current Date and Time: " + now);
-
         logger.debug("#####################AmadeusFlightSearch started  : ");
         logger.debug("#####################SearchParameters: \n"+Json.toJson(searchParameters));
         SearchResponse searchResponse = new SearchResponse();
@@ -100,12 +96,8 @@ public class AmadeusFlightSearch implements FlightSearch{
         FareMasterPricerTravelBoardSearchReply seamenReply = null;
 
         try {
-            LocalDateTime beforeGettingSession = LocalDateTime.now();
-            logger.debug("Performance logs : AmadeusFlightSearch: beforeGettingSession: Current Date and Time: " + beforeGettingSession);
             long startTime = System.currentTimeMillis();
             amadeusSessionWrapper = amadeusSessionManager.getSession(office);
-            LocalDateTime afterGettingSession = LocalDateTime.now();
-            logger.debug("Performance logs : AmadeusFlightSearch: afterGettingSession: Current Date and Time: " + afterGettingSession);
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
 
@@ -114,11 +106,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             logger.debug("Execution time in getting session:: " + duration/1000 + " seconds");//to be removed
 //            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-                LocalDateTime beforesearchailines = LocalDateTime.now();
-                logger.debug("Performance logs : AmadeusFlightSearch: seamen:beforesearchailines: Current Date and Time: " + beforesearchailines);
                 seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
-                LocalDateTime aftersearchailines = LocalDateTime.now();
-                logger.debug("Performance logs : AmadeusFlightSearch: seamen:aftersearchailines: Current Date and Time: " + aftersearchailines);
 //                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
                 
                 searchParameters.setBookingType(BookingType.NON_MARINE);
@@ -131,11 +119,8 @@ public class AmadeusFlightSearch implements FlightSearch{
                 amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
-                LocalDateTime beforenonseamenailines = LocalDateTime.now();
-                logger.debug("Performance logs : AmadeusFlightSearch: nonseamen: beforesearchailines: Current Date and Time: " + beforenonseamenailines);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
-                LocalDateTime afternonseamenailines = LocalDateTime.now();
-                logger.debug("Performance logs : AmadeusFlightSearch: nonseamen: beforesearchailines: Current Date and Time: " + afternonseamenailines);
+
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
                 amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
@@ -196,23 +181,13 @@ public class AmadeusFlightSearch implements FlightSearch{
         } else {
             //return flight
         	logger.debug("#####################errorMessage is null");
-            LocalDateTime hasmapcreation = LocalDateTime.now();
-            logger.debug("Performance logs : AmadeusFlightSearch: nonseamen: hasmapcreation start: Current Date and Time: " + hasmapcreation);
-
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office));
-
-            LocalDateTime endhasmapcreation = LocalDateTime.now();
-            logger.debug("Performance logs : AmadeusFlightSearch:nonseamen: hasmapcreation end: Current Date and Time: " + endhasmapcreation);
             //printHashmap(airSolution.getNonSeamenHashMap(), false);
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 ///AirSolution seamenSolution = new AirSolution();
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
                 ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
-                LocalDateTime shasmapcreation = LocalDateTime.now();
-                logger.debug("Performance logs : AmadeusFlightSearch: seamen: hasmapcreation start: Current Date and Time: " + shasmapcreation);
                 airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office));
-                LocalDateTime shasmapcreationend = LocalDateTime.now();
-                logger.debug("Performance logs : AmadeusFlightSearch: seamen: hasmapcreation end: Current Date and Time: " + shasmapcreationend);
                 if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                     printHashmap(airSolution.getSeamenHashMap(), true);//to be removed
                 }
@@ -223,9 +198,6 @@ public class AmadeusFlightSearch implements FlightSearch{
         searchResponse.setAirSolution(airSolution);
         searchResponse.setProvider(provider());
         searchResponse.setFlightSearchOffice(office);
-        LocalDateTime endnow = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: end: Current Date and Time: " + endnow);
-
         return searchResponse;
     }
 
@@ -233,9 +205,6 @@ public class AmadeusFlightSearch implements FlightSearch{
     public static void printHashmap(ConcurrentHashMap<Integer, FlightItinerary> hashMap, boolean iSeaman){
         System.out.println("Is Seaman :"+ iSeaman + "  count:"+ hashMap.values().size() );
         logger.debug("Is Seaman :"+ iSeaman + "  count:"+ hashMap.values().size());
-        LocalDateTime start = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: printhashmap: start: Current Date and Time: " + start);
-
         boolean isMarine = false;
         if(iSeaman)
             isMarine = true;
@@ -253,9 +222,6 @@ public class AmadeusFlightSearch implements FlightSearch{
             System.out.println(entry.getKey() + ",  " + v);
             //logger.debug(entry.getKey() + ",  " + v);
         }
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: printhashmap: end: Current Date and Time: " + end);
-
     }
     @Override
     public String provider() {
@@ -279,8 +245,6 @@ public class AmadeusFlightSearch implements FlightSearch{
 //    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
     private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office) {
-        LocalDateTime start = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: createHashamp: start: Current Date and Time: " + start);
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try{
             String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
@@ -303,15 +267,10 @@ public class AmadeusFlightSearch implements FlightSearch{
         }catch (Exception e){
             logger.debug("error in getFlightItineraryHashmap :"+ e.getMessage());
         }
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: createHashamp: end: Current Date and Time: " + end);
-
         return flightItineraryHashMap;
     }
 
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList){
-        LocalDateTime start = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: createJourneyInformation: start: Current Date and Time: " + start);
         int flightIndexNumber = 0;
         int segmentIndex = 0;
         for(ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
@@ -331,10 +290,6 @@ public class AmadeusFlightSearch implements FlightSearch{
 
 
         }
-
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: createJourneyInformation: end: Current Date and Time: " + end);
-
         return flightItinerary;
     }
 
@@ -361,9 +316,6 @@ public class AmadeusFlightSearch implements FlightSearch{
     }
 
     private Journey setJourney(Journey journey,FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation){
-        LocalDateTime start = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: setJourney: start: Current Date and Time: " + start);
-
         //no of stops
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
        
@@ -389,9 +341,6 @@ public class AmadeusFlightSearch implements FlightSearch{
             }
         }
         getConnectionTime(journey.getAirSegmentList());
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: setJourney: end: Current Date and Time: " + start);
-
         return journey;
     }
 
@@ -418,9 +367,6 @@ public class AmadeusFlightSearch implements FlightSearch{
 	}
     
     private AirSegmentInformation setSegmentInformation(FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis,String validatingCarrierCode){
-        LocalDateTime start = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: setSegmentInformation: start: Current Date and Time: " + start);
-
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         TravelProductType flightInformation=flightDetails.getFlightInformation();
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
@@ -505,9 +451,6 @@ public class AmadeusFlightSearch implements FlightSearch{
 	        }
     		airSegmentInformation.setHoppingFlightInformations(hoppingFlightInformations);
     	}
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: setSegmentInformation: end: Current Date and Time: " + end);
-
         return airSegmentInformation;
     }
 
@@ -561,8 +504,6 @@ public class AmadeusFlightSearch implements FlightSearch{
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("ddMMyy-kkmm");
 
     private AirSegmentInformation createSegment(TravelProductType flightInformation, String prevArrivalTime) {
-        LocalDateTime start = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: createSegment: start: Current Date and Time: " + start);
 
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
@@ -614,8 +555,6 @@ public class AmadeusFlightSearch implements FlightSearch{
             airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier(), redisTemplate));
             airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier(), redisTemplate));
         }
-        LocalDateTime end = LocalDateTime.now();
-        logger.debug("Performance logs : AmadeusFlightSearch: Search: createSegment: end: Current Date and Time: " + end);
 
         return airSegmentInformation;
     }
