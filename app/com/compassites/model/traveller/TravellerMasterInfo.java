@@ -60,6 +60,8 @@ public class TravellerMasterInfo {
 
     private boolean bookAndHold;
 
+    private String vesselName;
+
     public boolean isBookAndHold() {
         return bookAndHold;
     }
@@ -241,4 +243,9 @@ public class TravellerMasterInfo {
     public void setGdsPNR(String gdsPNR) {
         this.gdsPNR = gdsPNR;
     }
+
+    public String getVesselName() {
+        return vesselName;
+    }
+
 }
