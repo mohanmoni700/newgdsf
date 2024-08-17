@@ -83,6 +83,17 @@ public class HoldTicketTMX {
             passenger.setFirstName(traveller.getPersonalDetails().getFirstName());
             passenger.setLastName(traveller.getPersonalDetails().getLastName());
             passenger.setTitle(traveller.getPersonalDetails().getSalutation());
+            passenger.setAddressLine1(traveller.getPersonalDetails().getAddressLine());
+            passenger.setCity(traveller.getPassportDetails().getNationality().getNationality());
+            passenger.setCountryCode(traveller.getPassportDetails().getNationality().getThreeLetterCode());
+            passenger.setContactNo(traveller.getPersonalDetails().getMobileNumber());
+            passenger.setCountryName(traveller.getPassportDetails().getNationality().getNationality());
+            if(traveller.getPassportDetails().getPassportNumber() != null)
+                passenger.setPassportNumber(traveller.getPassportDetails().getPassportNumber());
+            if(traveller.getPersonalDetails().getPincode() != null)
+                passenger.setPinCode(traveller.getPersonalDetails().getPincode());
+            else
+                passenger.setPinCode("567812");
             Long paxType = getPaxType(formattedDate);
             passenger.setPaxType(paxType);
             if(paxType == 1)

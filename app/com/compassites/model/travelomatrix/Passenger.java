@@ -33,12 +33,23 @@ public class Passenger {
     private String lastName;
     @JsonProperty("PassportNumber")
     private String passportNumber;
+    @JsonProperty("PassportExpiry")
+    private String passportExpiry;
     @JsonProperty("PaxType")
     private Long paxType;
     @JsonProperty("PinCode")
     private String pinCode;
     @JsonProperty("Title")
     private String title;
+
+    public String getPassportExpiry() {
+        return passportExpiry;
+    }
+
+    public void setPassportExpiry(String passportExpiry) {
+        this.passportExpiry = passportExpiry;
+    }
+
 
     public String getAddressLine1() {
         return addressLine1;
