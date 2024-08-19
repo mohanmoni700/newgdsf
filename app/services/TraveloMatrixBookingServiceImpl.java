@@ -141,7 +141,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             travelomatrixLogger.debug("Response for checkFareChangeAndAvailability: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
             UpdateFareQuotesReply response = new ObjectMapper().treeToValue(jsonResponse, UpdateFareQuotesReply.class);
             if(response.getStatus() == 0){
-                travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
+                travelomatrixLogger.debug("checkFareChangeAndAvailability Respose is not Reeceived for ResultToken :" + resultToken);
                 pnrResponse = new PNRResponse();
                 ErrorMessage em = new ErrorMessage();
                 em.setMessage(response.getMessage());
@@ -172,10 +172,10 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
         availbleFlights = true;
        String currencyFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getCurrency();
-       Double totalFareFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getTotalDisplayFare();
+       Long totalFareFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getPassengerBreakup().getADT().getTotalPrice();
        String currency = travellerMasterInfo.getItinerary().getPricingInformation().getCurrency();
-       BigDecimal totalPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPrice();
-       if(totalFareFromReply == totalPrice.doubleValue()){
+       BigDecimal totalPrice = travellerMasterInfo.getItinerary().getPricingInformation().getAdtTotalPrice();
+       if(totalFareFromReply.doubleValue() == totalPrice.doubleValue()){
            pnrResponse.setPriceChanged(false);
        }else{
         pnrResponse.setPriceChanged(true);
@@ -190,6 +190,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pricingInformation.setTotalBasePrice(new BigDecimal(price.getTotalDisplayFare()));
         pricingInformation.setAdtBasePrice(new BigDecimal(price.getPassengerBreakup().getADT().getBasePrice()));
         pricingInformation.setAdtTotalPrice(new BigDecimal(price.getPassengerBreakup().getADT().getTotalPrice()));
+        //pricingInformation.setAdtTotalPrice(totalPrice);
         pricingInformation.setGdsCurrency(price.getCurrency());
         pricingInformation.setTax(new BigDecimal(price.getPriceBreakup().getTax()));
         if(price.getPassengerBreakup().getCHD() != null)
