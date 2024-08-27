@@ -1,8 +1,9 @@
 
 package com.compassites.model.travelomatrix.ResponseModels;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class NoShowCharge {
     @JsonProperty("start_time")
     public String start_time;

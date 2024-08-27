@@ -107,26 +107,27 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                miniRule.setCancellationRefundableBeforeDept(true);
            }
 
-//       miniRule.setCancellationFeeAfterDept(zeroDecimal);
-//       miniRule.setChangeFeeNoShow(zeroDecimal);
-//       miniRule.setCancellationFeeNoShow(zeroDecimal);
-//       miniRule.setChangeFeeAfterDept(zeroDecimal);
-//       miniRule.setCancellationRefundableAfterDept(false);
-//       miniRule.setCancellationNoShowBeforeDept(false);
-//       miniRule.setCancellationNoShowAfterDept(false);
-//       miniRule.setCancellationFeeAfterDeptCurrency(currency);
-//       miniRule.setCancellationNoShowCurrency(currency);
+           miniRule.setCancellationFeeAfterDept(zeroDecimal);
+           miniRule.setChangeFeeNoShow(zeroDecimal);
+           miniRule.setCancellationFeeNoShow(zeroDecimal);
+           miniRule.setCancellationRefundableAfterDept(false);
+           miniRule.setCancellationNoShowBeforeDept(false);
+           miniRule.setCancellationNoShowAfterDept(false);
+           miniRule.setChangeFeeAfterDept(zeroDecimal);
+           miniRule.setChangeFeeNoShow(zeroDecimal);
+           miniRule.setCancellationFeeAfterDeptCurrency(currency);
+           miniRule.setCancellationNoShowCurrency(currency);
            miniRule.setCancellationFeeBeforeDeptCurrency(currency);
-
+           miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
            if(dateChangeBeforeDept != null && dateChangeBeforeDept.compareTo(zeroDecimal) == 1) {
                miniRule.setChangeRefundableBeforeDept(true);
            }
-//       miniRule.setChangeRefundableAfterDept(false);
-//       miniRule.setChangeNoShowBeforeDept(false);
-//       miniRule.setChangeNoShowAfterDept(false);
-           miniRule.setChangeFeeBeforeDeptCurrency(currency);
-//       miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
-//       miniRule.setChangeFeeNoShowFeeCurrency(currency);
+       miniRule.setChangeRefundableAfterDept(false);
+       miniRule.setChangeNoShowBeforeDept(false);
+       miniRule.setChangeNoShowAfterDept(false);
+       miniRule.setChangeFeeBeforeDeptCurrency(currency);
+       miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
+       miniRule.setChangeFeeNoShowFeeCurrency(currency);
 
            AdultMap.put("ADT", miniRule);
            miniRules.add(AdultMap);
