@@ -32,6 +32,7 @@ import java.util.Map;
 
 
 @Service
+
 public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
     static org.slf4j.Logger travelomatrixLogger = LoggerFactory.getLogger("travelomatrix");
@@ -236,7 +237,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             if(detail.getAttr() != null){
                 String key =  detail.getOrigin().getAirportCode().toUpperCase().toString()+detail.getDestination().getAirportCode().toUpperCase().toString();
                 String baggage = detail.getAttr().getBaggage();
-                baggageMap.put(key,baggage);
+                String updateBaggage = updateBaggeUnits(baggage);
+                baggageMap.put(key,updateBaggage);
             }
         }
         pnrResponse.setSegmentBaggageMap(baggageMap);
@@ -270,7 +272,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
         issuanceResponse.setBookingId(commitBookingReply.getCommitBooking().getBookingDetails().getBookingId());
         String baggage = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
-        issuanceResponse.setBaggage(baggage);
+        String updatedBagunits = updateBaggeUnits(baggage);
+        issuanceResponse.setBaggage(updatedBagunits);
         return issuanceResponse;
     }
 
@@ -364,5 +367,21 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             throw new RuntimeException(e);
         }
         return updatePNRResponse;
+    }
+
+    public String updateBaggeUnits(String baggage){
+        String updatedBagunits = null;
+        String pattern = "^KG\\d{3}$";
+        if(baggage.contains("Kg") || baggage.contains("Kilograms") ){
+            updatedBagunits = baggage.replaceAll("(?i)\\s*kg\\s*\\(.*\\)", " KG");
+        }else if(baggage.contains("Piece")){
+            updatedBagunits = baggage.replaceAll("^0+", "").replaceAll("\\s*Piece\\s*", " PC");
+        }else if (baggage.matches(pattern)) {
+            String number = baggage.replaceAll("[^0-9]", "");  // Extract numeric part
+            updatedBagunits = Integer.parseInt(number) + " KG";  // Combine with "KG"
+        }else{
+            updatedBagunits = baggage;
+        }
+        return updatedBagunits;
     }
 }
