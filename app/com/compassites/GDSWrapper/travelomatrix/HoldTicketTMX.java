@@ -39,7 +39,7 @@ public class HoldTicketTMX {
             wsrholder= wsconf.getRequestHolder("/HoldTicket");
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            response = wsrholder.post(jsonRequest).get(40000).asJson();
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
         }catch(Exception e){
@@ -52,60 +52,62 @@ public class HoldTicketTMX {
 
     public JsonNode getJsonforHoldBookingRequest(TravellerMasterInfo travellerMasterInfo){
         JsonNode jsonNode = null;
-        HoldTicketRequest holdTicketRequest = new HoldTicketRequest();
-        holdTicketRequest.setAppReference(travellerMasterInfo.getAppReference());
-        holdTicketRequest.setSequenceNumber(0L);
-        holdTicketRequest.setResultToken(travellerMasterInfo.getItinerary().getResultToken());
-        List<Passenger> passengerList = new ArrayList<>();
-        //ADT
-        for( Traveller traveller : travellerMasterInfo.getTravellersList()) {
-            Passenger passenger = new Passenger();
-            passenger.setEmail(traveller.getPersonalDetails().getEmail());
-            passenger.setCountryCode(traveller.getPersonalDetails().getCountryCode());
-            if(traveller.getPersonalDetails().getGender().equalsIgnoreCase("female"))
-                passenger.setGender(new Long(2));
-            else
-                passenger.setGender(new Long(1));
-
-            String dateStr = null;
-            if(traveller.getPassportDetails().getDateOfBirth() != null)
-            dateStr = traveller.getPassportDetails().getDateOfBirth().toString();
-            SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
-            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date date = null;
-            try {
-                date = inputFormat.parse(dateStr);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-            String formattedDate = outputFormat.format(date);
-            passenger.setDateOfBirth(formattedDate);
-            passenger.setFirstName(traveller.getPersonalDetails().getFirstName());
-            passenger.setLastName(traveller.getPersonalDetails().getLastName());
-            passenger.setTitle(traveller.getPersonalDetails().getSalutation());
-            passenger.setAddressLine1(traveller.getPersonalDetails().getAddressLine());
-            passenger.setCity(traveller.getPassportDetails().getNationality().getNationality());
-            passenger.setCountryCode(traveller.getPassportDetails().getNationality().getThreeLetterCode());
-            passenger.setContactNo(traveller.getPersonalDetails().getMobileNumber());
-            passenger.setCountryName(traveller.getPassportDetails().getNationality().getNationality());
-            if(traveller.getPassportDetails().getPassportNumber() != null)
-                passenger.setPassportNumber(traveller.getPassportDetails().getPassportNumber());
-            if(traveller.getPersonalDetails().getPincode() != null)
-                passenger.setPinCode(traveller.getPersonalDetails().getPincode());
-            else
-                passenger.setPinCode("567812");
-            Long paxType = getPaxType(formattedDate);
-            passenger.setPaxType(paxType);
-            if(paxType == 1)
-                passenger.setIsLeadPax("1");
-            else
-                passenger.setIsLeadPax("");
-            passengerList.add(passenger);
-        }
-
-        holdTicketRequest.setPassengers(passengerList);
-
         try{
+            HoldTicketRequest holdTicketRequest = new HoldTicketRequest();
+            holdTicketRequest.setAppReference(travellerMasterInfo.getAppReference());
+            holdTicketRequest.setSequenceNumber(0L);
+            holdTicketRequest.setResultToken(travellerMasterInfo.getItinerary().getResultToken());
+            List<Passenger> passengerList = new ArrayList<>();
+            //ADT
+            for( Traveller traveller : travellerMasterInfo.getTravellersList()) {
+                Passenger passenger = new Passenger();
+                passenger.setEmail(traveller.getPersonalDetails().getEmail());
+                passenger.setCountryCode(traveller.getPersonalDetails().getCountryCode());
+                if(traveller.getPersonalDetails().getGender().equalsIgnoreCase("female"))
+                    passenger.setGender(new Long(2));
+                else
+                    passenger.setGender(new Long(1));
+
+                String dateStr = null;
+                String formattedDate = null;
+                if(traveller.getPassportDetails().getDateOfBirth() != null) {
+                    dateStr = traveller.getPassportDetails().getDateOfBirth().toString();
+                    SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+                    SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    Date date = null;
+                    try {
+                        date = inputFormat.parse(dateStr);
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                    formattedDate = outputFormat.format(date);
+                    passenger.setDateOfBirth(formattedDate);
+                }
+                passenger.setFirstName(traveller.getPersonalDetails().getFirstName());
+                passenger.setLastName(traveller.getPersonalDetails().getLastName());
+                passenger.setTitle(traveller.getPersonalDetails().getSalutation());
+                passenger.setAddressLine1(traveller.getPersonalDetails().getAddressLine());
+                passenger.setCity(traveller.getPassportDetails().getNationality().getNationality());
+                passenger.setCountryCode(traveller.getPassportDetails().getNationality().getThreeLetterCode());
+                passenger.setContactNo(traveller.getPersonalDetails().getMobileNumber());
+                passenger.setCountryName(traveller.getPassportDetails().getNationality().getNationality());
+                if(traveller.getPassportDetails().getPassportNumber() != null)
+                    passenger.setPassportNumber(traveller.getPassportDetails().getPassportNumber());
+                if(traveller.getPersonalDetails().getPincode() != null)
+                    passenger.setPinCode(traveller.getPersonalDetails().getPincode());
+                else
+                    passenger.setPinCode("567812");
+
+                Long paxType = getPaxType(formattedDate);
+                passenger.setPaxType(paxType);
+                if(paxType == 1)
+                    passenger.setIsLeadPax("1");
+                else
+                    passenger.setIsLeadPax("");
+                passengerList.add(passenger);
+            }
+
+            holdTicketRequest.setPassengers(passengerList);
             ObjectMapper mapper = new ObjectMapper();
             jsonNode= mapper.valueToTree(holdTicketRequest);
 
@@ -119,17 +121,21 @@ public class HoldTicketTMX {
 
     private Long getPaxType(String dob){
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate birthdate = LocalDate.parse(dob, dateFormatter);
-        LocalDate currentDate = LocalDate.now();
-        Period age = Period.between(birthdate, currentDate);
-        //ADT
-        if(age.getYears() >12){
+        if(dob != null) {
+            LocalDate birthdate = LocalDate.parse(dob, dateFormatter);
+            LocalDate currentDate = LocalDate.now();
+            Period age = Period.between(birthdate, currentDate);
+            //ADT
+            if (age.getYears() > 12) {
+                return new Long(1);
+            } else if (age.getYears() > 2 && age.getYears() <= 12) {
+                //CHD
+                return new Long(2);
+            }
+            return new Long(3);
+        }else{ //ADT
             return new Long(1);
-        }else if(age.getYears() > 2 && age.getYears() <= 12){
-            //CHD
-            return new Long(2);
         }
-        return new Long(3);
     }
 
 }
