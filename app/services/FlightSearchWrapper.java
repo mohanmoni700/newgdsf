@@ -1,9 +1,12 @@
 package services;
 
 import com.compassites.constants.CacheConstants;
+import com.compassites.constants.TraveloMatrixConstants;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jdk.nashorn.internal.parser.JSONParser;
 import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,12 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
+import play.libs.ws.*;
+import scala.util.parsing.json.JSONObject;
 import utils.ErrorMessageHelper;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.*;
+import play.libs.F.Function;
+import play.libs.F.Promise;
 
 /**
  * Created by user on 17-06-2014.
@@ -73,12 +79,14 @@ public class FlightSearchWrapper {
                                 futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                                     public SearchResponse call() throws Exception {
                                         SearchResponse response = flightSearch.search(searchParameters, office);
-                                        logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId());
-                                        logger.debug("response "+Json.toJson(response));
-                                        if(checkResponseAndSetStatus(response, finalProviderStatusCacheKey)){
-                                            logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
-                                        }
-                                        return response;
+                                            logger.debug("1-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId());
+                                            logger.debug("response " + Json.toJson(response));
+                                            if (checkResponseAndSetStatus(response, finalProviderStatusCacheKey)) {
+                                                logger.debug("2-[" + redisKey + "]Response from provider:" + flightSearch.provider() + "  officeId:" + office.getOfficeId() + "  size: " + response.getAirSolution().getFlightItineraryList().size());
+                                            }
+
+                                            return response;
+
                                     }
                             }));
                             } else {
@@ -164,7 +172,7 @@ public class FlightSearchWrapper {
                     //listIterator.remove();
                     //counter++;
 
-                    if(searchResponse != null){
+                    if(searchResponse != null && searchResponse.getErrorMessageList().size() == 0){
                         logger.debug("3-["+redisKey+"]Received Response "+ counter +"  | from : " + searchResponse.getProvider()+  "   | office:"+ searchResponse.getFlightSearchOffice().getOfficeId()  +"  | Seaman size: " + searchResponse.getAirSolution().getSeamenHashMap().size() + " | normal size:"+searchResponse.getAirSolution().getNonSeamenHashMap().size() );
                         SearchResponse searchResponseCache=new SearchResponse();
                         searchResponseCache.setFlightSearchOffice(searchResponse.getFlightSearchOffice());
@@ -280,6 +288,9 @@ public class FlightSearchWrapper {
     	try{
         AirSolution airSolution = searchResponse.getAirSolution();
         String provider = searchResponse.getProvider();
+        if(provider.equals(TraveloMatrixConstants.tmofficeId)){
+            System.out.println("travelomatrix merge");
+        }
         FlightSearchOffice office = searchResponse.getFlightSearchOffice();
         if(allFightItineraries.isEmpty()) {
             mergeSeamenAndNonSeamenResults(allFightItineraries, airSolution);
@@ -318,8 +329,13 @@ public class FlightSearchWrapper {
                                 && nonSeamenItinerary.getPricingInformation().getTotalPriceValue().longValue() <= mainFlightItinerary.getPricingInformation().getTotalPriceValue().longValue())) {
                             mainFlightItinerary.setPricingInformation(nonSeamenItinerary.getPricingInformation());
                             mainFlightItinerary.setNonSeamenJourneyList(nonSeamenItinerary.getJourneyList());
+                            //for Travelomatrix
+                            if(nonSeamenItinerary.getResultToken() != null){
+                                mainFlightItinerary.setResultToken(nonSeamenItinerary.getResultToken());
+                                mainFlightItinerary.setIsLCC(nonSeamenItinerary.getLCC());
+                            }
                             //mainFlightItinerary.getPricingInformation().setPricingOfficeId(nonSeamenItinerary.getPricingInformation().getPricingOfficeId());
-                            //mainFlightItinerary.setAmadeusOfficeId(nonSeamenItinerary.getAmadeusOfficeId());
+                            //mainFlightItinerary.setAmadeusId(nonSeamenItinerary.getAmadeusOfficeId());
                             //compareItinerary(mainFlightItinerary,nonSeamenItinerary,false, provider);
                         }
                         allFightItineraries.put(hashKey, mainFlightItinerary);

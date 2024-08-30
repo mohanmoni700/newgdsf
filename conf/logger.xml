@@ -91,6 +91,19 @@
         </encoder>
     </appender>
 
+    <appender name="TRAVELOMATRIX_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${application.home}/logs/travelomatrix.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Daily rollover with compression -->
+            <fileNamePattern>${application.home}/logs/travelomatrix-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <!-- keep 30 days worth of history -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${application.home}/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -123,6 +136,9 @@
     </logger>
     <logger name="mystifly" level="DEBUG" additivity="false">
         <appender-ref ref="MYSTIFLY_LOG_FILE" />
+    </logger>
+    <logger name="travelomatrix" level="DEBUG" additivity="false">
+        <appender-ref ref="TRAVELOMATRIX_LOG_FILE" />
     </logger>
     <!-- additivity=false ensures access log data only goes to the access log -->
     <logger name="access" level="DEBUG" additivity="false">

@@ -53,6 +53,8 @@ public class PNRAddMultiElementsh {
         dem.getDataElementsIndiv().add(addReceivedFrom(qualifierNumber));
         dem.getDataElementsIndiv().add(addTckArr(qualifierNumber));
         dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo, qualifierNumber));
+
+
 //        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber));
         //dem.getDataElementsIndiv().add(addEOTInfo());
 
@@ -136,6 +138,7 @@ public class PNRAddMultiElementsh {
 
         element.getOriginDestinationDetails().addAll(originDestinationDetailsList);
     }
+
 
     public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo, List<String> segmentNumbers, Map<String,String> travellerMap) {
         PNRAddMultiElements element = new PNRAddMultiElements();
@@ -478,117 +481,240 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
 
     return de1;
 }
+
     //contact information
     public List<DataElementsIndiv> addContactInfo(TravellerMasterInfo travellerMasterInfo, int qualifierNumber) {
         //email info
-    	int passengerRefnumber = 0;
-    	List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
-    	try {
-    		for(Traveller traveller :travellerMasterInfo.getTravellersList()){
-        		
-       		 PersonalDetails personalDetails = traveller.getPersonalDetails();
-       		
-       		 if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF
- 					.equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
-       			
-       			passengerRefnumber = passengerRefnumber+1;
-       			 System.out.println("************passengerRefnumber"+passengerRefnumber);
-           		 DataElementsIndiv de1 = new DataElementsIndiv();
-       	    		 LongFreeTextType ftd1 = new LongFreeTextType();
-       	    		 ftd1.setLongFreetext(personalDetails.getEmail());
-       		    		 FreeTextQualificationType ftdt1 = new FreeTextQualificationType();
-       		    	     ftdt1.setSubjectQualifier("3");
-       		    	     ftdt1.setType("P02");
-       		    	 ftd1.setFreetextDetail(ftdt1);
-       		     de1.setFreetextData(ftd1);
-       	    		 ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
-       	    		 elementManagementData1.setSegmentName("AP");    		 
-       		    		 ReferencingDetailsType rf1 = new ReferencingDetailsType();
-       		    		 rf1.setQualifier("OT");
-       		    	     rf1.setNumber((++qualifierNumber)+"");
-       		    	 elementManagementData1.setReference(rf1);
-           	     de1.setElementManagementData(elementManagementData1);
-           	     
-           	    ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
-         	        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
-         	        ReferencingDetailsType rf = new ReferencingDetailsType();
-         	        rf.setQualifier("PR");
-         	        rf.setNumber("" + (passengerRefnumber));
-         	        referenceList.add(rf);
-         	        de1.setReferenceForDataElement(referenceForDataElement);
-           	     
-           	     dataElementsDivList.add(de1);
-           	     
-           	     //home contact number
-           	    DataElementsIndiv de2 = new DataElementsIndiv();
-                ElementManagementSegmentType elementManagementData2 = new ElementManagementSegmentType();
-                elementManagementData2.setSegmentName("AP");
-                ReferencingDetailsType rf2 = new ReferencingDetailsType();
-                rf2.setQualifier("OT");
-                rf2.setNumber(++qualifierNumber+"");
-                elementManagementData2.setReference(rf2);
-                de2.setElementManagementData(elementManagementData2);
-                LongFreeTextType ftd2 = new LongFreeTextType();
-                FreeTextQualificationType ftdt2 = new FreeTextQualificationType();
-                ftdt2.setSubjectQualifier("3");
-                ftdt2.setType("7");
-                ftd2.setFreetextDetail(ftdt2);
-       	    	ftd2.setLongFreetext(personalDetails.getMobileNumber());
-           	    de2.setFreetextData(ftd2);
-           	    de2.setReferenceForDataElement(referenceForDataElement);
-           	    dataElementsDivList.add(de2);
-           	     //emergency contact number
-                 if(StringUtils.hasText(personalDetails.getEmergencyContactNumber())) {
-                     DataElementsIndiv de3 = new DataElementsIndiv();
-                     ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
-                     elementManagementData3.setSegmentName("OS");
-                    /* ReferencingDetailsType rf3 = new ReferencingDetailsType();
-                     rf3.setQualifier("OT");
-                     rf3.setNumber((++qualifierNumber) + "");
-                     elementManagementData3.setReference(rf3);*/
-                     de3.setElementManagementData(elementManagementData3);
-                     LongFreeTextType ftd3 = new LongFreeTextType();
-                     FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
-                     ftdt3.setSubjectQualifier("3");
-                     ftdt3.setType("3");
-                     ftd3.setFreetextDetail(ftdt3);
-                     String emergencyContactNo = personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber();
-                     emergencyContactNo = emergencyContactNo.replaceAll("\\+", "");
-                     ftd3.setLongFreetext("Emergency Contact Number " + emergencyContactNo);
-                     de3.setFreetextData(ftd3);
-                     de3.setReferenceForDataElement(referenceForDataElement);
+        int passengerRefnumber = 0;
+        List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
+        try {
+            for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
 
-                     dataElementsDivList.add(de3);
-                 }
+                PersonalDetails personalDetails = traveller.getPersonalDetails();
 
-                 if(StringUtils.hasText(personalDetails.getOfficeNumber())) {
-                     DataElementsIndiv businessNoDiv = new DataElementsIndiv();
-                     ElementManagementSegmentType businessNoelementManagement = new ElementManagementSegmentType();
-                     businessNoelementManagement.setSegmentName("AP");
-                     ReferencingDetailsType rf4 = new ReferencingDetailsType();
-                     rf4.setQualifier("OT");
-                     rf4.setNumber((++qualifierNumber) + "");
-                     businessNoelementManagement.setReference(rf4);
-                     businessNoDiv.setElementManagementData(businessNoelementManagement);
-                     LongFreeTextType businessNoLongFreeText = new LongFreeTextType();
-                     FreeTextQualificationType freeTextQualificationType = new FreeTextQualificationType();
-                     freeTextQualificationType.setSubjectQualifier("3");
-                     freeTextQualificationType.setType("3");
-                     businessNoLongFreeText.setFreetextDetail(freeTextQualificationType);
-                     businessNoLongFreeText.setLongFreetext(personalDetails.getOfficeNoCode() + personalDetails.getOfficeNumber());
-                     businessNoDiv.setFreetextData(businessNoLongFreeText);
-                     businessNoDiv.setReferenceForDataElement(referenceForDataElement);
-                     dataElementsDivList.add(businessNoDiv);
-                 }
+                if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF
+                        .equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
 
-             }
-       			        
-       	}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+                    passengerRefnumber = passengerRefnumber + 1;
+                    System.out.println("************passengerRefnumber" + passengerRefnumber);
+                    DataElementsIndiv de1 = new DataElementsIndiv();
+                    LongFreeTextType ftd1 = new LongFreeTextType();
+                    ftd1.setLongFreetext(personalDetails.getEmail());
+                    FreeTextQualificationType ftdt1 = new FreeTextQualificationType();
+                    ftdt1.setSubjectQualifier("3");
+                    ftdt1.setType("P02");
+                    ftd1.setFreetextDetail(ftdt1);
+                    de1.setFreetextData(ftd1);
+                    ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
+                    elementManagementData1.setSegmentName("AP");
+                    ReferencingDetailsType rf1 = new ReferencingDetailsType();
+                    rf1.setQualifier("OT");
+                    rf1.setNumber((++qualifierNumber) + "");
+                    elementManagementData1.setReference(rf1);
+                    de1.setElementManagementData(elementManagementData1);
+
+                    ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+                    List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+                    ReferencingDetailsType rf = new ReferencingDetailsType();
+                    rf.setQualifier("PR");
+                    rf.setNumber("" + (passengerRefnumber));
+                    referenceList.add(rf);
+
+                    de1.setReferenceForDataElement(referenceForDataElement);
+
+                    dataElementsDivList.add(de1);
+
+                    //home contact number
+                    DataElementsIndiv de2 = new DataElementsIndiv();
+                    ElementManagementSegmentType elementManagementData2 = new ElementManagementSegmentType();
+                    elementManagementData2.setSegmentName("AP");
+                    ReferencingDetailsType rf2 = new ReferencingDetailsType();
+                    rf2.setQualifier("OT");
+                    rf2.setNumber(++qualifierNumber + "");
+                    elementManagementData2.setReference(rf2);
+                    de2.setElementManagementData(elementManagementData2);
+                    LongFreeTextType ftd2 = new LongFreeTextType();
+                    FreeTextQualificationType ftdt2 = new FreeTextQualificationType();
+                    ftdt2.setSubjectQualifier("3");
+                    ftdt2.setType("7");
+                    ftd2.setFreetextDetail(ftdt2);
+                    ftd2.setLongFreetext(personalDetails.getMobileNumber());
+                    de2.setFreetextData(ftd2);
+                    de2.setReferenceForDataElement(referenceForDataElement);
+                    dataElementsDivList.add(de2);
+                    //emergency contact number
+                    if (StringUtils.hasText(personalDetails.getEmergencyContactNumber())) {
+                        DataElementsIndiv de3 = new DataElementsIndiv();
+                        ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
+                        elementManagementData3.setSegmentName("OS");
+                        de3.setElementManagementData(elementManagementData3);
+                        LongFreeTextType ftd3 = new LongFreeTextType();
+                        FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
+                        ftdt3.setSubjectQualifier("3");
+                        ftdt3.setType("3");
+                        ftd3.setFreetextDetail(ftdt3);
+                        String emergencyContactNo = personalDetails.getEmergencyContactCode() + personalDetails.getEmergencyContactNumber();
+                        emergencyContactNo = emergencyContactNo.replaceAll("\\+", "");
+                        ftd3.setLongFreetext("Emergency Contact Number " + emergencyContactNo);
+                        de3.setFreetextData(ftd3);
+                        de3.setReferenceForDataElement(referenceForDataElement);
+
+                        dataElementsDivList.add(de3);
+                    }
+
+                    DataElementsIndiv de4 = new DataElementsIndiv();
+                    ElementManagementSegmentType elementManagementData4 = new ElementManagementSegmentType();
+                    elementManagementData4.setSegmentName("OS");
+                    de4.setElementManagementData(elementManagementData4);
+                    LongFreeTextType ftd4 = new LongFreeTextType();
+                    FreeTextQualificationType ftdt4 = new FreeTextQualificationType();
+                    ftdt4.setSubjectQualifier("3");
+                    ftdt4.setType("P27");
+                    ftdt4.setCompanyId("YY");
+                    ftd4.setFreetextDetail(ftdt4);
+                    ftd4.setLongFreetext("FLY HI TRAVEL MUMBAI TEL 00 91 9619004000");
+                    de4.setFreetextData(ftd4);
+                    de4.setReferenceForDataElement(referenceForDataElement);
+                    dataElementsDivList.add(de4);
+
+                    DataElementsIndiv de5 = new DataElementsIndiv();
+                    ElementManagementSegmentType elementManagementData5 = new ElementManagementSegmentType();
+                    elementManagementData5.setSegmentName("OS");
+                    de5.setElementManagementData(elementManagementData5);
+                    LongFreeTextType ftd5 = new LongFreeTextType();
+                    FreeTextQualificationType ftdt5 = new FreeTextQualificationType();
+                    ftdt5.setSubjectQualifier("3");
+                    ftdt5.setType("P27");
+                    ftdt5.setCompanyId("YY");
+                    ftd5.setFreetextDetail(ftdt5);
+                    ftd5.setLongFreetext("FLY HI TRAVEL IATA CODE AGT 14308534");
+                    de5.setFreetextData(ftd5);
+                    de5.setReferenceForDataElement(referenceForDataElement);
+                    dataElementsDivList.add(de5);
+
+                    if (StringUtils.hasText(personalDetails.getOfficeNumber())) {
+                        DataElementsIndiv businessNoDiv = new DataElementsIndiv();
+                        ElementManagementSegmentType businessNoelementManagement = new ElementManagementSegmentType();
+                        businessNoelementManagement.setSegmentName("AP");
+                        ReferencingDetailsType rf4 = new ReferencingDetailsType();
+                        rf4.setQualifier("OT");
+                        rf4.setNumber((++qualifierNumber) + "");
+                        businessNoelementManagement.setReference(rf4);
+                        businessNoDiv.setElementManagementData(businessNoelementManagement);
+                        LongFreeTextType businessNoLongFreeText = new LongFreeTextType();
+                        FreeTextQualificationType freeTextQualificationType = new FreeTextQualificationType();
+                        freeTextQualificationType.setSubjectQualifier("3");
+                        freeTextQualificationType.setType("3");
+                        businessNoLongFreeText.setFreetextDetail(freeTextQualificationType);
+                        businessNoLongFreeText.setLongFreetext(personalDetails.getOfficeNoCode() + personalDetails.getOfficeNumber());
+                        businessNoDiv.setFreetextData(businessNoLongFreeText);
+                        businessNoDiv.setReferenceForDataElement(referenceForDataElement);
+                        dataElementsDivList.add(businessNoDiv);
+                    }
+
+                    if (isLH_UA_LX_SK_OS_AC(travellerMasterInfo)) {
+                        DataElementsIndiv de6 = new DataElementsIndiv();
+                        ElementManagementSegmentType elementManagementData6 = new ElementManagementSegmentType();
+                        elementManagementData6.setSegmentName("OS");
+                        de6.setElementManagementData(elementManagementData6);
+                        LongFreeTextType ftd6 = new LongFreeTextType();
+                        FreeTextQualificationType ftdt6 = new FreeTextQualificationType();
+                        ftdt6.setSubjectQualifier("3");
+                        ftdt6.setType("P27");
+                        ftdt6.setCompanyId("YY");
+                        ftd6.setFreetextDetail(ftdt6);
+                        ftd6.setLongFreetext("DS/SIN/IN366409");
+                        de6.setFreetextData(ftd6);
+                        de6.setReferenceForDataElement(referenceForDataElement);
+                        dataElementsDivList.add(de6);
+                    }
+
+                    if (isAF_KL_DL(travellerMasterInfo)) {
+                        DataElementsIndiv de7 = new DataElementsIndiv();
+                        ElementManagementSegmentType elementManagementData7 = new ElementManagementSegmentType();
+                        elementManagementData7.setSegmentName("OS");
+                        de7.setElementManagementData(elementManagementData7);
+                        LongFreeTextType ftd7 = new LongFreeTextType();
+                        FreeTextQualificationType ftdt7 = new FreeTextQualificationType();
+                        ftdt7.setSubjectQualifier("3");
+                        ftdt7.setType("P27");
+                        ftdt7.setCompanyId("YY");
+                        ftd7.setFreetextDetail(ftdt7);
+                        ftd7.setLongFreetext("OIN IN05073");
+                        de7.setFreetextData(ftd7);
+                        de7.setReferenceForDataElement(referenceForDataElement);
+                        dataElementsDivList.add(de7);
+                    }
+
+                }
+
+//                else {
+//
+//                    passengerRefnumber = passengerRefnumber + 1;
+//
+//                    ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+//                    List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+//                    ReferencingDetailsType rf = new ReferencingDetailsType();
+//                    rf.setQualifier("PR");
+//                    rf.setNumber("" + (passengerRefnumber));
+//                    referenceList.add(rf);
+//
+//
+//                    DataElementsIndiv de1 = new DataElementsIndiv();
+//                    ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
+//                    elementManagementData1.setSegmentName("OS");
+//                    de1.setElementManagementData(elementManagementData1);
+//                    LongFreeTextType ftd1 = new LongFreeTextType();
+//                    FreeTextQualificationType ftdt1 = new FreeTextQualificationType();
+//                    ftdt1.setSubjectQualifier("3");
+//                    ftdt1.setType("P27");
+//                    ftdt1.setCompanyId("YY");
+//                    ftd1.setFreetextDetail(ftdt1);
+//                    ftd1.setLongFreetext("FLY HI TRAVEL MUMBAI TEL 00 91 9619004000");
+//                    de1.setFreetextData(ftd1);
+//                    de1.setReferenceForDataElement(referenceForDataElement);
+//                    dataElementsDivList.add(de1);
+//
+//                    DataElementsIndiv de2 = new DataElementsIndiv();
+//                    ElementManagementSegmentType elementManagementData2 = new ElementManagementSegmentType();
+//                    elementManagementData2.setSegmentName("OS");
+//                    de2.setElementManagementData(elementManagementData2);
+//                    LongFreeTextType ftd2 = new LongFreeTextType();
+//                    FreeTextQualificationType ftdt2 = new FreeTextQualificationType();
+//                    ftdt2.setSubjectQualifier("3");
+//                    ftdt2.setType("P27");
+//                    ftdt2.setCompanyId("YY");
+//                    ftd2.setFreetextDetail(ftdt2);
+//                    ftd2.setLongFreetext("FLY HI TRAVEL IATA CODE AGT 14308534");
+//                    de2.setFreetextData(ftd2);
+//                    de2.setReferenceForDataElement(referenceForDataElement);
+//                    dataElementsDivList.add(de2);
+//
+//                    if (isAF_KL_DL(travellerMasterInfo)) {
+//                        DataElementsIndiv de3 = new DataElementsIndiv();
+//                        ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
+//                        elementManagementData3.setSegmentName("OS");
+//                        de3.setElementManagementData(elementManagementData3);
+//                        LongFreeTextType ftd3 = new LongFreeTextType();
+//                        FreeTextQualificationType ftdt3 = new FreeTextQualificationType();
+//                        ftdt3.setSubjectQualifier("3");
+//                        ftdt3.setType("P27");
+//                        ftdt3.setCompanyId("YY");
+//                        ftd3.setFreetextDetail(ftdt3);
+//                        ftd3.setLongFreetext("OIN IN05073");
+//                        de3.setFreetextData(ftd3);
+//                        de3.setReferenceForDataElement(referenceForDataElement);
+//                        dataElementsDivList.add(de3);
+//                    }
+//                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return dataElementsDivList;
     }
+
     //credit card info
     public DataElementsIndiv addCreditCardData(int qualifierNumber) {
         DataElementsIndiv de = new DataElementsIndiv();
@@ -659,6 +785,7 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         de.setElementManagementData(emd);
         return de;
     }
+
     //end of transaction info
     public DataElementsIndiv addEOTInfo() {
         DataElementsIndiv de = new DataElementsIndiv();
@@ -676,32 +803,58 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         de.setElementManagementData(emd);
         return de;
     }
-    public List<DataElementsIndiv> addAdditionalPassengerDetails(TravellerMasterInfo travellerMasterInfo,
-                                     int qualifierNumber, List<String> segmentNumbers, Map<String,String> travellerMap){
+
+    //Adding SSR details here
+    public List<DataElementsIndiv> addAdditionalPassengerDetails(TravellerMasterInfo travellerMasterInfo, int qualifierNumber, List<String> segmentNumbers, Map<String, String> travellerMap) {
         int passengerReference = 1;
         String contactName = "";
         List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
-        for(com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()){
+        for (com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()) {
 
-            if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF
-                    .equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
-                if (traveller.getPersonalDetails().getMiddleName() != null) {
-                    contactName = traveller.getPersonalDetails().getFirstName() + traveller.getPersonalDetails().getMiddleName();
+            if (traveller.getPersonalDetails().getMiddleName() != null) {
+                contactName = traveller.getPersonalDetails().getFirstName() + traveller.getPersonalDetails().getMiddleName();
+            } else {
+                contactName = traveller.getPersonalDetails().getFirstName();
+            }
+            contactName = contactName + traveller.getPersonalDetails().getSalutation();
+            contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
+            String contactLastName = traveller.getPersonalDetails().getLastName();
+            contactLastName = contactLastName.replaceAll("\\s+", "");
+            String contactFullName = contactName + contactLastName;
+            contactFullName = contactFullName.toLowerCase();
+            passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
 
-                } else {
-                    contactName = traveller.getPersonalDetails().getFirstName();
+            if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF.equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
+
+                //Adding Is Seaman entry here
+                if(travellerMasterInfo.isSeamen()) {
+                    dataElementsDivList.add(addIsSeaman(passengerReference));
                 }
-                contactName = contactName + traveller.getPersonalDetails().getSalutation();
-                contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
-                String contactLastName = traveller.getPersonalDetails().getLastName();
-                contactLastName = contactLastName.replaceAll("\\s+", "");
-                String contactFullName = contactName + contactLastName;
-                contactFullName = contactFullName.toLowerCase();
-                passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
+                //Adding Mobile number here
+                dataElementsDivList.add(addCTCM(passengerReference));
+
+                //Adding Email Address here
+                dataElementsDivList.add(addCTCE(passengerReference));
+
+                //Adding Vessel Name here if it exists
+                if(StringUtils.hasText(travellerMasterInfo.getAdditionalInfo().getVesselId())) {
+                    dataElementsDivList.add(addVesselName(passengerReference,travellerMasterInfo.getVesselName()));
+                }
+
+                //Adding passport number here if it exists
+                if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
+                    dataElementsDivList.add(addPassportNumber(traveller, passengerReference));
+                }
+
+                //Adding SQ data
+                if(isSQ(travellerMasterInfo)){
+                    dataElementsDivList.add(addSQSSR(passengerReference));
+                }
 
                 if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
                     dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference, travellerMasterInfo.getUserTimezone()));
                 }
+
                 Preferences preferences = traveller.getPreferences();
                 if (StringUtils.hasText(preferences.getMeal())) {
                     dataElementsDivList.add(addMealPreference(traveller, qualifierNumber, passengerReference, segmentNumbers));
@@ -713,7 +866,22 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
                     dataElementsDivList.add(addSeatPreference(traveller, passengerReference));
                 }
             }
-//            passengerReference++;
+
+//            else {
+//
+//                //Adding passport number here
+//                if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
+//                    dataElementsDivList.add(addPassportNumber(traveller, passengerReference));
+//                }
+//
+//                //Adding Mobile number here
+//                dataElementsDivList.add(addCTCM(passengerReference));
+//
+//                //Adding Email Address here
+//                dataElementsDivList.add(addCTCE(passengerReference));
+//
+//            }
+
         }
         return dataElementsDivList;
     }
@@ -801,10 +969,6 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         PassportDetails passportDetails = traveller.getPassportDetails();
 
         ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
-        /*Reference refrence = new Reference();
-        refrence.setQualifier("OT");
-        refrence.setNumber((++qualifierNumber)+"");
-        elementManagementData.setReference(refrence); */
         elementManagementData.setSegmentName("SSR");
         de.setElementManagementData(elementManagementData);
 
@@ -830,8 +994,7 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         if(traveller.getPassportDetails().getNationality() != null){
             freeText=freeText + "-" + traveller.getPassportDetails().getNationality().getThreeLetterCode();
         }
-        freeText = freeText + "-" + fmt.print(dob)
-                + "-" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "-" + fmt.print(dateOfExpiry)+"-";
+        freeText = freeText + "-" + fmt.print(dob) + "-" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "-" + fmt.print(dateOfExpiry)+"-";
         String name = traveller.getPersonalDetails().getLastName()+"-"+traveller.getPersonalDetails().getFirstName();
 
         if(freeText.length() + name.length() > 70){
@@ -949,4 +1112,251 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
         pnrCancel.getCancelElements().add(cancelPNRElementType);
         return pnrCancel;
     }
+
+    public DataElementsIndiv addPassportNumber(com.compassites.model.traveller.Traveller traveller, int passengerRefNumber) {
+        DataElementsIndiv de = new DataElementsIndiv();
+        PassportDetails passportDetails = traveller.getPassportDetails();
+
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+
+        elementManagementData.setSegmentName("SSR");
+        de.setElementManagementData(elementManagementData);
+
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
+
+        ssr.setType("FOID");
+        ssr.setCompanyId("YY");
+
+        List<String> freeTextList = ssr.getFreetext();
+
+        String passportNumber = passportDetails.getPassportNumber();
+        String freeText = "PP" + passportNumber;
+
+        freeTextList.add(freeText);
+
+        serviceRequest.setSsr(ssr);
+        de.setServiceRequest(serviceRequest);
+
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
+        rf.setQualifier("PT");
+        rf.setNumber("" + (passengerRefNumber));
+        referenceList.add(rf);
+        de.setReferenceForDataElement(referenceForDataElement);
+
+        return de;
+    }
+
+    public DataElementsIndiv addIsSeaman(int passengerRefNumber) {
+
+        DataElementsIndiv de = new DataElementsIndiv();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+
+        elementManagementData.setSegmentName("SSR");
+        de.setElementManagementData(elementManagementData);
+
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
+
+        ssr.setType("CKIN");
+        ssr.setCompanyId("YY");
+
+        List<String> freeTextList = ssr.getFreetext();
+
+        String freeText = "SEAMAN";
+
+        freeTextList.add(freeText);
+
+        serviceRequest.setSsr(ssr);
+        de.setServiceRequest(serviceRequest);
+
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
+        rf.setQualifier("PT");
+        rf.setNumber("" + (passengerRefNumber));
+        referenceList.add(rf);
+        de.setReferenceForDataElement(referenceForDataElement);
+
+        return de;
+    }
+
+    public DataElementsIndiv addVesselName(int passengerRefNumber, String vesselName) {
+
+        DataElementsIndiv de = new DataElementsIndiv();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+
+        elementManagementData.setSegmentName("SSR");
+        de.setElementManagementData(elementManagementData);
+
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
+
+        ssr.setType("OTHS");
+        ssr.setCompanyId("YY");
+
+        List<String> freeTextList = ssr.getFreetext();
+
+        String freeText = "PAX SEMN JNG/OFF " + vesselName;
+
+
+        freeTextList.add(freeText);
+
+        serviceRequest.setSsr(ssr);
+        de.setServiceRequest(serviceRequest);
+
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
+        rf.setQualifier("PT");
+        rf.setNumber("" + (passengerRefNumber));
+        referenceList.add(rf);
+        de.setReferenceForDataElement(referenceForDataElement);
+
+        return de;
+    }
+
+    public DataElementsIndiv addCTCM(int passengerRefNumber) {
+
+        DataElementsIndiv de = new DataElementsIndiv();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+
+        elementManagementData.setSegmentName("SSR");
+        de.setElementManagementData(elementManagementData);
+
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
+
+        ssr.setType("CTCM");
+        ssr.setCompanyId("YY");
+
+        List<String> freeTextList = ssr.getFreetext();
+
+        String freeText = "919619004000";
+
+        freeTextList.add(freeText);
+
+        serviceRequest.setSsr(ssr);
+        de.setServiceRequest(serviceRequest);
+
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
+        rf.setQualifier("PT");
+        rf.setNumber("" + (passengerRefNumber));
+        referenceList.add(rf);
+        de.setReferenceForDataElement(referenceForDataElement);
+
+        return de;
+    }
+
+    public DataElementsIndiv addCTCE(int passengerRefNumber) {
+
+        DataElementsIndiv de = new DataElementsIndiv();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+
+        elementManagementData.setSegmentName("SSR");
+        de.setElementManagementData(elementManagementData);
+
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
+
+        ssr.setType("CTCE");
+        ssr.setCompanyId("YY");
+
+        List<String> freeTextList = ssr.getFreetext();
+
+        String freeText = "TRAVEL//JOCO.AI";
+
+        freeTextList.add(freeText);
+
+        serviceRequest.setSsr(ssr);
+        de.setServiceRequest(serviceRequest);
+
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
+        rf.setQualifier("PT");
+        rf.setNumber("" + (passengerRefNumber));
+        referenceList.add(rf);
+        de.setReferenceForDataElement(referenceForDataElement);
+
+        return de;
+    }
+
+    private boolean isSQ(TravellerMasterInfo travellerMasterInfo) {
+        String airlineStr = "SQ";
+        List<String> specialAirline = new ArrayList<String>(Arrays.asList(airlineStr.split(",")));
+        for (Journey journey : travellerMasterInfo.getItinerary().getJourneyList()) {
+            for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
+                if (specialAirline.contains(airSegmentInformation.getCarrierCode())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public DataElementsIndiv addSQSSR(int passengerRefNumber) {
+
+        DataElementsIndiv de = new DataElementsIndiv();
+        ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
+
+        elementManagementData.setSegmentName("SSR");
+        de.setElementManagementData(elementManagementData);
+
+        SpecialRequirementsDetailsTypeI serviceRequest = new SpecialRequirementsDetailsTypeI();
+        SpecialRequirementsTypeDetailsTypeI ssr = new SpecialRequirementsTypeDetailsTypeI();
+
+        ssr.setType("OTHS");
+        ssr.setCompanyId("SQ");
+
+        List<String> freeTextList = ssr.getFreetext();
+
+        String freeText = "SEMN SQ NN1 VIEW SEAMEN TRVL DOC";
+
+        freeTextList.add(freeText);
+
+        serviceRequest.setSsr(ssr);
+        de.setServiceRequest(serviceRequest);
+
+        ReferenceInfoType referenceForDataElement = new ReferenceInfoType();
+        List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
+        ReferencingDetailsType rf = new ReferencingDetailsType();
+        rf.setQualifier("PT");
+        rf.setNumber("" + (passengerRefNumber));
+        referenceList.add(rf);
+        de.setReferenceForDataElement(referenceForDataElement);
+
+        return de;
+    }
+
+    private boolean isLH_UA_LX_SK_OS_AC(TravellerMasterInfo travellerMasterInfo) {
+        String airlineStr = "LH,UA,LX,SK,OS,AC";
+        List<String> specialAirline = new ArrayList<String>(Arrays.asList(airlineStr.split(",")));
+        for (Journey journey : travellerMasterInfo.getItinerary().getJourneyList()) {
+            for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
+                if (specialAirline.contains(airSegmentInformation.getCarrierCode())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isAF_KL_DL(TravellerMasterInfo travellerMasterInfo) {
+        String airlineStr = "AF,KL,DL";
+        List<String> specialAirline = new ArrayList<String>(Arrays.asList(airlineStr.split(",")));
+        for (Journey journey : travellerMasterInfo.getItinerary().getJourneyList()) {
+            for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
+                if (specialAirline.contains(airSegmentInformation.getCarrierCode())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }

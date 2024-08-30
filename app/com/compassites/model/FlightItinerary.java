@@ -2,6 +2,7 @@ package com.compassites.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
@@ -55,6 +56,55 @@ public class FlightItinerary implements Serializable{
     private String totalTravelTimeStr;
 
     private boolean isPassportMandatory;
+
+    // added for Travelomatrix
+    private String resultToken;
+
+    private Boolean isLCC;
+
+    private Boolean isRefundable;
+
+    private String fareType;
+
+    public Boolean getRefundable() {
+        return isRefundable;
+    }
+
+    public void setRefundable(Boolean refundable) {
+        isRefundable = refundable;
+    }
+
+    public String getFareType() {
+        return fareType;
+    }
+
+    public void setFareType(String fareType) {
+        this.fareType = fareType;
+    }
+
+    public Boolean getLCC() {
+        return isLCC;
+    }
+
+    public void setLCC(Boolean LCC) {
+        isLCC = LCC;
+    }
+
+    public String getResultToken() {
+        return resultToken;
+    }
+
+    public void setResultToken(String resultToken) {
+        this.resultToken = resultToken;
+    }
+
+    public Boolean IsLCC() {
+        return isLCC;
+    }
+
+    public void setIsLCC(Boolean isLCC) {
+        this.isLCC = isLCC;
+    }
 
     public PricingMessage getPricingMessage() {
         return pricingMessage;
