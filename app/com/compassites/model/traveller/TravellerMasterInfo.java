@@ -56,6 +56,16 @@ public class TravellerMasterInfo {
 
     private String appReference;
 
+    private String returnAppRef;
+
+    public String getReturnAppRef() {
+        return returnAppRef;
+    }
+
+    public void setReturnAppRef(String returnAppRef) {
+        this.returnAppRef = returnAppRef;
+    }
+
     private Map<String,Map> benzyFareRuleMap;
 
     private boolean bookAndHold;

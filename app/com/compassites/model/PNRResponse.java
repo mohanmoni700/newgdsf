@@ -57,7 +57,13 @@ public class PNRResponse {
 
     private String resultToken;
 
+    private String returnResultToken;
+
+    private String returnAppReference;
+
     private String bookingId;
+
+    private String returnBookingId;
 
     private String appReference;
 
@@ -71,6 +77,29 @@ public class PNRResponse {
         this.benzyFareRuleMap = benzyFareRuleMap;
     }
 
+    public String getReturnResultToken() {
+        return returnResultToken;
+    }
+
+    public void setReturnResultToken(String returnResultToken) {
+        this.returnResultToken = returnResultToken;
+    }
+
+    public String getReturnAppReference() {
+        return returnAppReference;
+    }
+
+    public String getReturnBookingId() {
+        return returnBookingId;
+    }
+
+    public void setReturnBookingId(String returnBookingId) {
+        this.returnBookingId = returnBookingId;
+    }
+
+    public void setReturnAppReference(String returnAppReference) {
+        this.returnAppReference = returnAppReference;
+    }
 
     public Map<String, String> getTicketNumberMap() {
         return ticketNumberMap;
@@ -95,7 +124,6 @@ public class PNRResponse {
     public void setBookingId(String bookingId) {
         this.bookingId = bookingId;
     }
-
 
     public String getResultToken() {
         return resultToken;

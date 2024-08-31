@@ -62,18 +62,34 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
         if(travellerMasterInfo.isBookAndHold()) {
             //Book and Hold
-            JsonNode jsonResponse = holdTicketTMX.HoldBooking(travellerMasterInfo);
+            JsonNode jsonResponse = holdTicketTMX.HoldBooking(travellerMasterInfo,0L);
+            JsonNode returnjsonResponse = null;
+            if(travellerMasterInfo.getItinerary().getReturnResultToken() != null && travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP"))
+            returnjsonResponse = holdTicketTMX.HoldBooking(travellerMasterInfo,1L);
             try {
                 travelomatrixLogger.debug("Response for generatePNR: " + jsonResponse);
                 HoldTicketResponse response = new ObjectMapper().treeToValue(jsonResponse, HoldTicketResponse.class);
+                HoldTicketResponse returnresponse = null;
+                if(travellerMasterInfo.getItinerary().getReturnResultToken() != null && travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP"))
+                    returnresponse = new ObjectMapper().treeToValue(returnjsonResponse, HoldTicketResponse.class);
                 if (response.getStatus().equalsIgnoreCase("0")) {
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setMessage(response.getMessage());
                     pnrResponse = new PNRResponse();
                     pnrResponse.setErrorMessage(errorMessage);
                     travelomatrixLogger.debug("Response is not valid for HoldBooking: " + response.getMessage());
+                }else if (returnresponse != null && returnresponse.getStatus().equalsIgnoreCase("0") ) {
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setMessage(returnresponse.getMessage());
+                    pnrResponse = new PNRResponse();
+                    pnrResponse.setErrorMessage(errorMessage);
+                    travelomatrixLogger.debug("Return Response is not valid for HoldBooking: " + response.getMessage());
                 } else {
-                    pnrResponse = getPNRResponseFromHoldTicket(travellerMasterInfo, response);
+                    if(travellerMasterInfo.getItinerary().getReturnResultToken() != null && travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP")){
+                        pnrResponse = getMergedPNRResponseFromHoldTicket(travellerMasterInfo, response,returnresponse);
+                    }else{
+                       pnrResponse = getPNRResponseFromHoldTicket(travellerMasterInfo, response);
+                    }
                 }
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
@@ -82,8 +98,13 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
             }
         }else{
-            pnrResponse = getBookingPNRResponse(travellerMasterInfo);
+            if(travellerMasterInfo.getItinerary().getReturnResultToken() != null && travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP")) {
+                pnrResponse = getRoundTripBookingPNRResponse(travellerMasterInfo);
+            } else {
+                pnrResponse = getBookingPNRResponse(travellerMasterInfo);
+            }
         }
+
 
         return pnrResponse;
     }
@@ -135,6 +156,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
     public PNRResponse checkFareChangeAndAvailability(
             TravellerMasterInfo travellerMasterInfo) {
         PNRResponse pnrResponse = null;
+        PNRResponse returnPnrResponse = null;
         travelomatrixLogger.debug("checkFareChangeAndAvailability called...........");
         String resultToken = travellerMasterInfo.getItinerary().getResultToken();
         JsonNode jsonResponse = bookingFlights.getUpdatedFares(resultToken);
@@ -155,6 +177,30 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+
+        if(travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP") && travellerMasterInfo.getItinerary().getReturnResultToken() != null){
+            String returResultToken = travellerMasterInfo.getItinerary().getReturnResultToken();
+            JsonNode returnjsonResponse = bookingFlights.getUpdatedFares(returResultToken);
+            try {
+                travelomatrixLogger.debug("Return Response for checkFareChangeAndAvailability: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
+                UpdateFareQuotesReply response = new ObjectMapper().treeToValue(returnjsonResponse, UpdateFareQuotesReply.class);
+                if(response.getStatus() == 0){
+                    travelomatrixLogger.debug("checkFareChangeAndAvailability Return Respose is not Reeceived for ResultToken :" + resultToken);
+                    pnrResponse = new PNRResponse();
+                    ErrorMessage em = new ErrorMessage();
+                    em.setMessage(response.getMessage());
+                    pnrResponse.setErrorMessage(em);
+                }else{
+                    returnPnrResponse = getPNRResponse(travellerMasterInfo,response);
+                    pnrResponse = getMergedPNRResponse(pnrResponse,returnPnrResponse,travellerMasterInfo);
+                }
+
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+
         return pnrResponse;
     }
 
@@ -232,13 +278,16 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setPricingInfo(pricingInformation);
         pnrResponse.setCappingLimitReached(false);
         Map<String,String> baggageMap = new HashMap<>();
-        List<com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.Detail> details = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getFlightDetails().getDetails().get(0);
-        for(com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.Detail detail : details){
-            if(detail.getAttr() != null){
-                String key =  detail.getOrigin().getAirportCode().toUpperCase().toString()+detail.getDestination().getAirportCode().toUpperCase().toString();
-                String baggage = detail.getAttr().getBaggage();
-                String updateBaggage = updateBaggeUnits(baggage);
-                baggageMap.put(key,updateBaggage);
+
+        for(List<com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.Detail> details :updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getFlightDetails().getDetails()) {
+            for (com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.Detail detail : details) {
+                if (detail.getAttr() != null) {
+                    String key = detail.getOrigin().getAirportCode().toUpperCase().toString() + detail.getDestination().getAirportCode().toUpperCase().toString();
+                    String baggage = detail.getAttr().getBaggage();
+                    String updateBaggage = updateBaggeUnits(baggage);
+                    baggageMap.put(key,updateBaggage);
+                }
+
             }
         }
         pnrResponse.setSegmentBaggageMap(baggageMap);
@@ -293,11 +342,13 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         List<AirSegmentInformation> details = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList();
         int segmentnumber = 1;
         Map<String,String> airlinePNRMap = new HashMap<>();
-        for(AirSegmentInformation detail:details) {
-            String segments = detail.getFromLocation().toLowerCase() + detail.getToLocation().toLowerCase() + String.valueOf(segmentnumber);
-            String airlinePnr = "NA";
-            airlinePNRMap.put(segments,airlinePnr);
-            segmentnumber++;
+        for(Journey journey : travellerMasterInfo.getItinerary().getJourneyList()) {
+            for (AirSegmentInformation detail : journey.getAirSegmentList()) {
+                String segments = detail.getFromLocation().toLowerCase() + detail.getToLocation().toLowerCase() + String.valueOf(segmentnumber);
+                String airlinePnr = "NA";
+                airlinePNRMap.put(segments, airlinePnr);
+                segmentnumber++;
+            }
         }
         pnrResponse.setAirlinePNRMap(airlinePNRMap);
         Map<String,String> tickenetNumberMap = new HashMap<>();
@@ -307,6 +358,42 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 String ticketNumber  = "NA";
                 tickenetNumberMap.put(passengerType,ticketNumber);
             }
+        pnrResponse.setTicketNumberMap(tickenetNumberMap);
+        return pnrResponse;
+    }
+
+    public PNRResponse getRoundTripBookingPNRResponse(TravellerMasterInfo travellerMasterInfo){
+        PNRResponse pnrResponse = new PNRResponse();
+        // String airlinePNR=commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
+        // pnrResponse.setAirlinePNR("NA");
+        // pnrResponse.setPnrNumber("NA");
+        pnrResponse.setFlightAvailable(true);
+        pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId);
+        pnrResponse.setAirlinePNRError(false);
+        String resultToken = travellerMasterInfo.getItinerary().getResultToken();
+        pnrResponse.setResultToken(resultToken);
+        pnrResponse.setReturnResultToken(travellerMasterInfo.getItinerary().getReturnResultToken());
+        pnrResponse.setBookingId("NA");
+        pnrResponse.setReturnBookingId("NA");
+        String appidReference = travellerMasterInfo.getAppReference();
+        pnrResponse.setAppReference(appidReference);
+        List<AirSegmentInformation> details = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList();
+        int segmentnumber = 1;
+        Map<String,String> airlinePNRMap = new HashMap<>();
+        for(AirSegmentInformation detail:details) {
+            String segments = detail.getFromLocation().toLowerCase() + detail.getToLocation().toLowerCase() + String.valueOf(segmentnumber);
+            String airlinePnr = "NA";
+            airlinePNRMap.put(segments,airlinePnr);
+            segmentnumber++;
+        }
+        pnrResponse.setAirlinePNRMap(airlinePNRMap);
+        Map<String,String> tickenetNumberMap = new HashMap<>();
+        List<Traveller> passengerDetailList =  travellerMasterInfo.getTravellersList();
+        for(Traveller passengerDetail:passengerDetailList){
+            String passengerType = "ADT";
+            String ticketNumber  = "NA";
+            tickenetNumberMap.put(passengerType,ticketNumber);
+        }
         pnrResponse.setTicketNumberMap(tickenetNumberMap);
         return pnrResponse;
     }
@@ -369,7 +456,9 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         return updatePNRResponse;
     }
 
+
     public String updateBaggeUnits(String baggage){
+
         String updatedBagunits = null;
         String pattern = "^KG\\d{3}$";
         if(baggage.contains("Kg") || baggage.contains("Kilograms") ){
@@ -383,5 +472,142 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             updatedBagunits = baggage;
         }
         return updatedBagunits;
+
+		}
+    public PNRResponse getMergedPNRResponse(PNRResponse onwordPnrResponse,PNRResponse returnPnrResponse,TravellerMasterInfo travellerMasterInfo){
+        PNRResponse pnrResponse = new PNRResponse();
+        Boolean availbleFlights = false;
+        pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId.toString());
+        if(onwordPnrResponse.isFlightAvailable() && returnPnrResponse.isFlightAvailable()){
+            availbleFlights = true;
+        }
+
+        if(travellerMasterInfo.getItinerary().getPricingInformation().getOnwardTotalBasePrice() == onwordPnrResponse.getPricingInfo().getTotalBasePrice()
+           && travellerMasterInfo.getItinerary().getPricingInformation().getOnwardTotalBasePrice() == onwordPnrResponse.getPricingInfo().getTotalBasePrice()){
+            pnrResponse.setPriceChanged(false);
+        }else{
+            pnrResponse.setPriceChanged(false);
+            pnrResponse.setChangedBasePrice(onwordPnrResponse.getChangedBasePrice().add(returnPnrResponse.getChangedBasePrice()));
+            pnrResponse.setChangedPrice(onwordPnrResponse.getChangedPrice().add(returnPnrResponse.getChangedPrice()));
+        }
+        pnrResponse.setFlightAvailable(availbleFlights);
+        pnrResponse.setResultToken(onwordPnrResponse.getResultToken());
+        pnrResponse.setReturnResultToken(returnPnrResponse.getResultToken());
+        PricingInformation pricingInformation = new PricingInformation();
+        pricingInformation.setBasePrice(onwordPnrResponse.getPricingInfo().getBasePrice().add(returnPnrResponse.getPricingInfo().getBasePrice()));
+        pricingInformation.setTotalBasePrice(onwordPnrResponse.getPricingInfo().getTotalBasePrice().add(returnPnrResponse.getPricingInfo().getTotalBasePrice()));
+        pricingInformation.setAdtBasePrice(onwordPnrResponse.getPricingInfo().getAdtBasePrice().add(returnPnrResponse.getPricingInfo().getAdtBasePrice()));
+        pricingInformation.setAdtTotalPrice(onwordPnrResponse.getPricingInfo().getAdtTotalPrice().add(returnPnrResponse.getPricingInfo().getAdtTotalPrice()));
+        //pricingInformation.setAdtTotalPrice(totalPrice);
+        pricingInformation.setGdsCurrency(onwordPnrResponse.getPricingInfo().getGdsCurrency());
+        pricingInformation.setTax(onwordPnrResponse.getPricingInfo().getTax().add(returnPnrResponse.getPricingInfo().getTax()));
+        if(!onwordPnrResponse.getPricingInfo().getChdBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getChdBasePrice().equals(0) )
+            pricingInformation.setChdBasePrice(onwordPnrResponse.getPricingInfo().getChdBasePrice().add(returnPnrResponse.getPricingInfo().getChdBasePrice()));
+        else
+            pricingInformation.setChdBasePrice(new BigDecimal(0));
+        if(!onwordPnrResponse.getPricingInfo().getInfBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getInfBasePrice().equals(0))
+            pricingInformation.setInfBasePrice(onwordPnrResponse.getPricingInfo().getInfBasePrice().add(returnPnrResponse.getPricingInfo().getInfBasePrice()));
+        else
+            pricingInformation.setInfBasePrice(new BigDecimal(0));
+        pricingInformation.setCurrency(onwordPnrResponse.getPricingInfo().getCurrency());
+        pricingInformation.setTotalPrice(onwordPnrResponse.getPricingInfo().getTotalPrice().add(returnPnrResponse.getPricingInfo().getTotalPrice()));
+        pricingInformation.setTotalPriceValue(onwordPnrResponse.getPricingInfo().getTotalPriceValue().add(returnPnrResponse.getPricingInfo().getTotalPriceValue()));
+        List<PassengerTax> passengerTaxList = new LinkedList<>();
+        PassengerTax adtPassengerTax = new PassengerTax();
+        adtPassengerTax.setPassengerType("ADT");
+        adtPassengerTax.setPassengerCount(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getPassengerCount());
+        adtPassengerTax.setTotalTax(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax().add(returnPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax()));
+        passengerTaxList.add(adtPassengerTax);
+
+        PassengerTax onchdPassengerTax = new PassengerTax();
+        PassengerTax oninfPassengerTax = new PassengerTax();
+        PassengerTax rechdPassengerTax = new PassengerTax();
+        PassengerTax reinfPassengerTax = new PassengerTax();
+        if(onwordPnrResponse.getPricingInfo().getPassengerTaxes().size() > 1 && onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(1).getPassengerType().equalsIgnoreCase("CHD")){
+            onchdPassengerTax = onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(1);
+            rechdPassengerTax = returnPnrResponse.getPricingInfo().getPassengerTaxes().get(1);
+        }
+        if(onwordPnrResponse.getPricingInfo().getPassengerTaxes().size() > 1 && onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(1).getPassengerType().equalsIgnoreCase("INF")){
+            oninfPassengerTax = onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(1);
+            reinfPassengerTax = returnPnrResponse.getPricingInfo().getPassengerTaxes().get(1);
+        }
+        if(onwordPnrResponse.getPricingInfo().getPassengerTaxes().size() > 2 && onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(2).getPassengerType().equalsIgnoreCase("INF")){
+            oninfPassengerTax = onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(2);
+            reinfPassengerTax = returnPnrResponse.getPricingInfo().getPassengerTaxes().get(2);
+        }
+        if(onchdPassengerTax.getPassengerType() != null && onchdPassengerTax.getPassengerType().equalsIgnoreCase("CHD")){
+            PassengerTax chdPassengerTax = new PassengerTax();
+            chdPassengerTax.setPassengerType("CHD");
+            chdPassengerTax.setPassengerCount(onchdPassengerTax.getPassengerCount());
+            chdPassengerTax.setTotalTax(onchdPassengerTax.getTotalTax().add(rechdPassengerTax.getTotalTax()));
+            passengerTaxList.add(chdPassengerTax);
+        }
+        if(oninfPassengerTax.getPassengerType() != null && oninfPassengerTax.getPassengerType().equalsIgnoreCase("INF")){
+            PassengerTax infPassengerTax = new PassengerTax();
+            infPassengerTax.setPassengerType("INF");
+            infPassengerTax.setPassengerCount(oninfPassengerTax.getPassengerCount());
+            infPassengerTax.setTotalTax(oninfPassengerTax.getTotalTax().add(reinfPassengerTax.getTotalTax()));
+            passengerTaxList.add(infPassengerTax);
+        }
+        pricingInformation.setPassengerTaxes(passengerTaxList);
+        pricingInformation.setLCC(onwordPnrResponse.getPricingInfo().isLCC());
+        pricingInformation.setProvider(TraveloMatrixConstants.provider);
+        pnrResponse.setPricingInfo(pricingInformation);
+        pnrResponse.setCappingLimitReached(false);
+        Map<String,String> baggageMap = new HashMap<>();
+        Map<String,String> onwordBaggageMap  = onwordPnrResponse.getSegmentBaggageMap();
+        Map<String,String> returnBaggageMap  = returnPnrResponse.getSegmentBaggageMap();
+        baggageMap.putAll(onwordBaggageMap);
+        baggageMap.putAll(returnBaggageMap);
+        pnrResponse.setSegmentBaggageMap(baggageMap);
+        pnrResponse.setHoldTime(pnrResponse.isHoldTime());
+        return pnrResponse;
+    }
+
+    public PNRResponse getMergedPNRResponseFromHoldTicket(TravellerMasterInfo travellerMasterInfo, HoldTicketResponse onwordresponse,HoldTicketResponse returnresponse){
+        PNRResponse pnrResponse = new PNRResponse();
+        String airlinePNR=onwordresponse.getHoldTicket().getBookingDetails().getPNR();
+        pnrResponse.setAirlinePNR(airlinePNR);
+        pnrResponse.setPnrNumber(onwordresponse.getHoldTicket().getBookingDetails().getPNR());
+        pnrResponse.setFlightAvailable(true);
+        pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId);
+        pnrResponse.setAirlinePNRError(false);
+        String resultToken = travellerMasterInfo.getItinerary().getResultToken();
+        pnrResponse.setResultToken(resultToken);
+        pnrResponse.setReturnResultToken(travellerMasterInfo.getItinerary().getReturnResultToken());
+        pnrResponse.setBookingId(onwordresponse.getHoldTicket().getBookingDetails().getBookingId());
+        pnrResponse.setReturnBookingId(returnresponse.getHoldTicket().getBookingDetails().getBookingId());
+        String appidReference = travellerMasterInfo.getAppReference();
+        pnrResponse.setAppReference(appidReference);
+        List<com.compassites.model.travelomatrix.ResponseModels.HoldTicket.Detail> details = onwordresponse.getHoldTicket().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
+        int segmentnumber = 1;
+
+        List<com.compassites.model.travelomatrix.ResponseModels.HoldTicket.Detail> redetails = returnresponse.getHoldTicket().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
+
+        Map<String,String> airlinePNRMap = new HashMap<>();
+        for(com.compassites.model.travelomatrix.ResponseModels.HoldTicket.Detail detail:details) {
+            String segments = detail.getOrigin().getAirportCode().toLowerCase() + detail.getDestination().getAirportCode().toLowerCase() + String.valueOf(segmentnumber);
+            String airlinePnr = detail.getAirlinePNR();
+            airlinePNRMap.put(segments,airlinePnr);
+            segmentnumber++;
+        }
+        Map<String,String> returnAirlinePNRMap = new HashMap<>();
+        for(com.compassites.model.travelomatrix.ResponseModels.HoldTicket.Detail detail:redetails) {
+            String segments = detail.getOrigin().getAirportCode().toLowerCase() + detail.getDestination().getAirportCode().toLowerCase() + String.valueOf(segmentnumber);
+            String airlinePnr = detail.getAirlinePNR();
+            returnAirlinePNRMap.put(segments,airlinePnr);
+            segmentnumber++;
+        }
+        airlinePNRMap.putAll(returnAirlinePNRMap);
+        pnrResponse.setAirlinePNRMap(airlinePNRMap);
+        // Map<String,String> tickenetNumberMap = new HashMap<>();
+        List<com.compassites.model.travelomatrix.ResponseModels.HoldTicket.PassengerDetail> passengerDetailList =  onwordresponse.getHoldTicket().getBookingDetails().getPassengerDetails();
+        for(com.compassites.model.travelomatrix.ResponseModels.HoldTicket.PassengerDetail passengerDetail:passengerDetailList){
+            String passengerType = passengerDetail.getPassengerType();
+            // String ticketNumber  = passengerDetail.getTicketNumber();
+            // tickenetNumberMap.put(passengerType,ticketNumber);
+        }
+        // pnrResponse.setTicketNumberMap(tickenetNumberMap);
+        return pnrResponse;
     }
 }
