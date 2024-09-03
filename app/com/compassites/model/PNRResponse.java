@@ -69,6 +69,16 @@ public class PNRResponse {
 
     private Map<String,Map> benzyFareRuleMap;
 
+    private String returnGdsPNR;
+
+    public String getReturnGdsPNR() {
+        return returnGdsPNR;
+    }
+
+    public void setReturnGdsPNR(String returnGdsPNR) {
+        this.returnGdsPNR = returnGdsPNR;
+    }
+
     public Map<String, Map> getBenzyFareRuleMap() {
         return benzyFareRuleMap;
     }

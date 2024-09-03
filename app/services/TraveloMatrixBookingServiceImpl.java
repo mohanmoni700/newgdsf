@@ -112,8 +112,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
     public IssuanceResponse commitBooking(IssuanceRequest issuanceRequest)  {
         IssuanceResponse issuanceResponse = new IssuanceResponse();
-        JsonNode jsonResponse = bookingFlights.commitBooking(issuanceRequest);
-        travelomatrixLogger.debug("Response for generatePNR: " + jsonResponse);
+        JsonNode jsonResponse = bookingFlights.commitBooking(issuanceRequest,false);
+        travelomatrixLogger.debug("Response for commitBooking: " + jsonResponse);
         CommitBookingReply commitBookingReply = null;
         try {
             commitBookingReply = new ObjectMapper().treeToValue(jsonResponse, CommitBookingReply.class);
@@ -124,7 +124,19 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 issuanceResponse.setErrorMessage(em);
                 travelomatrixLogger.debug("No Response receieved for CommitBooking from Travelomatrix : " + commitBookingReply);
             } else {
-             issuanceResponse = getCommitBookingResponse(commitBookingReply);
+                if(issuanceRequest.getReResultToken() != null) {
+                    JsonNode rejsonResponse = bookingFlights.commitBooking(issuanceRequest, true);
+                    travelomatrixLogger.debug("ReturnResponse for commitBooking: " + jsonResponse);
+                    CommitBookingReply recommitBookingReply =  new ObjectMapper().treeToValue(rejsonResponse, CommitBookingReply.class);
+                    if (recommitBookingReply.getStatus().equalsIgnoreCase("0")) {
+                        travelomatrixLogger.debug("No Response receieved for CommitBooking from Travelomatrix : " + recommitBookingReply);
+                        issuanceResponse = getCommitBookingResponse(commitBookingReply);
+                    } else {
+                        issuanceResponse = getMergedCommitBookingResponse(commitBookingReply,recommitBookingReply);
+                    }
+                }else{
+                    issuanceResponse = getCommitBookingResponse(commitBookingReply);
+                }
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -135,6 +147,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
     public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
         IssuanceResponse issuanceResponse = new IssuanceResponse();
         IssueTicketResponse issueTicketResponse = null;
+
         travelomatrixLogger.debug("IssueTicket called...........");
         JsonNode jsonResponse = issueHoldTicketTMX.issueHoldTicket(issuanceRequest);
         try{
@@ -150,6 +163,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+
 
       return issuanceResponse;
     }
@@ -477,6 +491,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
     public PNRResponse getMergedPNRResponse(PNRResponse onwordPnrResponse,PNRResponse returnPnrResponse,TravellerMasterInfo travellerMasterInfo){
         PNRResponse pnrResponse = new PNRResponse();
         Boolean availbleFlights = false;
+        pnrResponse.setAirlinePNR(onwordPnrResponse.getAirlinePNR());
+        pnrResponse.setReturnGdsPNR(returnPnrResponse.getReturnGdsPNR());
         pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId.toString());
         if(onwordPnrResponse.isFlightAvailable() && returnPnrResponse.isFlightAvailable()){
             availbleFlights = true;
@@ -568,6 +584,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         PNRResponse pnrResponse = new PNRResponse();
         String airlinePNR=onwordresponse.getHoldTicket().getBookingDetails().getPNR();
         pnrResponse.setAirlinePNR(airlinePNR);
+        pnrResponse.setReturnGdsPNR(returnresponse.getHoldTicket().getBookingDetails().getPNR());
         pnrResponse.setPnrNumber(onwordresponse.getHoldTicket().getBookingDetails().getPNR());
         pnrResponse.setFlightAvailable(true);
         pnrResponse.setCreationOfficeId(TraveloMatrixConstants.tmofficeId);
@@ -609,5 +626,54 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         }
         // pnrResponse.setTicketNumberMap(tickenetNumberMap);
         return pnrResponse;
+    }
+
+    public IssuanceResponse getMergedCommitBookingResponse(CommitBookingReply onwardJourney,CommitBookingReply returnJourney){
+        IssuanceResponse issuanceResponse = new IssuanceResponse();
+        String airlinePNR=onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
+        issuanceResponse.setAirlinePnr(airlinePNR);
+        String reairlinePNR=returnJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
+        issuanceResponse.setAirlinePnr(reairlinePNR);
+        issuanceResponse.setSuccess(true);
+        List<Detail> details = onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
+        int segmentnumber = 1;
+        Map<String,String> airlinePNRMap = new HashMap<>();
+        for(Detail detail:details) {
+            String segments = detail.getOrigin().getAirportCode().toLowerCase() + detail.getDestination().getAirportCode().toLowerCase() + String.valueOf(segmentnumber);
+            String airlinePnr = detail.getAirlinePNR();
+            airlinePNRMap.put(segments,airlinePnr);
+            segmentnumber++;
+        }
+        List<Detail> redetails = returnJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
+        Map<String,String> reairlinePNRMap = new HashMap<>();
+        for(Detail detail:redetails) {
+            String segments = detail.getOrigin().getAirportCode().toLowerCase() + detail.getDestination().getAirportCode().toLowerCase() + String.valueOf(segmentnumber);
+            String airlinePnr = detail.getAirlinePNR();
+            airlinePNRMap.put(segments,airlinePnr);
+            segmentnumber++;
+        }
+        issuanceResponse.setAirlinePNRMap(airlinePNRMap);
+        issuanceResponse.setIssued(true);
+        Map<String,String> tickenetNumberMap = new HashMap<>();
+        List<PassengerDetail> passengerDetailList =  onwardJourney.getCommitBooking().getBookingDetails().getPassengerDetails();
+        for(PassengerDetail passengerDetail:passengerDetailList){
+            String passengerType = passengerDetail.getPassengerType();
+            String ticketNumber  = passengerDetail.getTicketNumber();
+            tickenetNumberMap.put(passengerType,ticketNumber);
+        }
+        List<PassengerDetail> repassengerDetailList =  returnJourney.getCommitBooking().getBookingDetails().getPassengerDetails();
+        for(PassengerDetail passengerDetail:passengerDetailList){
+            String passengerType = passengerDetail.getPassengerType();
+            String ticketNumber  = passengerDetail.getTicketNumber();
+            tickenetNumberMap.put(passengerType,ticketNumber);
+        }
+        issuanceResponse.setTicketNumberMap(tickenetNumberMap);
+        issuanceResponse.setBookingId(onwardJourney.getCommitBooking().getBookingDetails().getBookingId());
+        issuanceResponse.setBookingId(returnJourney.getCommitBooking().getBookingDetails().getBookingId());
+        String baggage = onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
+        String updatedBagunits = updateBaggeUnits(baggage);
+        issuanceResponse.setBaggage(updatedBagunits);
+        return issuanceResponse;
+
     }
 }

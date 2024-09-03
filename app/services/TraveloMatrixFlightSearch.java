@@ -393,10 +393,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     airSegmentInformation.setFareBasis(journeyData.getAttr().getAirlineRemark());
                     airSegmentInformation.setCabinBaggage(journeyData.getAttr().getCabinBaggage());
                     String baggage = journeyData.getAttr().getBaggage();
-                    // Extract the "25 Kg" part and then trim any extra spaces
-                    String output = baggage.split("\\(")[0].trim();
-                    // Convert to uppercase
-                    output = output.toUpperCase();
+                    String output = updateBaggeUnits(baggage);
                     airSegmentInformation.setBaggage(output);
                     airSegmentInformation.setAvailbleSeats(journeyData.getAttr().getAvailableSeats());
                 }
@@ -467,10 +464,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     airSegmentInformation.setFareBasis(journeyData.getAttr().getAirlineRemark());
                     airSegmentInformation.setCabinBaggage(journeyData.getAttr().getCabinBaggage());
                     String baggage = journeyData.getAttr().getBaggage();
-                    // Extract the "25 Kg" part and then trim any extra spaces
-                    String output = baggage.split("\\(")[0].trim();
-                    // Convert to uppercase
-                    output = output.toUpperCase();
+                    String output = updateBaggeUnits(baggage);
                     airSegmentInformation.setBaggage(output);
                     airSegmentInformation.setAvailbleSeats(journeyData.getAttr().getAvailableSeats());
                 }
@@ -541,10 +535,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     airSegmentInformation.setFareBasis(journeyData.getAttr().getAirlineRemark());
                     airSegmentInformation.setCabinBaggage(journeyData.getAttr().getCabinBaggage());
                     String baggage = journeyData.getAttr().getBaggage();
-                    // Extract the "25 Kg" part and then trim any extra spaces
-                    String output = baggage.split("\\(")[0].trim();
-                    // Convert to uppercase
-                    output = output.toUpperCase();
+                    String output = updateBaggeUnits(baggage);
                     airSegmentInformation.setBaggage(output);
 
                     airSegmentInformation.setAvailbleSeats(journeyData.getAttr().getAvailableSeats());
@@ -564,6 +555,29 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
         }
         return returnJourney;
+    }
+    public String updateBaggeUnits(String baggage){
+
+        String updatedBagunits = null;
+        String pattern = "^KG\\d{3}$";
+        if(baggage.contains("Kg") || baggage.contains("Kilograms") || baggage.contains("kg")){
+            updatedBagunits = baggage.replaceAll("(?i)\\b(kilograms|kg)\\b", "KG");
+            if(updatedBagunits.contains("(")){
+                int index =   updatedBagunits.indexOf('(');
+                if(index != -1){
+                    updatedBagunits =   updatedBagunits.substring(0,index).trim();
+                }
+            }
+        }else if(baggage.contains("Piece")){
+            updatedBagunits = baggage.replaceAll("^0+", "").replaceAll("\\s*Piece\\s*", " PC");
+        }else if (baggage.matches(pattern)) {
+            String number = baggage.replaceAll("[^0-9]", "");  // Extract numeric part
+            updatedBagunits = Integer.parseInt(number) + " KG";  // Combine with "KG"
+        }else{
+            updatedBagunits = baggage;
+        }
+        return updatedBagunits;
+
     }
 
 

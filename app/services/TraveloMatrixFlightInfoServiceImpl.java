@@ -32,13 +32,13 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        List<HashMap> minirule = null;
        JsonNode returnJsonResponse = null;
        JsonNode jsonResponse = fareRulesTMX.getFareRules(resultToken);
-       if(!returnResultToken.equalsIgnoreCase("null"))
+       if(returnResultToken != null && !returnResultToken.equalsIgnoreCase("null"))
        returnJsonResponse = fareRulesTMX.getFareRules(returnResultToken);
        try {
            travelomatrixLogger.debug("Response for FareRules: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
            TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(jsonResponse, TraveloMatrixFaruleReply.class);
            TraveloMatrixFaruleReply returnResponse = null;
-           if(!returnResultToken.equalsIgnoreCase("null")){
+           if(returnJsonResponse != null ){
            returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
                //Roundtrip
                if (response.getStatus() == 0 && returnResponse.getStatus() == 0) {
@@ -240,8 +240,8 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                  BigDecimal charge = new BigDecimal(cancellationCharge.getAmount());
                  if (cancellationChargeBeforeDept == null) {
                      cancellationChargeBeforeDept = charge;
-                 } else if (cancellationChargeBeforeDept.compareTo(charge) == -1) {
-                     cancellationChargeBeforeDept.add(charge);
+                 } else if(cancellationChargeBeforeDept != null) {
+                     cancellationChargeBeforeDept = cancellationChargeBeforeDept.add(charge);
                  }
              }else if(cancellationCharge.getAmount() == 0){
                  cancellationChargeBeforeDept = new BigDecimal(0);
@@ -266,8 +266,8 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                  BigDecimal charge = new BigDecimal(dateCharge.getAmount());
                  if (dateChangeBeforeDept == null) {
                      dateChangeBeforeDept = charge;
-                 } else if (dateChangeBeforeDept.compareTo(charge) == -1) {
-                     dateChangeBeforeDept.add(charge);
+                 } else if (dateChangeBeforeDept != null) {
+                     dateChangeBeforeDept =  dateChangeBeforeDept.add(charge);
                  }
              }else  if(dateCharge.getAmount() == 0) {
                  dateChangeBeforeDept = new BigDecimal(0);
