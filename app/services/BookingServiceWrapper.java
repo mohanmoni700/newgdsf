@@ -163,6 +163,7 @@ public class BookingServiceWrapper {
 		}else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)){
 			pnrResponse =traveloMatrixBookingService.checkFareChangeAndAvailability(travellerMasterInfo);
 		}
+
 		return pnrResponse;
 	}
 

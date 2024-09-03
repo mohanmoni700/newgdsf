@@ -66,7 +66,7 @@ public class BookingFlights {
         return node;
     }
 
-    public JsonNode commitBooking(IssuanceRequest issuanceRequest){
+    public JsonNode commitBooking(IssuanceRequest issuanceRequest,Boolean roundtrip){
         JsonNode jsonRequest = getJsonFromCommitBookingRequest(issuanceRequest);
         JsonNode response = null;
         try {

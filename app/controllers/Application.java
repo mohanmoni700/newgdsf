@@ -279,9 +279,12 @@ public class Application {
     public Result getFareRuleFromTmx() {
         List<HashMap> miniRules = new ArrayList<>();
         JsonNode json = request().body().asJson();
-        String resultToken = Json.fromJson(json,String.class);
-        //String resultToken = json.get("flightItinerary").get("resultToken").asText();
-        miniRules = flightInfoService.getFareRuleFromTmx(resultToken);
+        //String resultToken = Json.fromJson(json,String.class);
+        String resultToken = json.get("resultToken").asText();
+        String returnResultToken = null;
+        if(json.get("returnResultToken") != null)
+        returnResultToken = json.get("returnResultToken").asText();
+        miniRules = flightInfoService.getFareRuleFromTmx(resultToken,returnResultToken);
         return Controller.ok(Json.toJson(miniRules));
     }
 

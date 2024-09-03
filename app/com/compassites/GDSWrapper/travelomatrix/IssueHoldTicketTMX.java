@@ -23,13 +23,27 @@ public class IssueHoldTicketTMX {
     public WSRequestHolder wsrholder;
 
     public JsonNode issueHoldTicket(IssuanceRequest issuanceRequest){
-        JsonNode jsonRequest = getJsonforIssueHoldTicketRequest(issuanceRequest);
+        JsonNode jsonRequest = getJsonforIssueHoldTicketRequest(issuanceRequest,false);
         JsonNode response = null;
+        JsonNode reresponse = null;
         try {
             wsrholder= wsconf.getRequestHolder("/IssueHoldTicket");
             travelomatrixLogger.debug("TraveloMatrixissueHoldTicket : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrixissueHoldTicket : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
             response = wsrholder.post(jsonRequest).get(30000).asJson();
+            if(issuanceRequest.getReBookingId() != null && issuanceRequest.getReAppRef() != null){
+                JsonNode rejsonRequest = getJsonforIssueHoldTicketRequest(issuanceRequest,true);
+                reresponse = wsrholder.post(rejsonRequest).get(30000).asJson();
+                if(reresponse != null){
+                    travelomatrixLogger.debug("Travelomatrix Return Journey Issuance Ticket is trigreed for bookingId"+ issuanceRequest.getReBookingId());
+                    travelomatrixLogger.debug("Travelomatrix Return Journey Issuance Ticket is trigreed and Response is not null" + reresponse.toString());
+                }else{
+                    if(reresponse == null || (reresponse != null && reresponse.findPath("status").toString().equalsIgnoreCase("0") )){
+                        travelomatrixLogger.debug("Travelomatrix Return Journey Issuance Ticket is trigreed for bookingId"+ issuanceRequest.getReBookingId());
+                        travelomatrixLogger.debug("Travelomatrix Return Journey Issuance Ticket is trigreed and Response is null" + reresponse.toString());
+                    }
+                }
+            }
             travelomatrixLogger.debug("TraveloMatrixissueHoldTicket : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrixissueHoldTicket Response:"+response.toString());
         }catch(Exception e){
@@ -39,13 +53,20 @@ public class IssueHoldTicketTMX {
         return response;
     }
 
-    public JsonNode getJsonforIssueHoldTicketRequest(IssuanceRequest issuanceRequest){
+    public JsonNode getJsonforIssueHoldTicketRequest(IssuanceRequest issuanceRequest,Boolean returnJourney){
         JsonNode jsonNode = null;
         IssueHoldTicket issueHoldTicket = new IssueHoldTicket();
-        issueHoldTicket.setAppReference(issuanceRequest.getAppRef());
-        issueHoldTicket.setBookingId(issuanceRequest.getBookingId());
-        issueHoldTicket.setPnr(issuanceRequest.getGdsPNR());
-        issueHoldTicket.setSequenceNumber("0");
+        if(!returnJourney) {
+            issueHoldTicket.setAppReference(issuanceRequest.getAppRef());
+            issueHoldTicket.setBookingId(issuanceRequest.getBookingId());
+            issueHoldTicket.setPnr(issuanceRequest.getGdsPNR());
+            issueHoldTicket.setSequenceNumber("0");
+        }else{
+            issueHoldTicket.setAppReference(issuanceRequest.getReAppRef());
+            issueHoldTicket.setBookingId(issuanceRequest.getReBookingId());
+            issueHoldTicket.setPnr(issuanceRequest.getReGdsPNR());
+            issueHoldTicket.setSequenceNumber("1");
+        }
         try{
             ObjectMapper mapper = new ObjectMapper();
             jsonNode= mapper.valueToTree(issueHoldTicket);
@@ -53,6 +74,7 @@ public class IssueHoldTicketTMX {
             travelomatrixLogger.error("Exception Occured:"+ e.getMessage());
             e.printStackTrace();
         }
+
 
         return jsonNode;
     }

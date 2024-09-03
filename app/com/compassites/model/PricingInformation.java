@@ -68,6 +68,10 @@ public class PricingInformation {
 
 	private String pricingOfficeId;
 
+	private BigDecimal onwardTotalBasePrice;
+
+	private BigDecimal returnTotalBasePrice;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
@@ -76,6 +80,23 @@ public class PricingInformation {
 		chdBasePrice = new BigDecimal(0);
 		infBasePrice = new BigDecimal(0);
 	}
+
+	public BigDecimal getOnwardTotalBasePrice() {
+		return onwardTotalBasePrice;
+	}
+
+	public void setOnwardTotalBasePrice(BigDecimal onwardTotalBasePrice) {
+		this.onwardTotalBasePrice = onwardTotalBasePrice;
+	}
+
+	public BigDecimal getReturnTotalBasePrice() {
+		return returnTotalBasePrice;
+	}
+
+	public void setReturnTotalBasePrice(BigDecimal returnTotalBasePrice) {
+		this.returnTotalBasePrice = returnTotalBasePrice;
+	}
+
 
 	public String getPricingOfficeId() {
 		return pricingOfficeId;
