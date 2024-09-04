@@ -95,6 +95,15 @@ public class IssuanceResponse implements Serializable{
     }
 
     private Map<String, String> ticketNumberMap;
+    private Map<String, String> reticketNumberMap;
+
+    public Map<String, String> getReticketNumberMap() {
+        return reticketNumberMap;
+    }
+
+    public void setReticketNumberMap(Map<String, String> reticketNumberMap) {
+        this.reticketNumberMap = reticketNumberMap;
+    }
 
     public Map<String, String> getTicketNumberMap() {
         return ticketNumberMap;

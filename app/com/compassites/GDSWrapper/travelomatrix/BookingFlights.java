@@ -67,7 +67,7 @@ public class BookingFlights {
     }
 
     public JsonNode commitBooking(IssuanceRequest issuanceRequest,Boolean roundtrip){
-        JsonNode jsonRequest = getJsonFromCommitBookingRequest(issuanceRequest);
+        JsonNode jsonRequest = getJsonFromCommitBookingRequest(issuanceRequest,roundtrip);
         JsonNode response = null;
         try {
             wsrholder= wsconf.getRequestHolder("/CommitBooking");
@@ -84,12 +84,18 @@ public class BookingFlights {
 
     }
 
-    public JsonNode getJsonFromCommitBookingRequest(IssuanceRequest issuanceRequest){
+    public JsonNode getJsonFromCommitBookingRequest(IssuanceRequest issuanceRequest,Boolean returnJourney){
         JsonNode node = null;
         CommitBookingRequest commitBookingRequest = new CommitBookingRequest();
-        commitBookingRequest.setAppReference(issuanceRequest.getAppRef());
-        commitBookingRequest.setSequenceNumber("0");
-        commitBookingRequest.setResultToken(issuanceRequest.getResultToken());
+        if(returnJourney){
+            commitBookingRequest.setAppReference(issuanceRequest.getReAppRef());
+            commitBookingRequest.setSequenceNumber("1");
+            commitBookingRequest.setResultToken(issuanceRequest.getReResultToken());
+        }else {
+            commitBookingRequest.setAppReference(issuanceRequest.getAppRef());
+            commitBookingRequest.setSequenceNumber("0");
+            commitBookingRequest.setResultToken(issuanceRequest.getResultToken());
+        }
         List<Passenger>  passengerList = new ArrayList<>();
 
         //ADT
