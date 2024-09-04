@@ -50,15 +50,6 @@ public class IssuanceResponse implements Serializable{
     private boolean isIssued;
 
     private Map<String, String> airlinePNRMap;
-    private String returnAirlinePnr;
-
-    public String getReturnAirlinePnr() {
-        return returnAirlinePnr;
-    }
-
-    public void setReturnAirlinePnr(String returnAirlinePnr) {
-        this.returnAirlinePnr = returnAirlinePnr;
-    }
 
     public void setErrorCode(String errorCode){
         this.errorCode = errorCode;
@@ -76,6 +67,17 @@ public class IssuanceResponse implements Serializable{
     }
     private String baggage ;
     private String bookingId;
+
+    private String returnAirlinePnr;
+
+    public String getReturnAirlinePnr() {
+        return returnAirlinePnr;
+    }
+
+    public void setReturnAirlinePnr(String returnAirlinePnr) {
+        this.returnAirlinePnr = returnAirlinePnr;
+    }
+
     public String getBookingId() {
         return bookingId;
     }
@@ -93,6 +95,15 @@ public class IssuanceResponse implements Serializable{
     }
 
     private Map<String, String> ticketNumberMap;
+    private Map<String, String> reticketNumberMap;
+
+    public Map<String, String> getReticketNumberMap() {
+        return reticketNumberMap;
+    }
+
+    public void setReticketNumberMap(Map<String, String> reticketNumberMap) {
+        this.reticketNumberMap = reticketNumberMap;
+    }
 
     public Map<String, String> getTicketNumberMap() {
         return ticketNumberMap;

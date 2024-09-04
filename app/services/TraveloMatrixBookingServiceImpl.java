@@ -391,6 +391,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setReturnBookingId("NA");
         String appidReference = travellerMasterInfo.getAppReference();
         pnrResponse.setAppReference(appidReference);
+        pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
         List<AirSegmentInformation> details = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList();
         int segmentnumber = 1;
         Map<String,String> airlinePNRMap = new HashMap<>();
@@ -475,8 +476,14 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
         String updatedBagunits = null;
         String pattern = "^KG\\d{3}$";
-        if(baggage.contains("Kg") || baggage.contains("Kilograms") ){
-            updatedBagunits = baggage.replaceAll("(?i)\\s*kg\\s*\\(.*\\)", " KG");
+        if(baggage.contains("Kg") || baggage.contains("Kilograms") || baggage.contains("kg")){
+            updatedBagunits = baggage.replaceAll("(?i)\\b(kilograms|kg)\\b", "KG");
+            if(updatedBagunits.contains("(")){
+                int index =   updatedBagunits.indexOf('(');
+                if(index != -1){
+                    updatedBagunits =   updatedBagunits.substring(0,index).trim();
+                }
+            }
         }else if(baggage.contains("Piece")){
             updatedBagunits = baggage.replaceAll("^0+", "").replaceAll("\\s*Piece\\s*", " PC");
         }else if (baggage.matches(pattern)) {
@@ -487,7 +494,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         }
         return updatedBagunits;
 
-		}
+    }
     public PNRResponse getMergedPNRResponse(PNRResponse onwordPnrResponse,PNRResponse returnPnrResponse,TravellerMasterInfo travellerMasterInfo){
         PNRResponse pnrResponse = new PNRResponse();
         Boolean availbleFlights = false;
@@ -509,6 +516,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setFlightAvailable(availbleFlights);
         pnrResponse.setResultToken(onwordPnrResponse.getResultToken());
         pnrResponse.setReturnResultToken(returnPnrResponse.getResultToken());
+        pnrResponse.setAppReference(travellerMasterInfo.getAppReference());
+        pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
         PricingInformation pricingInformation = new PricingInformation();
         pricingInformation.setBasePrice(onwordPnrResponse.getPricingInfo().getBasePrice().add(returnPnrResponse.getPricingInfo().getBasePrice()));
         pricingInformation.setTotalBasePrice(onwordPnrResponse.getPricingInfo().getTotalBasePrice().add(returnPnrResponse.getPricingInfo().getTotalBasePrice()));
@@ -596,6 +605,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setReturnBookingId(returnresponse.getHoldTicket().getBookingDetails().getBookingId());
         String appidReference = travellerMasterInfo.getAppReference();
         pnrResponse.setAppReference(appidReference);
+        pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
         List<com.compassites.model.travelomatrix.ResponseModels.HoldTicket.Detail> details = onwordresponse.getHoldTicket().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
         int segmentnumber = 1;
 
@@ -633,7 +643,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         String airlinePNR=onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
         issuanceResponse.setAirlinePnr(airlinePNR);
         String reairlinePNR=returnJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
-        issuanceResponse.setAirlinePnr(reairlinePNR);
+        issuanceResponse.setReturnAirlinePnr(reairlinePNR);
         issuanceResponse.setSuccess(true);
         List<Detail> details = onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
         int segmentnumber = 1;
@@ -655,6 +665,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         issuanceResponse.setAirlinePNRMap(airlinePNRMap);
         issuanceResponse.setIssued(true);
         Map<String,String> tickenetNumberMap = new HashMap<>();
+        Map<String,String> reTickenetNumberMap = new HashMap<>();
         List<PassengerDetail> passengerDetailList =  onwardJourney.getCommitBooking().getBookingDetails().getPassengerDetails();
         for(PassengerDetail passengerDetail:passengerDetailList){
             String passengerType = passengerDetail.getPassengerType();
@@ -665,9 +676,10 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         for(PassengerDetail passengerDetail:passengerDetailList){
             String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
-            tickenetNumberMap.put(passengerType,ticketNumber);
+            reTickenetNumberMap.put(passengerType,ticketNumber);
         }
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
+        issuanceResponse.setTicketNumberMap(reTickenetNumberMap);
         issuanceResponse.setBookingId(onwardJourney.getCommitBooking().getBookingDetails().getBookingId());
         issuanceResponse.setBookingId(returnJourney.getCommitBooking().getBookingDetails().getBookingId());
         String baggage = onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
