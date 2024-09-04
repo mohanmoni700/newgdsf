@@ -391,6 +391,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setReturnBookingId("NA");
         String appidReference = travellerMasterInfo.getAppReference();
         pnrResponse.setAppReference(appidReference);
+        pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
         List<AirSegmentInformation> details = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList();
         int segmentnumber = 1;
         Map<String,String> airlinePNRMap = new HashMap<>();
@@ -509,6 +510,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setFlightAvailable(availbleFlights);
         pnrResponse.setResultToken(onwordPnrResponse.getResultToken());
         pnrResponse.setReturnResultToken(returnPnrResponse.getResultToken());
+        pnrResponse.setAppReference(travellerMasterInfo.getAppReference());
+        pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
         PricingInformation pricingInformation = new PricingInformation();
         pricingInformation.setBasePrice(onwordPnrResponse.getPricingInfo().getBasePrice().add(returnPnrResponse.getPricingInfo().getBasePrice()));
         pricingInformation.setTotalBasePrice(onwordPnrResponse.getPricingInfo().getTotalBasePrice().add(returnPnrResponse.getPricingInfo().getTotalBasePrice()));
@@ -596,6 +599,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setReturnBookingId(returnresponse.getHoldTicket().getBookingDetails().getBookingId());
         String appidReference = travellerMasterInfo.getAppReference();
         pnrResponse.setAppReference(appidReference);
+        pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
         List<com.compassites.model.travelomatrix.ResponseModels.HoldTicket.Detail> details = onwordresponse.getHoldTicket().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0);
         int segmentnumber = 1;
 
