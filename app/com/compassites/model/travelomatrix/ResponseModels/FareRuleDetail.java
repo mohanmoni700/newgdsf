@@ -4,11 +4,12 @@ package com.compassites.model.travelomatrix.ResponseModels;
 import java.util.List;
 import javax.annotation.Generated;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.gson.annotations.SerializedName;
 import utils.TravelomatrixFareRuleDeserializer;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FareRuleDetail {
 
     @JsonProperty("Airline")

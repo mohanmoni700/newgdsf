@@ -1,5 +1,8 @@
 package com.compassites.model.travelomatrix.ResponseModels;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TmxSpecialFareRule extends Rule{
     private String ruleType;
 

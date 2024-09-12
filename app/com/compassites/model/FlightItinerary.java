@@ -61,6 +61,9 @@ public class FlightItinerary implements Serializable{
     // added for Travelomatrix
     private String resultToken;
 
+    // added for Travelomatrix roundtrip
+    private String returnResultToken;
+
     private Boolean isLCC;
 
     private Boolean isRefundable;
@@ -318,4 +321,13 @@ public class FlightItinerary implements Serializable{
     public void setPassportMandatory(boolean passportMandatory) {
         isPassportMandatory = passportMandatory;
     }
+
+    public String getReturnResultToken() {
+        return returnResultToken;
+    }
+
+    public void setReturnResultToken(String returnResultToken) {
+        this.returnResultToken = returnResultToken;
+    }
+
 }

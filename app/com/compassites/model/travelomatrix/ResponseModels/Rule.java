@@ -1,5 +1,8 @@
 package com.compassites.model.travelomatrix.ResponseModels;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Rule {
     private String startTime;
     private String endTime;
