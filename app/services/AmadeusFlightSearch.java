@@ -324,7 +324,6 @@ public class AmadeusFlightSearch implements FlightSearch{
                         }
                     }
 
-
                     //Cancellation fee is being set here
                     if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("33"))) {
                         if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
@@ -360,15 +359,15 @@ public class AmadeusFlightSearch implements FlightSearch{
         return mnrSearchBaggage;
     }
 
-        private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList){
+    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList) {
         int flightIndexNumber = 0;
         int segmentIndex = 0;
-        for(ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
+        for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
             //0 is for forward journey and refQualifier should be S for segment
-            if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
+            if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S")) {
                 Journey journey = new Journey();
-                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1),recommendation);
-                if(contextList.size() > 0 ){
+                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue() - 1), recommendation);
+                if (contextList.size() > 0) {
                     setContextInformation(contextList, journey, segmentIndex);
                 }
                 flightItinerary.getJourneyList().add(journey);
