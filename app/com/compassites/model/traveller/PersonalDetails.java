@@ -4,6 +4,7 @@ import com.compassites.model.PassengerTypeCode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import utils.DateUtility;
 
+import javax.persistence.Transient;
 import java.util.Date;
 
 /**
@@ -47,7 +48,27 @@ public class PersonalDetails {
 
     private Long designationId;
 
-	public String getDesignation() {
+    private String addressLine;
+
+    private String pincode;
+
+    public String getAddressLine() {
+        return addressLine;
+    }
+
+    public void setAddressLine(String addressLine) {
+        this.addressLine = addressLine;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
+    }
+
+    public String getDesignation() {
 		return designation;
 	}
 

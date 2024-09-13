@@ -5,7 +5,7 @@ package com.compassites.model;
  */
 public enum PROVIDERS {
 
-    AMADEUS("Amadeus"), TRAVELPORT("Travelport"), MYSTIFLY("Mystifly");
+    AMADEUS("Amadeus"), TRAVELPORT("Travelport"), MYSTIFLY("Mystifly"),TRAVELOMATRIX("TraveloMatrix");
     String provider;
     private PROVIDERS(String provider){
         this.provider = provider;
