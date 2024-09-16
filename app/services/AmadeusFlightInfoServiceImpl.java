@@ -68,7 +68,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
-			String officeId = flightItinerary.getPricingInformation().getPricingOfficeId();
+			String officeId = null;
+			if(seamen){
+				officeId = flightItinerary.getSeamanPricingInformation().getPricingOfficeId();
+			}else{
+				officeId = flightItinerary.getPricingInformation().getPricingOfficeId();
+			}
+
 			FlightSearchOffice flightSearchOffice = new FlightSearchOffice(officeId);
 			amadeusSessionWrapper = amadeusSessionManager.getSession(flightSearchOffice);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
@@ -423,6 +429,8 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 					amadeusLogger.debug("MiniRuleGetFromPricingReply Error"+miniRuleGetFromPricingReply.getErrorWarningGroup().get(0).getErrorWarningDescription());
 				return null;
 			}
+
+		
 
 			miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
 		} catch (Exception e) {

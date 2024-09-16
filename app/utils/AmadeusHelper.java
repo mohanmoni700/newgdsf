@@ -114,6 +114,7 @@ public class AmadeusHelper {
         Map<String, Map> finalMap = new ConcurrentHashMap<>();
         finalMap.put("ChangeRules", changeMap);
         finalMap.put("CancellationRules", cancelMap);
+
         return finalMap;
     }
 
@@ -122,22 +123,34 @@ public class AmadeusHelper {
         MiniRule miniRule = new MiniRule();
         HashMap adultMap = new HashMap();
         List<HashMap> miniRules = new LinkedList<>();
-        if(changeRulesMap.get("BEFORE DEPARTURE") != null){
+        if(changeRulesMap.size() == 0) {
+            miniRule.setChangeFeeBeforeDept(new BigDecimal(0));
+            miniRule.setChangeFeeAfterDept(new BigDecimal(0));
+            miniRule.setChangeFeeNoShow(new BigDecimal(0));
             miniRule.setChangeFeeBeforeDeptCurrency(currency);
-            if(changeRulesMap.get("BEFORE DEPARTURE").contains("CHANGES PERMITTED")){
-                miniRule.setChangeRefundableBeforeDept(true);
-                miniRule.setChangeFeeBeforeDept(new BigDecimal("0"));
-            }
-            if(changeRulesMap.get("BEFORE DEPARTURE").contains("NON-REFUNDABLE")){
-                miniRule.setChangeFeeBeforeDept(totalFare);
-                miniRule.setChangeRefundableBeforeDept(false);
-            }
-            if(changeRulesMap.get("BEFORE DEPARTURE").contains("CHARGE")){
-                String data = changeRulesMap.get("BEFORE DEPARTURE");
-                BigDecimal charge = getCharges(data);
-                miniRule.setChangeFeeBeforeDept(charge);
-                miniRule.setChangeRefundableBeforeDept(true);
-            }
+            miniRule.setChangeRefundableBeforeDept(true);
+            miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
+            miniRule.setChangeRefundableAfterDept(true);
+            miniRule.setChangeFeeNoShowFeeCurrency(currency);
+            miniRule.setChangeNoShowBeforeDept(true);
+            miniRule.setChangeNoShowAfterDept(true);
+        }else {
+            if (changeRulesMap.get("BEFORE DEPARTURE") != null) {
+                miniRule.setChangeFeeBeforeDeptCurrency(currency);
+                if (changeRulesMap.get("BEFORE DEPARTURE").contains("CHANGES PERMITTED")) {
+                    miniRule.setChangeRefundableBeforeDept(true);
+                    miniRule.setChangeFeeBeforeDept(new BigDecimal("0"));
+                }
+                if (changeRulesMap.get("BEFORE DEPARTURE").contains("NON-REFUNDABLE")) {
+                    miniRule.setChangeFeeBeforeDept(totalFare);
+                    miniRule.setChangeRefundableBeforeDept(false);
+                }
+                if (changeRulesMap.get("BEFORE DEPARTURE").contains("CHARGE")) {
+                    String data = changeRulesMap.get("BEFORE DEPARTURE");
+                    BigDecimal charge = getCharges(data);
+                    miniRule.setChangeFeeBeforeDept(charge);
+                    miniRule.setChangeRefundableBeforeDept(true);
+                }
 
         }
         if(changeRulesMap.get("AFTER DEPARTURE") != null) {
@@ -219,44 +232,55 @@ public class AmadeusHelper {
                 miniRule.setChangeNoShowAfterDept(true);
             }
 
+            }
         }
-
         Map<String,String> cancellationRulesMap = benzyFareRules.get("CancellationRules");
-
-        if(cancellationRulesMap.get("BEFORE DEPARTURE") != null){
+        if(cancellationRulesMap.size() == 0){
+            miniRule.setCancellationFeeBeforeDept(new BigDecimal("0"));
+            miniRule.setCancellationFeeAfterDept(new BigDecimal("0"));
+            miniRule.setCancellationFeeNoShow(new BigDecimal("0"));
             miniRule.setCancellationFeeBeforeDeptCurrency(currency);
-            if(cancellationRulesMap.get("BEFORE DEPARTURE").contains("CANCELLATIONS PERMITTED")){
-                miniRule.setCancellationRefundableBeforeDept(true);
-                miniRule.setCancellationFeeBeforeDept(new BigDecimal("0"));
-            }
-            if(cancellationRulesMap.get("BEFORE DEPARTURE").contains("NON-REFUNDABLE")){
-                miniRule.setCancellationFeeBeforeDept(totalFare);
-                miniRule.setCancellationRefundableBeforeDept(false);
-            }
-            if(cancellationRulesMap.get("BEFORE DEPARTURE").contains("CHARGE")){
-                String data = cancellationRulesMap.get("BEFORE DEPARTURE");
-                BigDecimal charge = getCharges(data);
-                miniRule.setCancellationFeeBeforeDept(charge);
-                miniRule.setCancellationRefundableBeforeDept(true);
-            }
-        }
-        if(cancellationRulesMap.get("AFTER DEPARTURE") != null) {
+            miniRule.setCancellationRefundableBeforeDept(true);
             miniRule.setCancellationFeeAfterDeptCurrency(currency);
-            if(cancellationRulesMap.get("AFTER DEPARTURE").contains("CANCELLATIONS PERMITTED")){
-                miniRule.setCancellationRefundableAfterDept(true);
-                miniRule.setCancellationFeeAfterDept(new BigDecimal("0"));
+            miniRule.setCancellationRefundableAfterDept(true);
+            miniRule.setCancellationNoShowCurrency(currency);
+                miniRule.setCancellationNoShowAfterDept(true);
+                miniRule.setCancellationNoShowBeforeDept(true);
+        }else {
+            if (cancellationRulesMap.get("BEFORE DEPARTURE") != null) {
+                miniRule.setCancellationFeeBeforeDeptCurrency(currency);
+                if (cancellationRulesMap.get("BEFORE DEPARTURE").contains("CANCELLATIONS PERMITTED")) {
+                    miniRule.setCancellationRefundableBeforeDept(true);
+                    miniRule.setCancellationFeeBeforeDept(new BigDecimal("0"));
+                }
+                if (cancellationRulesMap.get("BEFORE DEPARTURE").contains("NON-REFUNDABLE")) {
+                    miniRule.setCancellationFeeBeforeDept(totalFare);
+                    miniRule.setCancellationRefundableBeforeDept(false);
+                }
+                if (cancellationRulesMap.get("BEFORE DEPARTURE").contains("CHARGE")) {
+                    String data = cancellationRulesMap.get("BEFORE DEPARTURE");
+                    BigDecimal charge = getCharges(data);
+                    miniRule.setCancellationFeeBeforeDept(charge);
+                    miniRule.setCancellationRefundableBeforeDept(true);
+                }
             }
-            if(cancellationRulesMap.get("AFTER DEPARTURE").contains("NON-REFUNDABLE")){
-                miniRule.setCancellationFeeAfterDept(totalFare);
-                miniRule.setCancellationRefundableAfterDept(false);
+            if (cancellationRulesMap.get("AFTER DEPARTURE") != null) {
+                miniRule.setCancellationFeeAfterDeptCurrency(currency);
+                if (cancellationRulesMap.get("AFTER DEPARTURE").contains("CANCELLATIONS PERMITTED")) {
+                    miniRule.setCancellationRefundableAfterDept(true);
+                    miniRule.setCancellationFeeAfterDept(new BigDecimal("0"));
+                }
+                if (cancellationRulesMap.get("AFTER DEPARTURE").contains("NON-REFUNDABLE")) {
+                    miniRule.setCancellationFeeAfterDept(totalFare);
+                    miniRule.setCancellationRefundableAfterDept(false);
+                }
+                if (cancellationRulesMap.get("AFTER DEPARTURE").contains("CHARGE")) {
+                    String data = cancellationRulesMap.get("AFTER DEPARTURE");
+                    BigDecimal charge = getCharges(data);
+                    miniRule.setCancellationFeeAfterDept(charge);
+                    miniRule.setCancellationRefundableAfterDept(true);
+                }
             }
-            if(cancellationRulesMap.get("AFTER DEPARTURE").contains("CHARGE")){
-                String data = cancellationRulesMap.get("AFTER DEPARTURE");
-                BigDecimal charge = getCharges(data);
-                miniRule.setCancellationFeeAfterDept(charge);
-                miniRule.setCancellationRefundableAfterDept(true);
-            }
-        }
 
         if(cancellationRulesMap.get("NO-SHOW") != null) {
             miniRule.setCancellationNoShowCurrency(currency);
@@ -310,10 +334,11 @@ public class AmadeusHelper {
                 if(miniRule.getCancellationFeeNoShow() ==  null)
                 miniRule.setCancellationFeeNoShow(charge);
 
-                miniRule.setCancellationRefundableBeforeDept(true);
-                miniRule.setCancellationRefundableAfterDept(true);
-                miniRule.setCancellationNoShowAfterDept(true);
-                miniRule.setCancellationNoShowBeforeDept(true);
+                    miniRule.setCancellationRefundableBeforeDept(true);
+                    miniRule.setCancellationRefundableAfterDept(true);
+                    miniRule.setCancellationNoShowAfterDept(true);
+                    miniRule.setCancellationNoShowBeforeDept(true);
+                }
             }
         }
         if(miniRule.getChangeFeeNoShow() == null && miniRule.getCancellationFeeAfterDept() == null &&
@@ -334,17 +359,17 @@ public class AmadeusHelper {
     }
 
     public static BigDecimal getCharges(String data){
-        BigDecimal markUp =new BigDecimal(play.Play.application().configuration().getDouble("markup"));
-        String regex = "\\d+";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(data);
-        StringBuilder sb = new StringBuilder();
-        while (matcher.find()) {
-            sb.append(matcher.group());
+        BigDecimal charge = new BigDecimal(0);
+        if(data != null) {
+            String regex = "\\d+";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(data);
+            StringBuilder sb = new StringBuilder();
+            while (matcher.find()) {
+                sb.append(matcher.group());
+            }
+            charge = new BigDecimal(sb.toString());
         }
-        Double value = Double.valueOf(sb.toString());
-        BigDecimal charge = new BigDecimal(value);
-        charge = charge.add(charge.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
         return charge;
     }
 

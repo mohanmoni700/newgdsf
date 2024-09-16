@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.amadeus.xml.farqiq_08_2_1a.CorporateFareIdentifiers;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.MessageDetails;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.MessageDetails.MessageFunctionDetails;
@@ -49,7 +50,29 @@ public class FareInformation {
 		messageFunctionDetails.setResponsibleAgency("1A");
 		messageDetails.setMessageFunctionDetails(messageFunctionDetails);
 		fareInfo.setMessageDetails(messageDetails);
+		boolean vistaraAirline = false;
+		boolean otherAirlines = false;
+		boolean vistarabagg = false;
+		if(seamen){
+			for(Journey journey: journeys ){
+				for(AirSegmentInformation airSegmentInformation:journey.getAirSegmentList()){
+					if(airSegmentInformation.getCarrierCode().equalsIgnoreCase("UK")){
+						vistaraAirline = true;
+					}else{
+						otherAirlines = true;
+					}
+				}
+			}
+		}
 
+		if(vistaraAirline && !otherAirlines) {
+			FareInformativePricingWithoutPNR.CorporateFares corporateFares = new FareInformativePricingWithoutPNR.CorporateFares();
+			FareInformativePricingWithoutPNR.CorporateFares.CorporateFareIdentifiers corporateFareIdentifiers = new FareInformativePricingWithoutPNR.CorporateFares.CorporateFareIdentifiers();
+			corporateFareIdentifiers.setFareQualifier("U");
+			corporateFareIdentifiers.getCorporateID().add("29608");
+			corporateFares.getCorporateFareIdentifiers().add(corporateFareIdentifiers);
+			fareInfo.setCorporateFares(corporateFares);
+		}
 		List<PassengersGroup> passengers = fareInfo.getPassengersGroup();
 		//System.out.println("seamen value inside getFareInfo"+seamen);
 		if(seamen){

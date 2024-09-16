@@ -774,23 +774,29 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					logger.debug("checkFareChangeAndAvailability called..........."+pnrResponse);
 					gdsPNRReplyBenzy = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
 					//pnrResponse.setPnrNumber(tstRefNo);
+					Boolean error = Boolean.FALSE;
 					gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+					if(gdsPNRReply.getGeneralErrorInfo().size() > 0){
+						Thread.sleep(20000);
+						error = Boolean.TRUE;
+					}
+					if(!error){
 					benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-					serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
+					PNRReply pnrReply = serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
 					pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
 					createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
 					setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
 					gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
-					Boolean error = Boolean.FALSE;
-					if(gdsPNRReplyBenzy.getGeneralErrorInfo().size() > 0){
-						List<PNRReply. GeneralErrorInfo> generalErrorInfos =   gdsPNRReplyBenzy.getGeneralErrorInfo();
-						for(PNRReply.GeneralErrorInfo  generalErrorInfo : generalErrorInfos){
+
+					if(gdsPNRReplyBenzy.getGeneralErrorInfo().size() > 0) {
+						List<PNRReply.GeneralErrorInfo> generalErrorInfos = gdsPNRReplyBenzy.getGeneralErrorInfo();
+						for (PNRReply.GeneralErrorInfo generalErrorInfo : generalErrorInfos) {
 							String textMsg = generalErrorInfo.getMessageErrorText().getText().get(0).trim();
-							if(textMsg.equals("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")){
+							if (textMsg.equals("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")) {
 								error = Boolean.TRUE;
 							}
 						}
-
+					}
 					}
 					if(error){
 						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
@@ -806,7 +812,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 								gdsPNRReply =   serviceHandler.ignoreAndRetrievePNR(benzyAmadeusSessionWrapper);
 							}
 						}
-						serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
+						//serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
 						pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
 						createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
 						setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
@@ -824,6 +830,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
 						serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
 						serviceHandler.savePNR(amadeusSessionWrapper);
+						if(pnrResponse.getErrorMessage() == null)
 						pnrResponse.setPnrNumber(tstRefNo);
 						Thread.sleep(10000);
 					}catch (Exception e){
