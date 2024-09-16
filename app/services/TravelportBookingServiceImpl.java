@@ -83,7 +83,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 				if(anyUnConfirmedSegments){
 					logger.debug("Unconfirmed segments received cancelling the booking");
 					pnrResponse.setFlightAvailable(false);
-					cancelService.cancelPNR(reservationRsp.getUniversalRecord().getAirReservation().get(0).getLocatorCode());
+					cancelService.cancelPNR(reservationRsp.getUniversalRecord().getAirReservation().get(0).getLocatorCode(), false);
 					return pnrResponse;
 				}
 				UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient

@@ -258,7 +258,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			PNRReply childGdsReply = readChildAirlinePNR(serviceHandler,childRetrive,lastPNRAddMultiElements,pnrResponse, amadeusSessionWrapper);
 			if(pnrResponse.getAirlinePNR() != null){
 				try {
-					cancelPNRResponse = amadeusCancelService.cancelPNR(childPNR);
+					cancelPNRResponse = amadeusCancelService.cancelPNR(childPNR, false);
 					splitPNRResponse.setCancelPNRResponse(cancelPNRResponse);
 					serviceHandler.saveChildPNR("10",amadeusSessionWrapper);
 				} catch (Exception ex){

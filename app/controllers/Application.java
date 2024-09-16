@@ -295,9 +295,10 @@ public class Application {
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         String appRef = Json.fromJson(json.findPath("appRef"), String.class);
         String bookingId = Json.fromJson(json.findPath("bookingId"), String.class);
+        Boolean fullPNR = Json.fromJson(json.findPath("fullPNR"), Boolean.class);
         logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
 
-        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId);
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId,fullPNR);
 
         logger.debug("cancel pnr response " + Json.toJson(cancelPNRResponse));
         return ok(Json.toJson(cancelPNRResponse));

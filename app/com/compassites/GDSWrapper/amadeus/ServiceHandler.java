@@ -521,4 +521,27 @@ public class ServiceHandler {
         amadeusLogger.debug("MiniRuleGetFromPricingReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricingReply));
         return miniRuleGetFromPricingReply;
     }
+
+    public PNRReply cancelFullPNR(String pnr, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper){
+        logger.debug("cancelFullPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+
+        PNRCancel pnrCancel = new PNRCancel();
+        OptionalPNRActionsType pnrActionsType = new OptionalPNRActionsType();
+        pnrActionsType.getOptionCode().add(BigInteger.valueOf(10));
+        pnrCancel.setPnrActions(pnrActionsType);
+        CancelPNRElementType cancelPNRElementType = new CancelPNRElementType();
+        cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ITINERARY_TYPE);
+        pnrCancel.getCancelElements().add(cancelPNRElementType);
+
+
+        amadeusLogger.debug("pnrFullCancelReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrCancel));
+        //PNRReply pnrReply = new PNRReply();
+        PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("pnrFullCancelRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
+
+    }
 }

@@ -7,6 +7,6 @@ import com.compassites.model.CancelPNRResponse;
  */
 public interface CancelService {
 
-    public CancelPNRResponse cancelPNR(String pnr);
+    public CancelPNRResponse cancelPNR(String pnr,Boolean isFullPNR);
 
 }
