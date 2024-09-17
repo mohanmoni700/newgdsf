@@ -262,10 +262,9 @@ public class SearchFlights {
         pit.getPriceType().add("TAC");
         pit.getPriceType().add("RU");
         pit.getPriceType().add("RP");
-
         pit.getPriceType().add("ET");
         pit.getPriceType().add("RW");
-       // pit.getPriceType().add("MNR");
+        pit.getPriceType().add("MNR");
        /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");
         pit.getPriceType().add("NSD");*/

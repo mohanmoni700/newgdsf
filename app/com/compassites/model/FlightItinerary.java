@@ -2,7 +2,7 @@ package com.compassites.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
@@ -26,6 +26,7 @@ public class FlightItinerary implements Serializable{
         nonSeamenJourneyList = new ArrayList<Journey>();
         pricingInformation = new PricingInformation();
         seamanPricingInformation = new PricingInformation();
+        mnrSearchFareRules = new MnrSearchFareRules();
     }
     
     private long id;
@@ -68,6 +69,26 @@ public class FlightItinerary implements Serializable{
     private Boolean isRefundable;
 
     private String fareType;
+
+    private MnrSearchFareRules mnrSearchFareRules;
+
+    private MnrSearchBaggage mnrSearchBaggage;
+
+    public MnrSearchFareRules getMnrSearchFareRules() {
+        return mnrSearchFareRules;
+    }
+
+    public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
+        this.mnrSearchFareRules = mnrSearchFareRules;
+    }
+
+    public MnrSearchBaggage getMnrSearchBaggage() {
+        return mnrSearchBaggage;
+    }
+
+    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
+        this.mnrSearchBaggage = mnrSearchBaggage;
+    }
 
     public Boolean getRefundable() {
         return isRefundable;
