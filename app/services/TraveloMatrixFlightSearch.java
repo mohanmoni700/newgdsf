@@ -65,41 +65,41 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         SearchResponse sr = null;
 //        if(!searchParameters.getJourneyType().equals(JourneyType.ROUND_TRIP)) {
-        isRefundable = searchParameters.getRefundableFlights();
-        nonStop = searchParameters.getDirectFlights();
-        travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch started  : ");
-        travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch : SearchParameters: \n" + Json.toJson(searchParameters));
-        JsonNode jsonResponse = searchFlights.getFlights(searchParameters);
-        try {
-            TravelomatrixSearchReply response = new ObjectMapper().treeToValue(jsonResponse, TravelomatrixSearchReply.class);
-            if (!response.getStatus()) {
-                sr = new SearchResponse();
-                travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.getMessage().toString());
-                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("travelomatrix.2000", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
-                sr.getErrorMessageList().add(errorMessage);
-            }
-            if (response.getStatus()) {
-                travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
-                AirSolution airSolution = getAirSolution(response);
-                sr = new SearchResponse();
-                sr.setFlightSearchOffice(getOfficeList().get(0));
-                sr.setAirSolution(airSolution);
-                sr.setProvider(TraveloMatrixConstants.provider);
-            } else {
-                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(response.getMessage(), ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            isRefundable = searchParameters.getRefundableFlights();
+            nonStop = searchParameters.getDirectFlights();
+            travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch started  : ");
+            travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch : SearchParameters: \n" + Json.toJson(searchParameters));
+            JsonNode jsonResponse = searchFlights.getFlights(searchParameters);
+            try {
+                TravelomatrixSearchReply response = new ObjectMapper().treeToValue(jsonResponse, TravelomatrixSearchReply.class);
+                if (!response.getStatus()) {
+                    sr = new SearchResponse();
+                    travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.getMessage().toString());
+                    ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("travelomatrix.2000", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                    sr.getErrorMessageList().add(errorMessage);
+                }
+                if (response.getStatus()) {
+                    travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
+                    AirSolution airSolution = getAirSolution(response);
+                    sr = new SearchResponse();
+                    sr.setFlightSearchOffice(getOfficeList().get(0));
+                    sr.setAirSolution(airSolution);
+                    sr.setProvider(TraveloMatrixConstants.provider);
+                } else {
+                    ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(response.getMessage(), ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                    sr.getErrorMessageList().add(errorMessage);
+                }
+
+            } catch (Exception e) {
+                travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
+                e.printStackTrace();
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
                 sr.getErrorMessageList().add(errorMessage);
             }
 
-        } catch (Exception e) {
-            travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
-            e.printStackTrace();
-            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
-            sr.getErrorMessageList().add(errorMessage);
-        }
-
-        travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
-        logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################" + sr.toString());
-        //      }
+            travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
+            logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################" + sr.toString());
+  //      }
         return sr;
     }
 
@@ -162,10 +162,10 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                             lcconWardjourneyList.add(onWardjourneyList.get(index));
                         }
                         if(returnJourneyList.get(index).getAttr().getIsLCC()){
-                            lccreturnJourneyList.add(returnJourneyList.get(index)) ;
+                             lccreturnJourneyList.add(returnJourneyList.get(index)) ;
                         }
                         if (lcconWardjourneyList.size() > 0 && lccreturnJourneyList.size() > 0) {
-                            for(int lccindex= 0 ; lccindex < lcconWardjourneyList.size()  && lccindex < lccreturnJourneyList.size(); lccindex++) {
+                        for(int lccindex= 0 ; lccindex < lcconWardjourneyList.size()  && lccindex < lccreturnJourneyList.size(); lccindex++) {
                                 onWardJourney = getOnwardJounery(lcconWardjourneyList.get(lccindex).getFlightDetails());
                                 returnJourney = getReturnJounery(lccreturnJourneyList.get(lccindex).getFlightDetails());
                                 consolidatedJourney.add(onWardJourney);
@@ -399,7 +399,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
 
                 if(toAirport.getAirportName() != null && fromAirport.getAirportName() != null)
-                    airSegmentInformationList.add(airSegmentInformation);
+                 airSegmentInformationList.add(airSegmentInformation);
             }
             Journey asJourney = new Journey();
             asJourney.setProvider(TraveloMatrixConstants.provider);

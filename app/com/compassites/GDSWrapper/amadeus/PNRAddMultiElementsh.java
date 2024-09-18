@@ -104,7 +104,7 @@ public class PNRAddMultiElementsh {
         travelProduct.setProduct(product);
 
         LocationTypeI boardpointDetail = new LocationTypeI();
-        boardpointDetail.setCityCode("BOM");
+        boardpointDetail.setCityCode(fromLocation);
         travelProduct.setBoardpointDetail(boardpointDetail);
 
         CompanyIdentificationTypeI company = new CompanyIdentificationTypeI();
