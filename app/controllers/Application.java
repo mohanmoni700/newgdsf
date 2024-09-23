@@ -9,6 +9,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.ResponseModels.UpdatePNR.UpdatePNRResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
@@ -61,6 +62,9 @@ public class Application {
 
     @Autowired
     TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
+
+    @Autowired
+    TicketCancelDocumentService amadeusTicketCancelDocumentServiceImpl;
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -412,7 +416,31 @@ public class Application {
         }
         return ok(Json.toJson(updatePNRResponse));
     }
+    public Result ticketCancelDocument(){
+        logger.info("ticketCancelDocument called ");
+        JsonNode jsonBody = request().body().asJson();
+        String pnr = Json.fromJson(jsonBody.findPath("gdsPNR"), String.class);
+        String provider = Json.fromJson(jsonBody.findPath("provider"), String.class);
+        String appRef = Json.fromJson(jsonBody.findPath("appRef"), String.class);
+        String bookingId = Json.fromJson(jsonBody.findPath("bookingId"), String.class);
 
+        // Retrieve the 'numbers' array node
+        ArrayNode ticketsNode = (ArrayNode) jsonBody.get("ticketId");
+
+        // Convert ArrayNode to List of Integers
+        List<String> ticketsList = new ArrayList<>();
+        for (JsonNode ticketNode : ticketsNode) {
+            // Extract integer value from each node and add to the list
+            ticketsList.add(ticketNode.asText());
+        }
+
+        logger.debug("Cancel ticket document called : " + pnr + " provider : " + provider);
+        TicketCancelDocumentResponse ticketCancelDocumentResponse = new TicketCancelDocumentResponse();
+        ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr,ticketsList);
+
+        logger.debug("cancel ticket document response " + Json.toJson(ticketCancelDocumentResponse));
+        return ok(Json.toJson(ticketCancelDocumentResponse));
+    }
     public Result home(){
         return ok("GDS Service running.....");
     }

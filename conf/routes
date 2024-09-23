@@ -18,6 +18,7 @@ POST	/getBookingDetails						   @controllers.Application.getBookingDetails()
 POST	/getBookingDetailsByOfficeId			   @controllers.Application.getBookingDetailsByOfficeId()
 POST	/lowestFare                                @controllers.Application.getLowestFare()
 POST 	/cancelPNR                                 @controllers.Application.cancelPNR()
+POST 	/ticketCancelDocument                      @controllers.Application.ticketCancelDocument()
 POST    /getBookingDetailsForPNR                   @controllers.Application.getBookingDetailsForPNR()
 POST    /generateTempPNR                           @controllers.Application.generateTempPNR()
 
