@@ -24,7 +24,7 @@ public class TicketCancelDocumentHandler {
             TicketNumberTypeI ticketNumberTypeI = new TicketNumberTypeI();
             TicketNumberDetailsTypeI ticketNumberDetailsTypeI = new TicketNumberDetailsTypeI();
 
-            ticketNumberDetailsTypeI.setNumber(ticketNumber);
+            ticketNumberDetailsTypeI.setNumber(ticketNumber.replaceAll("\\D", ""));
             ticketNumberTypeI.setDocumentDetails(ticketNumberDetailsTypeI);
             ticketNumberList.add(ticketNumberTypeI);
         }

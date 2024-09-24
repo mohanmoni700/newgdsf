@@ -24,21 +24,34 @@ public class AmadeusTicketCancelDocumentServiceImpl implements TicketCancelDocum
     @Autowired
     private ServiceHandler serviceHandler;
 
+    @Autowired
+    private AmadeusSourceOfficeService amadeusSourceOfficeService;
+
     @Override
     public TicketCancelDocumentResponse ticketCancelDocument(String pnr, List<String> ticketsList) {
         logger.debug("ticketCancelDocument called for PNR : " + pnr);
         TicketCancelDocumentResponse ticketCancelDocumentResponse = new TicketCancelDocumentResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
-            amadeusSessionWrapper = serviceHandler.logIn();
+            amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId());
 
             PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
             logger.debug("retrieve PNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
-                            + "\n" + Json.toJson(pnrReply));
+                    + "\n" + Json.toJson(pnrReply));
 
             TicketCancelDocumentReply ticketCancelDocumentReply = serviceHandler.ticketCancelDocument(pnr,  ticketsList, pnrReply, amadeusSessionWrapper);
-            ticketCancelDocumentResponse.setSuccess(true);
-            logger.debug("Successfully Cancelled ticket document " + ticketCancelDocumentReply );
+            if (ticketCancelDocumentReply.getTransactionResults() != null) {
+                for (TicketCancelDocumentReply.TransactionResults result : ticketCancelDocumentReply.getTransactionResults()) {
+                    if (result.getResponseDetails().getStatusCode().equals("O")) {
+                        ticketCancelDocumentResponse.setSuccess(true);
+                    } else {
+                        ticketCancelDocumentResponse.setSuccess(false);
+                    }
+                }
+            } else {
+                ticketCancelDocumentResponse.setSuccess(false);
+            }
+            logger.debug("Successfully Cancelled ticket document " + ticketCancelDocumentReply);
             return ticketCancelDocumentResponse;
 
         }catch (Exception e){
