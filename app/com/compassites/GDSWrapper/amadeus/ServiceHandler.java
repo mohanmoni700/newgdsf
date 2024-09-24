@@ -535,7 +535,7 @@ public class ServiceHandler {
 
         PNRCancel pnrCancel = new PNRCancel();
         OptionalPNRActionsType pnrActionsType = new OptionalPNRActionsType();
-        pnrActionsType.getOptionCode().add(BigInteger.valueOf(10));
+        pnrActionsType.getOptionCode().add(BigInteger.valueOf(11));
         pnrCancel.setPnrActions(pnrActionsType);
         CancelPNRElementType cancelPNRElementType = new CancelPNRElementType();
         cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ITINERARY_TYPE);
