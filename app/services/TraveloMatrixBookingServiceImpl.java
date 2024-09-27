@@ -231,9 +231,13 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         availbleFlights = true;
        String currencyFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getCurrency();
        Double totalFareFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getTotalDisplayFare();
+       Double agencyCommision = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getPriceBreakup().getAgentCommission();
+       Double tdsonAgency = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getPriceBreakup().getAgentTdsOnCommision();
+       Double finalfare = totalFareFromReply-agencyCommision+tdsonAgency;
+
        String currency = travellerMasterInfo.getItinerary().getPricingInformation().getCurrency();
        BigDecimal totalPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPrice();
-       Double difference = Math.abs(totalFareFromReply.doubleValue() - totalPrice.doubleValue());
+       Double difference = Math.abs(finalfare.doubleValue() - totalPrice.doubleValue());
        if(difference <= 50 ){
            pnrResponse.setPriceChanged(false);
        }else{

@@ -57,7 +57,7 @@ public class AmadeusCancelServiceImpl implements CancelService {
                 }
                 pnrReply = serviceHandler.cancelPNR(pnr, pnrReply, amadeusSessionWrapper);
             }else{
-                pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper);
+                pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper,false);
             }
             com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
             PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);

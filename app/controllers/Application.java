@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import static play.mvc.Controller.request;
@@ -64,7 +65,10 @@ public class Application {
     TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
 
     @Autowired
+    private RefundServiceWrapper refundServiceWrapper;
+
     TicketCancelDocumentService amadeusTicketCancelDocumentServiceImpl;
+
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -433,7 +437,6 @@ public class Application {
             // Extract integer value from each node and add to the list
             ticketsList.add(ticketNode.asText());
         }
-
         logger.debug("Cancel ticket document called : " + pnr + " provider : " + provider);
         TicketCancelDocumentResponse ticketCancelDocumentResponse = new TicketCancelDocumentResponse();
         ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr,ticketsList);
@@ -441,7 +444,69 @@ public class Application {
         logger.debug("cancel ticket document response " + Json.toJson(ticketCancelDocumentResponse));
         return ok(Json.toJson(ticketCancelDocumentResponse));
     }
+
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result checkRefundEligibiliy(){
+        TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        ticketCheckEligibilityRes = refundServiceWrapper.checkTicketEligibility(provider,gdspnr,searchOfficeId);
+        return ok(Json.toJson(ticketCheckEligibilityRes));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result processFullRefund(){
+        TicketProcessRefundRes ticketProcessRefundRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        ticketProcessRefundRes = refundServiceWrapper.processFullRefund(provider,gdspnr,searchOfficeId);
+        return ok(Json.toJson(ticketProcessRefundRes));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result checkPartRefundEligibility(){
+        TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        JsonNode ticketsNode = json.get("tickets");
+        List<String> ticketList = new LinkedList<>();
+        if (ticketsNode != null && ticketsNode.isArray()) {
+            for (JsonNode ticketNode : ticketsNode) {
+                ticketList.add(ticketNode.asText());
+            }
+        }
+        ticketCheckEligibilityRes = refundServiceWrapper.checkPartRefundTicketEligibility(provider,gdspnr,ticketList,searchOfficeId);
+        return ok(Json.toJson(ticketCheckEligibilityRes));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result processPartialRefund(){
+        TicketProcessRefundRes ticketProcessRefundRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        JsonNode ticketsNode = json.get("tickets");
+        List<String> ticketList = new LinkedList<>();
+        if (ticketsNode != null && ticketsNode.isArray()) {
+            for (JsonNode ticketNode : ticketsNode) {
+                ticketList.add(ticketNode.asText());
+            }
+        }
+        ticketProcessRefundRes = refundServiceWrapper.processPartialRefund(provider,gdspnr,ticketList,searchOfficeId);
+        return ok(Json.toJson(ticketProcessRefundRes));
+    }
+
     public Result home(){
         return ok("GDS Service running.....");
     }
+
+
 }

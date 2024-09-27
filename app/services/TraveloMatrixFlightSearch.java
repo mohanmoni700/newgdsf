@@ -91,6 +91,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
 
             } catch (Exception e) {
+                sr = new SearchResponse();
                 travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
                 e.printStackTrace();
                 ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
@@ -209,13 +210,17 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                         flightItinerary.setPassportMandatory(Boolean.FALSE);
                         PricingInformation pricingInformation = getPricingInformation(journeyDetails);
                         flightItinerary.setPricingInformation(pricingInformation);
+                        if(journeyDetails.getAttr() != null) {
+                            flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
+                            flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
+                        }
                         flightItinerary.setResultToken(journeyDetails.getResultToken());
                         if (journeyDetails.getAttr().getIsLCC() != null)
                             flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
                         else
                             flightItinerary.setIsLCC(false);
 
-                        flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+                        flightItineraryHashMap.put(flightItinerary.hashCode()+index, flightItinerary);
                     }
                 }
             }
@@ -243,10 +248,17 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             pricingInformation.setInfTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getTotalPrice()));
         pricingInformation.setTotalTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
         pricingInformation.setTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
-        pricingInformation.setTotalPrice(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
-        pricingInformation.setTotalPriceValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
         pricingInformation.setTotalBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()));
-        pricingInformation.setTotalCalculatedValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+
+        BigDecimal totalFare = getTotalFare(journeyDetails.getPrice());
+//        pricingInformation.setTotalPrice(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+//        pricingInformation.setTotalPriceValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+//        pricingInformation.setTotalCalculatedValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+
+        pricingInformation.setTotalPrice(totalFare);
+        pricingInformation.setTotalPriceValue(totalFare);
+        pricingInformation.setTotalCalculatedValue(totalFare);
+
         pricingInformation.setLCC(journeyDetails.getAttr().getIsLCC());
         pricingInformation.setPricingOfficeId(TraveloMatrixConstants.tmofficeId);
         List<PassengerTax> passengerTaxesList = new ArrayList<>();
@@ -306,10 +318,13 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
         pricingInformation.setTotalTax(new BigDecimal(onwardPrice.getPriceBreakup().getTax() + returnPrice.getPriceBreakup().getTax()));
         pricingInformation.setTax(new BigDecimal(onwardPrice.getPriceBreakup().getTax() + returnPrice.getPriceBreakup().getTax()));
-        pricingInformation.setTotalPrice(new BigDecimal(onwardPrice.getTotalDisplayFare()+returnPrice.getTotalDisplayFare()+onwardPrice.getPriceBreakup().getTax()));
-        pricingInformation.setTotalPriceValue(new BigDecimal(onwardPrice.getTotalDisplayFare()+returnPrice.getTotalDisplayFare()+onwardPrice.getPriceBreakup().getTax()));
+        pricingInformation.setTotalPrice(getTotalFare(onwardPrice).add(getTotalFare(returnPrice)).add(new BigDecimal(onwardPrice.getPriceBreakup().getTax())));
+        pricingInformation.setTotalPriceValue(getTotalFare(onwardPrice).add(getTotalFare(returnPrice)).add(new BigDecimal(onwardPrice.getPriceBreakup().getTax())));
+        pricingInformation.setTotalCalculatedValue(getTotalFare(onwardPrice).add(getTotalFare(returnPrice)).add(new BigDecimal(onwardPrice.getPriceBreakup().getTax())));
+        //pricingInformation.setTotalPrice(new BigDecimal(onwardPrice.getTotalDisplayFare()+returnPrice.getTotalDisplayFare()+onwardPrice.getPriceBreakup().getTax()));
+        //pricingInformation.setTotalPriceValue(new BigDecimal(onwardPrice.getTotalDisplayFare()+returnPrice.getTotalDisplayFare()+onwardPrice.getPriceBreakup().getTax()));
+        //pricingInformation.setTotalCalculatedValue(new BigDecimal(onwardPrice.getTotalDisplayFare()+returnPrice.getTotalDisplayFare()+onwardPrice.getPriceBreakup().getTax() ));
         pricingInformation.setTotalBasePrice(new BigDecimal(onwardPrice.getPriceBreakup().getBasicFare()+returnPrice.getPriceBreakup().getBasicFare()));
-        pricingInformation.setTotalCalculatedValue(new BigDecimal(onwardPrice.getTotalDisplayFare()+returnPrice.getTotalDisplayFare()+onwardPrice.getPriceBreakup().getTax() ));
         pricingInformation.setLCC(islcc);
         pricingInformation.setPricingOfficeId(TraveloMatrixConstants.tmofficeId);
         List<PassengerTax> passengerTaxesList = new ArrayList<>();
@@ -345,8 +360,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
     }
 
     public List<Journey> getJourneyList(FlightDetails flightDetails) {
-        List<AirSegmentInformation> airsegmentList = new ArrayList<>();
-        //calculate duration
+       //calculate duration
         Long durationTime = 0L;
         Long layOver = 0L;
 
@@ -580,5 +594,13 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
     }
 
+    public BigDecimal getTotalFare(Price price){
+        Double totalprice = price.getTotalDisplayFare();
+        Long agentCommission = price.getPriceBreakup().getAgentCommission();
+        Long agentTdsonCommision = price.getPriceBreakup().getAgentTdsOnCommision();
+        Double finalFare  = totalprice -agentCommission+agentTdsonCommision;
+        BigDecimal totalValue = new BigDecimal(finalFare);
+        return totalValue;
+    }
 
 }
