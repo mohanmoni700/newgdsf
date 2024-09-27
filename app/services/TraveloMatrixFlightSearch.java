@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import play.Play;
 import play.libs.Json;
 import scala.reflect.runtime.SymbolLoaders;
 import utils.DateUtility;
@@ -127,37 +128,42 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
     public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try {
+            int maxResults = Play.application().configuration().getInt("travelomatrix.noOfSearchResults");
            List<List<JourneyList>> journeyList = flightDataList.getJourneyList();
            int index = 0;
            for (List<JourneyList> journey : journeyList) {
                for (JourneyList journeyDetails : journey) {
-                   index++;
-                       FlightItinerary flightItinerary = new FlightItinerary();
-                       List<Journey> consolidatedJourney = new LinkedList<>();
-                       if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
-                           continue;
-                       }
-                       if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
-                           continue;
-                       }
-                       consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
-                       flightItinerary.setJourneyList(consolidatedJourney);
-                       flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
-                       flightItinerary.setPassportMandatory(Boolean.FALSE);
-                       PricingInformation pricingInformation = getPricingInformation(journeyDetails);
-                       flightItinerary.setPricingInformation(pricingInformation);
-                       if (journeyDetails.getAttr() != null) {
-                           flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
-                           flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
-                       }
-                       flightItinerary.setResultToken(journeyDetails.getResultToken());
-                       if (journeyDetails.getAttr().getIsLCC() != null)
-                           flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
-                       else
-                           flightItinerary.setIsLCC(false);
-
-                       flightItineraryHashMap.put(flightItinerary.hashCode() + index, flightItinerary);
+                   if (index == maxResults) {
+                       break;
+                   } else {
+                       index++;
                    }
+                   FlightItinerary flightItinerary = new FlightItinerary();
+                   List<Journey> consolidatedJourney = new LinkedList<>();
+                   if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
+                       continue;
+                   }
+                   if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
+                       continue;
+                   }
+                   consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
+                   flightItinerary.setJourneyList(consolidatedJourney);
+                   flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
+                   flightItinerary.setPassportMandatory(Boolean.FALSE);
+                   PricingInformation pricingInformation = getPricingInformation(journeyDetails);
+                   flightItinerary.setPricingInformation(pricingInformation);
+                   if (journeyDetails.getAttr() != null) {
+                       flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
+                       flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
+                   }
+                   flightItinerary.setResultToken(journeyDetails.getResultToken());
+                   if (journeyDetails.getAttr().getIsLCC() != null)
+                       flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
+                   else
+                       flightItinerary.setIsLCC(false);
+
+                   flightItineraryHashMap.put(flightItinerary.hashCode() + index, flightItinerary);
+               }
                }
 
        }catch(Exception e){
