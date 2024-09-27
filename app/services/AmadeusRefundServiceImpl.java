@@ -398,10 +398,10 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                         }
                                     }
                                 }
-                                PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
-                                if(cancelFullPNR.getGeneralErrorInfo().size() == 0){
-                                    logger.debug("PNR Cancelled for PNR:",gdsPnr);
-                                }
+                                //PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
+//                                if(cancelFullPNR.getGeneralErrorInfo().size() == 0){
+//                                    logger.debug("PNR Cancelled for PNR:",gdsPnr);
+//                                }
                                 ticketProcessRefundRes.setStatus(Boolean.TRUE);
                                 ticketProcessRefundRes.setRefTicketsList(refundedTickets);
                             }

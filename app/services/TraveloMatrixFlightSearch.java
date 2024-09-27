@@ -234,21 +234,23 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
     public PricingInformation getPricingInformation(JourneyList journeyDetails) {
         PricingInformation pricingInformation = new PricingInformation();
-        pricingInformation.setBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()));
+        Long agentCommission = journeyDetails.getPrice().getPriceBreakup().getAgentCommission();
+        Long agentTds = journeyDetails.getPrice().getPriceBreakup().getAgentTdsOnCommision();
+        pricingInformation.setBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare() - agentCommission +agentTds));
         pricingInformation.setGdsCurrency(journeyDetails.getPrice().getCurrency());
-        pricingInformation.setAdtBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getBasePrice()));
+        pricingInformation.setAdtBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getBasePrice()-agentCommission+agentTds));
         if(journeyDetails.getPrice().getPassengerBreakup().getcHD() != null)
-            pricingInformation.setChdBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getBasePrice()));
+            pricingInformation.setChdBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getBasePrice()-agentCommission+agentTds));
         if(journeyDetails.getPrice().getPassengerBreakup().getiNF() != null)
-            pricingInformation.setInfBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getBasePrice()));
-        pricingInformation.setAdtTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getTotalPrice()));
+            pricingInformation.setInfBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getBasePrice()-agentCommission+agentTds));
+        //pricingInformation.setAdtTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getTotalPrice()));
         if(journeyDetails.getPrice().getPassengerBreakup().getcHD() != null)
-            pricingInformation.setChdTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getTotalPrice()));
+            pricingInformation.setChdTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getTotalPrice()-agentCommission+agentTds));
         if(journeyDetails.getPrice().getPassengerBreakup().getiNF() != null)
-            pricingInformation.setInfTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getTotalPrice()));
+            pricingInformation.setInfTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getTotalPrice()-agentCommission+agentTds));
         pricingInformation.setTotalTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
         pricingInformation.setTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
-        pricingInformation.setTotalBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()));
+        pricingInformation.setTotalBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()-agentCommission+agentTds));
 
         BigDecimal totalFare = getTotalFare(journeyDetails.getPrice());
 //        pricingInformation.setTotalPrice(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
@@ -574,7 +576,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
         String updatedBagunits = null;
         String pattern = "^KG\\d{3}$";
-        if(baggage.contains("Kg") || baggage.contains("Kilograms") || baggage.contains("kg")){
+        if(baggage !=null && (baggage.contains("Kg") || baggage.contains("Kilograms") || baggage.contains("kg"))){
             updatedBagunits = baggage.replaceAll("(?i)\\b(kilograms|kg)\\b", "KG");
             if(updatedBagunits.contains("(")){
                 int index =   updatedBagunits.indexOf('(');
@@ -582,9 +584,9 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     updatedBagunits =   updatedBagunits.substring(0,index).trim();
                 }
             }
-        }else if(baggage.contains("Piece")){
+        }else if(baggage != null && baggage.contains("Piece")){
             updatedBagunits = baggage.replaceAll("^0+", "").replaceAll("\\s*Piece\\s*", " PC");
-        }else if (baggage.matches(pattern)) {
+        }else if (baggage != null && baggage.matches(pattern)) {
             String number = baggage.replaceAll("[^0-9]", "");  // Extract numeric part
             updatedBagunits = Integer.parseInt(number) + " KG";  // Combine with "KG"
         }else{
