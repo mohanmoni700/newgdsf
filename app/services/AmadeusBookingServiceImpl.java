@@ -232,9 +232,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pnrSplit.setReservationInfo(reservationInfo);
 			SplitPNRType splitPNRType = createSplitPNRType(issuanceRequest,travellerSegMap);
 			pnrSplit.setSplitDetails(splitPNRType);
-
-			serviceHandler.splitPNR(pnrSplit, amadeusSessionWrapper);
-
+			PNRReply pnrSplitReply = serviceHandler.splitPNR(pnrSplit, amadeusSessionWrapper);
 			serviceHandler.saveChildPNR("14", amadeusSessionWrapper);
 			PNRReply childPNRReply = serviceHandler.saveChildPNR("11", amadeusSessionWrapper);
 			String childPNR = createChildPNR(childPNRReply);
@@ -246,7 +244,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
 
-			if(ticketDisplayTSTReply.getFareList() == null &&  ticketDisplayTSTReply.getFareList().size() == 0){
+			if(ticketDisplayTSTReply.getFareList() == null || ticketDisplayTSTReply.getFareList().isEmpty()){
 				ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("priceNotAvailable", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
 				pnrResponse.setErrorMessage(errorMessage);
 			}
@@ -256,9 +254,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pnrResponse.setPnrNumber(childPNR);
 			Date lastPNRAddMultiElements = new Date();
 			PNRReply childGdsReply = readChildAirlinePNR(serviceHandler,childRetrive,lastPNRAddMultiElements,pnrResponse, amadeusSessionWrapper);
+
 			if(pnrResponse.getAirlinePNR() != null){
 				try {
-					cancelPNRResponse = amadeusCancelService.cancelPNR(childPNR, false);
+					cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
 					splitPNRResponse.setCancelPNRResponse(cancelPNRResponse);
 					serviceHandler.saveChildPNR("10",amadeusSessionWrapper);
 				} catch (Exception ex){
@@ -288,6 +287,59 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		splitPNRResponse.setPnrResponse(pnrResponse);
     	return splitPNRResponse;
 	}
+
+	private CancelPNRResponse cancelPNR(String pnr, boolean isFullPNR, AmadeusSessionWrapper amadeusSessionWrapper) {
+		logger.debug("cancelPNR called for PNR : " + pnr);
+		CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
+		try {
+
+			PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+			if(!isFullPNR) {
+				for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : pnrReply.getDataElementsMaster().getDataElementsIndiv()) {
+					logger.debug("dataElementsDiv.getElementManagementData().getSegmentName() called for PNR : " + dataElementsDiv.getElementManagementData().getSegmentName());
+					if ("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+						logger.debug("Tickets are already issued cannot cancel the pnr: " + pnr);
+						cancelPNRResponse.setSuccess(false);
+						ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+						cancelPNRResponse.setErrorMessage(errorMessage);
+						return cancelPNRResponse;
+					} else if ("FHM".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+						logger.debug("Tickets are already issued in FHM cannot cancel the pnr: " + pnr);
+						cancelPNRResponse.setSuccess(false);
+						ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+						cancelPNRResponse.setErrorMessage(errorMessage);
+						return cancelPNRResponse;
+					} else if ("FHE".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+						logger.debug("Tickets are already issued in FHE cannot cancel the pnr: " + pnr);
+						cancelPNRResponse.setSuccess(false);
+						ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+						cancelPNRResponse.setErrorMessage(errorMessage);
+						return cancelPNRResponse;
+					}
+				}
+				pnrReply = serviceHandler.cancelPNR(pnr, pnrReply, amadeusSessionWrapper);
+			}else{
+				logger.debug("Cancel full pnr called: " + pnr);
+				pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper);
+			}
+			com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+			PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+
+			//todo check for origindestinationDetails in retrievePNRReply to confirm cancellation
+			cancelPNRResponse.setSuccess(true);
+			logger.debug("Successfully Cancelled PNR " + pnr );
+			return cancelPNRResponse;
+
+		}catch (Exception e){
+			e.printStackTrace();
+			logger.error(pnr + " : Error in PNR cancellation ", e);
+			cancelPNRResponse.setSuccess(false);
+			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+			cancelPNRResponse.setErrorMessage(errorMessage);
+			return cancelPNRResponse;
+		}
+	}
+
 
 	public PNRResponse getPNRPRicing(int numberOfTst, AmadeusSessionWrapper amadeusSessionWrapper) {
 		PNRResponse pnrResponse = new PNRResponse();
@@ -398,6 +450,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		} else {
 			pnrResponse.setAirlinePNR(airlinePnr);
+			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(pnrReply));
+
 		}
 
 		return pnrReply;
@@ -442,7 +496,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
 							.getReservation().getControlNumber());
 				}
-                throw new BaseCompassitesException("Simultane eous changes Error");
+                throw new BaseCompassitesException("Simultaneeous changes Error");
             }else {
                 Thread.sleep(3000);
                 pnrReply = serviceHandler.ignoreAndRetrievePNR(amadeusSessionWrapper);
