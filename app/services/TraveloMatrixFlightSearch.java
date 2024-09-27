@@ -90,6 +90,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
 
             } catch (Exception e) {
+                sr = new SearchResponse();
                 travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
                 e.printStackTrace();
                 ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
@@ -127,34 +128,38 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try {
            List<List<JourneyList>> journeyList = flightDataList.getJourneyList();
+           int index = 0;
            for (List<JourneyList> journey : journeyList) {
                for (JourneyList journeyDetails : journey) {
-                   FlightItinerary flightItinerary = new FlightItinerary();
-                   List<Journey> consolidatedJourney = new LinkedList<>();
-                   if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
-                       continue;
-                   }
-                   if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
-                       continue;
-                   }
-                   consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
-                   flightItinerary.setJourneyList(consolidatedJourney);
-                   flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
-                   flightItinerary.setPassportMandatory(Boolean.FALSE);
-                   PricingInformation pricingInformation = getPricingInformation(journeyDetails);
-                   flightItinerary.setPricingInformation(pricingInformation);
-//                if(journeyDetails.getFlightDetails().getDetails().get(0).get(0).getFlightNumber().equalsIgnoreCase("809")){
-//                    System.out.println("Flightnumber");
-//                }
-                   flightItinerary.setResultToken(journeyDetails.getResultToken());
-                   if (journeyDetails.getAttr().getIsLCC() != null)
-                       flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
-                   else
-                       flightItinerary.setIsLCC(false);
+                   index++;
+                       FlightItinerary flightItinerary = new FlightItinerary();
+                       List<Journey> consolidatedJourney = new LinkedList<>();
+                       if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
+                           continue;
+                       }
+                       if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
+                           continue;
+                       }
+                       consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
+                       flightItinerary.setJourneyList(consolidatedJourney);
+                       flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
+                       flightItinerary.setPassportMandatory(Boolean.FALSE);
+                       PricingInformation pricingInformation = getPricingInformation(journeyDetails);
+                       flightItinerary.setPricingInformation(pricingInformation);
+                       if (journeyDetails.getAttr() != null) {
+                           flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
+                           flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
+                       }
+                       flightItinerary.setResultToken(journeyDetails.getResultToken());
+                       if (journeyDetails.getAttr().getIsLCC() != null)
+                           flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
+                       else
+                           flightItinerary.setIsLCC(false);
 
-                   flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+                       flightItineraryHashMap.put(flightItinerary.hashCode() + index, flightItinerary);
+                   }
                }
-           }
+
        }catch(Exception e){
             logger.error("Error while creating the airsolution for travelomatrix"+ e.getMessage());
             e.printStackTrace();
@@ -164,24 +169,33 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
     public PricingInformation getPricingInformation(JourneyList journeyDetails) {
         PricingInformation pricingInformation = new PricingInformation();
-        pricingInformation.setBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()));
+        Long agentCommission = journeyDetails.getPrice().getPriceBreakup().getAgentCommission();
+        Long agentTds = journeyDetails.getPrice().getPriceBreakup().getAgentTdsOnCommision();
+        pricingInformation.setBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare() - agentCommission +agentTds));
         pricingInformation.setGdsCurrency(journeyDetails.getPrice().getCurrency());
-        pricingInformation.setAdtBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getBasePrice()));
+        pricingInformation.setAdtBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getBasePrice()-agentCommission+agentTds));
         if(journeyDetails.getPrice().getPassengerBreakup().getcHD() != null)
-            pricingInformation.setChdBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getBasePrice()));
+            pricingInformation.setChdBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getBasePrice()-agentCommission+agentTds));
         if(journeyDetails.getPrice().getPassengerBreakup().getiNF() != null)
-            pricingInformation.setInfBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getBasePrice()));
-        pricingInformation.setAdtTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getTotalPrice()));
+            pricingInformation.setInfBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getBasePrice()-agentCommission+agentTds));
+        //pricingInformation.setAdtTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getTotalPrice()));
         if(journeyDetails.getPrice().getPassengerBreakup().getcHD() != null)
-            pricingInformation.setChdTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getTotalPrice()));
+            pricingInformation.setChdTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getTotalPrice()-agentCommission+agentTds));
         if(journeyDetails.getPrice().getPassengerBreakup().getiNF() != null)
-            pricingInformation.setInfTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getTotalPrice()));
+            pricingInformation.setInfTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getTotalPrice()-agentCommission+agentTds));
         pricingInformation.setTotalTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
         pricingInformation.setTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
-        pricingInformation.setTotalPrice(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
-        pricingInformation.setTotalPriceValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
-        pricingInformation.setTotalBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()));
-        pricingInformation.setTotalCalculatedValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+        pricingInformation.setTotalBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()-agentCommission+agentTds));
+
+        BigDecimal totalFare = getTotalFare(journeyDetails.getPrice());
+//        pricingInformation.setTotalPrice(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+//        pricingInformation.setTotalPriceValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+//        pricingInformation.setTotalCalculatedValue(new BigDecimal(journeyDetails.getPrice().getTotalDisplayFare()));
+
+        pricingInformation.setTotalPrice(totalFare);
+        pricingInformation.setTotalPriceValue(totalFare);
+        pricingInformation.setTotalCalculatedValue(totalFare);
+        pricingInformation.setAdtTotalPrice(totalFare);
         pricingInformation.setLCC(journeyDetails.getAttr().getIsLCC());
         pricingInformation.setPricingOfficeId(TraveloMatrixConstants.tmofficeId);
         List<PassengerTax> passengerTaxesList = new ArrayList<>();
@@ -284,4 +298,12 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         return journeyList;
     }
 
+public BigDecimal getTotalFare(Price price){
+        Double totalprice = price.getTotalDisplayFare();
+        Long agentCommission = price.getPriceBreakup().getAgentCommission();
+        Long agentTdsonCommision = price.getPriceBreakup().getAgentTdsOnCommision();
+        Double finalFare  = Math.floor(totalprice -agentCommission+agentTdsonCommision);
+        BigDecimal totalValue = new BigDecimal(finalFare);
+        return totalValue;
+    }
 }
