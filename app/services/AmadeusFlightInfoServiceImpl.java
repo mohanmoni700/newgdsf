@@ -190,6 +190,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 				miniRule.setChangeNoShowBeforeDept(Boolean.valueOf(changeKeys.get("BNA").equalsIgnoreCase("0") ? false : true));
 				miniRule.setChangeNoShowAfterDept(Boolean.valueOf(changeKeys.get("ANA").equalsIgnoreCase("0") ? false : true));
 
+				Boolean cancellationNoShowBeforeDept = miniRule.getCancellationNoShowBeforeDept();
 				int res = cancellationFeeNoShowAfterDept.compareTo(cancellationFeeNoShowBeforeDept);
 				if(res == 1){
 					miniRule.setCancellationFeeNoShow(cancellationFeeNoShowAfterDept);
@@ -198,7 +199,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 				} else if(res == -1){
 					miniRule.setCancellationFeeNoShow(cancellationFeeNoShowBeforeDept);
 					miniRule.setCancellationNoShowCurrency(cancellationFeeNoShowBeforeDeptCurrency);
-					miniRule.setCancellationNoShowAfterDept(miniRule.getCancellationNoShowAfterDept());
+					miniRule.setCancellationNoShowAfterDept(cancellationNoShowBeforeDept);
 				}else{
 					miniRule.setCancellationFeeNoShow(cancellationFeeNoShowAfterDept);
 					miniRule.setCancellationNoShowCurrency(cancellationNoShowAfterDeptCurrency);

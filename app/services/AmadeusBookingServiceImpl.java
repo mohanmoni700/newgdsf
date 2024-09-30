@@ -297,7 +297,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			if(!isFullPNR) {
 				for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : pnrReply.getDataElementsMaster().getDataElementsIndiv()) {
 					logger.debug("dataElementsDiv.getElementManagementData().getSegmentName() called for PNR : " + dataElementsDiv.getElementManagementData().getSegmentName());
-					if ("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+					/*if ("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
 						logger.debug("Tickets are already issued cannot cancel the pnr: " + pnr);
 						cancelPNRResponse.setSuccess(false);
 						ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
@@ -315,7 +315,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
 						cancelPNRResponse.setErrorMessage(errorMessage);
 						return cancelPNRResponse;
-					}
+					}*/
 				}
 				pnrReply = serviceHandler.cancelPNR(pnr, pnrReply, amadeusSessionWrapper);
 			}else{
@@ -402,6 +402,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			String salutation = traveller.getPersonalDetails().getSalutation();
 			String lastName = traveller.getPersonalDetails().getLastName();
 			String fullName = (firstName+" "+salutation+lastName).toUpperCase();
+			logger.info("fullName..."+fullName);
 			String paxRef = travellerSegMap.get(fullName).toString();
 			String paxRefArray[] = paxRef.split("-");
 			splitPNRDetailsType.setType(paxRefArray[0]);
@@ -418,6 +419,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
 			String key = travellerInfo.getElementManagementPassenger().getReference().getQualifier() +'-'+ travellerInfo.getElementManagementPassenger().getReference().getNumber();
 			String paxName = travellerInfo.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName()+travellerInfo.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
+			logger.info("paxName..."+paxName);
+			logger.info("key..."+key);
 			travellerMap.put(paxName,key);
 		}
 		return  travellerMap;
