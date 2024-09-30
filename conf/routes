@@ -18,6 +18,7 @@ POST	/getBookingDetails						   @controllers.Application.getBookingDetails()
 POST	/getBookingDetailsByOfficeId			   @controllers.Application.getBookingDetailsByOfficeId()
 POST	/lowestFare                                @controllers.Application.getLowestFare()
 POST 	/cancelPNR                                 @controllers.Application.cancelPNR()
+POST 	/ticketCancelDocument                      @controllers.Application.ticketCancelDocument()
 POST    /getBookingDetailsForPNR                   @controllers.Application.getBookingDetailsForPNR()
 POST    /generateTempPNR                           @controllers.Application.generateTempPNR()
 
@@ -47,3 +48,9 @@ POST  /uploadTicket               @controllers.Application.uploadTicket()
 
 #upload ticket for travelomatrix
 POST  /commitBooking               @controllers.Application.commitBooking()
+
+#Refund
+POST  /checkRefundEligibility       @controllers.Application.checkRefundEligibiliy()
+POST  /processFullRefund            @controllers.Application.processFullRefund()
+POST  /checkPartRefundEligibility   @controllers.Application.checkPartRefundEligibility()
+POST  /processPartialRefund         @controllers.Application.processPartialRefund()

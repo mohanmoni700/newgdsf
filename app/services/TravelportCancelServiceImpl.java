@@ -25,7 +25,7 @@ public class TravelportCancelServiceImpl implements CancelService {
     static Logger logger = LoggerFactory.getLogger("gds");
 
     @Override
-    public CancelPNRResponse cancelPNR(String pnr) {
+    public CancelPNRResponse cancelPNR(String pnr,Boolean isFullPNR) {
         logger.debug("Travelport cancelPNR called ..... ");
         CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
         UniversalRecordRetrieveRsp universalRecordRetrieveRsp = UniversalRecordClient.retrievePNR(pnr);

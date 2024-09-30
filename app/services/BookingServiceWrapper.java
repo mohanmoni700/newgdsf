@@ -38,7 +38,6 @@ public class BookingServiceWrapper {
 	@Autowired
 	private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
 
-
 	private LowestFareService amadeusLowestFareService;
 
 	public AmadeusBookingServiceImpl getAmadeusBookingService() {
@@ -74,7 +73,7 @@ public class BookingServiceWrapper {
 			if(pnrResponse.getBookedStatus() != null && pnrResponse.getBookedStatus().equals("PENDING")){
 				pnrResponse.setFlightAvailable(false);
 				CancelServiceWrapper cancelServiceWrapper = null;
-				cancelServiceWrapper.cancelPNR(pnrResponse.getPnrNumber(),"Mystifly",null,null);
+				cancelServiceWrapper.cancelPNR(pnrResponse.getPnrNumber(),"Mystifly",null,null, false);
 			}
 		} else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)) {
 			pnrResponse =	traveloMatrixBookingService.generatePNR(travellerMasterInfo);

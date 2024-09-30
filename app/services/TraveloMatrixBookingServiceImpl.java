@@ -25,10 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Service
@@ -233,10 +230,15 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
         availbleFlights = true;
        String currencyFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getCurrency();
-       Long totalFareFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getPassengerBreakup().getADT().getTotalPrice();
+       Double totalFareFromReply =  updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getTotalDisplayFare();
+       Double agencyCommision = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getPriceBreakup().getAgentCommission();
+       Double tdsonAgency = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getPriceBreakup().getAgentTdsOnCommision();
+       Double finalfare = totalFareFromReply-agencyCommision+tdsonAgency;
+
        String currency = travellerMasterInfo.getItinerary().getPricingInformation().getCurrency();
-       BigDecimal totalPrice = travellerMasterInfo.getItinerary().getPricingInformation().getAdtTotalPrice();
-       if(totalFareFromReply.doubleValue() == totalPrice.doubleValue()){
+       BigDecimal totalPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPrice();
+       Double difference = Math.abs(finalfare.doubleValue() - totalPrice.doubleValue());
+       if(difference <= 50 ){
            pnrResponse.setPriceChanged(false);
        }else{
         pnrResponse.setPriceChanged(true);
@@ -403,6 +405,11 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         }
         pnrResponse.setAirlinePNRMap(airlinePNRMap);
         Map<String,String> tickenetNumberMap = new HashMap<>();
+
+        PricingInformation pricingInformation = new PricingInformation();
+        pricingInformation.setSegmentWisePricing(true);
+        pnrResponse.setPricingInfo(pricingInformation);
+
         List<Traveller> passengerDetailList =  travellerMasterInfo.getTravellersList();
         for(Traveller passengerDetail:passengerDetailList){
             String passengerType = "ADT";

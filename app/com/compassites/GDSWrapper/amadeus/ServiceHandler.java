@@ -1,7 +1,9 @@
 package com.compassites.GDSWrapper.amadeus;
 
+import com.amadeus.wsdl.ticketgtp_v3_v2.TicketGTPPT;
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
+import com.amadeus.xml._2010._06.ticketgtp_v3.*;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.flireq_07_1_1a.AirFlightInfo;
@@ -10,15 +12,18 @@ import com.amadeus.xml.fmptbq_14_2_1a.FareMasterPricerTravelBoardSearch;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
+import com.amadeus.xml.pnracc_11_3_1a.OriginatorDetailsTypeI;
+import com.amadeus.xml.pnracc_11_3_1a.OriginatorIdentificationDetailsTypeI;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_11_3_1a.POSGroupType;
+import com.amadeus.xml.pnracc_12_2_1a.OriginatorIdentificationDetailsTypeI170735C;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve;
-import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
-import com.amadeus.xml.pnrxcl_11_3_1a.ElementIdentificationType;
-import com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType;
-import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
+import com.amadeus.xml.pnrxcl_11_3_1a.*;
 import com.amadeus.xml.qdqlrq_11_1_1a.QueueList;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
+import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
+import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
@@ -29,6 +34,8 @@ import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
+import com.amadeus.xml.trcanq_14_1_1a.*;
+import com.amadeus.xml.trcanr_14_1_1a.TicketCancelDocumentReply;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
 import com.amadeus.xml.ttstrq_13_1_1a.TicketDisplayTST;
@@ -60,7 +67,7 @@ import java.util.*;
 public class ServiceHandler {
 
     AmadeusWebServicesPT mPortType;
-
+    //TicketGTPPT ticketGTPPT;
     //SessionHandler mSession;
 
     public static URL wsdlUrl;
@@ -175,12 +182,12 @@ public class ServiceHandler {
         FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters);
         amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession());
-       if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
-          loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
+        if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
+            loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
         logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
         return  SearchReply;
     }
-    
+
     public AirSellFromRecommendationReply checkFlightAvailability(TravellerMasterInfo travellerMasterInfo, AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus checkFlightAvailability called at : " + new Date()  + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
@@ -276,7 +283,7 @@ public class ServiceHandler {
     }
 
     public PNRReply retrivePNR(String num, AmadeusSessionWrapper amadeusSessionWrapper){
-    	//change here
+        //change here
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus retrievePNR called at " + new Date() + "....................Session Id: "+ amadeusSessionWrapper.getSessionId());
         PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);
@@ -334,27 +341,27 @@ public class ServiceHandler {
         amadeusLogger.debug("docIssuanceRes " + new Date()  + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(docIssuanceIssueTicketReply));
         return docIssuanceIssueTicketReply;
     }
-    
-	public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, boolean seamen, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList, AmadeusSessionWrapper amadeusSessionWrapper) {
+
+    public FareInformativePricingWithoutPNRReply getFareInfo(List<Journey> journeys, boolean seamen, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList, AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus getFareInfo called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
-		FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys,seamen, adultCount, childCount, infantCount, paxFareDetailsList);
+        FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys,seamen, adultCount, childCount, infantCount, paxFareDetailsList);
         amadeusLogger.debug("farePricingWithoutPNRReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(farePricingWithoutPNR));
         FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("farePricingWithoutPNRRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareInformativePricingPNRReply));
         return  fareInformativePricingPNRReply;
-	}
+    }
 
-	public AirFlightInfoReply getFlightInfo(AirSegmentInformation airSegment, AmadeusSessionWrapper amadeusSessionWrapper) {
+    public AirFlightInfoReply getFlightInfo(AirSegmentInformation airSegment, AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus getFlightInfo  called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
-		AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
+        AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
         amadeusLogger.debug("flightInfoReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfo));
         AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, amadeusSessionWrapper.getmSession());
 
         amadeusLogger.debug("flightInfoRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfo));
-		return airFlightInfoReply;
-	}
+        return airFlightInfoReply;
+    }
 
     public FareCheckRulesReply getFareRules(AmadeusSessionWrapper amadeusSessionWrapper){
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
@@ -378,11 +385,11 @@ public class ServiceHandler {
 
 
 
-//    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
-        public FarePricePNRWithLowestFareReply getLowestFare(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary, List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing, AmadeusSessionWrapper amadeusSessionWrapper) {
-            amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+    //    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
+    public FarePricePNRWithLowestFareReply getLowestFare(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary, List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing, AmadeusSessionWrapper amadeusSessionWrapper) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus getLowestFare called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
-    	FarePricePNRWithLowestFare farePricePNRWithLowestFare = null;
+        FarePricePNRWithLowestFare farePricePNRWithLowestFare = null;
         if(isSegmentWisePricing){
             farePricePNRWithLowestFare = new LowestPricePNR().getPNRPricingOption(carrrierCode,pnrReply, isSeamen,
                     isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing);
@@ -395,9 +402,9 @@ public class ServiceHandler {
         }
 
         amadeusLogger.debug("FarePricePNRWithLowestFareReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(farePricePNRWithLowestFare));
-    	FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, amadeusSessionWrapper.getmSession());
+        FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare(farePricePNRWithLowestFare, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("FarePricePNRWithLowestFareReplyRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(farePricePNRWithLowestFareReply));
-    	return farePricePNRWithLowestFareReply;
+        return farePricePNRWithLowestFareReply;
     }
 
     public PNRReply exitESPnr(PNRCancel pnrCancel, AmadeusSessionWrapper amadeusSessionWrapper) {
@@ -439,7 +446,6 @@ public class ServiceHandler {
         cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ELEMENT_TYPE);
         pnrCancel.getCancelElements().add(cancelPNRElementType);
 
-
         amadeusLogger.debug("pnrCancelReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrCancel));
         //PNRReply pnrReply = new PNRReply();
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession());
@@ -480,7 +486,7 @@ public class ServiceHandler {
         return pnrReply;
     }
 
-//    //todo for time being removing it as compulsary steps in ticket booking
+    //    //todo for time being removing it as compulsary steps in ticket booking
     public MiniRuleGetFromRecReply retriveMiniRuleFromPNR(AmadeusSessionWrapper amadeusSessionWrapper, String pnr){
         //change here
         try {
@@ -521,4 +527,61 @@ public class ServiceHandler {
         amadeusLogger.debug("MiniRuleGetFromPricingReply " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(miniRuleGetFromPricingReply));
         return miniRuleGetFromPricingReply;
     }
+
+    public PNRReply cancelFullPNR(String pnr, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper,Boolean setReservationInfo){
+        logger.debug("cancelFullPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
+        PNRCancel pnrCancel = new PNRCancel();
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        if(setReservationInfo) {
+            ReservationControlInformationDetailsTypeI reservationControlInformationDetailsTypeI = new ReservationControlInformationDetailsTypeI();
+            reservationControlInformationDetailsTypeI.setControlNumber(pnr);
+            ReservationControlInformationType reservationControlInformationType = new ReservationControlInformationType();
+            reservationControlInformationType.setReservation(reservationControlInformationDetailsTypeI);
+            pnrCancel.setReservationInfo(reservationControlInformationType);
+        }
+
+
+        OptionalPNRActionsType pnrActionsType = new OptionalPNRActionsType();
+        pnrActionsType.getOptionCode().add(BigInteger.valueOf(11));
+        pnrCancel.setPnrActions(pnrActionsType);
+        CancelPNRElementType cancelPNRElementType = new CancelPNRElementType();
+        cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ITINERARY_TYPE);
+        pnrCancel.getCancelElements().add(cancelPNRElementType);
+
+
+        amadeusLogger.debug("pnrFullCancelReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrCancel));
+        //PNRReply pnrReply = new PNRReply();
+        PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("pnrFullCancelRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
+
+    }
+
+    public TicketProcessEDocReply ticketProcessEDoc(List<String> tickets,AmadeusSessionWrapper amadeusSessionWrapper){
+        logger.debug("ticketProcessEdoc called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketProcessEDoc ticketProcessEDocRQ = new RefundTicket().getTicketProcessEdocRQ(tickets);
+        amadeusLogger.debug("ticketProcessEDocRQ " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketProcessEDocRQ));
+        TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDocRQ,amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("ticketProcessEDocResponse " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketProcessEDocReply));
+        return ticketProcessEDocReply;
+    }
+
+    public TicketCancelDocumentReply ticketCancelDocument(String pnr, List<String> ticketsList, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper){
+        logger.debug("Ticket cancel document called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+
+        // Creating XML request for ticket cancel document
+        TicketCancelDocument ticketCancelDocument  = new TicketCancelDocumentHandler().ticketCancelDocument(ticketsList,gdsPNRReply);
+
+        amadeusLogger.debug("ticketCancelDocReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketCancelDocument));
+        TicketCancelDocumentReply ticketCancelDocumentReply = mPortType.ticketCancelDocument(ticketCancelDocument, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("ticketCancelDocRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketCancelDocumentReply));
+        return ticketCancelDocumentReply;
+
+    }
 }
+

@@ -26,16 +26,16 @@ public class CancelServiceWrapper {
     @Autowired
     private TraveloMatrixCancelService traveloMatrixCancelService;
 
-    public CancelPNRResponse cancelPNR(String pnr, String provider,String appRef,String bookingId) {
+    public CancelPNRResponse cancelPNR(String pnr, String provider,String appRef,String bookingId, Boolean isFullPNR) {
         CancelPNRResponse result = null;
         if ("Amadeus".equalsIgnoreCase(provider)) {
-           result =  amadeusCancelService.cancelPNR(pnr);
+           result =  amadeusCancelService.cancelPNR(pnr,isFullPNR);
         }else if("Travelport".equalsIgnoreCase(provider)){
-            result =  travelportCancelService.cancelPNR(pnr);
+            result =  travelportCancelService.cancelPNR(pnr,isFullPNR);
         }else if(PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)){
-            result = mystiflyCancelService.cancelPNR(pnr);
+            result = mystiflyCancelService.cancelPNR(pnr,isFullPNR);
         }else if(PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)){
-            result = traveloMatrixCancelService.cancelPNR(pnr,appRef,bookingId);
+            result = traveloMatrixCancelService.cancelPNR(pnr,appRef,bookingId,isFullPNR);
         }
 
         return result;

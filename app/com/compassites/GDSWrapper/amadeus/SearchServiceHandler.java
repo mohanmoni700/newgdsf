@@ -71,7 +71,7 @@ public class SearchServiceHandler {
         URL url = null;
         try{
             endPoint = play.Play.application().configuration().getString("amadeus.endPointURL");
-            url = SearchServiceHandler.class.getResource("/wsdl/amadeus/amadeus.wsdl");
+            url = SearchServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_TicketGTP_3.1_2.0.wsdl");
         }catch (Exception e){
             logger.debug("Error in loading Amadeus URL : ", e);
         }
