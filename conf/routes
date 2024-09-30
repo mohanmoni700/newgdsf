@@ -48,3 +48,9 @@ POST  /uploadTicket               @controllers.Application.uploadTicket()
 
 #upload ticket for travelomatrix
 POST  /commitBooking               @controllers.Application.commitBooking()
+
+#Refund
+POST  /checkRefundEligibility       @controllers.Application.checkRefundEligibiliy()
+POST  /processFullRefund            @controllers.Application.processFullRefund()
+POST  /checkPartRefundEligibility   @controllers.Application.checkPartRefundEligibility()
+POST  /processPartialRefund         @controllers.Application.processPartialRefund()

@@ -320,7 +320,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				pnrReply = serviceHandler.cancelPNR(pnr, pnrReply, amadeusSessionWrapper);
 			}else{
 				logger.debug("Cancel full pnr called: " + pnr);
-				pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper);
+				pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper,false);
 			}
 			com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 			PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);

@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  * To change this template use File | Settings | File Templates.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+
 public class FlightItinerary implements Serializable{
 
     public FlightItinerary() {

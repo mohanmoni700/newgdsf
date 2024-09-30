@@ -38,7 +38,6 @@ public class BookingServiceWrapper {
 	@Autowired
 	private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
 
-
 	private LowestFareService amadeusLowestFareService;
 
 	public AmadeusBookingServiceImpl getAmadeusBookingService() {

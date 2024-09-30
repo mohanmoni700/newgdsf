@@ -1,7 +1,9 @@
 package com.compassites.GDSWrapper.amadeus;
 
+import com.amadeus.wsdl.ticketgtp_v3_v2.TicketGTPPT;
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
+import com.amadeus.xml._2010._06.ticketgtp_v3.*;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.flireq_07_1_1a.AirFlightInfo;
@@ -17,12 +19,11 @@ import com.amadeus.xml.pnracc_11_3_1a.POSGroupType;
 import com.amadeus.xml.pnracc_12_2_1a.OriginatorIdentificationDetailsTypeI170735C;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve;
-import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
-import com.amadeus.xml.pnrxcl_11_3_1a.ElementIdentificationType;
-import com.amadeus.xml.pnrxcl_11_3_1a.OptionalPNRActionsType;
-import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
+import com.amadeus.xml.pnrxcl_11_3_1a.*;
 import com.amadeus.xml.qdqlrq_11_1_1a.QueueList;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
+import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
+import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
@@ -66,7 +67,7 @@ import java.util.*;
 public class ServiceHandler {
 
     AmadeusWebServicesPT mPortType;
-
+    //TicketGTPPT ticketGTPPT;
     //SessionHandler mSession;
 
     public static URL wsdlUrl;
@@ -445,7 +446,6 @@ public class ServiceHandler {
         cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ELEMENT_TYPE);
         pnrCancel.getCancelElements().add(cancelPNRElementType);
 
-
         amadeusLogger.debug("pnrCancelReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrCancel));
         //PNRReply pnrReply = new PNRReply();
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession());
@@ -528,12 +528,19 @@ public class ServiceHandler {
         return miniRuleGetFromPricingReply;
     }
 
-    public PNRReply cancelFullPNR(String pnr, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper){
+    public PNRReply cancelFullPNR(String pnr, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper,Boolean setReservationInfo){
         logger.debug("cancelFullPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
-
-        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
-
         PNRCancel pnrCancel = new PNRCancel();
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        if(setReservationInfo) {
+            ReservationControlInformationDetailsTypeI reservationControlInformationDetailsTypeI = new ReservationControlInformationDetailsTypeI();
+            reservationControlInformationDetailsTypeI.setControlNumber(pnr);
+            ReservationControlInformationType reservationControlInformationType = new ReservationControlInformationType();
+            reservationControlInformationType.setReservation(reservationControlInformationDetailsTypeI);
+            pnrCancel.setReservationInfo(reservationControlInformationType);
+        }
+
+
         OptionalPNRActionsType pnrActionsType = new OptionalPNRActionsType();
         pnrActionsType.getOptionCode().add(BigInteger.valueOf(11));
         pnrCancel.setPnrActions(pnrActionsType);
@@ -550,6 +557,17 @@ public class ServiceHandler {
         return pnrReply;
 
     }
+
+    public TicketProcessEDocReply ticketProcessEDoc(List<String> tickets,AmadeusSessionWrapper amadeusSessionWrapper){
+        logger.debug("ticketProcessEdoc called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketProcessEDoc ticketProcessEDocRQ = new RefundTicket().getTicketProcessEdocRQ(tickets);
+        amadeusLogger.debug("ticketProcessEDocRQ " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketProcessEDocRQ));
+        TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDocRQ,amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("ticketProcessEDocResponse " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketProcessEDocReply));
+        return ticketProcessEDocReply;
+    }
+
     public TicketCancelDocumentReply ticketCancelDocument(String pnr, List<String> ticketsList, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper){
         logger.debug("Ticket cancel document called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
 
@@ -566,3 +584,4 @@ public class ServiceHandler {
 
     }
 }
+
