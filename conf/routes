@@ -52,5 +52,5 @@ POST  /commitBooking               @controllers.Application.commitBooking()
 #Refund
 POST  /checkRefundEligibility       @controllers.Application.checkRefundEligibiliy()
 POST  /processFullRefund            @controllers.Application.processFullRefund()
-POST  /checkPartRefundElig          @controllers.Application.checkPartRefundEligibility()
+POST  /checkPartRefundEligibility   @controllers.Application.checkPartRefundEligibility()
 POST  /processPartialRefund         @controllers.Application.processPartialRefund()

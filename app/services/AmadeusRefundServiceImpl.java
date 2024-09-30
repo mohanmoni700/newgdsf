@@ -287,7 +287,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                     Boolean notUsed = ticketProcessEDocReply.getDocGroup().stream().flatMap(docGroup ->
                                     docGroup.getDocDetailsGroup().stream()).flatMap(docDetailsGroup -> docDetailsGroup.getCouponGroup().stream()).
                             flatMap(couponGroup -> couponGroup.getCouponInfo().getCouponDetails().stream()).
-                            allMatch(couponInformationDetailsTypeI -> couponInformationDetailsTypeI.getCpnStatus().equalsIgnoreCase("I"));
+                           anyMatch(couponInformationDetailsTypeI -> couponInformationDetailsTypeI.getCpnStatus().equalsIgnoreCase("I"));
                     if (notUsed) {
                         //process initRefund.
                         amaTicketInitRefundRS = refundServiceHandler.ticketInitRefund(refundticketList, amadeusSessionWrapper,searchOfficeId);
@@ -322,15 +322,21 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                         docGroup.getDocDetailsGroup().stream()).flatMap(docDetailsGroup -> docDetailsGroup.getCouponGroup().stream()).
                                 flatMap(couponGroup -> couponGroup.getCouponInfo().getCouponDetails().stream()).
                                 allMatch(couponInformationDetailsTypeI -> couponInformationDetailsTypeI.getCpnStatus().equalsIgnoreCase("B"));
+                        Boolean refunded = ticketProcessEDocReply.getDocGroup().stream().flatMap(docGroup ->
+                                        docGroup.getDocDetailsGroup().stream()).flatMap(docDetailsGroup -> docDetailsGroup.getCouponGroup().stream()).
+                                flatMap(couponGroup -> couponGroup.getCouponInfo().getCouponDetails().stream()).
+                                allMatch(couponInformationDetailsTypeI -> couponInformationDetailsTypeI.getCpnStatus().equalsIgnoreCase("RF"));
                         ErrorMessage errorMessage = new ErrorMessage();
                         errorMessage.setGdsPNR(gdsPnr);
                         if(airportControl)
                             errorMessage.setMessage("Check with Airport Control. Refund is not possible");
                         if(used)
                             errorMessage.setMessage("Ticket is Used. Refund is not possible");
+                        if(refunded)
+                            errorMessage.setMessage("Ticket is Refunded");
                         ticketCheckEligibilityRes.setMessage(errorMessage);
                         ticketCheckEligibilityRes.setStatus(Boolean.FALSE);
-                        ticketCheckEligibilityRes.setRefundableAmount(new BigDecimal(0));
+
                     }
 
                 }
@@ -394,7 +400,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                     for(RefundDetailsLightType.Contracts.Contract contract:contracts){
                                         List<DocumentAndCouponInformationType> documentAndCouponInformations = contract.getDocumentAndCouponInformation();
                                         for(DocumentAndCouponInformationType documentAndCouponInformation : documentAndCouponInformations ){
-                                            refundedTickets.add(documentAndCouponInformation.getDocumentNumber().toString());
+                                            refundedTickets.add(documentAndCouponInformation.getDocumentNumber().getNumber().toString());
                                         }
                                     }
                                 }
@@ -410,6 +416,30 @@ public class AmadeusRefundServiceImpl implements RefundService{
                             pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
                             ticketProcessRefundRes.setStatus(Boolean.FALSE);
                         }
+                    }else{
+                        Boolean airportControl = ticketProcessEDocReply.getDocGroup().stream().flatMap(docGroup ->
+                                        docGroup.getDocDetailsGroup().stream()).flatMap(docDetailsGroup -> docDetailsGroup.getCouponGroup().stream()).
+                                flatMap(couponGroup -> couponGroup.getCouponInfo().getCouponDetails().stream()).
+                                allMatch(couponInformationDetailsTypeI -> couponInformationDetailsTypeI.getCpnStatus().equalsIgnoreCase("AL"));
+                        Boolean used = ticketProcessEDocReply.getDocGroup().stream().flatMap(docGroup ->
+                                        docGroup.getDocDetailsGroup().stream()).flatMap(docDetailsGroup -> docDetailsGroup.getCouponGroup().stream()).
+                                flatMap(couponGroup -> couponGroup.getCouponInfo().getCouponDetails().stream()).
+                                allMatch(couponInformationDetailsTypeI -> couponInformationDetailsTypeI.getCpnStatus().equalsIgnoreCase("B"));
+                        Boolean refunded = ticketProcessEDocReply.getDocGroup().stream().flatMap(docGroup ->
+                                        docGroup.getDocDetailsGroup().stream()).flatMap(docDetailsGroup -> docDetailsGroup.getCouponGroup().stream()).
+                                flatMap(couponGroup -> couponGroup.getCouponInfo().getCouponDetails().stream()).
+                                allMatch(couponInformationDetailsTypeI -> couponInformationDetailsTypeI.getCpnStatus().equalsIgnoreCase("RF"));
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setGdsPNR(gdsPnr);
+                        if(airportControl)
+                            errorMessage.setMessage("Check with Airport Control. Refund is not possible");
+                        if(used)
+                            errorMessage.setMessage("Ticket is Used. Refund is not possible");
+                        if(refunded)
+                            errorMessage.setMessage("Ticket is Refunded");
+                        ticketProcessRefundRes.setMessage(errorMessage);
+                        ticketProcessRefundRes.setStatus(Boolean.FALSE);
+
                     }
 
                 }
