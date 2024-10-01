@@ -260,7 +260,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         pricingInformation.setTotalPrice(totalFare);
         pricingInformation.setTotalPriceValue(totalFare);
         pricingInformation.setTotalCalculatedValue(totalFare);
-
+        pricingInformation.setPriceChanged(Boolean.FALSE);
         pricingInformation.setLCC(journeyDetails.getAttr().getIsLCC());
         pricingInformation.setPricingOfficeId(TraveloMatrixConstants.tmofficeId);
         List<PassengerTax> passengerTaxesList = new ArrayList<>();

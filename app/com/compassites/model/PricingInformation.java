@@ -72,6 +72,8 @@ public class PricingInformation {
 
 	private BigDecimal returnTotalBasePrice;
 
+	private Boolean isPriceChanged;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
@@ -79,6 +81,14 @@ public class PricingInformation {
 		adtBasePrice = new BigDecimal(0);
 		chdBasePrice = new BigDecimal(0);
 		infBasePrice = new BigDecimal(0);
+	}
+
+	public Boolean getPriceChanged() {
+		return isPriceChanged;
+	}
+
+	public void setPriceChanged(Boolean priceChanged) {
+		isPriceChanged = priceChanged;
 	}
 
 	public BigDecimal getOnwardTotalBasePrice() {
