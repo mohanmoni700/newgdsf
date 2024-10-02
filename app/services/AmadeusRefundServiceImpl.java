@@ -166,6 +166,12 @@ public class AmadeusRefundServiceImpl implements RefundService{
             }
         } catch (Exception e) {
             logger.debug("An exception occured during CheckEligibility of TicketRefund"+ e.getMessage() );
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setProvider("Amadeus");
+            errorMessage.setGdsPNR(gdsPnr);
+            errorMessage.setMessage(e.getMessage());
+            ticketCheckEligibilityRes.setMessage(errorMessage);
+            ticketCheckEligibilityRes.setStatus(Boolean.FALSE);
             e.printStackTrace();
         }finally {
             serviceHandler.logOut(amadeusSessionWrapper);
@@ -245,8 +251,13 @@ public class AmadeusRefundServiceImpl implements RefundService{
                 pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
             }
         } catch (Exception e) {
-            ticketProcessRefundRes.setStatus(Boolean.FALSE);
             logger.debug("An exception occured during CheckEligibility of TicketRefund"+ e.getMessage() );
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setProvider("Amadeus");
+            errorMessage.setGdsPNR(gdsPnr);
+            errorMessage.setMessage(e.getMessage());
+            ticketProcessRefundRes.setMessage(errorMessage);
+            ticketProcessRefundRes.setStatus(Boolean.FALSE);
             e.printStackTrace();
 
         }finally {
@@ -346,6 +357,12 @@ public class AmadeusRefundServiceImpl implements RefundService{
             }
         } catch (Exception e) {
             logger.debug("An exception occured during CheckEligibility of TicketRefund"+ e.getMessage() );
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setProvider("Amadeus");
+            errorMessage.setGdsPNR(gdsPnr);
+            errorMessage.setMessage(e.getMessage());
+            ticketCheckEligibilityRes.setMessage(errorMessage);
+            ticketCheckEligibilityRes.setStatus(Boolean.FALSE);
             e.printStackTrace();
         }finally {
             serviceHandler.logOut(amadeusSessionWrapper);
@@ -451,8 +468,13 @@ public class AmadeusRefundServiceImpl implements RefundService{
                 ticketProcessRefundRes.setStatus(Boolean.FALSE);
             }
         } catch (Exception e) {
-            ticketProcessRefundRes.setStatus(Boolean.FALSE);
             logger.debug("An exception occured during CheckEligibility of TicketRefund"+ e.getMessage() );
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setProvider("Amadeus");
+            errorMessage.setGdsPNR(gdsPnr);
+            errorMessage.setMessage(e.getMessage());
+            ticketProcessRefundRes.setMessage(errorMessage);
+            ticketProcessRefundRes.setStatus(Boolean.FALSE);
             e.printStackTrace();
 
         }finally {
