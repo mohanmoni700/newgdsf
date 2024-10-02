@@ -398,6 +398,8 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                 for(AMATicketProcessRefundRS.FunctionalData.ContractBundle contractBundle:contractBundles){
                                     List<RefundDetailsLightType.Contracts.Contract> contracts = contractBundle.getRefundDetails().getContracts().getContract();
                                     for(RefundDetailsLightType.Contracts.Contract contract:contracts){
+                                        totalRefundable = totalRefundable.add(contract.getRefundable().getAmount());
+                                        ticketProcessRefundRes.setCurrency(contract.getRefundable().getCurrencyCode());
                                         List<DocumentAndCouponInformationType> documentAndCouponInformations = contract.getDocumentAndCouponInformation();
                                         for(DocumentAndCouponInformationType documentAndCouponInformation : documentAndCouponInformations ){
                                             refundedTickets.add(documentAndCouponInformation.getDocumentNumber().getNumber().toString());
@@ -408,6 +410,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
 //                                if(cancelFullPNR.getGeneralErrorInfo().size() == 0){
 //                                    logger.debug("PNR Cancelled for PNR:",gdsPnr);
 //                                }
+                                ticketProcessRefundRes.setRefundableAmount(totalRefundable.toString());
                                 ticketProcessRefundRes.setStatus(Boolean.TRUE);
                                 ticketProcessRefundRes.setRefTicketsList(refundedTickets);
                             }
