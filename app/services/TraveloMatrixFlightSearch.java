@@ -80,7 +80,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
                 if (response.getStatus()) {
                     travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
-                    AirSolution airSolution = getAirSolution(response);
+                    AirSolution airSolution = getAirSolution(response,searchParameters.getJourneyType().toString());
                     sr = new SearchResponse();
                     sr.setFlightSearchOffice(getOfficeList().get(0));
                     sr.setAirSolution(airSolution);
@@ -118,19 +118,19 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         return lfs;
     }
 
-    public AirSolution getAirSolution(TravelomatrixSearchReply response) {
+    public AirSolution getAirSolution(TravelomatrixSearchReply response,String journeyType) {
         AirSolution airSolution = new AirSolution();
-        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = getFlightIternary(response.getSearch().getFlightDataList());
+        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = getFlightIternary(response.getSearch().getFlightDataList(),journeyType);
         airSolution.setNonSeamenHashMap(nonSeamenHashMap);
         return airSolution;
     }
 
-    public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList) {
+    public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList,String journyeType) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try {
             int maxResults = Play.application().configuration().getInt("travelomatrix.noOfSearchResults");
             List<List<JourneyList>> journeyList = flightDataList.getJourneyList();
-            if (journeyList.size() > 1) {
+            if (journeyList.size() > 1 && journyeType.equalsIgnoreCase("ROUND_TRIP")) {
                 //indian Domestic Round trip
                 List<JourneyList> onWardjourneyList = journeyList.get(0);
                 List<JourneyList> returnJourneyList = journeyList.get(1);
@@ -187,40 +187,46 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                         }
                     }
                 }
-            }else {
+            }else if(journyeType.equalsIgnoreCase("ONE_WAY") || journyeType.equalsIgnoreCase("MULTI_CITY")){
                 int index = 0;
                 for (List<JourneyList> journey : journeyList) {
                     for (JourneyList journeyDetails : journey) {
-                        if (index == maxResults) {
-                            break;
-                        } else {
-                            index++;
-                        }
-                        FlightItinerary flightItinerary = new FlightItinerary();
-                        List<Journey> consolidatedJourney = new LinkedList<>();
-                        if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
-                            continue;
-                        }
-                        if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
-                            continue;
-                        }
-                        consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
-                        flightItinerary.setJourneyList(consolidatedJourney);
-                        flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
-                        flightItinerary.setPassportMandatory(Boolean.FALSE);
-                        PricingInformation pricingInformation = getPricingInformation(journeyDetails);
-                        flightItinerary.setPricingInformation(pricingInformation);
-                        if(journeyDetails.getAttr() != null) {
-                            flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
-                            flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
-                        }
-                        flightItinerary.setResultToken(journeyDetails.getResultToken());
-                        if (journeyDetails.getAttr().getIsLCC() != null)
-                            flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
-                        else
-                            flightItinerary.setIsLCC(false);
+                        if((journeyDetails.getFlightDetails().getDetails().size() >1 &&
+                                journyeType.equalsIgnoreCase("MULTI_CITY") )||
+                                journyeType.equalsIgnoreCase("ONE_WAY")   )
+                        {
+                            if (index == maxResults) {
+                                break;
+                            } else {
+                                index++;
+                            }
+                            FlightItinerary flightItinerary = new FlightItinerary();
+                            List<Journey> consolidatedJourney = new LinkedList<>();
+                            if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
+                                continue;
+                            }
+                            if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
+                                continue;
+                            }
+                            consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
+                            flightItinerary.setJourneyList(consolidatedJourney);
+                            flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
+                            flightItinerary.setPassportMandatory(Boolean.FALSE);
+                            PricingInformation pricingInformation = getPricingInformation(journeyDetails);
+                            flightItinerary.setPricingInformation(pricingInformation);
+                            if(journeyDetails.getAttr() != null) {
+                                flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
+                                flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
+                            }
+                            flightItinerary.setResultToken(journeyDetails.getResultToken());
+                            if (journeyDetails.getAttr().getIsLCC() != null)
+                                flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
+                            else
+                                flightItinerary.setIsLCC(false);
 
-                        flightItineraryHashMap.put(flightItinerary.hashCode()+index, flightItinerary);
+                            flightItineraryHashMap.put(flightItinerary.hashCode()+index, flightItinerary);
+                        }
+
                     }
                 }
             }
@@ -328,6 +334,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         //pricingInformation.setTotalCalculatedValue(new BigDecimal(onwardPrice.getTotalDisplayFare()+returnPrice.getTotalDisplayFare()+onwardPrice.getPriceBreakup().getTax() ));
         pricingInformation.setTotalBasePrice(new BigDecimal(onwardPrice.getPriceBreakup().getBasicFare()+returnPrice.getPriceBreakup().getBasicFare()));
         pricingInformation.setLCC(islcc);
+        pricingInformation.setPriceChanged(Boolean.FALSE);
         pricingInformation.setPricingOfficeId(TraveloMatrixConstants.tmofficeId);
         List<PassengerTax> passengerTaxesList = new ArrayList<>();
         ADT onwardAdt = onwardPrice.getPassengerBreakup().getADT();
