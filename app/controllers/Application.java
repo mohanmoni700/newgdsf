@@ -67,7 +67,8 @@ public class Application {
     @Autowired
     private RefundServiceWrapper refundServiceWrapper;
 
-    TicketCancelDocumentService amadeusTicketCancelDocumentServiceImpl;
+    @Autowired
+    private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
 
 
     static Logger logger = LoggerFactory.getLogger("gds");
@@ -438,8 +439,7 @@ public class Application {
             ticketsList.add(ticketNode.asText());
         }
         logger.debug("Cancel ticket document called : " + pnr + " provider : " + provider);
-        TicketCancelDocumentResponse ticketCancelDocumentResponse = new TicketCancelDocumentResponse();
-        ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr,ticketsList);
+        TicketCancelDocumentResponse  ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr,ticketsList);
 
         logger.debug("cancel ticket document response " + Json.toJson(ticketCancelDocumentResponse));
         return ok(Json.toJson(ticketCancelDocumentResponse));
