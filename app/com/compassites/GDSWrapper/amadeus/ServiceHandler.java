@@ -568,13 +568,13 @@ public class ServiceHandler {
         return ticketProcessEDocReply;
     }
 
-    public TicketCancelDocumentReply ticketCancelDocument(String pnr, List<String> ticketsList, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper){
+    public TicketCancelDocumentReply ticketCancelDocument(String pnr, List<String> ticketsList, PNRReply gdsPNRReply, String delOficID, AmadeusSessionWrapper amadeusSessionWrapper){
         logger.debug("Ticket cancel document called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
 
         // Creating XML request for ticket cancel document
-        TicketCancelDocument ticketCancelDocument  = new TicketCancelDocumentHandler().ticketCancelDocument(ticketsList,gdsPNRReply);
+        TicketCancelDocument ticketCancelDocument  = new TicketCancelDocumentHandler().ticketCancelDocument(ticketsList,gdsPNRReply,delOficID);
 
         amadeusLogger.debug("ticketCancelDocReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketCancelDocument));
         TicketCancelDocumentReply ticketCancelDocumentReply = mPortType.ticketCancelDocument(ticketCancelDocument, amadeusSessionWrapper.getmSession());

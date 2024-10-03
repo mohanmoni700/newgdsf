@@ -483,7 +483,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
         String updatedBagunits = null;
         String pattern = "^KG\\d{3}$";
-        if(baggage.contains("Kg") || baggage.contains("Kilograms") || baggage.contains("kg")){
+        if(baggage != null && (baggage.contains("Kg") || baggage.contains("Kilograms") || baggage.contains("kg"))){
             updatedBagunits = baggage.replaceAll("(?i)\\b(kilograms|kg)\\b", "KG");
             if(updatedBagunits.contains("(")){
                 int index =   updatedBagunits.indexOf('(');
@@ -491,9 +491,9 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                     updatedBagunits =   updatedBagunits.substring(0,index).trim();
                 }
             }
-        }else if(baggage.contains("Piece")){
+        }else if(baggage != null && baggage.contains("Piece")){
             updatedBagunits = baggage.replaceAll("^0+", "").replaceAll("\\s*Piece\\s*", " PC");
-        }else if (baggage.matches(pattern)) {
+        }else if (baggage != null && baggage.matches(pattern)) {
             String number = baggage.replaceAll("[^0-9]", "");  // Extract numeric part
             updatedBagunits = Integer.parseInt(number) + " KG";  // Combine with "KG"
         }else{
