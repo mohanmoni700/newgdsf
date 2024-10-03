@@ -17,7 +17,7 @@ import java.util.List;
 public class TicketCancelDocumentHandler {
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
-    public TicketCancelDocument ticketCancelDocument(List<String> ticketsList, PNRReply gdsPNRReply) {
+    public TicketCancelDocument ticketCancelDocument(List<String> ticketsList, PNRReply gdsPNRReply, String delOficID) {
         TicketCancelDocument ticketCancelDocument = new TicketCancelDocument();
         List<TicketNumberTypeI> ticketNumberList = ticketCancelDocument.getDocumentNumberDetails();
         for(String ticketNumber : ticketsList){
@@ -37,7 +37,7 @@ public class TicketCancelDocumentHandler {
         OriginatorIdentificationDetailsType originatorIdentificationDetailsType = new OriginatorIdentificationDetailsType();
 
         String officeId = originatorIdentificationDetails.getInHouseIdentification1();
-        originatorIdentificationDetailsType.setInHouseIdentification2(officeId);
+        originatorIdentificationDetailsType.setInHouseIdentification2(delOficID);
         additionalBusinessSourceInformationType.setOriginatorDetails(originatorIdentificationDetailsType);
         ticketCancelDocument.setTargetOfficeDetails(additionalBusinessSourceInformationType);
 

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public interface TicketCancelDocumentService {
     public TicketCancelDocumentResponse ticketCancelDocument(String pnr, List<String> ticketsList);
 }
