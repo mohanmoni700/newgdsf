@@ -27,6 +27,10 @@ public class Journey
 
     private String provider;
 
+    private MnrSearchFareRules mnrSearchFareRules;
+
+    private MnrSearchBaggage mnrSearchBaggage;
+
     public Integer getHashCode() {
         return hashCode;
     }
@@ -136,4 +140,21 @@ public class Journey
     public void setProvider(String provider) {
         this.provider = provider;
     }
+
+    public MnrSearchFareRules getMnrSearchFareRules() {
+        return mnrSearchFareRules;
+    }
+
+    public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
+        this.mnrSearchFareRules = mnrSearchFareRules;
+    }
+
+    public MnrSearchBaggage getMnrSearchBaggage() {
+        return mnrSearchBaggage;
+    }
+
+    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
+        this.mnrSearchBaggage = mnrSearchBaggage;
+    }
+
 }

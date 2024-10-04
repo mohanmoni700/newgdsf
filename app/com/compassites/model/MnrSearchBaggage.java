@@ -32,15 +32,8 @@ public class MnrSearchBaggage implements Serializable {
     public static Map<String, String> baggageCodes = new HashMap<>();
 
     static {
-        baggageCodes.put("700", "KG");
-        baggageCodes.put("K", "KG");
-        baggageCodes.put("701", "Lb");
-        baggageCodes.put("L", "Lb");
-        baggageCodes.put("C", "Special Charge");
         baggageCodes.put("N", "PC");
-        baggageCodes.put("S", "Size");
-        baggageCodes.put("V", "Value");
-        baggageCodes.put("W", "Weight");
+        baggageCodes.put("W", "KG");
     }
 
 }

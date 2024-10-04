@@ -27,7 +27,6 @@ public class FlightItinerary implements Serializable{
         nonSeamenJourneyList = new ArrayList<Journey>();
         pricingInformation = new PricingInformation();
         seamanPricingInformation = new PricingInformation();
-        mnrSearchFareRules = new MnrSearchFareRules();
     }
     
     private long id;
@@ -71,25 +70,25 @@ public class FlightItinerary implements Serializable{
 
     private String fareType;
 
-    private MnrSearchFareRules mnrSearchFareRules;
-
-    private MnrSearchBaggage mnrSearchBaggage;
-
-    public MnrSearchFareRules getMnrSearchFareRules() {
-        return mnrSearchFareRules;
-    }
-
-    public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
-        this.mnrSearchFareRules = mnrSearchFareRules;
-    }
-
-    public MnrSearchBaggage getMnrSearchBaggage() {
-        return mnrSearchBaggage;
-    }
-
-    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
-        this.mnrSearchBaggage = mnrSearchBaggage;
-    }
+//    private MnrSearchFareRules mnrSearchFareRules;
+//
+//    private MnrSearchBaggage mnrSearchBaggage;
+//
+//    public MnrSearchFareRules getMnrSearchFareRules() {
+//        return mnrSearchFareRules;
+//    }
+//
+//    public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
+//        this.mnrSearchFareRules = mnrSearchFareRules;
+//    }
+//
+//    public MnrSearchBaggage getMnrSearchBaggage() {
+//        return mnrSearchBaggage;
+//    }
+//
+//    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
+//        this.mnrSearchBaggage = mnrSearchBaggage;
+//    }
 
     public Boolean getRefundable() {
         return isRefundable;
