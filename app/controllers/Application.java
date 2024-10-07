@@ -418,6 +418,7 @@ public class Application {
         String appRef = json.get("appRef").asText();
         if(PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)){
             updatePNRResponse = new TraveloMatrixBookingServiceImpl().getUpdatePnr(appRef);
+
         }
         return ok(Json.toJson(updatePNRResponse));
     }
