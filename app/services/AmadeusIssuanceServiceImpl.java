@@ -6,7 +6,6 @@ import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.ttktir_09_1_1a.DocIssuanceIssueTicketReply;
-import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
 import com.compassites.GDSWrapper.amadeus.PNRAddMultiElementsh;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
@@ -109,9 +108,7 @@ public class AmadeusIssuanceServiceImpl {
             if (segmentStatusList.contains("HX")) {
                 issuanceResponse.setErrorCode("INFORMATIVE_SEGMENT");
                 issuanceResponse.setSuccess(true);
-                ErrorMessage errorMessage = ErrorMessageHelper
-                        .createErrorMessage("error",
-                                ErrorMessage.ErrorType.ERROR, "Amadeus");
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "Amadeus");
                 issuanceResponse.setErrorMessage(errorMessage);
                 return issuanceResponse;
             }

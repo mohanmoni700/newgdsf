@@ -1,9 +1,6 @@
 package controllers;
 
-
-import com.amadeus.xml.qdqlrr_03_1_1a.QueueListReply;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
-import com.compassites.GDSWrapper.mystifly.AirTripDetailsClient;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.ResponseModels.UpdatePNR.UpdatePNRResponse;
@@ -11,10 +8,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import dto.reissue.ReIssueTicketRequest;
 import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
-import org.hamcrest.core.Is;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +19,7 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import services.*;
+import services.reissue.ReIssueService;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -56,13 +53,16 @@ public class Application {
     private QueueListServiceWrapper queueListServiceWrapper;
 
     @Autowired
-    AmadeusBookingServiceImpl amadeusBookingService;
+    private AmadeusBookingServiceImpl amadeusBookingService;
 
     @Autowired
-    MystiflyBookingServiceImpl mystiflyBookingService;
+    private MystiflyBookingServiceImpl mystiflyBookingService;
 
     @Autowired
-    TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
+    private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
+
+    @Autowired
+    private ReIssueService reIssueService;
 
     @Autowired
     private RefundServiceWrapper refundServiceWrapper;
@@ -443,6 +443,20 @@ public class Application {
 
         logger.debug("cancel ticket document response " + Json.toJson(ticketCancelDocumentResponse));
         return ok(Json.toJson(ticketCancelDocumentResponse));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result reIssueTicket() {
+        JsonNode json = request().body().asJson();
+
+        ReIssueTicketRequest reIssueTicketRequest = Json.fromJson(json, ReIssueTicketRequest.class);
+        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueTicketRequest));
+
+        //Complete the response Body later
+        SearchResponse reIssueTicketResponse = reIssueService.reIssueTicket(reIssueTicketRequest);
+        logger.debug("ReissueTicket response Body{}", Json.toJson(reIssueTicketResponse));
+
+        return ok(Json.toJson(reIssueTicketResponse));
     }
 
 

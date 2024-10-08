@@ -1,20 +1,16 @@
-package com.compassites.model;
+package dto.reissue;
 
+import com.compassites.model.AirSolution;
+import com.compassites.model.ErrorMessage;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import models.FlightSearchOffice;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: Renu
- * Date: 5/22/14
- * Time: 2:14 PM
- * To change this template use File | Settings | File Templates.
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SearchResponse {
+public class ReIssueSearchResponse {
+
     private AirSolution airSolution;
     //private AirSolution airSolutionReturn;
     private String provider; //Amedeus or Travelport (Galileo)
@@ -25,10 +21,10 @@ public class SearchResponse {
 
     private boolean isReIssueSearch;
 
-    public SearchResponse() {
-        airSolution = new AirSolution();
-        errorMessageList = new ArrayList<>();
-    }
+//    public ReIssueSearchResponse() {
+//        airSolution = new AirSolution();
+//        errorMessageList = new ArrayList<>();
+//    }
 
     public String getProvider() {
         return provider;
@@ -66,12 +62,12 @@ public class SearchResponse {
         isReIssueSearch = reIssueSearch;
     }
 
+    @Override
+    public String toString() {
+        return "SearchResponse [airSolution=" + airSolution + ", provider=" + provider + ", errorMessageList="
+                + errorMessageList + "]";
+    }
 
-	@Override
-	public String toString() {
-		return "SearchResponse [airSolution=" + airSolution + ", provider=" + provider + ", errorMessageList="
-				+ errorMessageList + "]";
-	}
-    
-    
+
+
 }

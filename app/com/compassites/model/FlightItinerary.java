@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 
+import com.compassites.model.amadeus.reissue.ReIssuePricingInformation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.pojomatic.Pojomatic;
@@ -46,6 +47,8 @@ public class FlightItinerary implements Serializable{
     private PricingInformation pricingInformation;
     
     private PricingInformation seamanPricingInformation;
+
+    private ReIssuePricingInformation reIssuePricingInformation;
     
     @Property
     private List<Journey> journeyList;
@@ -194,6 +197,14 @@ public class FlightItinerary implements Serializable{
 	public void setFareSourceCode(String fareSourceCode) {
 		this.fareSourceCode = fareSourceCode;
 	}
+
+    public ReIssuePricingInformation getReIssuePricingInformation() {
+        return reIssuePricingInformation;
+    }
+
+    public void setReIssuePricingInformation(ReIssuePricingInformation reIssuePricingInformation) {
+        this.reIssuePricingInformation = reIssuePricingInformation;
+    }
     
     /* @Override
     public boolean equals(Object obj) {
