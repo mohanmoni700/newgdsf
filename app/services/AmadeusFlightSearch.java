@@ -267,8 +267,8 @@ public class AmadeusFlightSearch implements FlightSearch{
                     flightItinerary.setPricingInformation(getPricingInformation(recommendation));
                     flightItinerary.getPricingInformation().setGdsCurrency(currency);
                     flightItinerary.getPricingInformation().setPricingOfficeId(office.getOfficeId());
-//                    flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
-//                    flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
+                    flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
+                    flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
                     List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
                     flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList, mnrGrp, baggageList);
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
@@ -282,7 +282,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         return flightItineraryHashMap;
     }
 
-    private MnrSearchFareRules createSearchFareRules(String mnrReferenceNumber, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp) {
+    private MnrSearchFareRules createSearchFareRules(ReferenceInfoType segmentRef, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp) {
 
         MnrSearchFareRules mnrSearchFareRules = new MnrSearchFareRules();
 
@@ -291,8 +291,18 @@ public class AmadeusFlightSearch implements FlightSearch{
         Boolean isChangeAllowedBeforeDeparture = false;
         Boolean isCancellationAllowedBeforeDeparture = false;
 
+
+        String referenceNumber = null;
+        for (ReferencingDetailsType191583C referencingDetail : segmentRef.getReferencingDetail()) {
+            if (referencingDetail.getRefQualifier().equalsIgnoreCase("M")) {
+                referenceNumber = String.valueOf(referencingDetail.getRefNumber());
+                break;
+            }
+        }
+
+        outerForLoop:
         for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails mnrDetails : mnrGrp.getMnrDetails()) {
-            if (mnrDetails.getMnrRef().getItemNumberDetails().get(0).getNumber().toString().equalsIgnoreCase(mnrReferenceNumber)) {
+            if (mnrDetails.getMnrRef().getItemNumberDetails().get(0).getNumber().toString().equalsIgnoreCase(referenceNumber)) {
                 for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails.CatGrp catGrp : mnrDetails.getCatGrp()) {
 
                     //Change fee is being set here (Category 31: Changes)
@@ -328,6 +338,9 @@ public class AmadeusFlightSearch implements FlightSearch{
                             }
                         }
                     }
+                    if(changeFeeBeforeDeparture != null && cancellationFeeBeforeDeparture != null ) {
+                        break outerForLoop;
+                    }
                 }
             }
         }
@@ -341,11 +354,19 @@ public class AmadeusFlightSearch implements FlightSearch{
         return mnrSearchFareRules;
     }
 
-    private MnrSearchBaggage createBaggageInformation(String baggageReferenceNumber, List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageListInfo) {
+    private MnrSearchBaggage createBaggageInformation(ReferenceInfoType segmentRef, List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageListInfo) {
 
         try {
             MnrSearchBaggage mnrSearchBaggage = new MnrSearchBaggage();
             mnrSearchBaggage.setProvider(AMADEUS.toString());
+
+            String baggageReferenceNumber = null;
+            for (ReferencingDetailsType191583C referencingDetail : segmentRef.getReferencingDetail()) {
+                if (referencingDetail.getRefQualifier().equalsIgnoreCase("B")) {
+                    baggageReferenceNumber = String.valueOf(referencingDetail.getRefNumber());
+                    break;
+                }
+            }
 
             String baggageAllowed = null;
 
@@ -369,33 +390,15 @@ public class AmadeusFlightSearch implements FlightSearch{
             return null;
         }
     }
-
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
 
         int flightIndexNumber = 0;
         int segmentIndex = 0;
 
-        String baggageReferenceNumber = null;
-        String mnrReferenceNumber = null;
-
-        for (ReferencingDetailsType191583C referencingDetail : segmentRef.getReferencingDetail()) {
-            if (referencingDetail.getRefQualifier().equalsIgnoreCase("B")) {
-                baggageReferenceNumber = String.valueOf(referencingDetail.getRefNumber());
-            } else if (referencingDetail.getRefQualifier().equalsIgnoreCase("M")) {
-                mnrReferenceNumber = String.valueOf(referencingDetail.getRefNumber());
-            }
-
-            if (baggageReferenceNumber != null && mnrReferenceNumber != null) {
-                break;
-            }
-        }
-
         for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
             //0 is for forward journey and refQualifier should be S for segment
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S")) {
                 Journey journey = new Journey();
-                journey.setMnrSearchBaggage(createBaggageInformation(baggageReferenceNumber, baggageList));
-                journey.setMnrSearchFareRules(createSearchFareRules(mnrReferenceNumber, mnrGrp));
                 journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue() - 1), recommendation);
                 if (!contextList.isEmpty()) {
                     setContextInformation(contextList, journey, segmentIndex);
