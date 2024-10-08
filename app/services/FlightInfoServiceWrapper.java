@@ -111,4 +111,8 @@ public class FlightInfoServiceWrapper {
 
 		return miniRule;
 	}
+
+	public void getExtraServicesfromTmx(String resultToken){
+		traveloMatrixFlightInfoServiceImpl.getExtraServicesfromTmx(resultToken);
+	}
 }

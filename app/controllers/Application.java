@@ -505,6 +505,14 @@ public class Application {
         return ok(Json.toJson(ticketProcessRefundRes));
     }
 
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result fetchTmxBaggage() {
+        JsonNode json = request().body().asJson();
+        String resultToken = json.get("resultToken").asText();
+        flightInfoService.getExtraServicesfromTmx(resultToken);
+        return ok(Json.toJson("OK"));
+    }
+
     public Result home(){
         return ok("GDS Service running.....");
     }
