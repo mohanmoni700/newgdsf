@@ -509,8 +509,8 @@ public class Application {
     public Result fetchTmxBaggage() {
         JsonNode json = request().body().asJson();
         String resultToken = json.get("resultToken").asText();
-        flightInfoService.getExtraServicesfromTmx(resultToken);
-        return ok(Json.toJson("OK"));
+        AncillaryServicesResponse ancillaryServicesResponse = flightInfoService.getExtraServicesfromTmx(resultToken);
+        return ok(Json.toJson(ancillaryServicesResponse));
     }
 
     public Result home(){
