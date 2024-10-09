@@ -6,10 +6,15 @@ import com.amadeus.xml.AmadeusWebServicesPT;
 import com.amadeus.xml._2010._06.ticketgtp_v3.*;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
+import com.amadeus.xml.fatceq_13_1_1a.TicketCheckEligibility;
+import com.amadeus.xml.fatcer_13_1_1a.TicketCheckEligibilityReply;
+import com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType;
 import com.amadeus.xml.flireq_07_1_1a.AirFlightInfo;
 import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply;
 import com.amadeus.xml.fmptbq_14_2_1a.FareMasterPricerTravelBoardSearch;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply;
+import com.amadeus.xml.fmtctq_18_2_1a.TicketATCShopperMasterPricerTravelBoardSearch;
+import com.amadeus.xml.fmtctr_18_2_1a.TicketATCShopperMasterPricerTravelBoardSearchReply;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_11_3_1a.OriginatorDetailsTypeI;
@@ -49,6 +54,7 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
+import dto.reissue.ReIssueTicketRequest;
 import models.AmadeusSessionWrapper;
 import models.FlightSearchOffice;
 import org.slf4j.Logger;
@@ -282,6 +288,7 @@ public class ServiceHandler {
         return pnrReply;
     }
 
+    //This method is used to get the information saved in the PNR params = num = GDS PNR
     public PNRReply retrivePNR(String num, AmadeusSessionWrapper amadeusSessionWrapper){
         //change here
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
@@ -528,6 +535,7 @@ public class ServiceHandler {
         return miniRuleGetFromPricingReply;
     }
 
+
     public PNRReply cancelFullPNR(String pnr, PNRReply gdsPNRReply, AmadeusSessionWrapper amadeusSessionWrapper,Boolean setReservationInfo){
         logger.debug("cancelFullPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
         PNRCancel pnrCancel = new PNRCancel();
@@ -581,6 +589,39 @@ public class ServiceHandler {
 
         amadeusLogger.debug("ticketCancelDocRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketCancelDocumentReply));
         return ticketCancelDocumentReply;
+
+    }
+
+    public TicketProcessEDocReply reIssueCheckTicketStatus(ReIssueTicketRequest reIssueTicketRequest, AmadeusSessionWrapper amadeusSessionWrapper) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketProcessEDoc ticketProcessEDocReq = ReIssueTicket.ReIssueCheckTicketStatus.createReissueTicketStatusCheck(reIssueTicketRequest);
+        amadeusLogger.info("ReIssueTicketStatusCheckRequest {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReq));
+        TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDocReq, amadeusSessionWrapper.getmSession());
+        amadeusLogger.info("ReIssueTicketStatusCheckReply {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
+        return ticketProcessEDocReply;
+
+    }
+
+    public TicketCheckEligibilityReply reIssueTicketCheckEligibility(ReIssueTicketRequest reIssueTicketRequest, AmadeusSessionWrapper amadeusSessionWrapper) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketCheckEligibility ticketCheckEligibility = ReIssueTicket.ReIssueCheckEligibility.createCheckEligibilityRequest(reIssueTicketRequest);
+        amadeusLogger.debug("ReIssueTicketCheckEligibilityRequest {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCheckEligibility));
+        TicketCheckEligibilityReply ticketCheckEligibilityReply = mPortType.ticketCheckEligibility(ticketCheckEligibility, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("ReIssueTicketCheckEligibilityReply {} SessionId: {}  \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCheckEligibilityReply));
+        return ticketCheckEligibilityReply;
+
+    }
+
+    public TicketATCShopperMasterPricerTravelBoardSearchReply reIssueATCAirlineSearch(ReIssueTicketRequest reissueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketATCShopperMasterPricerTravelBoardSearch reIssueATCSearchRequest = ReIssueTicket.ReIssueATCSearch.createReissueATCSearchRequest(reissueTicketRequest, allowedCarriers);
+        amadeusLogger.debug("ReIssueATCSearch Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(reIssueATCSearchRequest));
+        TicketATCShopperMasterPricerTravelBoardSearchReply reIssueATCSearchReply = mPortType.ticketATCShopperMasterPricerTravelBoardSearch(reIssueATCSearchRequest, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("ReIssueATCSearch Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(reIssueATCSearchReply));
+        return reIssueATCSearchReply;
 
     }
 }

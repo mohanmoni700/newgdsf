@@ -185,9 +185,10 @@ public class FlightSearchWrapper {
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         errorMessageList.addAll(searchResponse.getErrorMessageList());
                         AirSolution airSolution = new AirSolution();
+                        airSolution.setReIssueSearch(false);
                         airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
                         searchResponseCache.setAirSolution(airSolution);
-
+                        searchResponseCache.setReIssueSearch(false);
                         searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
                         //searchResponseList.add(searchResponseCache);
                         searchResponseCache.setErrorMessageList(errorMessageList);
@@ -249,7 +250,6 @@ public class FlightSearchWrapper {
         searchResponseList.add(searchResponse);
         logger.debug("***********SEARCH END***********");
         */
-        return ;
     }
 
     private boolean validResponse(SearchResponse response){

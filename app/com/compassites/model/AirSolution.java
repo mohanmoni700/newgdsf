@@ -24,6 +24,8 @@ public class AirSolution {
 
     private List<FlightItinerary> flightItineraryList;
 
+    private boolean isReIssueSearch;
+
     @JsonIgnore
     private ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap;
 
@@ -54,7 +56,15 @@ public class AirSolution {
         this.nonSeamenHashMap = nonSeamenHashMap;
     }
 
-	@Override
+    public boolean isReIssueSearch() {
+        return isReIssueSearch;
+    }
+
+    public void setReIssueSearch(boolean reIssueSearch) {
+        isReIssueSearch = reIssueSearch;
+    }
+
+    @Override
 	public String toString() {
 		return "AirSolution [flightItineraryList=" + flightItineraryList + ", seamenHashMap=" + seamenHashMap
 				+ ", nonSeamenHashMap=" + nonSeamenHashMap + "]";
