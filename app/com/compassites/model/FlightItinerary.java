@@ -2,7 +2,9 @@ package com.compassites.model;
 
 
 import com.compassites.model.amadeus.reissue.ReIssuePricingInformation;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
@@ -10,6 +12,7 @@ import org.pojomatic.annotations.Property;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,8 +36,18 @@ public class FlightItinerary implements Serializable{
     private long id;
     
     private boolean priceOnlyPTC;
-    
-//    private String provider; //travelport or amadeus
+
+    private ConcurrentHashMap<String, List<FlightItinerary>> groupingMap;
+
+    public ConcurrentHashMap<String, List<FlightItinerary>> getGroupingMap() {
+        return groupingMap;
+    }
+
+    public void setGroupingMap(ConcurrentHashMap<String, List<FlightItinerary>> groupingMap) {
+        this.groupingMap = groupingMap;
+    }
+
+    //    private String provider; //travelport or amadeus
 
     //private String amadeusOfficeId;
 
