@@ -340,7 +340,6 @@ public class FlightSearchWrapper {
                                 mainFlightItinerary.setResultToken(nonSeamenItinerary.getResultToken());
                                 mainFlightItinerary.setIsLCC(nonSeamenItinerary.getLCC());
                             }
-                            System.out.println("2");
                             List<Journey> journeyList  = new ArrayList<>();
                             for (Journey journey: nonSeamenItinerary.getJourneyList()) {
                                 Journey journey1 = new Journey();
@@ -348,16 +347,21 @@ public class FlightSearchWrapper {
                                 if(concurrentHashMap != null && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.size() >1) {
                                     List<Integer> hashCodes = concurrentHashMap.get(groupKey);
                                     List<FlightItinerary> flightItineraries = new ArrayList<>();
+                                    boolean isSkip = true;
                                     for (Integer integer : hashCodes) {
                                         FlightItinerary itinerary = nonSeamenFareHash.get(integer);
                                         if(itinerary!=null) {
-                                            FlightItinerary flightItinerary = new FlightItinerary();
-                                            BeanUtils.copyProperties(itinerary,flightItinerary);
-                                            flightItinerary.setGroupingMap(null);
-                                            flightItineraries.add(flightItinerary);
+                                            if(!isSkip) {
+                                                FlightItinerary flightItinerary = new FlightItinerary();
+                                                BeanUtils.copyProperties(itinerary, flightItinerary);
+                                                flightItinerary.setGroupingMap(null);
+                                                flightItineraries.add(flightItinerary);
+                                            } else {
+                                                isSkip = false;
+                                            }
                                         }
                                     }
-                                    if(flightItineraries.size() >1) {
+                                    if(flightItineraries.size() >=1) {
                                         ConcurrentHashMap<String, List<FlightItinerary>> stringListConcurrentHashMap = new ConcurrentHashMap<>();
                                         stringListConcurrentHashMap.put(groupKey, flightItineraries);
                                         mainFlightItinerary.setGroupingMap(stringListConcurrentHashMap);
@@ -414,16 +418,21 @@ public class FlightSearchWrapper {
                         if (concurrentHashMap != null && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.get(groupKey).size() > 1) {
                             List<Integer> hashCodes = concurrentHashMap.get(groupKey);
                             List<FlightItinerary> flightItineraries = new ArrayList<>();
+                            boolean isSkip = true;
                             for (Integer integer : hashCodes) {
                                 FlightItinerary itinerary = nonSeamenFareHash.get(integer);
                                 if(itinerary!=null) {
-                                    FlightItinerary flightItinerary = new FlightItinerary();
-                                    BeanUtils.copyProperties(itinerary,flightItinerary);
-                                    flightItinerary.setGroupingMap(null);
-                                    flightItineraries.add(flightItinerary);
+                                    if(!isSkip) {
+                                        FlightItinerary flightItinerary = new FlightItinerary();
+                                        BeanUtils.copyProperties(itinerary, flightItinerary);
+                                        flightItinerary.setGroupingMap(null);
+                                        flightItineraries.add(flightItinerary);
+                                    } else {
+                                        isSkip = false;
+                                    }
                                 }
                             }
-                            if(flightItineraries.size() >1) {
+                            if(flightItineraries.size() >=1) {
                                 /*flightItineraries.get(0).getPricingInformation().setTotalPriceValue(new BigDecimal(20000));
                                 System.out.println("1 "+flightItineraries.get(0).getPricingInformation().getTotalPriceValue());
                             flightItineraries.sort((o1,o2)->o1.getPricingInformation().getTotalPriceValue().compareTo(
