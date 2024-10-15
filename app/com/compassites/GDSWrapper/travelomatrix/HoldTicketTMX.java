@@ -114,8 +114,10 @@ public class HoldTicketTMX {
                     passenger.setIsLeadPax("");
 
                 List<String> baggage = new ArrayList<>();
-                baggage.add(traveller.getBaggageDetails().getBaggageId());
-                passenger.setBaggageId(baggage);
+                if(traveller.getBaggageDetails() != null) {
+                    baggage.add(traveller.getBaggageDetails().getBaggageId());
+                    passenger.setBaggageId(baggage);
+                }
                 passengerList.add(passenger);
             }
 
