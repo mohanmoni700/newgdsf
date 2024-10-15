@@ -2,6 +2,9 @@ package com.compassites.model;
 
 public class BaggageDetails{
 
+
+    private Long contactMasterId;
+
     private String baggageId;
 
     private String code;
@@ -60,6 +63,14 @@ public class BaggageDetails{
 
     public void setWeight(String weight) {
         this.weight = weight;
+    }
+
+    public Long getContactMasterId() {
+        return contactMasterId;
+    }
+
+    public void setContactMasterId(Long contactMasterId) {
+        this.contactMasterId = contactMasterId;
     }
 }
 

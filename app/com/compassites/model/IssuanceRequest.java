@@ -46,6 +46,16 @@ public class IssuanceRequest implements Serializable{
 
     private String reGdsPNR;
 
+    private List<BaggageDetails> baggageDetails;
+
+    public List<BaggageDetails> getBaggageDetails() {
+        return baggageDetails;
+    }
+
+    public void setBaggageDetails(List<BaggageDetails> baggageDetails) {
+        this.baggageDetails = baggageDetails;
+    }
+
     public String getReGdsPNR() {
         return reGdsPNR;
     }

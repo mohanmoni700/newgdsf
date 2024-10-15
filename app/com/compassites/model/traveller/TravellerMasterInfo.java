@@ -1,5 +1,6 @@
 package com.compassites.model.traveller;
 
+import com.compassites.model.BaggageDetails;
 import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.PassengerTypeCode;
@@ -57,6 +58,16 @@ public class TravellerMasterInfo {
     private String appReference;
 
     private String returnAppRef;
+
+    private List<BaggageDetails> baggageDetails;
+
+    public List<BaggageDetails> getBaggageDetails() {
+        return baggageDetails;
+    }
+
+    public void setBaggageDetails(List<BaggageDetails> baggageDetails) {
+        this.baggageDetails = baggageDetails;
+    }
 
     public String getReturnAppRef() {
         return returnAppRef;
