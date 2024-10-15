@@ -143,9 +143,11 @@ public class BookingFlights {
                 passenger.setIsLeadPax("");
 
             List<String> baggage = new ArrayList<>();
-            for(BaggageDetails baggageDetails : baggageDetailsList){
-                if(traveller.getContactId().equals(baggageDetails.getContactMasterId())){
-                     baggage.add(baggageDetails.getBaggageId());
+            if(baggageDetailsList != null) {
+                for (BaggageDetails baggageDetails : baggageDetailsList) {
+                    if (traveller.getContactId().equals(baggageDetails.getContactMasterId())) {
+                        baggage.add(baggageDetails.getBaggageId());
+                    }
                 }
             }
             passenger.setBaggageId(baggage);

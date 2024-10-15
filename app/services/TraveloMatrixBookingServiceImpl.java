@@ -246,6 +246,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setChangedPrice(new BigDecimal(updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getTotalDisplayFare()));
        }
         pnrResponse.setFlightAvailable(availbleFlights);
+        pnrResponse.setSearchResultToken(travellerMasterInfo.getItinerary().getResultToken());
+        pnrResponse.setReturnSearchResultToken(travellerMasterInfo.getItinerary().getReturnResultToken());
         pnrResponse.setResultToken(updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getResultToken());
         Price price = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice();
         PricingInformation pricingInformation = new PricingInformation();
@@ -375,6 +377,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 tickenetNumberMap.put(passengerType,ticketNumber);
             }
         pnrResponse.setTicketNumberMap(tickenetNumberMap);
+        pnrResponse.setSearchResultToken(travellerMasterInfo.getSearchResultToken());
+        pnrResponse.setReturnSearchResultToken(travellerMasterInfo.getReturnSearchResultToken());
         return pnrResponse;
     }
 

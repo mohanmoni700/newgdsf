@@ -59,6 +59,27 @@ public class TravellerMasterInfo {
 
     private String returnAppRef;
 
+    private String searchResultToken;
+
+    public String getSearchResultToken() {
+        return searchResultToken;
+    }
+
+    public void setSearchResultToken(String searchResultToken) {
+        this.searchResultToken = searchResultToken;
+    }
+
+    public String getReturnSearchResultToken() {
+        return returnSearchResultToken;
+    }
+
+    public void setReturnSearchResultToken(String returnSearchResultToken) {
+        this.returnSearchResultToken = returnSearchResultToken;
+    }
+
+    private String returnSearchResultToken;
+
+
     private List<BaggageDetails> baggageDetails;
 
     public List<BaggageDetails> getBaggageDetails() {
