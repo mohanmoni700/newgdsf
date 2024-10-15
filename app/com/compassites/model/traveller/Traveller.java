@@ -1,5 +1,6 @@
 package com.compassites.model.traveller;
 
+import com.compassites.model.BaggageDetails;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Map;
@@ -21,6 +22,8 @@ public class Traveller {
 	private CdcDetails cdcDetails;
 
 	private VisaDetails visaDetails;
+
+	private BaggageDetails baggageDetails;
 
 	private TravellerMasterInfo travellerMasterInfo;
 
@@ -58,6 +61,14 @@ public class Traveller {
 
 	public void setPassportDetails(PassportDetails passportDetails) {
 		this.passportDetails = passportDetails;
+	}
+
+	public BaggageDetails getBaggageDetails() {
+		return baggageDetails;
+	}
+
+	public void setBaggageDetails(BaggageDetails baggageDetails) {
+		this.baggageDetails = baggageDetails;
 	}
 
 	public CdcDetails getCdcDetails() {

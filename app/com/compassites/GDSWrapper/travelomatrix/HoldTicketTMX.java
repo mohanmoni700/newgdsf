@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.travelomatrix;
 
+import com.compassites.model.BaggageDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.HoldTicketRequest;
@@ -111,6 +112,10 @@ public class HoldTicketTMX {
                     passenger.setIsLeadPax("1");
                 else
                     passenger.setIsLeadPax("");
+
+                List<String> baggage = new ArrayList<>();
+                baggage.add(traveller.getBaggageDetails().getBaggageId());
+                passenger.setBaggageId(baggage);
                 passengerList.add(passenger);
             }
 
