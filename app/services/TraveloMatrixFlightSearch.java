@@ -141,7 +141,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     List<Journey> consolidatedJourney = new LinkedList<>();
                     Journey onWardJourney = new Journey();
                     Journey returnJourney = new Journey();
-                    if(!onWardjourneyList.get(index).getAttr().getIsLCC() && !returnJourneyList.get(index).getAttr().getIsLCC()) {
+                    if(index < onWardjourneyList.size() && index < returnJourneyList.size() && !onWardjourneyList.get(index).getAttr().getIsLCC() && !returnJourneyList.get(index).getAttr().getIsLCC()) {
                         onWardJourney = getOnwardJounery(onWardjourneyList.get(index).getFlightDetails());
                         returnJourney = getReturnJounery(returnJourneyList.get(index).getFlightDetails());
                         consolidatedJourney.add(onWardJourney);
@@ -159,10 +159,10 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     }
                     else{
                         //lcc carriers
-                        if(onWardjourneyList.get(index).getAttr().getIsLCC()){
+                        if(index < onWardjourneyList.size() &&  onWardjourneyList.get(index).getAttr().getIsLCC()){
                             lcconWardjourneyList.add(onWardjourneyList.get(index));
                         }
-                        if(returnJourneyList.get(index).getAttr().getIsLCC()){
+                        if(index < returnJourneyList.size() && returnJourneyList.get(index).getAttr().getIsLCC()){
                              lccreturnJourneyList.add(returnJourneyList.get(index)) ;
                         }
                         if (lcconWardjourneyList.size() > 0 && lccreturnJourneyList.size() > 0) {
