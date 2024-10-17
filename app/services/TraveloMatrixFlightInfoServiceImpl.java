@@ -1,11 +1,13 @@
 package services;
 
+import com.compassites.GDSWrapper.travelomatrix.BookingFlights;
 import com.compassites.GDSWrapper.travelomatrix.ExtraServicesTMX;
 import com.compassites.GDSWrapper.travelomatrix.FareRulesTMX;
 import com.compassites.constants.StaticConstatnts;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
 import com.compassites.model.travelomatrix.ResponseModels.*;
+import com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.UpdateFareQuotesReply;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +31,8 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
    public FareRulesTMX fareRulesTMX = new FareRulesTMX();
 
    public ExtraServicesTMX extraServicesTMX = new ExtraServicesTMX();
+
+    public BookingFlights bookingFlights = new BookingFlights();
 
    @Override
    @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
@@ -323,43 +327,63 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
     @Override
     @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
     public AncillaryServicesResponse getExtraServicesfromTmx(String resultToken) {
-        travelomatrixLogger.debug("Request  for ExtraServices: ResultToken:"+ resultToken );
-        JsonNode jsonResponse = extraServicesTMX.getExtraServices(resultToken);
+       travelomatrixLogger.debug("Request  for ExtraServices: ResultToken:"+ resultToken );
+       travelomatrixLogger.debug("Calling UpdateFareQuotes:"+ resultToken );
         List<BaggageDetails> baggageList = new ArrayList<>();
         AncillaryServicesResponse ancillaryServicesResponse = new AncillaryServicesResponse();
+        JsonNode jsonResponse = bookingFlights.getUpdatedFares(resultToken);
         try {
-            travelomatrixLogger.debug("Response for ExtraServices: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
-            ExtraServicesReply extraServicesReply = new ObjectMapper().treeToValue(jsonResponse, ExtraServicesReply.class);
-            if(extraServicesReply.getStatus() != 0) {
-                logger.debug("Get Baggage Details");
-                baggageList = getBaggageDetails(extraServicesReply);
-                logger.debug("Baggage Details for ResultToken:" + resultToken);
-                for (BaggageDetails baggage : baggageList) {
-                    logger.debug("Baggage details: baggageId" + baggage.getBaggageId() + " , baggage weight :"
-                            + baggage.getWeight() + " : baggage price :" + baggage.getPrice());
-                }
-
-                if(baggageList != null) {
-                    ancillaryServicesResponse.setSuccess(Boolean.TRUE);
-                    ancillaryServicesResponse.setProvider(StaticConstatnts.TRAVELOMATRIX);
-                    ancillaryServicesResponse.setBaggageList(baggageList);
-                }else{
-                    ancillaryServicesResponse.setSuccess(Boolean.FALSE);
-                    ancillaryServicesResponse.setProvider(StaticConstatnts.TRAVELOMATRIX);
-                    ErrorMessage errorMessage = new ErrorMessage();
-                    errorMessage.setProvider(StaticConstatnts.TRAVELOMATRIX);
-                    errorMessage.setMessage("An Unexpected Error occured");
-                }
-            }else{
+            travelomatrixLogger.debug("Response for checkFareChangeAndAvailability: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
+            UpdateFareQuotesReply response = new ObjectMapper().treeToValue(jsonResponse, UpdateFareQuotesReply.class);
+            if(response.getStatus() == 0){
+                travelomatrixLogger.debug("checkFareChangeAndAvailability Respose is not Reeceived for ResultToken :" + resultToken);
                 ancillaryServicesResponse.setSuccess(Boolean.FALSE);
                 ancillaryServicesResponse.setProvider(StaticConstatnts.TRAVELOMATRIX);
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setProvider(StaticConstatnts.TRAVELOMATRIX);
-                errorMessage.setMessage(extraServicesReply.getMessage());
+                errorMessage.setMessage("An Unexpected Error occured");
+            }else{
+                travelomatrixLogger.debug("Request for ExtraServices: ResultToken:"+ resultToken);
+                JsonNode extraServicesResponse = extraServicesTMX.getExtraServices(resultToken);
+                try {
+                    travelomatrixLogger.debug("Response for ExtraServices: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
+                    ExtraServicesReply extraServicesReply = new ObjectMapper().treeToValue(extraServicesResponse, ExtraServicesReply.class);
+                    if(extraServicesReply.getStatus() != 0) {
+                        logger.debug("Get Baggage Details");
+                        baggageList = getBaggageDetails(extraServicesReply);
+                        logger.debug("Baggage Details for ResultToken:" + resultToken);
+                        for (BaggageDetails baggage : baggageList) {
+                            logger.debug("Baggage details: baggageId" + baggage.getBaggageId() + " , baggage weight :"
+                                    + baggage.getWeight() + " : baggage price :" + baggage.getPrice());
+                        }
+
+                        if(baggageList != null) {
+                            ancillaryServicesResponse.setSuccess(Boolean.TRUE);
+                            ancillaryServicesResponse.setProvider(StaticConstatnts.TRAVELOMATRIX);
+                            ancillaryServicesResponse.setBaggageList(baggageList);
+                        }else{
+                            ancillaryServicesResponse.setSuccess(Boolean.FALSE);
+                            ancillaryServicesResponse.setProvider(StaticConstatnts.TRAVELOMATRIX);
+                            ErrorMessage errorMessage = new ErrorMessage();
+                            errorMessage.setProvider(StaticConstatnts.TRAVELOMATRIX);
+                            errorMessage.setMessage("An Unexpected Error occured");
+                        }
+                    }else{
+                        ancillaryServicesResponse.setSuccess(Boolean.FALSE);
+                        ancillaryServicesResponse.setProvider(StaticConstatnts.TRAVELOMATRIX);
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setProvider(StaticConstatnts.TRAVELOMATRIX);
+                        errorMessage.setMessage(extraServicesReply.getMessage());
+                    }
+                } catch (JsonProcessingException e) {
+                    logger.debug("An exception has occured while parsing the Json :" + e.getMessage());
+                    e.printStackTrace();
+                }
             }
+
         } catch (JsonProcessingException e) {
-            logger.debug("An exception has occured while parsing the Json :" + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
        return ancillaryServicesResponse;
