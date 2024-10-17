@@ -6,6 +6,7 @@ import com.compassites.constants.TraveloMatrixConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.travelomatrix.ResponseModels.Baggage;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.CommitBookingReply;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.Detail;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.PassengerDetail;
@@ -331,16 +332,29 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         issuanceResponse.setIssued(true);
         Map<String,String> tickenetNumberMap = new HashMap<>();
         List<PassengerDetail> passengerDetailList =  commitBookingReply.getCommitBooking().getBookingDetails().getPassengerDetails();
+        List<BaggageDetails> excessBaggageList = new ArrayList<>();
         for(PassengerDetail passengerDetail:passengerDetailList){
             String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
             tickenetNumberMap.put(passengerType,ticketNumber);
+            List<Baggage> baggage =  passengerDetail.getBaggageList();
+            if(baggage.size() > 0) {
+                for (Baggage baggage1 : baggage) {
+                    BaggageDetails baggageDetails = new BaggageDetails();
+                    baggageDetails.setPrice(baggage1.getPrice());
+                    baggageDetails.setWeight(baggage1.getWeight());
+                    excessBaggageList.add(baggageDetails);
+                }
+            }
         }
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
         issuanceResponse.setBookingId(commitBookingReply.getCommitBooking().getBookingDetails().getBookingId());
         String baggage = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
         String updatedBagunits = updateBaggeUnits(baggage);
         issuanceResponse.setBaggage(updatedBagunits);
+        //excessBaggage
+        if(excessBaggageList.size() > 0)
+        issuanceResponse.setTmxBaggageDetails(excessBaggageList);
         return issuanceResponse;
     }
 
