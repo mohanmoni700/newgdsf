@@ -1,8 +1,11 @@
 package com.compassites.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Created by user on 17-07-2014.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorMessage {
 
     private String errorCode;
@@ -14,6 +17,8 @@ public class ErrorMessage {
     private String provider;
 
     private String gdsPNR;
+
+    private String ticketNumber;
 
     public String getErrorCode() {
         return errorCode;
@@ -47,13 +52,24 @@ public class ErrorMessage {
         this.provider = provider;
     }
 
-    public String getGdsPNR() { return gdsPNR; }
+    public String getGdsPNR() {
+        return gdsPNR;
+    }
 
-    public void setGdsPNR(String gdsPNR) { this.gdsPNR = gdsPNR;    }
+    public void setGdsPNR(String gdsPNR) {
+        this.gdsPNR = gdsPNR;
+    }
 
+    public String getTicketNumber() {
+        return ticketNumber;
+    }
 
-    public enum ErrorType{
-        ERROR,WARNING;
+    public void setTicketNumber(String ticketNumber) {
+        this.ticketNumber = ticketNumber;
+    }
+
+    public enum ErrorType {
+        ERROR, WARNING;
     }
 }
 

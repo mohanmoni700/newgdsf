@@ -38,6 +38,46 @@ public class IssuanceRequest implements Serializable{
 
     private String resultToken;
 
+    private String reBookingId;
+
+    private String reAppRef;
+
+    private String reResultToken;
+
+    private String reGdsPNR;
+
+    public String getReGdsPNR() {
+        return reGdsPNR;
+    }
+
+    public void setReGdsPNR(String reGdsPNR) {
+        this.reGdsPNR = reGdsPNR;
+    }
+
+    public String getReBookingId() {
+        return reBookingId;
+    }
+
+    public void setReBookingId(String reBookingId) {
+        this.reBookingId = reBookingId;
+    }
+
+    public String getReAppRef() {
+        return reAppRef;
+    }
+
+    public void setReAppRef(String reAppRef) {
+        this.reAppRef = reAppRef;
+    }
+
+    public String getReResultToken() {
+        return reResultToken;
+    }
+
+    public void setReResultToken(String reResultToken) {
+        this.reResultToken = reResultToken;
+    }
+
     public String getResultToken() {
         return resultToken;
     }

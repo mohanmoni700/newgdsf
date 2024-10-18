@@ -29,7 +29,7 @@ public class MystiflyCancelServiceImpl implements CancelService {
     static Logger mystiflyLogger = LoggerFactory.getLogger("mystifly");
 
     @Override
-    public CancelPNRResponse cancelPNR(String pnr) {
+    public CancelPNRResponse cancelPNR(String pnr,Boolean isFullPNR) {
         logger.info("mystifly cancelPNR called .....");
         CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
 

@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 
+import com.compassites.model.amadeus.reissue.ReIssuePricingInformation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.pojomatic.Pojomatic;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * To change this template use File | Settings | File Templates.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+
 public class FlightItinerary implements Serializable{
 
     public FlightItinerary() {
@@ -45,6 +47,8 @@ public class FlightItinerary implements Serializable{
     private PricingInformation pricingInformation;
     
     private PricingInformation seamanPricingInformation;
+
+    private ReIssuePricingInformation reIssuePricingInformation;
     
     @Property
     private List<Journey> journeyList;
@@ -59,6 +63,9 @@ public class FlightItinerary implements Serializable{
 
     // added for Travelomatrix
     private String resultToken;
+
+    // added for Travelomatrix roundtrip
+    private String returnResultToken;
 
     private Boolean isLCC;
 
@@ -190,6 +197,14 @@ public class FlightItinerary implements Serializable{
 	public void setFareSourceCode(String fareSourceCode) {
 		this.fareSourceCode = fareSourceCode;
 	}
+
+    public ReIssuePricingInformation getReIssuePricingInformation() {
+        return reIssuePricingInformation;
+    }
+
+    public void setReIssuePricingInformation(ReIssuePricingInformation reIssuePricingInformation) {
+        this.reIssuePricingInformation = reIssuePricingInformation;
+    }
     
     /* @Override
     public boolean equals(Object obj) {
@@ -297,4 +312,13 @@ public class FlightItinerary implements Serializable{
     public void setPassportMandatory(boolean passportMandatory) {
         isPassportMandatory = passportMandatory;
     }
+
+    public String getReturnResultToken() {
+        return returnResultToken;
+    }
+
+    public void setReturnResultToken(String returnResultToken) {
+        this.returnResultToken = returnResultToken;
+    }
+
 }

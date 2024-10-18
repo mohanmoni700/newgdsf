@@ -1,8 +1,5 @@
 package com.compassites.GDSWrapper.amadeus;
 
-
-import com.amadeus.xml.pnracc_10_1_1a.PNRReply;
-import com.amadeus.xml.pnradd_10_1_1a.*;
 import com.amadeus.xml.pnradd_11_3_1a.*;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster;
@@ -11,7 +8,6 @@ import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.TravellerInfo;
 import com.amadeus.xml.pnrxcl_11_3_1a.CancelPNRElementType;
 import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
 import com.amadeus.xml.pnrxcl_11_3_1a.ReservationControlInformationType;
-import com.amadeus.xml.pnradd_10_1_1a.PNRAddMultiElements.DataElementsMaster.DataElementsIndiv.PnrSecurity;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
@@ -27,11 +23,9 @@ import utils.DateUtility;
 import utils.StringUtility;
 
 import java.math.BigInteger;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements.DataElementsMaster.*;
 
 public class PNRAddMultiElementsh {
 
@@ -104,7 +98,7 @@ public class PNRAddMultiElementsh {
         travelProduct.setProduct(product);
 
         LocationTypeI boardpointDetail = new LocationTypeI();
-        boardpointDetail.setCityCode(fromLocation);
+        boardpointDetail.setCityCode("BOM");
         travelProduct.setBoardpointDetail(boardpointDetail);
 
         CompanyIdentificationTypeI company = new CompanyIdentificationTypeI();

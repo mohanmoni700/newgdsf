@@ -1,19 +1,16 @@
 package controllers;
 
-
-import com.amadeus.xml.qdqlrr_03_1_1a.QueueListReply;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
-import com.compassites.GDSWrapper.mystifly.AirTripDetailsClient;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.ResponseModels.UpdatePNR.UpdatePNRResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import dto.reissue.ReIssueTicketRequest;
 import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
-import org.datacontract.schemas._2004._07.mystifly_onepoint.AirTripDetailsRS;
-import org.hamcrest.core.Is;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +19,13 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import services.*;
+import services.reissue.ReIssueService;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import static play.mvc.Controller.request;
@@ -54,13 +53,23 @@ public class Application {
     private QueueListServiceWrapper queueListServiceWrapper;
 
     @Autowired
-    AmadeusBookingServiceImpl amadeusBookingService;
+    private AmadeusBookingServiceImpl amadeusBookingService;
 
     @Autowired
-    MystiflyBookingServiceImpl mystiflyBookingService;
+    private MystiflyBookingServiceImpl mystiflyBookingService;
 
     @Autowired
-    TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
+    private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
+
+    @Autowired
+    private ReIssueService reIssueService;
+
+    @Autowired
+    private RefundServiceWrapper refundServiceWrapper;
+
+    @Autowired
+    private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
+
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -279,9 +288,12 @@ public class Application {
     public Result getFareRuleFromTmx() {
         List<HashMap> miniRules = new ArrayList<>();
         JsonNode json = request().body().asJson();
-        String resultToken = Json.fromJson(json,String.class);
-        //String resultToken = json.get("flightItinerary").get("resultToken").asText();
-        miniRules = flightInfoService.getFareRuleFromTmx(resultToken);
+        //String resultToken = Json.fromJson(json,String.class);
+        String resultToken = json.get("resultToken").asText();
+        String returnResultToken = null;
+        if(json.get("returnResultToken") != null)
+        returnResultToken = json.get("returnResultToken").asText();
+        miniRules = flightInfoService.getFareRuleFromTmx(resultToken,returnResultToken);
         return Controller.ok(Json.toJson(miniRules));
     }
 
@@ -292,9 +304,10 @@ public class Application {
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         String appRef = Json.fromJson(json.findPath("appRef"), String.class);
         String bookingId = Json.fromJson(json.findPath("bookingId"), String.class);
+        Boolean fullPNR = Json.fromJson(json.findPath("fullPNR"), Boolean.class);
         logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
 
-        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId);
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId,fullPNR);
 
         logger.debug("cancel pnr response " + Json.toJson(cancelPNRResponse));
         return ok(Json.toJson(cancelPNRResponse));
@@ -408,8 +421,106 @@ public class Application {
         }
         return ok(Json.toJson(updatePNRResponse));
     }
+    public Result ticketCancelDocument(){
+        logger.info("ticketCancelDocument called ");
+        JsonNode jsonBody = request().body().asJson();
+        String pnr = Json.fromJson(jsonBody.findPath("gdsPNR"), String.class);
+        String provider = Json.fromJson(jsonBody.findPath("provider"), String.class);
+        String appRef = Json.fromJson(jsonBody.findPath("appRef"), String.class);
+        String bookingId = Json.fromJson(jsonBody.findPath("bookingId"), String.class);
+
+        // Retrieve the 'numbers' array node
+        ArrayNode ticketsNode = (ArrayNode) jsonBody.get("ticketId");
+
+        // Convert ArrayNode to List of Integers
+        List<String> ticketsList = new ArrayList<>();
+        for (JsonNode ticketNode : ticketsNode) {
+            // Extract integer value from each node and add to the list
+            ticketsList.add(ticketNode.asText());
+        }
+        logger.debug("Cancel ticket document called : " + pnr + " provider : " + provider);
+        TicketCancelDocumentResponse  ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr,ticketsList);
+
+        logger.debug("cancel ticket document response " + Json.toJson(ticketCancelDocumentResponse));
+        return ok(Json.toJson(ticketCancelDocumentResponse));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result reIssueTicket() {
+        JsonNode json = request().body().asJson();
+
+        ReIssueTicketRequest reIssueTicketRequest = Json.fromJson(json, ReIssueTicketRequest.class);
+        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueTicketRequest));
+
+        //Complete the response Body later
+        SearchResponse reIssueTicketResponse = reIssueService.reIssueTicket(reIssueTicketRequest);
+        logger.debug("ReissueTicket response Body{}", Json.toJson(reIssueTicketResponse));
+
+        return ok(Json.toJson(reIssueTicketResponse));
+    }
+
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result checkRefundEligibiliy(){
+        TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        ticketCheckEligibilityRes = refundServiceWrapper.checkTicketEligibility(provider,gdspnr,searchOfficeId);
+        return ok(Json.toJson(ticketCheckEligibilityRes));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result processFullRefund(){
+        TicketProcessRefundRes ticketProcessRefundRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        ticketProcessRefundRes = refundServiceWrapper.processFullRefund(provider,gdspnr,searchOfficeId);
+        return ok(Json.toJson(ticketProcessRefundRes));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result checkPartRefundEligibility(){
+        TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        JsonNode ticketsNode = json.get("tickets");
+        List<String> ticketList = new LinkedList<>();
+        if (ticketsNode != null && ticketsNode.isArray()) {
+            for (JsonNode ticketNode : ticketsNode) {
+                ticketList.add(ticketNode.asText());
+            }
+        }
+        ticketCheckEligibilityRes = refundServiceWrapper.checkPartRefundTicketEligibility(provider,gdspnr,ticketList,searchOfficeId);
+        return ok(Json.toJson(ticketCheckEligibilityRes));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result processPartialRefund(){
+        TicketProcessRefundRes ticketProcessRefundRes = null;
+        JsonNode json = request().body().asJson();
+        String provider = json.get("provider").asText();
+        String gdspnr = json.get("gdsPnr").asText();
+        String searchOfficeId = json.get("searchOffice").asText();
+        JsonNode ticketsNode = json.get("tickets");
+        List<String> ticketList = new LinkedList<>();
+        if (ticketsNode != null && ticketsNode.isArray()) {
+            for (JsonNode ticketNode : ticketsNode) {
+                ticketList.add(ticketNode.asText());
+            }
+        }
+        ticketProcessRefundRes = refundServiceWrapper.processPartialRefund(provider,gdspnr,ticketList,searchOfficeId);
+        return ok(Json.toJson(ticketProcessRefundRes));
+    }
 
     public Result home(){
         return ok("GDS Service running.....");
     }
+
+
 }

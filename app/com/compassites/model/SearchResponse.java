@@ -23,6 +23,8 @@ public class SearchResponse {
 
     private List<ErrorMessage> errorMessageList;
 
+    private boolean isReIssueSearch;
+
     public SearchResponse() {
         airSolution = new AirSolution();
         errorMessageList = new ArrayList<>();
@@ -55,6 +57,15 @@ public class SearchResponse {
     public List<ErrorMessage> getErrorMessageList() { return errorMessageList; }
 
     public void setErrorMessageList(List<ErrorMessage> errorMessageList) { this.errorMessageList = errorMessageList; }
+
+    public boolean isReIssueSearch() {
+        return isReIssueSearch;
+    }
+
+    public void setReIssueSearch(boolean reIssueSearch) {
+        isReIssueSearch = reIssueSearch;
+    }
+
 
 	@Override
 	public String toString() {
