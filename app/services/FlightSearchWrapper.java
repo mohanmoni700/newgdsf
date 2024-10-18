@@ -195,7 +195,6 @@ public class FlightSearchWrapper {
                         searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
                         //searchResponseList.add(searchResponseCache);
                         searchResponseCache.setErrorMessageList(errorMessageList);
-                        logger.debug("Response "+Json.toJson(searchResponseCache));
                         redisTemplate.opsForValue().set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseCache)));
                         redisTemplate.expire(searchParameters.redisKey(),CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "partial" + counter);
@@ -295,15 +294,17 @@ public class FlightSearchWrapper {
         ConcurrentHashMap<String, List<Integer>> concurrentHashMap = null;
         if(provider.equals(TraveloMatrixConstants.tmofficeId)){
             System.out.println("travelomatrix merge");
-            concurrentHashMap = airSolution.getGroupingKeyMap();
+            //concurrentHashMap = airSolution.getGroupingKeyMap();
+        } else if (provider.equalsIgnoreCase("Amadeus")) {
+            System.out.println("Amadeus merge");
         }
+        concurrentHashMap = airSolution.getGroupingKeyMap();
         FlightSearchOffice office = searchResponse.getFlightSearchOffice();
         if(allFightItineraries.isEmpty()) {
             mergeSeamenAndNonSeamenResults(allFightItineraries, airSolution,provider);
         } else {
             ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
             ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
-
                 for (Integer hashKey : allFightItineraries.keySet()) {
                     if (seamenFareHash != null && seamenFareHash.containsKey(hashKey)) {
                         FlightItinerary mainFlightItinerary = allFightItineraries.get(hashKey);
@@ -317,8 +318,6 @@ public class FlightSearchWrapper {
                                 && seamenItinerary.getPricingInformation().getTotalPriceValue().longValue() <= mainFlightItinerary.getSeamanPricingInformation().getTotalPriceValue().longValue())) {
                             mainFlightItinerary.setSeamanPricingInformation(seamenItinerary.getPricingInformation());
                             mainFlightItinerary.setJourneyList(seamenItinerary.getJourneyList());
-                            //mainFlightItinerary.getSeamanPricingInformation().setPricingOfficeId(seamenItinerary.getPricingInformation().getPricingOfficeId());
-                            //mainFlightItinerary.setAmadeusOfficeId(seamenItinerary.getAmadeusOfficeId());
                         }
                         allFightItineraries.put(hashKey, mainFlightItinerary);
                         seamenFareHash.remove(hashKey);
@@ -341,6 +340,8 @@ public class FlightSearchWrapper {
                                 mainFlightItinerary.setIsLCC(nonSeamenItinerary.getLCC());
                             }
                             List<Journey> journeyList  = new ArrayList<>();
+                            boolean isMerged = false;
+                            System.out.println("Not empty merge ");
                             for (Journey journey: nonSeamenItinerary.getJourneyList()) {
                                 Journey journey1 = new Journey();
                                 String groupKey = journey.getGroupingKey();
@@ -355,10 +356,17 @@ public class FlightSearchWrapper {
                                                 FlightItinerary flightItinerary = new FlightItinerary();
                                                 BeanUtils.copyProperties(itinerary, flightItinerary);
                                                 flightItinerary.setGroupingMap(null);
+                                                PricingInformation pricingInformation = new PricingInformation();
+                                                BeanUtils.copyProperties(itinerary.getPricingInformation(), pricingInformation);
+                                                pricingInformation.setTotalCalculatedValue(pricingInformation.getTotalPriceValue());
+                                                pricingInformation.setTotalPrice(pricingInformation.getTotalPriceValue());
+                                                flightItinerary.setPricingInformation(pricingInformation);
                                                 flightItineraries.add(flightItinerary);
                                             } else {
                                                 isSkip = false;
                                             }
+                                        } else {
+                                            isMerged = true;
                                         }
                                     }
                                     if(flightItineraries.size() >=1) {
@@ -383,6 +391,7 @@ public class FlightSearchWrapper {
                         nonSeamenFareHash.remove(hashKey);
                     }
                 }
+                System.out.println("Not empty map merge ");
                 ConcurrentHashMap<Integer, FlightItinerary> list = mergeSeamenAndNonSeamenResults(new ConcurrentHashMap<Integer, FlightItinerary>(), airSolution,provider);
                 allFightItineraries.putAll(list);
             }
@@ -403,14 +412,17 @@ public class FlightSearchWrapper {
     }
 
     public ConcurrentHashMap<Integer, FlightItinerary> mergeSeamenAndNonSeamenResults(ConcurrentHashMap<Integer, FlightItinerary> allFightItineraries, AirSolution airSolution, String provider) {
+        System.out.println("Non seamen "+Json.toJson(airSolution.getNonSeamenHashMap().keySet()));
+        System.out.println("seamen "+Json.toJson(airSolution.getSeamenHashMap().keySet()));
         if (airSolution.getNonSeamenHashMap() != null && !airSolution.getNonSeamenHashMap().isEmpty()) {
             ConcurrentHashMap<String, List<Integer>> concurrentHashMap = airSolution.getGroupingKeyMap();
             ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
-            if(provider.equalsIgnoreCase(TraveloMatrixConstants.provider)) {
-                System.out.println("1");
+            //|| provider.equalsIgnoreCase("Amadeus")
+            if(provider.equalsIgnoreCase(TraveloMatrixConstants.provider) || provider.equalsIgnoreCase("Amadeus")) {
                 ConcurrentHashMap<Integer, FlightItinerary> integerFlightItineraryConcurrentHashMap = new ConcurrentHashMap<>();
                 for (Integer hashKey : nonSeamenFareHash.keySet()) {
                     FlightItinerary nonSeamenItinerary = nonSeamenFareHash.get(hashKey);
+                    boolean isMerged = false;
                     List<Journey> journeyList  = new ArrayList<>();
                     for (Journey journey : nonSeamenItinerary.getJourneyList()) {
                         Journey journey1 = new Journey();
@@ -426,20 +438,20 @@ public class FlightSearchWrapper {
                                         FlightItinerary flightItinerary = new FlightItinerary();
                                         BeanUtils.copyProperties(itinerary, flightItinerary);
                                         flightItinerary.setGroupingMap(null);
+                                        PricingInformation pricingInformation = new PricingInformation();
+                                        BeanUtils.copyProperties(itinerary.getPricingInformation(), pricingInformation);
+                                        pricingInformation.setTotalCalculatedValue(pricingInformation.getTotalPriceValue());
+                                        pricingInformation.setTotalPrice(pricingInformation.getTotalPriceValue());
+                                        flightItinerary.setPricingInformation(pricingInformation);
                                         flightItineraries.add(flightItinerary);
                                     } else {
                                         isSkip = false;
                                     }
+                                } else {
+                                    isMerged = true;
                                 }
                             }
                             if(flightItineraries.size() >=1) {
-                                /*flightItineraries.get(0).getPricingInformation().setTotalPriceValue(new BigDecimal(20000));
-                                System.out.println("1 "+flightItineraries.get(0).getPricingInformation().getTotalPriceValue());
-                            flightItineraries.sort((o1,o2)->o1.getPricingInformation().getTotalPriceValue().compareTo(
-                                    o2.getPricingInformation().getTotalPriceValue()
-                            )
-                        );
-                                System.out.println("2 "+flightItineraries.get(0).getPricingInformation().getTotalPriceValue());*/
                                 ConcurrentHashMap<String, List<FlightItinerary>> stringListConcurrentHashMap = new ConcurrentHashMap<>();
                                 stringListConcurrentHashMap.put(groupKey, flightItineraries);
                                 nonSeamenItinerary.setGroupingMap(stringListConcurrentHashMap);
@@ -449,42 +461,37 @@ public class FlightSearchWrapper {
                         journey1.setAirSegmentList(createAirsegment(journey));
                         journeyList.add(journey);
                     }
-                    nonSeamenItinerary.setJourneyList(journeyList);
-                    integerFlightItineraryConcurrentHashMap.put(hashKey, nonSeamenItinerary);
+                    if(!isMerged) {
+                        nonSeamenItinerary.setJourneyList(journeyList);
+                        integerFlightItineraryConcurrentHashMap.put(hashKey, nonSeamenItinerary);
+                    }
                     nonSeamenFareHash.remove(hashKey);
                 }
                 allFightItineraries.putAll(integerFlightItineraryConcurrentHashMap);
-                return allFightItineraries;
+                //return allFightItineraries;
             } else {
                 allFightItineraries.putAll(nonSeamenFareHash);
             }
+        }
+        if(airSolution.getSeamenHashMap().isEmpty()) {
+            System.out.println("Seaman map is empty");
         }
         if (airSolution.getSeamenHashMap() != null && !airSolution.getSeamenHashMap().isEmpty()) {
             ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
             for (Integer hashKey : seamenFareHash.keySet()) {
                 FlightItinerary seamenItinerary = seamenFareHash.get(hashKey);
                 if (allFightItineraries.containsKey(hashKey)) {
-                    //seamenItinerary = seamenFareHash.get(hashKey);
                     FlightItinerary itinerary = allFightItineraries.get(hashKey);
                     itinerary.setPriceOnlyPTC(true);
+                    //System.out.println("Price "+Json.toJson(seamenFareHash.get(hashKey).getPricingInformation()));
                     itinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
                     itinerary.setJourneyList(seamenFareHash.get(hashKey).getJourneyList());
                     itinerary.setNonSeamenJourneyList(allFightItineraries.get(hashKey).getJourneyList());
 
-//                    //seamenItinerary.setPriceOnlyPTC(true);
-//                    seamenItinerary.setPricingMessage(seamenFareHash.get(hashKey).getPricingMessage());
-//                    seamenItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
-//                    //seamenItinerary.getSeamanPricingInformation().setSearchOfficeId(seamenFareHash.get(hashKey).getAmadeusOfficeId());
-//                    seamenItinerary.setPricingInformation(allFightItineraries.get(hashKey).getPricingInformation());
-//                    //seamenItinerary.getPricingInformation().setSearchOfficeId(seamenFareHash.get(hashKey).getAmadeusOfficeId());
-//                    seamenItinerary.setNonSeamenJourneyList(allFightItineraries.get(hashKey).getJourneyList());
                     allFightItineraries.put(hashKey, itinerary);
                 } else {
-                    //seamenItinerary = seamenFareHash.get(hashKey);
                     seamenItinerary.setPriceOnlyPTC(true);
                     seamenItinerary.setSeamanPricingInformation(seamenItinerary.getPricingInformation());
-                    //seamenItinerary.getSeamanPricingInformation().setSearchOfficeId(seamenItinerary.getAmadeusOfficeId());
-                    //seamenItinerary.setPricingInformation(null); //to be checked
                     allFightItineraries.put(hashKey, seamenItinerary);
                 }
             }

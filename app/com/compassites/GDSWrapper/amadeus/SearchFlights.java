@@ -83,29 +83,50 @@ public class SearchFlights {
             setDirectFlights(travelFlightInfo);
         }
 
-        se.setTravelFlightInfo(travelFlightInfo);
+        if (searchParameters.getBookingType() == BookingType.SEAMEN) {
+            se.setTravelFlightInfo(travelFlightInfo);
+        } else {
+            se.setTravelFlightInfo(new TravelFlightInformationType165052S());
+        }
 
         FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
         PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
         PricingTicketingInformationType pit = new PricingTicketingInformationType();
         pdt.setPricingTicketing(pit);
         fe.setPricingTickInfo(pdt);
-        se.setFareOptions(fe);
+
+        if (searchParameters.getBookingType() !=BookingType.SEAMEN) {
+            CodedAttributeType codedAttributeType = new CodedAttributeType();
+            CodedAttributeInformationType247829C codedAttributeInformationType247829C = new CodedAttributeInformationType247829C();
+            codedAttributeInformationType247829C.setFeeType("FFI");
+            codedAttributeInformationType247829C.setFeeIdNumber("3");
+            codedAttributeType.getFeeId().add(codedAttributeInformationType247829C);
+
+            CodedAttributeInformationType247829C codedAttributeInformationType247829C1 = new CodedAttributeInformationType247829C();
+            codedAttributeInformationType247829C1.setFeeType("UPH");
+            codedAttributeInformationType247829C1.setFeeIdNumber("3");
+            codedAttributeType.getFeeId().add(codedAttributeInformationType247829C1);
+
+            fe.setFeeIdDescription(codedAttributeType);
+        }
+
         if (searchParameters.getRefundableFlights()) {
             setRefundableFlights(pit);
         }
 
         setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
-        createFareOptions(pit);
-
-
-        CorporateIdentificationType corporateIdentificationType = createCorporateCode(pit,searchParameters);
-        fe.setCorporate(corporateIdentificationType);
+        if (searchParameters.getBookingType() == BookingType.SEAMEN) {
+            createSeamenFareOptions(pit);
+        } else {
+            createFareOptions(pit);
+        }
 
         //se.setFareOptions(fareOptions);
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
+            CorporateIdentificationType corporateIdentificationType = createCorporateCode(pit, searchParameters);
+            fe.setCorporate(corporateIdentificationType);
 //            FareMasterPricerTravelBoardSearch.FareOptions fe1 = new FareMasterPricerTravelBoardSearch.FareOptions();
 //            PricingTicketingDetailsType pdt1 = new PricingTicketingDetailsType();
 //            PricingTicketingInformationType pit1 = new PricingTicketingInformationType();
@@ -124,7 +145,7 @@ public class SearchFlights {
 //            fe1.setPricingTickInfo(pdt1);
 //            se.setFareOptions(fe1);
         }
-
+        se.setFareOptions(fe);
         /*FareMasterPricerTravelBoardSearch.FareOptions fareOptions = new FareMasterPricerTravelBoardSearch.FareOptions();
         PricingTicketingDetailsType pricingTicketingDetailsType = new PricingTicketingDetailsType();
         PricingTicketingInformationType pricingTicketingInformationType = new PricingTicketingInformationType();
@@ -255,16 +276,25 @@ public class SearchFlights {
         //se.setFareOptions(fe);
     }
 
-    private void createFareOptions(PricingTicketingInformationType pit) {
-        //FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
-        //PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
-        //PricingTicketingInformationType pit = new PricingTicketingInformationType();
+    private void createSeamenFareOptions(PricingTicketingInformationType pit) {
         pit.getPriceType().add("TAC");
         pit.getPriceType().add("RU");
         pit.getPriceType().add("RP");
 
         pit.getPriceType().add("ET");
         pit.getPriceType().add("RW");
+    }
+
+    private void createFareOptions(PricingTicketingInformationType pit) {
+        //FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
+        //PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
+        //PricingTicketingInformationType pit = new PricingTicketingInformationType();
+        //pit.getPriceType().add("TAC");
+        pit.getPriceType().add("RU");
+        pit.getPriceType().add("RP");
+
+        pit.getPriceType().add("ET");
+        //pit.getPriceType().add("RW");
        // pit.getPriceType().add("MNR");
        /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");

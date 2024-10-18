@@ -191,6 +191,7 @@ public class ServiceHandler {
         if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
             loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
         logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
+        amadeusLogger.debug(" SessionId: " + amadeusSessionWrapper.getSessionId());
         return  SearchReply;
     }
 
