@@ -618,9 +618,9 @@ public class ServiceHandler {
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         TicketATCShopperMasterPricerTravelBoardSearch reIssueATCSearchRequest = ReIssueTicket.ReIssueATCSearch.createReissueATCSearchRequest(reissueTicketRequest, allowedCarriers);
-        amadeusLogger.debug("ReIssueATCSearch Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(reIssueATCSearchRequest));
+        amadeusLogger.debug("ReIssueATCSearch Request on {}, SessionId: {}, Office ID: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(reIssueATCSearchRequest));
         TicketATCShopperMasterPricerTravelBoardSearchReply reIssueATCSearchReply = mPortType.ticketATCShopperMasterPricerTravelBoardSearch(reIssueATCSearchRequest, amadeusSessionWrapper.getmSession());
-        amadeusLogger.debug("ReIssueATCSearch Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(reIssueATCSearchReply));
+        amadeusLogger.debug("ReIssueATCSearch Response {} SessionId: {}, Office ID: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(reIssueATCSearchReply));
         return reIssueATCSearchReply;
 
     }
