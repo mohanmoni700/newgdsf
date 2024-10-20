@@ -412,8 +412,8 @@ public class FlightSearchWrapper {
     }
 
     public ConcurrentHashMap<Integer, FlightItinerary> mergeSeamenAndNonSeamenResults(ConcurrentHashMap<Integer, FlightItinerary> allFightItineraries, AirSolution airSolution, String provider) {
-        System.out.println("Non seamen "+Json.toJson(airSolution.getNonSeamenHashMap().keySet()));
-        System.out.println("seamen "+Json.toJson(airSolution.getSeamenHashMap().keySet()));
+        //System.out.println("Non seamen "+Json.toJson(airSolution.getNonSeamenHashMap().keySet()));
+        //System.out.println("seamen "+Json.toJson(airSolution.getSeamenHashMap().keySet()));
         if (airSolution.getNonSeamenHashMap() != null && !airSolution.getNonSeamenHashMap().isEmpty()) {
             ConcurrentHashMap<String, List<Integer>> concurrentHashMap = airSolution.getGroupingKeyMap();
             ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();

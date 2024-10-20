@@ -185,7 +185,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         	logger.debug("#####################errorMessage is null");
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false));
-            System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
+            //System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
             airSolution.setGroupingKeyMap(groupingKeyMap);
             if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                 printHashmap(airSolution.getNonSeamenHashMap(), false);//to be removed
@@ -409,7 +409,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber){
         try {
-            System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
+            //System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
             flightItinerary.setFareType(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getDescription());
         } catch (Exception e) {
             e.printStackTrace();
