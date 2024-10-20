@@ -183,7 +183,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         	logger.debug("#####################errorMessage is null");
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false));
-            System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
+            //System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
             airSolution.setGroupingKeyMap(groupingKeyMap);
             //printHashmap(airSolution.getNonSeamenHashMap(), false);
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
@@ -287,7 +287,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
     private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber){
         try {
-            System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
+            //System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
             flightItinerary.setFareType(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getDescription());
         } catch (Exception e) {
             e.printStackTrace();
