@@ -9,6 +9,7 @@ import javax.xml.datatype.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Renu on 7/18/14.
@@ -26,6 +27,16 @@ public class Journey
     private Integer hashCode;
 
     private String provider;
+
+    private String groupingKey;
+
+    public String getGroupingKey() {
+        return groupingKey;
+    }
+
+    public void setGroupingKey(String groupingKey) {
+        this.groupingKey = groupingKey;
+    }
 
     public Integer getHashCode() {
         return hashCode;

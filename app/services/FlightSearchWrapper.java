@@ -10,6 +10,7 @@ import jdk.nashorn.internal.parser.JSONParser;
 import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -187,11 +188,13 @@ public class FlightSearchWrapper {
                         AirSolution airSolution = new AirSolution();
                         airSolution.setReIssueSearch(false);
                         airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(hashMap.values()));
+                        airSolution.setGroupingKeyMap(searchResponse.getAirSolution().getGroupingKeyMap());
                         searchResponseCache.setAirSolution(airSolution);
                         searchResponseCache.setReIssueSearch(false);
                         searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
                         //searchResponseList.add(searchResponseCache);
                         searchResponseCache.setErrorMessageList(errorMessageList);
+                        logger.debug("Response "+Json.toJson(searchResponseCache));
                         redisTemplate.opsForValue().set(searchParameters.redisKey(), Json.stringify(Json.toJson(searchResponseCache)));
                         redisTemplate.expire(searchParameters.redisKey(),CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS);
                         redisTemplate.opsForValue().set(searchParameters.redisKey()+":status", "partial" + counter);
@@ -288,12 +291,14 @@ public class FlightSearchWrapper {
     	try{
         AirSolution airSolution = searchResponse.getAirSolution();
         String provider = searchResponse.getProvider();
+        ConcurrentHashMap<String, List<Integer>> concurrentHashMap = null;
         if(provider.equals(TraveloMatrixConstants.tmofficeId)){
             System.out.println("travelomatrix merge");
+            concurrentHashMap = airSolution.getGroupingKeyMap();
         }
         FlightSearchOffice office = searchResponse.getFlightSearchOffice();
         if(allFightItineraries.isEmpty()) {
-            mergeSeamenAndNonSeamenResults(allFightItineraries, airSolution);
+            mergeSeamenAndNonSeamenResults(allFightItineraries, airSolution,provider);
         } else {
             ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
             ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
@@ -334,15 +339,41 @@ public class FlightSearchWrapper {
                                 mainFlightItinerary.setResultToken(nonSeamenItinerary.getResultToken());
                                 mainFlightItinerary.setIsLCC(nonSeamenItinerary.getLCC());
                             }
+                            List<Journey> journeyList  = new ArrayList<>();
+                                for (Journey journey: nonSeamenItinerary.getJourneyList()) {
+                                    Journey journey1 = new Journey();
+                                    String groupKey = journey.getGroupingKey();
+                                    if(concurrentHashMap != null && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.size() >1) {
+                                        List<Integer> hashCodes = concurrentHashMap.get(groupKey);
+                                        List<FlightItinerary> flightItineraries = new ArrayList<>();
+                                        for (Integer integer : hashCodes) {
+                                            FlightItinerary flightItinerary = new FlightItinerary();
+                                            FlightItinerary itinerary = nonSeamenFareHash.get(integer);
+                                            flightItinerary = itinerary;
+                                            flightItinerary.setGroupingMap(null);
+                                            flightItineraries.add(flightItinerary);
+                                        }
+                                        ConcurrentHashMap<String, List<FlightItinerary>> stringListConcurrentHashMap = new ConcurrentHashMap<>();
+                                        stringListConcurrentHashMap.put(groupKey,flightItineraries);
+                                        mainFlightItinerary.setGroupingMap(stringListConcurrentHashMap);
+                                        concurrentHashMap.remove(groupKey);
+                                    }
+                                    BeanUtils.copyProperties(journey,journey1);
+                                    journey1.setAirSegmentList(createAirsegment(journey));
+                                    journeyList.add(journey);
+                                }
+                            mainFlightItinerary.setJourneyList(journeyList);
+                            //}
                             //mainFlightItinerary.getPricingInformation().setPricingOfficeId(nonSeamenItinerary.getPricingInformation().getPricingOfficeId());
                             //mainFlightItinerary.setAmadeusId(nonSeamenItinerary.getAmadeusOfficeId());
                             //compareItinerary(mainFlightItinerary,nonSeamenItinerary,false, provider);
                         }
+
                         allFightItineraries.put(hashKey, mainFlightItinerary);
                         nonSeamenFareHash.remove(hashKey);
                     }
                 }
-                ConcurrentHashMap<Integer, FlightItinerary> list = mergeSeamenAndNonSeamenResults(new ConcurrentHashMap<Integer, FlightItinerary>(), airSolution);
+                ConcurrentHashMap<Integer, FlightItinerary> list = mergeSeamenAndNonSeamenResults(new ConcurrentHashMap<Integer, FlightItinerary>(), airSolution,provider);
                 allFightItineraries.putAll(list);
             }
         }catch (Exception e){
@@ -350,10 +381,52 @@ public class FlightSearchWrapper {
         }
     }
 
-    public ConcurrentHashMap<Integer, FlightItinerary> mergeSeamenAndNonSeamenResults(ConcurrentHashMap<Integer, FlightItinerary> allFightItineraries, AirSolution airSolution) {
+    private List<AirSegmentInformation> createAirsegment(Journey journey) {
+        List<AirSegmentInformation> airSegmentInformations = new ArrayList<>();
+        for (AirSegmentInformation airSegmentInformation: journey.getAirSegmentList()) {
+            AirSegmentInformation airSegmentInformation1 = new AirSegmentInformation();
+            BeanUtils.copyProperties(airSegmentInformation,airSegmentInformation1);
+            airSegmentInformations.add(airSegmentInformation1);
+        }
+        return airSegmentInformations;
+    }
+
+    public ConcurrentHashMap<Integer, FlightItinerary> mergeSeamenAndNonSeamenResults(ConcurrentHashMap<Integer, FlightItinerary> allFightItineraries, AirSolution airSolution, String provider) {
         if (airSolution.getNonSeamenHashMap() != null && !airSolution.getNonSeamenHashMap().isEmpty()) {
+            ConcurrentHashMap<String, List<Integer>> concurrentHashMap = airSolution.getGroupingKeyMap();
             ConcurrentHashMap<Integer, FlightItinerary> nonSeamenFareHash = airSolution.getNonSeamenHashMap();
-            allFightItineraries.putAll(nonSeamenFareHash);
+            if(provider.equalsIgnoreCase(TraveloMatrixConstants.provider)) {
+                for (Integer hashKey : nonSeamenFareHash.keySet()) {
+                    FlightItinerary nonSeamenItinerary = nonSeamenFareHash.get(hashKey);
+                    List<Journey> journeyList  = new ArrayList<>();
+                    for (Journey journey : nonSeamenItinerary.getJourneyList()) {
+                        Journey journey1 = new Journey();
+                        String groupKey = journey.getGroupingKey();
+                        if (concurrentHashMap != null && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.get(groupKey).size() > 1) {
+                            List<Integer> hashCodes = concurrentHashMap.get(groupKey);
+                            List<FlightItinerary> flightItineraries = new ArrayList<>();
+                            for (Integer integer : hashCodes) {
+                                FlightItinerary flightItinerary = new FlightItinerary();
+                                FlightItinerary itinerary = nonSeamenFareHash.get(integer);
+                                flightItinerary = itinerary;
+                                flightItinerary.setGroupingMap(null);
+                                flightItineraries.add(flightItinerary);
+                            }
+                            ConcurrentHashMap<String, List<FlightItinerary>> stringListConcurrentHashMap = new ConcurrentHashMap<>();
+                            stringListConcurrentHashMap.put(groupKey, flightItineraries);
+                            nonSeamenItinerary.setGroupingMap(stringListConcurrentHashMap);
+                        }
+                        BeanUtils.copyProperties(journey,journey1);
+                        journey1.setAirSegmentList(createAirsegment(journey));
+                        journeyList.add(journey);
+                    }
+                    nonSeamenItinerary.setJourneyList(journeyList);
+                    allFightItineraries.put(hashKey, nonSeamenItinerary);
+                    nonSeamenFareHash.remove(hashKey);
+                }
+            } else {
+                allFightItineraries.putAll(nonSeamenFareHash);
+            }
         }
         if (airSolution.getSeamenHashMap() != null && !airSolution.getSeamenHashMap().isEmpty()) {
             ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = airSolution.getSeamenHashMap();
