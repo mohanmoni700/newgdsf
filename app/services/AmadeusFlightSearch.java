@@ -186,7 +186,9 @@ public class AmadeusFlightSearch implements FlightSearch{
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false));
             //System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
-            airSolution.setGroupingKeyMap(groupingKeyMap);
+            if(searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
+                airSolution.setGroupingKeyMap(groupingKeyMap);
+            }
             if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                 printHashmap(airSolution.getNonSeamenHashMap(), false);//to be removed
             }
@@ -416,7 +418,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             e.printStackTrace();
         }
     }
-    
+
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, int flightHash, boolean isSeamen,  FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList){
         int flightIndexNumber = 0;
         int segmentIndex = 0;
@@ -487,6 +489,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         String fareBasis = getFareBasis(recommendation.getPaxFareProduct().get(0).getFareDetails().get(0));
         //set segments information
 
+        journey.setFareDescription(getFareDescription(recommendation.getPaxFareProduct().get(0).getFare()));
         String validatingCarrierCode = null;
         if(recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getTransportStageQualifier().equals("V")) {
             validatingCarrierCode = recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getCompany();
@@ -506,6 +509,17 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
         getConnectionTime(journey.getAirSegmentList());
         return journey;
+    }
+
+    public String getFareDescription(List<Recommendation.PaxFareProduct.Fare> fares) {
+        String fareDesc = "";
+        for (Recommendation.PaxFareProduct.Fare fare: fares) {
+            if (fare.getPricingMessage().getFreeTextQualification().getTextSubjectQualifier().equalsIgnoreCase("PEN")) {
+                fareDesc = fare.getPricingMessage().getDescription().get(0).toString();
+            }
+            return fareDesc;
+        }
+        return fareDesc;
     }
 
 	private void getConnectionTime(List<AirSegmentInformation> airSegments) {

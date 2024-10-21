@@ -30,6 +30,16 @@ public class Journey
 
     private String groupingKey;
 
+    private String fareDescription;
+
+    public String getFareDescription() {
+        return fareDescription;
+    }
+
+    public void setFareDescription(String fareDescription) {
+        this.fareDescription = fareDescription;
+    }
+
     public String getGroupingKey() {
         return groupingKey;
     }
