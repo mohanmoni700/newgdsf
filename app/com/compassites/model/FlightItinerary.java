@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 
+import com.compassites.model.amadeus.reissue.ReIssuePricingInformation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.pojomatic.Pojomatic;
@@ -50,7 +51,9 @@ public class FlightItinerary implements Serializable{
     private MnrSearchFareRules mnrSearchFareRules;
 
     private MnrSearchBaggage mnrSearchBaggage;
-    
+
+    private ReIssuePricingInformation reIssuePricingInformation;
+
     @Property
     private List<Journey> journeyList;
 
@@ -73,26 +76,6 @@ public class FlightItinerary implements Serializable{
     private Boolean isRefundable;
 
     private String fareType;
-
-//    private MnrSearchFareRules mnrSearchFareRules;
-//
-//    private MnrSearchBaggage mnrSearchBaggage;
-//
-//    public MnrSearchFareRules getMnrSearchFareRules() {
-//        return mnrSearchFareRules;
-//    }
-//
-//    public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
-//        this.mnrSearchFareRules = mnrSearchFareRules;
-//    }
-//
-//    public MnrSearchBaggage getMnrSearchBaggage() {
-//        return mnrSearchBaggage;
-//    }
-//
-//    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
-//        this.mnrSearchBaggage = mnrSearchBaggage;
-//    }
 
     public Boolean getRefundable() {
         return isRefundable;
@@ -218,7 +201,15 @@ public class FlightItinerary implements Serializable{
 	public void setFareSourceCode(String fareSourceCode) {
 		this.fareSourceCode = fareSourceCode;
 	}
-    
+
+    public ReIssuePricingInformation getReIssuePricingInformation() {
+        return reIssuePricingInformation;
+    }
+
+    public void setReIssuePricingInformation(ReIssuePricingInformation reIssuePricingInformation) {
+        this.reIssuePricingInformation = reIssuePricingInformation;
+    }
+
     /* @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof FlightItinerary)){
