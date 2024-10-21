@@ -293,6 +293,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             //System.out.println("Result size "+Json.toJson(flightItineraryHashMap));
             return flightItineraryHashMap;
         }catch (Exception e){
+            e.printStackTrace();
             logger.debug("error in getFlightItineraryHashmap :"+ e.getMessage());
         }
         return flightItineraryHashMap;
