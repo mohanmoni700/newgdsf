@@ -415,7 +415,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             e.printStackTrace();
         }
     }
-
+    
     private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, int flightHash, boolean isSeamen,  FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList){
         int flightIndexNumber = 0;
         int segmentIndex = 0;
