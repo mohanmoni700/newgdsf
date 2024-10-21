@@ -51,7 +51,13 @@ public class SearchParameters implements Serializable,Cloneable{
     private String searchBookingType;
     @Property
     private BookingType bookingType;
-
+    private boolean splitTicket;
+    public boolean isSplitTicket() {
+        return splitTicket;
+    }
+    public void setSplitTicket(boolean splitTicket) {
+        this.splitTicket = splitTicket;
+    }
     @Property
     private CabinClass cabinClass;
     @JsonIgnore
