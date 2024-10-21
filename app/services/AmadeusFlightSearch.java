@@ -183,14 +183,13 @@ public class AmadeusFlightSearch implements FlightSearch{
         } else {
             //return flight
         	logger.debug("#####################errorMessage is null");
-            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office));
-            if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
-                printHashmap(airSolution.getNonSeamenHashMap(), false);//to be removed
-            }
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false));
             System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
             airSolution.setGroupingKeyMap(groupingKeyMap);
+            if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
+                printHashmap(airSolution.getNonSeamenHashMap(), false);//to be removed
+            }
             //printHashmap(airSolution.getNonSeamenHashMap(), false);
             if (searchParameters.getBookingType() == BookingType.SEAMEN && seamenErrorMessage == null) {
                 ///AirSolution seamenSolution = new AirSolution();
@@ -265,7 +264,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
             String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
             List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
-            int k=100;
+            int k=300;
             for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
                 for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                     FlightItinerary flightItinerary = new FlightItinerary();
@@ -281,6 +280,12 @@ public class AmadeusFlightSearch implements FlightSearch{
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
                     flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList,groupingKeyMap,flightHash,isSeamen, mnrGrp, baggageList);
                     //System.out.println("After "+flightItinerary.hashCode());
+                    if(!isSeamen) {
+                        if(recommendation.getFareFamilyRef()!= null && recommendation.getFareFamilyRef().getReferencingDetail().size()>0) {
+                            BigInteger ref = recommendation.getFareFamilyRef().getReferencingDetail().get(0).getRefNumber();
+                            getFareType(flightItinerary, fareMasterPricerTravelBoardSearchReply, ref);
+                        }
+                    }
                     flightItineraryHashMap.put(flightHash, flightItinerary);
                     k++;
                 }
@@ -402,8 +407,16 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
     }
 
-    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, int flightHash, boolean isSeamen,  FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList){
+    private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber){
+        try {
+            System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
+            flightItinerary.setFareType(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, int flightHash, boolean isSeamen,  FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList){
         int flightIndexNumber = 0;
         int segmentIndex = 0;
 
