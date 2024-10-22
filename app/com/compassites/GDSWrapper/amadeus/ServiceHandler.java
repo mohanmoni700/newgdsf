@@ -185,8 +185,8 @@ public class ServiceHandler {
     public FareMasterPricerTravelBoardSearchReply searchAirlines(SearchParameters searchParameters, AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("AmadeusFlightSearch called at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
-        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters);
-        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
+        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId());
+        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " Office Id: "+ amadeusSessionWrapper.getOfficeId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession());
         if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
             loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
