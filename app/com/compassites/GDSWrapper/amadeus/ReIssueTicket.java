@@ -352,10 +352,10 @@ public class ReIssueTicket {
 
         private static void createPaxReferenceForReissueSearch(TicketATCShopperMasterPricerTravelBoardSearch reIssueSearch, ReIssueTicketRequest reIssueTicketRequest) {
 
-            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> passengers = new ArrayList<>();
-            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> passengers1 = new ArrayList<>();
-            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> passengers2 = new ArrayList<>();
-            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> passengers3 = new ArrayList<>();
+            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> adtPassengerList = new ArrayList<>();
+            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> chdPassengerList = new ArrayList<>();
+            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> infPassengerList = new ArrayList<>();
+            List<com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType> seamanPassengerList = new ArrayList<>();
 
             List<com.amadeus.xml.fmtctq_18_2_1a.TravellerDetailsType> adtTravellerDetailsTypeList = new ArrayList<>();
             List<com.amadeus.xml.fmtctq_18_2_1a.TravellerDetailsType> chdTravellerDetailsTypeList = new ArrayList<>();
@@ -397,33 +397,33 @@ public class ReIssueTicket {
             com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType adtTraveller = new com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType();
             if (!adtTravellerDetailsTypeList.isEmpty()) {
                 adtTraveller.getTraveller().addAll(adtTravellerDetailsTypeList);
-                passengers.add(adtTraveller);
+                adtPassengerList.add(adtTraveller);
                 adtTraveller.getPtc().add(PassengerTypeCode.ADT.toString());
-                reIssueSearch.getPaxReference().addAll(passengers);
+                reIssueSearch.getPaxReference().addAll(adtPassengerList);
             }
 
             com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType chdTraveller = new com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType();
             if (!chdTravellerDetailsTypeList.isEmpty()) {
                 chdTraveller.getTraveller().addAll(chdTravellerDetailsTypeList);
-                passengers1.add(chdTraveller);
+                chdPassengerList.add(chdTraveller);
                 chdTraveller.getPtc().add(PassengerTypeCode.CHD.toString());
-                reIssueSearch.getPaxReference().addAll(passengers1);
+                reIssueSearch.getPaxReference().addAll(chdPassengerList);
             }
 
             com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType infTraveller = new com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType();
             if (!infTravellerDetailsTypeList.isEmpty()) {
                 infTraveller.getTraveller().addAll(infTravellerDetailsTypeList);
-                passengers2.add(infTraveller);
+                infPassengerList.add(infTraveller);
                 infTraveller.getPtc().add(PassengerTypeCode.INF.toString());
-                reIssueSearch.getPaxReference().addAll(passengers2);
+                reIssueSearch.getPaxReference().addAll(infPassengerList);
             }
 
             com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType seamenTraveller = new com.amadeus.xml.fmtctq_18_2_1a.TravellerReferenceInformationType();
             if (!seamenTravellerDetailsTypeList.isEmpty()) {
                 seamenTraveller.getTraveller().addAll(seamenTravellerDetailsTypeList);
-                passengers3.add(seamenTraveller);
+                seamanPassengerList.add(seamenTraveller);
                 seamenTraveller.getPtc().add(PassengerTypeCode.SEA.toString());
-                reIssueSearch.getPaxReference().addAll(passengers3);
+                reIssueSearch.getPaxReference().addAll(seamanPassengerList);
             }
 
         }
