@@ -120,12 +120,14 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
     public AirSolution getAirSolution(TravelomatrixSearchReply response,String journeyType) {
         AirSolution airSolution = new AirSolution();
-        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = getFlightIternary(response.getSearch().getFlightDataList(),journeyType);
+        ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
+        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = getFlightIternary(response.getSearch().getFlightDataList(),journeyType, groupingKeyMap);
         airSolution.setNonSeamenHashMap(nonSeamenHashMap);
+        airSolution.setGroupingKeyMap(groupingKeyMap);
         return airSolution;
     }
 
-    public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList,String journyeType) {
+    public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList,String journyeType,ConcurrentHashMap<String, List<Integer>> groupingKeyMap) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try {
             int maxResults = Play.application().configuration().getInt("travelomatrix.noOfSearchResults");
@@ -201,6 +203,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                                 index++;
                             }
                             FlightItinerary flightItinerary = new FlightItinerary();
+                            int flightHash = flightItinerary.hashCode()+index;
                             List<Journey> consolidatedJourney = new LinkedList<>();
                             if (isRefundable && !journeyDetails.getAttr().getIsRefundable()) {
                                 continue;
@@ -208,7 +211,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                             if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
                                 continue;
                             }
-                            consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails());
+                            consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails(),flightHash, groupingKeyMap);
                             flightItinerary.setJourneyList(consolidatedJourney);
                             flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
                             flightItinerary.setPassportMandatory(Boolean.FALSE);
@@ -223,8 +226,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                                 flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
                             else
                                 flightItinerary.setIsLCC(false);
-
-                            flightItineraryHashMap.put(flightItinerary.hashCode()+index, flightItinerary);
+                            flightItineraryHashMap.put(flightHash, flightItinerary);
                         }
 
                     }
@@ -368,14 +370,14 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         return pricingInformation;
     }
 
-    public List<Journey> getJourneyList(FlightDetails flightDetails) {
+    public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap) {
        //calculate duration
         Long durationTime = 0L;
         Long layOver = 0L;
-
         List<Journey> journeyList = new ArrayList<>();
         for(List<Detail> detailsList :flightDetails.getDetails()) {
             List<AirSegmentInformation> airSegmentInformationList = new ArrayList<>();
+            StringBuilder groupingKey = new StringBuilder();
             for (Detail journeyData : detailsList) {
                 AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
                 airSegmentInformation.setFromLocation(journeyData.getOrigin().getAirportCode());
@@ -420,7 +422,11 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     airSegmentInformation.setBaggage(output);
                     airSegmentInformation.setAvailbleSeats(journeyData.getAttr().getAvailableSeats());
                 }
-
+                groupingKey.append(airSegmentInformation.getFromLocation());
+                groupingKey.append(airSegmentInformation.getToLocation());
+                groupingKey.append(airSegmentInformation.getFlightNumber());
+                groupingKey.append(airSegmentInformation.getCarrierCode());
+                groupingKey.append(airSegmentInformation.getDepartureDate());
                 if(toAirport.getAirportName() != null && fromAirport.getAirportName() != null)
                  airSegmentInformationList.add(airSegmentInformation);
             }
@@ -428,10 +434,20 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             asJourney.setProvider(TraveloMatrixConstants.provider);
             asJourney.setAirSegmentList(airSegmentInformationList);
             asJourney.setNoOfStops(airSegmentInformationList.size()-1);
+            asJourney.setGroupingKey(groupingKey.toString());
             //Convert minutes to milliseconds
             Long totalTravelTime = durationTime*60000 + layOver*60000;
             asJourney.setTravelTimeMillis(totalTravelTime);
             asJourney.setTravelTime(DateUtility.convertMillistoString(totalTravelTime));
+            if(concurrentHashMap.containsKey(groupingKey.toString())) {
+                List<Integer> mapList = concurrentHashMap.get(groupingKey.toString());
+                mapList.add(flightHash);
+                concurrentHashMap.put(groupingKey.toString(),mapList);
+            } else {
+                List<Integer> hashList = new ArrayList<>();
+                hashList.add(flightHash);
+                concurrentHashMap.put(groupingKey.toString(),hashList);
+            }
             journeyList.add(asJourney);
         }
 
