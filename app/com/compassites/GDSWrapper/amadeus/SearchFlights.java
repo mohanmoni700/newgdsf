@@ -300,7 +300,6 @@ public class SearchFlights {
         pit.getPriceType().add("RP");
 
         pit.getPriceType().add("ET");
-        pit.getPriceType().add("RW");
 
         if (!officeId.equalsIgnoreCase("BOMAK38SN")) {
             pit.getPriceType().add("MNR");
