@@ -32,6 +32,16 @@ public class Journey
 
     private String fareDescription;
 
+    private List<String> lastTktDate;
+
+    public List<String> getLastTktDate() {
+        return lastTktDate;
+    }
+
+    public void setLastTktDate(List<String> lastTktDate) {
+        this.lastTktDate = lastTktDate;
+    }
+
     public String getFareDescription() {
         return fareDescription;
     }

@@ -274,8 +274,6 @@ public class AmadeusFlightSearch implements FlightSearch{
                     flightItinerary.setPricingInformation(getPricingInformation(recommendation));
                     flightItinerary.getPricingInformation().setGdsCurrency(currency);
                     flightItinerary.getPricingInformation().setPricingOfficeId(office.getOfficeId());
-                    flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
-                    flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
                     List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
 
                     int flightHash = flightItinerary.hashCode()+k;
@@ -288,6 +286,8 @@ public class AmadeusFlightSearch implements FlightSearch{
                             getFareType(flightItinerary, fareMasterPricerTravelBoardSearchReply, ref);
                         }
                     }
+                    flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
+                    flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
                     flightItineraryHashMap.put(flightHash, flightItinerary);
                     k++;
                 }
@@ -490,6 +490,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         //set segments information
 
         journey.setFareDescription(getFareDescription(recommendation.getPaxFareProduct().get(0).getFare()));
+        journey.setLastTktDate(getLastTktDate(recommendation.getPaxFareProduct().get(0).getFare()));
         String validatingCarrierCode = null;
         if(recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getTransportStageQualifier().equals("V")) {
             validatingCarrierCode = recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getCompany();
@@ -509,6 +510,21 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
         getConnectionTime(journey.getAirSegmentList());
         return journey;
+    }
+
+    public List<String> getLastTktDate(List<Recommendation.PaxFareProduct.Fare> fares) {
+        List<String> lastTktDate = new ArrayList<>();
+        for (Recommendation.PaxFareProduct.Fare fare: fares) {
+            if (fare.getPricingMessage().getFreeTextQualification().getTextSubjectQualifier().equalsIgnoreCase("LTD")) {
+                //System.out.println(fare.getPricingMessage().getDescription().size());
+                if(fare.getPricingMessage().getDescription().size() >0) {
+                    //System.out.println("fare"+fare.getPricingMessage().getDescription().get(0).toString());
+                    lastTktDate.addAll(fare.getPricingMessage().getDescription());
+                    return lastTktDate;
+                }
+            }
+        }
+        return lastTktDate;
     }
 
     public String getFareDescription(List<Recommendation.PaxFareProduct.Fare> fares) {
