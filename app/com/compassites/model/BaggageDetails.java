@@ -2,7 +2,6 @@ package com.compassites.model;
 
 public class BaggageDetails{
 
-
     private Long contactMasterId;
 
     private String baggageId;

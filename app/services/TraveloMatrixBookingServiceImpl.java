@@ -338,7 +338,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             String ticketNumber  = passengerDetail.getTicketNumber();
             tickenetNumberMap.put(passengerType,ticketNumber);
             List<Baggage> baggage =  passengerDetail.getBaggageList();
-            if(baggage.size() > 0) {
+            if(baggage!= null && baggage.size() > 0) {
                 for (Baggage baggage1 : baggage) {
                     BaggageDetails baggageDetails = new BaggageDetails();
                     baggageDetails.setPrice(baggage1.getPrice());
