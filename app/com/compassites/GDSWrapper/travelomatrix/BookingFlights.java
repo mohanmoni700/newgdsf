@@ -159,7 +159,7 @@ public class BookingFlights {
       try{
           ObjectMapper mapper = new ObjectMapper();
           node= mapper.valueToTree(commitBookingRequest);
-
+          travelomatrixLogger.debug("commitBooking request: "+ node);
       }catch(Exception e){
           travelomatrixLogger.error("Exception Occured:"+ e.getMessage());
           e.printStackTrace();

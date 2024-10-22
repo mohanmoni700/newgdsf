@@ -394,15 +394,17 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        try {
            baggageList = new ArrayList<>();
            List<Baggage> baggages = extraServicesReply.getExtraServices().getExtraServiceDetails().getBaggage().get(0);
-           for (Baggage baggage : baggages) {
-               BaggageDetails baggageDetails = new BaggageDetails();
-               baggageDetails.setBaggageId(baggage.getBaggageId());
-               baggageDetails.setCode(baggage.getCode());
-               baggageDetails.setOrigin(baggage.getOrigin());
-               baggageDetails.setDestination(baggage.getDestination());
-               baggageDetails.setWeight(baggage.getWeight());
-               baggageDetails.setPrice(baggage.getPrice());
-               baggageList.add(baggageDetails);
+           if(baggages != null) {
+               for (Baggage baggage : baggages) {
+                   BaggageDetails baggageDetails = new BaggageDetails();
+                   baggageDetails.setBaggageId(baggage.getBaggageId());
+                   baggageDetails.setCode(baggage.getCode());
+                   baggageDetails.setOrigin(baggage.getOrigin());
+                   baggageDetails.setDestination(baggage.getDestination());
+                   baggageDetails.setWeight(baggage.getWeight());
+                   baggageDetails.setPrice(baggage.getPrice());
+                   baggageList.add(baggageDetails);
+               }
            }
        } catch (Exception e) {
            logger.debug("An exception occured while traversing the BaggageDetails"+ e.getMessage());

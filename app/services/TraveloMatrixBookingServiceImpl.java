@@ -343,8 +343,15 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                     BaggageDetails baggageDetails = new BaggageDetails();
                     baggageDetails.setPrice(baggage1.getPrice());
                     baggageDetails.setWeight(baggage1.getWeight());
+                    baggageDetails.setTicketNumber(ticketNumber);
                     excessBaggageList.add(baggageDetails);
                 }
+            }else{
+                BaggageDetails baggageDetails = new BaggageDetails();
+                baggageDetails.setPrice(100L);
+                baggageDetails.setWeight("15 Kg");
+                baggageDetails.setTicketNumber(ticketNumber);
+                excessBaggageList.add(baggageDetails);
             }
         }
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
