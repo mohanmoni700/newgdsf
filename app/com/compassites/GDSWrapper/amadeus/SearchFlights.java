@@ -59,7 +59,7 @@ public class SearchFlights {
     }
 
     //search flights with 2 cities- faremasterpricertravelboardsearch service
-    public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters) {
+    public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters, String officeId) {
         FareMasterPricerTravelBoardSearch se = new FareMasterPricerTravelBoardSearch();
         if(searchParameters.getBookingType() == BookingType.SEAMEN){
             se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount() + searchParameters.getInfantCount()));
@@ -116,10 +116,11 @@ public class SearchFlights {
 
         setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
+
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-            createSeamenFareOptions(pit);
+            createSeamenFareOptions(pit,officeId);
         } else {
-            createFareOptions(pit);
+            createFareOptions(pit,officeId);
         }
 
         //se.setFareOptions(fareOptions);
@@ -276,16 +277,21 @@ public class SearchFlights {
         //se.setFareOptions(fe);
     }
 
-    private void createSeamenFareOptions(PricingTicketingInformationType pit) {
+
+    private void createSeamenFareOptions(PricingTicketingInformationType pit, String officeId) {
         pit.getPriceType().add("TAC");
         pit.getPriceType().add("RU");
         pit.getPriceType().add("RP");
         pit.getPriceType().add("ET");
         pit.getPriceType().add("RW");
-        pit.getPriceType().add("MNR");
+        if (!officeId.equalsIgnoreCase("BOMAK38SN")) {
+            pit.getPriceType().add("MNR");
+        }
     }
 
-    private void createFareOptions(PricingTicketingInformationType pit) {
+
+    private void createFareOptions(PricingTicketingInformationType pit, String officeId) {
+
         //FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
         //PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
         //PricingTicketingInformationType pit = new PricingTicketingInformationType();
@@ -294,9 +300,12 @@ public class SearchFlights {
         pit.getPriceType().add("RP");
 
         pit.getPriceType().add("ET");
-        pit.getPriceType().add("MNR");
-        //pit.getPriceType().add("RW");
-        //pit.getPriceType().add("MNR");
+        pit.getPriceType().add("RW");
+
+        if (!officeId.equalsIgnoreCase("BOMAK38SN")) {
+            pit.getPriceType().add("MNR");
+        }
+
        /* pit.getPriceType().add("PTC");
         pit.getPriceType().add("ET");
         pit.getPriceType().add("NSD");*/
