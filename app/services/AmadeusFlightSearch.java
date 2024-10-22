@@ -184,7 +184,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             //return flight
         	logger.debug("#####################errorMessage is null");
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
-            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false));
+            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false, office.getOfficeId()));
             //System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
             if(searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
                 airSolution.setGroupingKeyMap(groupingKeyMap);
@@ -198,7 +198,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
                 ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
                 ConcurrentHashMap<String, List<Integer>> seamenMap = new ConcurrentHashMap<>();
-                airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office,seamenMap,true));
+                airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office,seamenMap,true, office.getOfficeId()));
                 //System.out.println("airSolution Seamen "+Json.toJson(airSolution.getSeamenHashMap()));
                 if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                     printHashmap(airSolution.getSeamenHashMap(), true);//to be removed
@@ -256,7 +256,7 @@ public class AmadeusFlightSearch implements FlightSearch{
     //list with all flight informaition
 //    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
-    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen) {
+    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, String officeId) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try{
 
@@ -278,7 +278,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
                     int flightHash = flightItinerary.hashCode()+k;
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
-                    flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList,groupingKeyMap,flightHash,isSeamen, mnrGrp, baggageList);
+                    flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList,groupingKeyMap,flightHash,isSeamen, mnrGrp, baggageList, officeId);
                     //System.out.println("After "+flightItinerary.hashCode());
                     if(!isSeamen) {
                         if(recommendation.getFareFamilyRef()!= null && recommendation.getFareFamilyRef().getReferencingDetail().size()>0) {
@@ -425,7 +425,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
     }
 
-    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, int flightHash, boolean isSeamen,  FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList){
+    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, int flightHash, boolean isSeamen,  FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList, String officeId){
         int flightIndexNumber = 0;
         int segmentIndex = 0;
 
@@ -435,7 +435,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
                 StringBuilder groupingKey = new StringBuilder();
                 Journey journey = new Journey();
-                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1),recommendation, groupingKeyMap, flightHash, groupingKey);
+                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1),recommendation, groupingKeyMap, flightHash, groupingKey, officeId);
                 if(contextList.size() > 0 ){
                     setContextInformation(contextList, journey, segmentIndex);
                 }
@@ -481,7 +481,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         return duration;
     }
 
-    private Journey setJourney(Journey journey,FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, int flightHash, StringBuilder groupingKey){
+    private Journey setJourney(Journey journey,FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, int flightHash, StringBuilder groupingKey, String officeId){
         //no of stops
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
        

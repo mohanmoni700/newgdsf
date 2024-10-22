@@ -95,7 +95,7 @@ public class SearchFlights {
         pdt.setPricingTicketing(pit);
         fe.setPricingTickInfo(pdt);
 
-        if (searchParameters.getBookingType() !=BookingType.SEAMEN) {
+        if (searchParameters.getBookingType() !=BookingType.SEAMEN && officeId.equalsIgnoreCase("BOMVS34C3")) {
             CodedAttributeType codedAttributeType = new CodedAttributeType();
             CodedAttributeInformationType247829C codedAttributeInformationType247829C = new CodedAttributeInformationType247829C();
             codedAttributeInformationType247829C.setFeeType("FFI");
@@ -121,6 +121,11 @@ public class SearchFlights {
             createSeamenFareOptions(pit,officeId);
         } else {
             createFareOptions(pit,officeId);
+        }
+
+        if(searchParameters.getBookingType() != BookingType.SEAMEN && !officeId.equalsIgnoreCase("BOMVS34C3")) {
+            CorporateIdentificationType corporateIdentificationType = createCorporateCode(pit, searchParameters);
+            fe.setCorporate(corporateIdentificationType);
         }
 
         //se.setFareOptions(fareOptions);
@@ -296,10 +301,19 @@ public class SearchFlights {
         //PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
         //PricingTicketingInformationType pit = new PricingTicketingInformationType();
         //pit.getPriceType().add("TAC");
-        pit.getPriceType().add("RU");
-        pit.getPriceType().add("RP");
+        if(officeId.equalsIgnoreCase("BOMVS34C3")) {
+            pit.getPriceType().add("RU");
+            pit.getPriceType().add("RP");
 
-        pit.getPriceType().add("ET");
+            pit.getPriceType().add("ET");
+        } else {
+            pit.getPriceType().add("TAC");
+            pit.getPriceType().add("RU");
+            pit.getPriceType().add("RP");
+
+            pit.getPriceType().add("ET");
+            pit.getPriceType().add("RW");
+        }
 
         if (!officeId.equalsIgnoreCase("BOMAK38SN")) {
             pit.getPriceType().add("MNR");
