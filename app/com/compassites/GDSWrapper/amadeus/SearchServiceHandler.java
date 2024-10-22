@@ -143,15 +143,15 @@ public class SearchServiceHandler {
     }
 
     //search flights with 2 cities- faremastertravelboard service
-    public FareMasterPricerTravelBoardSearchReply searchAirlines(SearchParameters searchParameters, SessionHandler mSession) {
-//        mSession.incrementSequenceNumber();
-        logger.debug("AmadeusFlightSearch called at : " + new Date() + " " + mSession.getSessionId());
-        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters);
-        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + mSession.getSessionId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
-        FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, null);
-        logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
-        return  SearchReply;
-    }
+//    public FareMasterPricerTravelBoardSearchReply searchAirlines(SearchParameters searchParameters, SessionHandler mSession) {
+////        mSession.incrementSequenceNumber();
+//        logger.debug("AmadeusFlightSearch called at : " + new Date() + " " + mSession.getSessionId());
+////        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters);
+//        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + mSession.getSessionId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
+//        FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, null);
+//        logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
+//        return  SearchReply;
+//    }
 
 
 //    public FarePricePNRWithLowestFareReply getLowestFare(boolean isSeamen) {
