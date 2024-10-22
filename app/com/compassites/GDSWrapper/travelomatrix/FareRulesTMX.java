@@ -30,10 +30,10 @@ public class FareRulesTMX {
         JsonNode response = null;
         try {
             wsrholder= wsconf.getRequestHolder("/FareRule");
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix getFareRules : Request to TM : "+ jsonRequest.toString());
+            travelomatrixLogger.debug("TraveloMatrix getFareRules : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
             response = wsrholder.post(jsonRequest).get(30000).asJson();
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix getFareRules : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
         }catch(Exception e){
             travelomatrixLogger.error(e.getMessage());

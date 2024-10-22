@@ -1,9 +1,6 @@
 package services;
 
 import com.compassites.model.*;
-import com.compassites.model.travelomatrix.ResponseModels.JourneyList;
-import com.compassites.model.travelomatrix.ResponseModels.TraveloMatrixFaruleReply;
-import models.MiniRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +9,6 @@ import com.compassites.GDSWrapper.mystifly.Mystifly;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Santhosh
@@ -110,5 +106,11 @@ public class FlightInfoServiceWrapper {
 		miniRule=traveloMatrixFlightInfoServiceImpl.flightFareRules(resultToken,returnResultToken);
 
 		return miniRule;
+	}
+
+	public AncillaryServicesResponse getExtraServicesfromTmx(String resultToken){
+
+		AncillaryServicesResponse ancillaryServicesResponse = traveloMatrixFlightInfoServiceImpl.getExtraServicesfromTmx(resultToken);
+		return ancillaryServicesResponse;
 	}
 }

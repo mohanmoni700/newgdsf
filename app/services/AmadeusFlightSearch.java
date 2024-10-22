@@ -110,7 +110,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
                 seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
-                
+                amadeusLogger.debug("AmadeusSearchRes seamenReply "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
@@ -118,13 +118,13 @@ public class AmadeusFlightSearch implements FlightSearch{
 //                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
                 
 //                amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
-                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+ " Office ID : "+ amadeusSessionWrapper.getOfficeId() +" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
-                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+                amadeusLogger.debug("AmadeusSearchRes "+ new Date()+ " Office ID : "+ amadeusSessionWrapper.getOfficeId() +" ------->>"+ new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
 
 //            serviceHandler.logOut();
@@ -183,7 +183,14 @@ public class AmadeusFlightSearch implements FlightSearch{
         } else {
             //return flight
         	logger.debug("#####################errorMessage is null");
-            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office));
+
+            ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
+            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false, office.getOfficeId()));
+            System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
+            if(searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
+                airSolution.setGroupingKeyMap(groupingKeyMap);
+            }
+
             if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                 printHashmap(airSolution.getNonSeamenHashMap(), false);//to be removed
             }
@@ -192,7 +199,9 @@ public class AmadeusFlightSearch implements FlightSearch{
                 ///AirSolution seamenSolution = new AirSolution();
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
                 ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
-                airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office));
+                ConcurrentHashMap<String, List<Integer>> seamenMap = new ConcurrentHashMap<>();
+                airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office,seamenMap,true, office.getOfficeId()));
+                //System.out.println("airSolution Seamen "+Json.toJson(airSolution.getSeamenHashMap()));
                 if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                     printHashmap(airSolution.getSeamenHashMap(), true);//to be removed
                 }
@@ -249,7 +258,8 @@ public class AmadeusFlightSearch implements FlightSearch{
     //list with all flight informaition
 //    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
-    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office) {
+
+    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, String officeId) {
 
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try{
@@ -259,7 +269,10 @@ public class AmadeusFlightSearch implements FlightSearch{
             List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList = fareMasterPricerTravelBoardSearchReply.getServiceFeesGrp();
 
             String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
-            List<FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
+
+            List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
+            int k=300;
+
             for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
                 for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                     FlightItinerary flightItinerary = new FlightItinerary();
@@ -270,88 +283,140 @@ public class AmadeusFlightSearch implements FlightSearch{
                     flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
                     flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
                     List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
-                    flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList, mnrGrp, baggageList);
+
+
+                    int flightHash = flightItinerary.hashCode()+k;
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
-                    flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+                    flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList,groupingKeyMap,flightHash,isSeamen, mnrGrp, baggageList, officeId);
+                    //System.out.println("After "+flightItinerary.hashCode());
+                    if(!isSeamen) {
+                        if(recommendation.getFareFamilyRef()!= null && recommendation.getFareFamilyRef().getReferencingDetail().size()>0) {
+                            BigInteger ref = recommendation.getFareFamilyRef().getReferencingDetail().get(0).getRefNumber();
+                            getFareType(flightItinerary, fareMasterPricerTravelBoardSearchReply, ref);
+                        }
+                    }
+                    if(!office.getOfficeId().equalsIgnoreCase("BOMAK38SN")) {
+                        flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
+                        flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
+                    }
+                    flightItineraryHashMap.put(flightItinerary.hashCode()+k, flightItinerary);
+                    //System.out.println("1 "+flightItinerary.hashCode()+k);
+                    createMappingKey(flightItinerary, groupingKeyMap, isSeamen, k);
+                    //System.out.println("2 "+flightItinerary.hashCode()+k);
+                    k++;
+
                 }
             }
+            //System.out.println("Result size "+Json.toJson(flightItineraryHashMap));
             return flightItineraryHashMap;
         }catch (Exception e){
+            e.printStackTrace();
             logger.debug("error in getFlightItineraryHashmap :"+ e.getMessage());
         }
         return flightItineraryHashMap;
     }
 
+
+    private void createMappingKey(FlightItinerary flightItinerary, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, int k) {
+        for (Journey journey: flightItinerary.getJourneyList()) {
+            StringBuilder groupingKey = new StringBuilder();
+            for (AirSegmentInformation airSegmentInformation: journey.getAirSegmentList()) {
+                groupingKey.append(airSegmentInformation.getFromLocation());
+                groupingKey.append(airSegmentInformation.getToLocation());
+                groupingKey.append(airSegmentInformation.getFlightNumber());
+                groupingKey.append(airSegmentInformation.getCarrierCode());
+                groupingKey.append(airSegmentInformation.getDepartureDate());
+            }
+            if(!isSeamen) {
+                journey.setGroupingKey(groupingKey.toString());
+                if (groupingKeyMap.containsKey(groupingKey.toString())) {
+                    List<Integer> mapList = groupingKeyMap.get(groupingKey.toString());
+                    mapList.add(flightItinerary.hashCode()+k);
+                    groupingKeyMap.put(groupingKey.toString(), mapList);
+                } else {
+                    List<Integer> hashList = new ArrayList<>();
+                    hashList.add(flightItinerary.hashCode()+k);
+                    groupingKeyMap.put(groupingKey.toString(), hashList);
+                }
+            }
+        }
+    }
+
     private MnrSearchFareRules createSearchFareRules(ReferenceInfoType segmentRef, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp) {
 
         MnrSearchFareRules mnrSearchFareRules = new MnrSearchFareRules();
+        try {
+            BigDecimal changeFeeBeforeDeparture = null;
+            BigDecimal cancellationFeeBeforeDeparture = null;
+            Boolean isChangeAllowedBeforeDeparture = false;
+            Boolean isCancellationAllowedBeforeDeparture = false;
 
-        BigDecimal changeFeeBeforeDeparture = null;
-        BigDecimal cancellationFeeBeforeDeparture = null;
-        Boolean isChangeAllowedBeforeDeparture = false;
-        Boolean isCancellationAllowedBeforeDeparture = false;
 
-
-        String referenceNumber = null;
-        for (ReferencingDetailsType191583C referencingDetail : segmentRef.getReferencingDetail()) {
-            if (referencingDetail.getRefQualifier().equalsIgnoreCase("M")) {
-                referenceNumber = String.valueOf(referencingDetail.getRefNumber());
-                break;
+            String referenceNumber = null;
+            for (ReferencingDetailsType191583C referencingDetail : segmentRef.getReferencingDetail()) {
+                if (referencingDetail.getRefQualifier().equalsIgnoreCase("M")) {
+                    referenceNumber = String.valueOf(referencingDetail.getRefNumber());
+                    break;
+                }
             }
-        }
 
-        outerForLoop:
-        for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails mnrDetails : mnrGrp.getMnrDetails()) {
-            if (mnrDetails.getMnrRef().getItemNumberDetails().get(0).getNumber().toString().equalsIgnoreCase(referenceNumber)) {
-                for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails.CatGrp catGrp : mnrDetails.getCatGrp()) {
+            outerForLoop:
+            for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails mnrDetails : mnrGrp.getMnrDetails()) {
+                if (mnrDetails.getMnrRef().getItemNumberDetails().get(0).getNumber().toString().equalsIgnoreCase(referenceNumber)) {
+                    for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails.CatGrp catGrp : mnrDetails.getCatGrp()) {
 
-                    //Change fee is being set here (Category 31: Changes)
-                    if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("31"))) {
-                        if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
-                            changeFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
-                        } else if (catGrp.getMonInfo().getOtherMonetaryDetails() != null) {
-                            for (MonetaryInformationDetailsType245528C monetaryInformationDetailsType : catGrp.getMonInfo().getOtherMonetaryDetails()) {
-                                if (monetaryInformationDetailsType.getTypeQualifier().equalsIgnoreCase("BDT")) {
-                                    changeFeeBeforeDeparture = monetaryInformationDetailsType.getAmount();
+                        //Change fee is being set here (Category 31: Changes)
+                        if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("31"))) {
+                            if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
+                                changeFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
+                            } else if (catGrp.getMonInfo().getOtherMonetaryDetails() != null) {
+                                for (MonetaryInformationDetailsType245528C monetaryInformationDetailsType : catGrp.getMonInfo().getOtherMonetaryDetails()) {
+                                    if (monetaryInformationDetailsType.getTypeQualifier().equalsIgnoreCase("BDT")) {
+                                        changeFeeBeforeDeparture = monetaryInformationDetailsType.getAmount();
+                                        break;
+                                    }
+                                }
+                            }
+
+                            for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
+                                if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
+                                    isChangeAllowedBeforeDeparture = true;
                                     break;
                                 }
                             }
                         }
 
-                        for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
-                            if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
-                                isChangeAllowedBeforeDeparture = true;
-                                break;
+                        //Cancellation fee is being set here (Category 33: Cancellation)
+                        if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("33"))) {
+                            if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
+                                cancellationFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
+                            }
+                            for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
+                                if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
+                                    isCancellationAllowedBeforeDeparture = true;
+                                    break;
+                                }
                             }
                         }
-                    }
-
-                    //Cancellation fee is being set here (Category 33: Cancellation)
-                    if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("33"))) {
-                        if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
-                            cancellationFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
+                        if (changeFeeBeforeDeparture != null && cancellationFeeBeforeDeparture != null) {
+                            break outerForLoop;
                         }
-                        for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
-                            if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
-                                isCancellationAllowedBeforeDeparture = true;
-                                break;
-                            }
-                        }
-                    }
-                    if(changeFeeBeforeDeparture != null && cancellationFeeBeforeDeparture != null ) {
-                        break outerForLoop;
                     }
                 }
             }
+
+            mnrSearchFareRules.setProvider(AMADEUS.toString());
+            mnrSearchFareRules.setChangeFee(changeFeeBeforeDeparture);
+            mnrSearchFareRules.setCancellationFee(cancellationFeeBeforeDeparture);
+            mnrSearchFareRules.setChangeBeforeDepartureAllowed(isChangeAllowedBeforeDeparture);
+            mnrSearchFareRules.setCancellationBeforeDepartureAllowed(isCancellationAllowedBeforeDeparture);
+
+            return mnrSearchFareRules;
+        } catch (Exception e) {
+            logger.error("Mini rule error "+e.getMessage());
+            return null;
         }
 
-        mnrSearchFareRules.setProvider(AMADEUS.toString());
-        mnrSearchFareRules.setChangeFee(changeFeeBeforeDeparture);
-        mnrSearchFareRules.setCancellationFee(cancellationFeeBeforeDeparture);
-        mnrSearchFareRules.setChangeBeforeDepartureAllowed(isChangeAllowedBeforeDeparture);
-        mnrSearchFareRules.setCancellationBeforeDepartureAllowed(isCancellationAllowedBeforeDeparture);
-
-        return mnrSearchFareRules;
     }
 
     private MnrSearchBaggage createBaggageInformation(ReferenceInfoType segmentRef, List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageListInfo) {
@@ -390,23 +455,47 @@ public class AmadeusFlightSearch implements FlightSearch{
             return null;
         }
     }
-    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
 
+
+    private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber){
+        try {
+            //System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
+            flightItinerary.setFareType(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getDescription());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private FlightItinerary createJourneyInformation(ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<FlightIndex> flightIndexList, Recommendation recommendation, List<String> contextList, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, int flightHash, boolean isSeamen,  FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp , List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList, String officeId){
         int flightIndexNumber = 0;
         int segmentIndex = 0;
 
         for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
             //0 is for forward journey and refQualifier should be S for segment
-            if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S")) {
+
+
+            if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
+                StringBuilder groupingKey = new StringBuilder();
                 Journey journey = new Journey();
-                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue() - 1), recommendation);
-                if (!contextList.isEmpty()) {
+                journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1),recommendation, groupingKeyMap, flightHash, groupingKey, officeId);
+                if(contextList.size() > 0 ){
+
                     setContextInformation(contextList, journey, segmentIndex);
                 }
                 flightItinerary.getJourneyList().add(journey);
                 flightItinerary.getNonSeamenJourneyList().add(journey);
-                //flightItinerary.getJourneyList().add(setJourney(flightIndexNumber == 0 ? forwardJourney : returnJourney, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1)));
-                //flightIndexNumber = ++flightIndexNumber % 2;
+                /*if(!isSeamen) {
+                    journey.setGroupingKey(groupingKey.toString());
+                    if (groupingKeyMap.containsKey(groupingKey.toString())) {
+                        List<Integer> mapList = groupingKeyMap.get(groupingKey.toString());
+                        mapList.add(flightHash);
+                        groupingKeyMap.put(groupingKey.toString(), mapList);
+                    } else {
+                        List<Integer> hashList = new ArrayList<>();
+                        hashList.add(flightHash);
+                        groupingKeyMap.put(groupingKey.toString(), hashList);
+                    }
+                }*/
                 ++flightIndexNumber;
             }
         }
@@ -435,7 +524,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         return duration;
     }
 
-    private Journey setJourney(Journey journey,FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation){
+    private Journey setJourney(Journey journey,FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, int flightHash, StringBuilder groupingKey, String officeId){
         //no of stops
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size()-1);
        
@@ -449,12 +538,20 @@ public class AmadeusFlightSearch implements FlightSearch{
         String fareBasis = getFareBasis(recommendation.getPaxFareProduct().get(0).getFareDetails().get(0));
         //set segments information
 
+        journey.setFareDescription(getFareDescription(recommendation.getPaxFareProduct().get(0).getFare()));
+        journey.setLastTktDate(getLastTktDate(recommendation.getPaxFareProduct().get(0).getFare()));
         String validatingCarrierCode = null;
         if(recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getTransportStageQualifier().equals("V")) {
             validatingCarrierCode = recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getCompany();
         }
+
         for(FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlight.getFlightDetails()){
             AirSegmentInformation airSegmentInformation = setSegmentInformation(flightDetails, fareBasis, validatingCarrierCode);
+            groupingKey.append(airSegmentInformation.getFromLocation());
+            groupingKey.append(airSegmentInformation.getToLocation());
+            groupingKey.append(airSegmentInformation.getFlightNumber());
+            groupingKey.append(airSegmentInformation.getCarrierCode());
+            groupingKey.append(airSegmentInformation.getDepartureDate());
             if(airSegmentInformation.getToAirport().getAirportName() != null && airSegmentInformation.getFromAirport().getAirportName() != null) {
                 journey.getAirSegmentList().add(airSegmentInformation);
                 journey.setProvider("Amadeus");
@@ -462,6 +559,32 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
         getConnectionTime(journey.getAirSegmentList());
         return journey;
+    }
+
+    public List<String> getLastTktDate(List<Recommendation.PaxFareProduct.Fare> fares) {
+        List<String> lastTktDate = new ArrayList<>();
+        for (Recommendation.PaxFareProduct.Fare fare: fares) {
+            if (fare.getPricingMessage().getFreeTextQualification().getTextSubjectQualifier().equalsIgnoreCase("LTD")) {
+                //System.out.println(fare.getPricingMessage().getDescription().size());
+                if(fare.getPricingMessage().getDescription().size() >0) {
+                    //System.out.println("fare"+fare.getPricingMessage().getDescription().get(0).toString());
+                    lastTktDate.addAll(fare.getPricingMessage().getDescription());
+                    return lastTktDate;
+                }
+            }
+        }
+        return lastTktDate;
+    }
+
+    public String getFareDescription(List<Recommendation.PaxFareProduct.Fare> fares) {
+        String fareDesc = "";
+        for (Recommendation.PaxFareProduct.Fare fare: fares) {
+            if (fare.getPricingMessage().getFreeTextQualification().getTextSubjectQualifier().equalsIgnoreCase("PEN")) {
+                fareDesc = fare.getPricingMessage().getDescription().get(0).toString();
+            }
+            return fareDesc;
+        }
+        return fareDesc;
     }
 
 	private void getConnectionTime(List<AirSegmentInformation> airSegments) {

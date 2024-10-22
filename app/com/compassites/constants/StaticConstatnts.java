@@ -8,4 +8,6 @@ public class StaticConstatnts {
     public static final String DEFAULT_CURRENCY = "INR";
 
     public static final String NO_SEAT = "NO SEAT";
+
+    public static final String TRAVELOMATRIX = "Travelomatrix";
 }

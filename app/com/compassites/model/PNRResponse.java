@@ -71,6 +71,26 @@ public class PNRResponse {
 
     private String returnGdsPNR;
 
+    private String searchResultToken;
+
+    private String returnSearchResultToken;
+
+    public String getSearchResultToken() {
+        return searchResultToken;
+    }
+
+    public void setSearchResultToken(String searchResultToken) {
+        this.searchResultToken = searchResultToken;
+    }
+
+    public String getReturnSearchResultToken() {
+        return returnSearchResultToken;
+    }
+
+    public void setReturnSearchResultToken(String returnSearchResultToken) {
+        this.returnSearchResultToken = returnSearchResultToken;
+    }
+
     public String getReturnGdsPNR() {
         return returnGdsPNR;
     }

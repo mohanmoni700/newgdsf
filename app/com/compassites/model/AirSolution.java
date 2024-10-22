@@ -26,11 +26,21 @@ public class AirSolution {
 
     private boolean isReIssueSearch;
 
+    private ConcurrentHashMap<String, List<Integer>> groupingKeyMap;
+
     @JsonIgnore
     private ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap;
 
     @JsonIgnore
     private ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap;
+
+    public ConcurrentHashMap<String, List<Integer>> getGroupingKeyMap() {
+        return groupingKeyMap;
+    }
+
+    public void setGroupingKeyMap(ConcurrentHashMap<String, List<Integer>> groupingKeyMap) {
+        this.groupingKeyMap = groupingKeyMap;
+    }
 
     public List<FlightItinerary> getFlightItineraryList() {
         return flightItineraryList;

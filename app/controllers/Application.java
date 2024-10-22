@@ -418,6 +418,7 @@ public class Application {
         String appRef = json.get("appRef").asText();
         if(PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)){
             updatePNRResponse = new TraveloMatrixBookingServiceImpl().getUpdatePnr(appRef);
+
         }
         return ok(Json.toJson(updatePNRResponse));
     }
@@ -516,6 +517,14 @@ public class Application {
         }
         ticketProcessRefundRes = refundServiceWrapper.processPartialRefund(provider,gdspnr,ticketList,searchOfficeId);
         return ok(Json.toJson(ticketProcessRefundRes));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result fetchTmxBaggage() {
+        JsonNode json = request().body().asJson();
+        String resultToken = json.get("resultToken").asText();
+        AncillaryServicesResponse ancillaryServicesResponse = flightInfoService.getExtraServicesfromTmx(resultToken);
+        return ok(Json.toJson(ancillaryServicesResponse));
     }
 
     public Result home(){
