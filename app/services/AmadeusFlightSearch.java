@@ -183,12 +183,14 @@ public class AmadeusFlightSearch implements FlightSearch{
         } else {
             //return flight
         	logger.debug("#####################errorMessage is null");
+
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false, office.getOfficeId()));
             System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
             if(searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
                 airSolution.setGroupingKeyMap(groupingKeyMap);
             }
+
             if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                 printHashmap(airSolution.getNonSeamenHashMap(), false);//to be removed
             }
@@ -256,7 +258,9 @@ public class AmadeusFlightSearch implements FlightSearch{
     //list with all flight informaition
 //    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
+
     private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, String officeId) {
+
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try{
 
@@ -265,8 +269,10 @@ public class AmadeusFlightSearch implements FlightSearch{
             List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList = fareMasterPricerTravelBoardSearchReply.getServiceFeesGrp();
 
             String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
+
             List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = fareMasterPricerTravelBoardSearchReply.getFlightIndex();
             int k=300;
+
             for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
                 for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                     FlightItinerary flightItinerary = new FlightItinerary();
@@ -274,7 +280,10 @@ public class AmadeusFlightSearch implements FlightSearch{
                     flightItinerary.setPricingInformation(getPricingInformation(recommendation));
                     flightItinerary.getPricingInformation().setGdsCurrency(currency);
                     flightItinerary.getPricingInformation().setPricingOfficeId(office.getOfficeId());
+                    flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
+                    flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
                     List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
+
 
                     int flightHash = flightItinerary.hashCode()+k;
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
@@ -295,6 +304,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                     createMappingKey(flightItinerary, groupingKeyMap, isSeamen, k);
                     //System.out.println("2 "+flightItinerary.hashCode()+k);
                     k++;
+
                 }
             }
             //System.out.println("Result size "+Json.toJson(flightItineraryHashMap));
@@ -305,6 +315,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
         return flightItineraryHashMap;
     }
+
 
     private void createMappingKey(FlightItinerary flightItinerary, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, int k) {
         for (Journey journey: flightItinerary.getJourneyList()) {
@@ -405,6 +416,7 @@ public class AmadeusFlightSearch implements FlightSearch{
             logger.error("Mini rule error "+e.getMessage());
             return null;
         }
+
     }
 
     private MnrSearchBaggage createBaggageInformation(ReferenceInfoType segmentRef, List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageListInfo) {
@@ -444,6 +456,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
     }
 
+
     private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber){
         try {
             //System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
@@ -460,11 +473,13 @@ public class AmadeusFlightSearch implements FlightSearch{
         for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
             //0 is for forward journey and refQualifier should be S for segment
 
+
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S") ) {
                 StringBuilder groupingKey = new StringBuilder();
                 Journey journey = new Journey();
                 journey = setJourney(journey, flightIndexList.get(flightIndexNumber).getGroupOfFlights().get(referencingDetailsType.getRefNumber().intValue()-1),recommendation, groupingKeyMap, flightHash, groupingKey, officeId);
                 if(contextList.size() > 0 ){
+
                     setContextInformation(contextList, journey, segmentIndex);
                 }
                 flightItinerary.getJourneyList().add(journey);

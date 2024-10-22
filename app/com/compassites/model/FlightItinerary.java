@@ -5,8 +5,10 @@ import com.compassites.model.amadeus.reissue.ReIssuePricingInformation;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 

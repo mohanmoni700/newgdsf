@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.travelomatrix;
 
+import com.compassites.model.BaggageDetails;
 import com.compassites.model.IssuanceRequest;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -87,6 +88,7 @@ public class BookingFlights {
     public JsonNode getJsonFromCommitBookingRequest(IssuanceRequest issuanceRequest,Boolean returnJourney){
         JsonNode node = null;
         CommitBookingRequest commitBookingRequest = new CommitBookingRequest();
+       List<BaggageDetails> baggageDetailsList = issuanceRequest.getBaggageDetails();
         if(returnJourney){
             commitBookingRequest.setAppReference(issuanceRequest.getReAppRef());
             commitBookingRequest.setSequenceNumber("1");
@@ -139,6 +141,16 @@ public class BookingFlights {
                 passenger.setIsLeadPax("1");
             else
                 passenger.setIsLeadPax("");
+
+            List<String> baggage = new ArrayList<>();
+            if(baggageDetailsList != null) {
+                for (BaggageDetails baggageDetails : baggageDetailsList) {
+                    if (traveller.getContactId().equals(baggageDetails.getContactMasterId())) {
+                        baggage.add(baggageDetails.getBaggageId());
+                    }
+                }
+            }
+            passenger.setBaggageId(baggage);
             passengerList.add(passenger);
         }
 
@@ -147,7 +159,7 @@ public class BookingFlights {
       try{
           ObjectMapper mapper = new ObjectMapper();
           node= mapper.valueToTree(commitBookingRequest);
-
+          travelomatrixLogger.debug("commitBooking request: "+ node);
       }catch(Exception e){
           travelomatrixLogger.error("Exception Occured:"+ e.getMessage());
           e.printStackTrace();
