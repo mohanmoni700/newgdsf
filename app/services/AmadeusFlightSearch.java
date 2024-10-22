@@ -185,7 +185,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         	logger.debug("#####################errorMessage is null");
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
             airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false, office.getOfficeId()));
-            //System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
+            System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
             if(searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
                 airSolution.setGroupingKeyMap(groupingKeyMap);
             }
@@ -290,7 +290,10 @@ public class AmadeusFlightSearch implements FlightSearch{
                         flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
                         flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
                     }
-                    flightItineraryHashMap.put(flightHash, flightItinerary);
+                    flightItineraryHashMap.put(flightItinerary.hashCode()+k, flightItinerary);
+                    //System.out.println("1 "+flightItinerary.hashCode()+k);
+                    createMappingKey(flightItinerary, groupingKeyMap, isSeamen, k);
+                    //System.out.println("2 "+flightItinerary.hashCode()+k);
                     k++;
                 }
             }
@@ -301,6 +304,31 @@ public class AmadeusFlightSearch implements FlightSearch{
             logger.debug("error in getFlightItineraryHashmap :"+ e.getMessage());
         }
         return flightItineraryHashMap;
+    }
+
+    private void createMappingKey(FlightItinerary flightItinerary, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, int k) {
+        for (Journey journey: flightItinerary.getJourneyList()) {
+            StringBuilder groupingKey = new StringBuilder();
+            for (AirSegmentInformation airSegmentInformation: journey.getAirSegmentList()) {
+                groupingKey.append(airSegmentInformation.getFromLocation());
+                groupingKey.append(airSegmentInformation.getToLocation());
+                groupingKey.append(airSegmentInformation.getFlightNumber());
+                groupingKey.append(airSegmentInformation.getCarrierCode());
+                groupingKey.append(airSegmentInformation.getDepartureDate());
+            }
+            if(!isSeamen) {
+                journey.setGroupingKey(groupingKey.toString());
+                if (groupingKeyMap.containsKey(groupingKey.toString())) {
+                    List<Integer> mapList = groupingKeyMap.get(groupingKey.toString());
+                    mapList.add(flightItinerary.hashCode()+k);
+                    groupingKeyMap.put(groupingKey.toString(), mapList);
+                } else {
+                    List<Integer> hashList = new ArrayList<>();
+                    hashList.add(flightItinerary.hashCode()+k);
+                    groupingKeyMap.put(groupingKey.toString(), hashList);
+                }
+            }
+        }
     }
 
     private MnrSearchFareRules createSearchFareRules(ReferenceInfoType segmentRef, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp) {
@@ -441,7 +469,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                 }
                 flightItinerary.getJourneyList().add(journey);
                 flightItinerary.getNonSeamenJourneyList().add(journey);
-                if(!isSeamen) {
+                /*if(!isSeamen) {
                     journey.setGroupingKey(groupingKey.toString());
                     if (groupingKeyMap.containsKey(groupingKey.toString())) {
                         List<Integer> mapList = groupingKeyMap.get(groupingKey.toString());
@@ -452,7 +480,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                         hashList.add(flightHash);
                         groupingKeyMap.put(groupingKey.toString(), hashList);
                     }
-                }
+                }*/
                 ++flightIndexNumber;
             }
         }
