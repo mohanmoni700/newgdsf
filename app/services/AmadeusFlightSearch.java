@@ -286,8 +286,10 @@ public class AmadeusFlightSearch implements FlightSearch{
                             getFareType(flightItinerary, fareMasterPricerTravelBoardSearchReply, ref);
                         }
                     }
-                    flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
-                    flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
+                    if(!office.getOfficeId().equalsIgnoreCase("BOMAK38SN")) {
+                        flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
+                        flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
+                    }
                     flightItineraryHashMap.put(flightHash, flightItinerary);
                     k++;
                 }
@@ -304,73 +306,77 @@ public class AmadeusFlightSearch implements FlightSearch{
     private MnrSearchFareRules createSearchFareRules(ReferenceInfoType segmentRef, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp) {
 
         MnrSearchFareRules mnrSearchFareRules = new MnrSearchFareRules();
+        try {
+            BigDecimal changeFeeBeforeDeparture = null;
+            BigDecimal cancellationFeeBeforeDeparture = null;
+            Boolean isChangeAllowedBeforeDeparture = false;
+            Boolean isCancellationAllowedBeforeDeparture = false;
 
-        BigDecimal changeFeeBeforeDeparture = null;
-        BigDecimal cancellationFeeBeforeDeparture = null;
-        Boolean isChangeAllowedBeforeDeparture = false;
-        Boolean isCancellationAllowedBeforeDeparture = false;
 
-
-        String referenceNumber = null;
-        for (ReferencingDetailsType191583C referencingDetail : segmentRef.getReferencingDetail()) {
-            if (referencingDetail.getRefQualifier().equalsIgnoreCase("M")) {
-                referenceNumber = String.valueOf(referencingDetail.getRefNumber());
-                break;
+            String referenceNumber = null;
+            for (ReferencingDetailsType191583C referencingDetail : segmentRef.getReferencingDetail()) {
+                if (referencingDetail.getRefQualifier().equalsIgnoreCase("M")) {
+                    referenceNumber = String.valueOf(referencingDetail.getRefNumber());
+                    break;
+                }
             }
-        }
 
-        outerForLoop:
-        for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails mnrDetails : mnrGrp.getMnrDetails()) {
-            if (mnrDetails.getMnrRef().getItemNumberDetails().get(0).getNumber().toString().equalsIgnoreCase(referenceNumber)) {
-                for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails.CatGrp catGrp : mnrDetails.getCatGrp()) {
+            outerForLoop:
+            for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails mnrDetails : mnrGrp.getMnrDetails()) {
+                if (mnrDetails.getMnrRef().getItemNumberDetails().get(0).getNumber().toString().equalsIgnoreCase(referenceNumber)) {
+                    for (FareMasterPricerTravelBoardSearchReply.MnrGrp.MnrDetails.CatGrp catGrp : mnrDetails.getCatGrp()) {
 
-                    //Change fee is being set here (Category 31: Changes)
-                    if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("31"))) {
-                        if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
-                            changeFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
-                        } else if (catGrp.getMonInfo().getOtherMonetaryDetails() != null) {
-                            for (MonetaryInformationDetailsType245528C monetaryInformationDetailsType : catGrp.getMonInfo().getOtherMonetaryDetails()) {
-                                if (monetaryInformationDetailsType.getTypeQualifier().equalsIgnoreCase("BDT")) {
-                                    changeFeeBeforeDeparture = monetaryInformationDetailsType.getAmount();
+                        //Change fee is being set here (Category 31: Changes)
+                        if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("31"))) {
+                            if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
+                                changeFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
+                            } else if (catGrp.getMonInfo().getOtherMonetaryDetails() != null) {
+                                for (MonetaryInformationDetailsType245528C monetaryInformationDetailsType : catGrp.getMonInfo().getOtherMonetaryDetails()) {
+                                    if (monetaryInformationDetailsType.getTypeQualifier().equalsIgnoreCase("BDT")) {
+                                        changeFeeBeforeDeparture = monetaryInformationDetailsType.getAmount();
+                                        break;
+                                    }
+                                }
+                            }
+
+                            for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
+                                if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
+                                    isChangeAllowedBeforeDeparture = true;
                                     break;
                                 }
                             }
                         }
 
-                        for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
-                            if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
-                                isChangeAllowedBeforeDeparture = true;
-                                break;
+                        //Cancellation fee is being set here (Category 33: Cancellation)
+                        if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("33"))) {
+                            if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
+                                cancellationFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
+                            }
+                            for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
+                                if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
+                                    isCancellationAllowedBeforeDeparture = true;
+                                    break;
+                                }
                             }
                         }
-                    }
-
-                    //Cancellation fee is being set here (Category 33: Cancellation)
-                    if (catGrp.getCatInfo().getDescriptionInfo().getNumber().equals(new BigInteger("33"))) {
-                        if (catGrp.getMonInfo().getMonetaryDetails().getTypeQualifier().equalsIgnoreCase("BDT")) {
-                            cancellationFeeBeforeDeparture = catGrp.getMonInfo().getMonetaryDetails().getAmount();
+                        if (changeFeeBeforeDeparture != null && cancellationFeeBeforeDeparture != null) {
+                            break outerForLoop;
                         }
-                        for (StatusDetailsType256255C statusDetails : catGrp.getStatusInfo().getStatusInformation()) {
-                            if (statusDetails.getIndicator().equalsIgnoreCase("BDJ") && statusDetails.getAction().equalsIgnoreCase("1")) {
-                                isCancellationAllowedBeforeDeparture = true;
-                                break;
-                            }
-                        }
-                    }
-                    if(changeFeeBeforeDeparture != null && cancellationFeeBeforeDeparture != null ) {
-                        break outerForLoop;
                     }
                 }
             }
+
+            mnrSearchFareRules.setProvider(AMADEUS.toString());
+            mnrSearchFareRules.setChangeFee(changeFeeBeforeDeparture);
+            mnrSearchFareRules.setCancellationFee(cancellationFeeBeforeDeparture);
+            mnrSearchFareRules.setChangeBeforeDepartureAllowed(isChangeAllowedBeforeDeparture);
+            mnrSearchFareRules.setCancellationBeforeDepartureAllowed(isCancellationAllowedBeforeDeparture);
+
+            return mnrSearchFareRules;
+        } catch (Exception e) {
+            logger.error("Mini rule error "+e.getMessage());
+            return null;
         }
-
-        mnrSearchFareRules.setProvider(AMADEUS.toString());
-        mnrSearchFareRules.setChangeFee(changeFeeBeforeDeparture);
-        mnrSearchFareRules.setCancellationFee(cancellationFeeBeforeDeparture);
-        mnrSearchFareRules.setChangeBeforeDepartureAllowed(isChangeAllowedBeforeDeparture);
-        mnrSearchFareRules.setCancellationBeforeDepartureAllowed(isCancellationAllowedBeforeDeparture);
-
-        return mnrSearchFareRules;
     }
 
     private MnrSearchBaggage createBaggageInformation(ReferenceInfoType segmentRef, List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageListInfo) {
