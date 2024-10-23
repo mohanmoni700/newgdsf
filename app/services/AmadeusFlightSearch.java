@@ -158,6 +158,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
 
         AirSolution airSolution = new AirSolution();
+        ConcurrentHashMap<Integer, List<FlightItinerary>> integerListConcurrentHashMap = new ConcurrentHashMap<>();
         if (errorMessage != null) {
         	logger.debug("#####################errorMessage is not null");
             String errorCode = errorMessage.getApplicationError().getApplicationErrorDetail().getError();
@@ -185,8 +186,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         	logger.debug("#####################errorMessage is null");
 
             ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
-            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false, office.getOfficeId()));
-            System.out.println("groupingKeyMap "+Json.toJson(groupingKeyMap));
+            airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(fareMasterPricerTravelBoardSearchReply,office,groupingKeyMap,false, office.getOfficeId(),integerListConcurrentHashMap));
             if(searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
                 airSolution.setGroupingKeyMap(groupingKeyMap);
             }
@@ -200,7 +200,8 @@ public class AmadeusFlightSearch implements FlightSearch{
                 ///seamenSolution = createAirSolutionFromRecommendation(seamenReply);
                 ///airSolution.setSeamenHashMap(seamenSolution.getNonSeamenHashMap());
                 ConcurrentHashMap<String, List<Integer>> seamenMap = new ConcurrentHashMap<>();
-                airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office,seamenMap,true, office.getOfficeId()));
+                ConcurrentHashMap<Integer, List<FlightItinerary>> seamenIntegerListConcurrentHashMap = new ConcurrentHashMap<>();
+                airSolution.setSeamenHashMap(getFlightItineraryHashmap(seamenReply,office,seamenMap,true, office.getOfficeId(),seamenIntegerListConcurrentHashMap));
                 //System.out.println("airSolution Seamen "+Json.toJson(airSolution.getSeamenHashMap()));
                 if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG")) {
                     printHashmap(airSolution.getSeamenHashMap(), true);//to be removed
@@ -212,6 +213,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         searchResponse.setAirSolution(airSolution);
         searchResponse.setProvider(provider());
         searchResponse.setFlightSearchOffice(office);
+        searchResponse.setGroupingItinerary(integerListConcurrentHashMap);
         return searchResponse;
     }
 
@@ -259,8 +261,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 //    private List<FareMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList=new ArrayList<>();
 
 
-    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, String officeId) {
-
+    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, String officeId, ConcurrentHashMap<Integer, List<FlightItinerary>> integerListConcurrentHashMap) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try{
 
@@ -288,7 +289,6 @@ public class AmadeusFlightSearch implements FlightSearch{
                     int flightHash = flightItinerary.hashCode()+k;
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
                     flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList,groupingKeyMap,flightHash,isSeamen, mnrGrp, baggageList, officeId);
-                    //System.out.println("After "+flightItinerary.hashCode());
                     if(!isSeamen) {
                         if(recommendation.getFareFamilyRef()!= null && recommendation.getFareFamilyRef().getReferencingDetail().size()>0) {
                             BigInteger ref = recommendation.getFareFamilyRef().getReferencingDetail().get(0).getRefNumber();
@@ -299,15 +299,15 @@ public class AmadeusFlightSearch implements FlightSearch{
                         flightItinerary.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
                         flightItinerary.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
                     }
-                    flightItineraryHashMap.put(flightItinerary.hashCode()+k, flightItinerary);
-                    //System.out.println("1 "+flightItinerary.hashCode()+k);
-                    createMappingKey(flightItinerary, groupingKeyMap, isSeamen, k);
-                    //System.out.println("2 "+flightItinerary.hashCode()+k);
+                    flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
+                    if(!isSeamen) {
+                        createMappingKey(flightItinerary, groupingKeyMap, isSeamen, k);
+                        createGroupItinerary(flightItinerary,integerListConcurrentHashMap,isSeamen);
+                    }
                     k++;
 
                 }
             }
-            //System.out.println("Result size "+Json.toJson(flightItineraryHashMap));
             return flightItineraryHashMap;
         }catch (Exception e){
             e.printStackTrace();
@@ -316,6 +316,19 @@ public class AmadeusFlightSearch implements FlightSearch{
         return flightItineraryHashMap;
     }
 
+    private void createGroupItinerary(FlightItinerary flightItinerary,ConcurrentHashMap<Integer, List<FlightItinerary>> integerListConcurrentHashMap, boolean isSeamen) {
+        if(!isSeamen) {
+            if (integerListConcurrentHashMap.containsKey(flightItinerary.hashCode())) {
+                List<FlightItinerary> mapList = integerListConcurrentHashMap.get(flightItinerary.hashCode());
+                mapList.add(flightItinerary);
+                integerListConcurrentHashMap.put(flightItinerary.hashCode(), mapList);
+            } else {
+                List<FlightItinerary> hashList = new ArrayList<>();
+                hashList.add(flightItinerary);
+                integerListConcurrentHashMap.put(flightItinerary.hashCode(), hashList);
+            }
+        }
+    }
 
     private void createMappingKey(FlightItinerary flightItinerary, ConcurrentHashMap<String, List<Integer>> groupingKeyMap, boolean isSeamen, int k) {
         for (Journey journey: flightItinerary.getJourneyList()) {
