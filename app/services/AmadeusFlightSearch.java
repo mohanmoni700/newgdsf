@@ -289,6 +289,7 @@ public class AmadeusFlightSearch implements FlightSearch{
                     int flightHash = flightItinerary.hashCode()+k;
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
                     flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList,groupingKeyMap,flightHash,isSeamen, mnrGrp, baggageList, officeId);
+
                     if(!isSeamen) {
                         if(recommendation.getFareFamilyRef()!= null && recommendation.getFareFamilyRef().getReferencingDetail().size()>0) {
                             BigInteger ref = recommendation.getFareFamilyRef().getReferencingDetail().get(0).getRefNumber();
@@ -308,6 +309,7 @@ public class AmadeusFlightSearch implements FlightSearch{
 
                 }
             }
+            //System.out.println("Result size "+Json.toJson(flightItineraryHashMap));
             return flightItineraryHashMap;
         }catch (Exception e){
             e.printStackTrace();
@@ -315,6 +317,7 @@ public class AmadeusFlightSearch implements FlightSearch{
         }
         return flightItineraryHashMap;
     }
+
 
     private void createGroupItinerary(FlightItinerary flightItinerary,ConcurrentHashMap<Integer, List<FlightItinerary>> integerListConcurrentHashMap, boolean isSeamen) {
         if(!isSeamen) {

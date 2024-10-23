@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
@@ -438,6 +440,7 @@ public class FlightSearchWrapper {
         }
         return airSegmentInformations;
     }
+
 
     public ConcurrentHashMap<Integer, FlightItinerary> mergeSeamenAndNonSeamenResults(ConcurrentHashMap<Integer, FlightItinerary> allFightItineraries, AirSolution airSolution, String provider, SearchResponse searchResponse) {
         //System.out.println("Non seamen "+Json.toJson(airSolution.getNonSeamenHashMap().keySet()));
