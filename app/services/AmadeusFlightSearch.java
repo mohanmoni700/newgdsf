@@ -213,7 +213,9 @@ public class AmadeusFlightSearch implements FlightSearch{
         searchResponse.setAirSolution(airSolution);
         searchResponse.setProvider(provider());
         searchResponse.setFlightSearchOffice(office);
-        searchResponse.setGroupingItinerary(integerListConcurrentHashMap);
+        if(searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
+            searchResponse.setGroupingItinerary(integerListConcurrentHashMap);
+        }
         return searchResponse;
     }
 
