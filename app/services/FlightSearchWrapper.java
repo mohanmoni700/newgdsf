@@ -379,7 +379,7 @@ public class FlightSearchWrapper {
                                 mainFlightItinerary.setJourneyList(journeyList);
                             } else {
                                 ConcurrentHashMap<Integer, List<FlightItinerary>> groupingItinerary = searchResponse.getGroupingItinerary();
-                                if(groupingItinerary.size() > 0) {
+                                if(groupingItinerary!=null && groupingItinerary.size() > 0) {
                                     if(groupingItinerary.containsKey(hashKey)) {
                                         if(groupingItinerary.get(hashKey).size()>1) {
                                             ConcurrentHashMap<String, List<FlightItinerary>> stringListConcurrentHashMap = new ConcurrentHashMap<>();
@@ -458,7 +458,7 @@ public class FlightSearchWrapper {
                     for (Journey journey : nonSeamenItinerary.getJourneyList()) {
                         Journey journey1 = new Journey();
                         String groupKey = journey.getGroupingKey();
-                        if (concurrentHashMap != null && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.get(groupKey).size() > 1) {
+                        if (concurrentHashMap != null && concurrentHashMap.size()>0 && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.get(groupKey).size() > 1) {
                             List<Integer> hashCodes = concurrentHashMap.get(groupKey);
                             List<FlightItinerary> flightItineraries = new ArrayList<>();
                             boolean isSkip = true;
@@ -506,7 +506,7 @@ public class FlightSearchWrapper {
                 ConcurrentHashMap<Integer, FlightItinerary> integerFlightItineraryConcurrentHashMap = new ConcurrentHashMap<>();
                 for (Integer hashKey : nonSeamenFareHash.keySet()) {
                     FlightItinerary nonSeamenItinerary = nonSeamenFareHash.get(hashKey);
-                    if(groupingItinerary.size() > 0) {
+                    if(groupingItinerary!=null && groupingItinerary.size() > 0) {
                         if(groupingItinerary.containsKey(hashKey)) {
                             if(groupingItinerary.get(hashKey).size()>1) {
 
