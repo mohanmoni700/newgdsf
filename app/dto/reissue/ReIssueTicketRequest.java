@@ -1,5 +1,6 @@
 package dto.reissue;
 
+import com.compassites.model.BookingType;
 import com.compassites.model.CabinClass;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Passenger;
@@ -109,6 +110,14 @@ public class ReIssueTicketRequest implements Serializable {
 
     public void setCabinClass(CabinClass cabinClass) {
         this.cabinClass = cabinClass;
+    }
+
+    public BookingType getBookingType() {
+        if(this.isSeaman()){
+            return BookingType.SEAMEN;
+        } else {
+            return BookingType.NON_MARINE;
+        }
     }
 
 }
