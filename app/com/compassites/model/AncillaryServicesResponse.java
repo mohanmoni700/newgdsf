@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import java.util.List;
+import java.util.Map;
 
 public class AncillaryServicesResponse {
 
@@ -9,6 +10,15 @@ public class AncillaryServicesResponse {
     private String provider;
     private List<BaggageDetails> baggageList;
 
+    public List<Map<String, String>> getPassengerMap() {
+        return passengerMap;
+    }
+
+    public void setPassengerMap(List<Map<String, String>> passengerMap) {
+        this.passengerMap = passengerMap;
+    }
+
+    private List<Map<String, String>> passengerMap;
 
     public boolean isSuccess() {
         return success;

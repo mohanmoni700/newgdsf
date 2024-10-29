@@ -1,10 +1,17 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.fatceq_13_1_1a.*;
-import com.amadeus.xml.fmtctq_18_2_1a.CompanyIdentificationType275415C;
-import com.amadeus.xml.fmtctq_18_2_1a.NumberOfUnitDetailsType303181C;
-import com.amadeus.xml.fmtctq_18_2_1a.TicketATCShopperMasterPricerTravelBoardSearch;
-import com.amadeus.xml.fmtctq_18_2_1a.TravelFlightInformationType218017S;
+import com.amadeus.xml.fatceq_13_1_1a.NumberOfUnitDetailsTypeI;
+import com.amadeus.xml.fatceq_13_1_1a.NumberOfUnitsType;
+import com.amadeus.xml.fatceq_13_1_1a.PricingTicketingDetailsType;
+import com.amadeus.xml.fatceq_13_1_1a.PricingTicketingInformationType;
+import com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI;
+import com.amadeus.xml.fatceq_13_1_1a.TicketNumberTypeI;
+import com.amadeus.xml.fatceq_13_1_1a.TravellerDetailsType;
+import com.amadeus.xml.fatceq_13_1_1a.TravellerReferenceInformationType;
+import com.amadeus.xml.fmtctq_18_2_1a.*;
+import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentificationType;
+import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentityType;
 import com.amadeus.xml.tatreq_20_1_1a.MessageActionDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.MessageFunctionBusinessDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
@@ -14,16 +21,22 @@ import dto.reissue.ReIssueTicketRequest;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.CorporateCodeHelper;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.compassites.model.BookingType.NON_MARINE;
+import static com.compassites.model.BookingType.SEAMEN;
 
 
 //All request Bodies for Reissue flows are created here
 public class ReIssueTicket {
 
     private static final Logger logger = LoggerFactory.getLogger("gds");
+
+    static String vistaraAirlineStr = play.Play.application().configuration().getString("vistara.airline.code");
 
 
     /**
@@ -71,9 +84,9 @@ public class ReIssueTicket {
                     com.amadeus.xml.tatreq_20_1_1a.TicketNumberTypeI docInfo = new com.amadeus.xml.tatreq_20_1_1a.TicketNumberTypeI();
                     com.amadeus.xml.tatreq_20_1_1a.TicketNumberDetailsTypeI documentDetails = new com.amadeus.xml.tatreq_20_1_1a.TicketNumberDetailsTypeI();
 
+                    documentDetails.setNumber(passenger.getTicketNumber());
                     docInfo.setDocumentDetails(documentDetails);
                     infGroup.setDocInfo(docInfo);
-                    documentDetails.setNumber(passenger.getTicketNumber());
 
                     infoGroup.add(infGroup);
                 }
@@ -88,7 +101,7 @@ public class ReIssueTicket {
     //This inner class for creating ReIssueCheckEligibility request
     public static class ReIssueCheckEligibility {
 
-        public static TicketCheckEligibility createCheckEligibilityRequest(ReIssueTicketRequest reIssueTicketRequest) {
+        public static TicketCheckEligibility createCheckEligibilityRequest(ReIssueTicketRequest reIssueTicketRequest, String searchOfficeId) {
             TicketCheckEligibility checkEligibility = new TicketCheckEligibility();
 
             //Creating Number of units here
@@ -114,7 +127,7 @@ public class ReIssueTicket {
 
             //Creating fareOptions here
             try {
-                createFareOptionsForEligibilityCheck(checkEligibility, reIssueTicketRequest);
+                createFareOptionsForEligibilityCheck(checkEligibility, reIssueTicketRequest, searchOfficeId);
             } catch (Exception e) {
                 logger.debug("Error Creating Reissue - TicketCheckEligibility - FareOptions request \n{} ", e.getMessage(), e);
             }
@@ -138,7 +151,7 @@ public class ReIssueTicket {
 
         }
 
-        private static void createTravelFlightInfo(TicketCheckEligibility ticketCheckEligibility){
+        private static void createTravelFlightInfo(TicketCheckEligibility ticketCheckEligibility) {
 
             TravelFlightInformationType165052S travelFlightInfo = new TravelFlightInformationType165052S();
             List<NumberOfUnitDetailsTypeI> unitNumberDetail = new ArrayList<>();
@@ -152,15 +165,14 @@ public class ReIssueTicket {
 
             ticketCheckEligibility.setTravelFlightInfo(travelFlightInfo);
 
-
         }
 
         private static void createPaxReferenceForEligibilityCheck(TicketCheckEligibility ticketCheckEligibility, ReIssueTicketRequest reIssueTicketRequest) {
 
-            List<TravellerReferenceInformationType> passengers = new ArrayList<>();
-            List<TravellerReferenceInformationType> passengers1 = new ArrayList<>();
-            List<TravellerReferenceInformationType> passengers2 = new ArrayList<>();
-            List<TravellerReferenceInformationType> passengers3 = new ArrayList<>();
+            List<TravellerReferenceInformationType> adtPassenger = new ArrayList<>();
+            List<TravellerReferenceInformationType> chdPassenger = new ArrayList<>();
+            List<TravellerReferenceInformationType> infPassenger = new ArrayList<>();
+            List<TravellerReferenceInformationType> seamanPassenger = new ArrayList<>();
 
             List<TravellerDetailsType> adtTravellerDetailsTypeList = new ArrayList<>();
             List<TravellerDetailsType> chdTravellerDetailsTypeList = new ArrayList<>();
@@ -222,48 +234,64 @@ public class ReIssueTicket {
             TravellerReferenceInformationType adtTraveller = new TravellerReferenceInformationType();
             if (!adtTravellerDetailsTypeList.isEmpty()) {
                 adtTraveller.getTraveller().addAll(adtTravellerDetailsTypeList);
-                passengers.add(adtTraveller);
+                adtPassenger.add(adtTraveller);
                 adtTraveller.getPtc().add(PassengerTypeCode.ADT.toString());
-                ticketCheckEligibility.getPaxReference().addAll(passengers);
+                ticketCheckEligibility.getPaxReference().addAll(adtPassenger);
             }
 
             TravellerReferenceInformationType chdTraveller = new TravellerReferenceInformationType();
             if (!chdTravellerDetailsTypeList.isEmpty()) {
                 chdTraveller.getTraveller().addAll(chdTravellerDetailsTypeList);
-                passengers1.add(chdTraveller);
+                chdPassenger.add(chdTraveller);
                 chdTraveller.getPtc().add(PassengerTypeCode.CHD.toString());
-                ticketCheckEligibility.getPaxReference().addAll(passengers1);
+                ticketCheckEligibility.getPaxReference().addAll(chdPassenger);
             }
 
             TravellerReferenceInformationType infTraveller = new TravellerReferenceInformationType();
             if (!infTravellerDetailsTypeList.isEmpty()) {
                 infTraveller.getTraveller().addAll(infTravellerDetailsTypeList);
-                passengers2.add(infTraveller);
+                infPassenger.add(infTraveller);
                 infTraveller.getPtc().add(PassengerTypeCode.INF.toString());
-                ticketCheckEligibility.getPaxReference().addAll(passengers2);
+                ticketCheckEligibility.getPaxReference().addAll(infPassenger);
             }
 
             TravellerReferenceInformationType seamenTraveller = new TravellerReferenceInformationType();
             if (!seamenTravellerDetailsTypeList.isEmpty()) {
                 seamenTraveller.getTraveller().addAll(seamenTravellerDetailsTypeList);
-                passengers3.add(seamenTraveller);
+                seamanPassenger.add(seamenTraveller);
                 seamenTraveller.getPtc().add(PassengerTypeCode.SEA.toString());
-                ticketCheckEligibility.getPaxReference().addAll(passengers3);
+                ticketCheckEligibility.getPaxReference().addAll(seamanPassenger);
             }
 
         }
 
-        private static void createFareOptionsForEligibilityCheck(TicketCheckEligibility ticketCheckEligibility, ReIssueTicketRequest reIssueTicketRequest) {
+        private static void createFareOptionsForEligibilityCheck(TicketCheckEligibility ticketCheckEligibility, ReIssueTicketRequest reIssueTicketRequest, String searchOfficeId) {
 
             TicketCheckEligibility.FareOptions fareOptions = new TicketCheckEligibility.FareOptions();
             PricingTicketingDetailsType pricingTickInfo = new PricingTicketingDetailsType();
             PricingTicketingInformationType pricingTicketing = new PricingTicketingInformationType();
 
+            if (reIssueTicketRequest.isSeaman()) {
+                pricingTicketing.getPriceType().add("PTC");
+            }
+
             pricingTicketing.getPriceType().add("RU");
             pricingTicketing.getPriceType().add("RP");
+            pricingTicketing.getPriceType().add("ET");
+
+
+            //Setting corporate code here
+            pricingTicketing.getPriceType().add("RW");
+            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType corporate = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType();
+            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType corporateId = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType();
+            corporateId.setCorporateQualifier("RW");
+            corporateId.getIdentity().add("061724");
+            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueTicketRequest.getBookingType() + "." + vistaraAirlineStr));
+            corporate.getCorporateId().add(corporateId);
 
             pricingTickInfo.setPricingTicketing(pricingTicketing);
             fareOptions.setPricingTickInfo(pricingTickInfo);
+            fareOptions.setCorporate(corporate);
 
             ticketCheckEligibility.setFareOptions(fareOptions);
 
@@ -273,7 +301,7 @@ public class ReIssueTicket {
 
     public static class ReIssueATCSearch {
 
-        public static TicketATCShopperMasterPricerTravelBoardSearch createReissueATCSearchRequest(ReIssueTicketRequest reIssueTicketRequest, com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType allowedCarriers) {
+        public static TicketATCShopperMasterPricerTravelBoardSearch createReissueATCSearchRequest(ReIssueTicketRequest reIssueTicketRequest, com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType allowedCarriers, String searchOfficeId) {
 
             TicketATCShopperMasterPricerTravelBoardSearch reIssueSearch = new TicketATCShopperMasterPricerTravelBoardSearch();
 
@@ -293,7 +321,7 @@ public class ReIssueTicket {
 
             // Fare options set here
             try {
-                createFareOptionsForReissueSearch(reIssueSearch, reIssueTicketRequest);
+                createFareOptionsForReissueSearch(reIssueSearch, reIssueTicketRequest, searchOfficeId);
             } catch (Exception e) {
                 logger.debug("Error Creating Reissue - TicketATCShopperMasterPricerTravelBoardSearch - FareOptions request \n{} ", e.getMessage(), e);
             }
@@ -428,7 +456,7 @@ public class ReIssueTicket {
 
         }
 
-        private static void createFareOptionsForReissueSearch(TicketATCShopperMasterPricerTravelBoardSearch reIssueSearch, ReIssueTicketRequest reIssueTicketRequest) {
+        private static void createFareOptionsForReissueSearch(TicketATCShopperMasterPricerTravelBoardSearch reIssueSearch, ReIssueTicketRequest reIssueTicketRequest, String searchOfficeId) {
 
             TicketATCShopperMasterPricerTravelBoardSearch.FareOptions fareOptions = new TicketATCShopperMasterPricerTravelBoardSearch.FareOptions();
             com.amadeus.xml.fmtctq_18_2_1a.PricingTicketingDetailsType pricingTickInfo = new com.amadeus.xml.fmtctq_18_2_1a.PricingTicketingDetailsType();
@@ -437,12 +465,39 @@ public class ReIssueTicket {
             if (reIssueTicketRequest.isSeaman()) {
                 pricingTicketing.getPriceType().add("PTC");
             }
+
             pricingTicketing.getPriceType().add("RU");
             pricingTicketing.getPriceType().add("RP");
             pricingTicketing.getPriceType().add("ET");
 
+            //Setting corporate code here
+            pricingTicketing.getPriceType().add("RW");
+            CorporateIdentificationType corporate = new CorporateIdentificationType();
+            CorporateIdentityType corporateId = new CorporateIdentityType();
+            corporateId.setCorporateQualifier("RW");
+            corporateId.getIdentity().add("061724");
+            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueTicketRequest.getBookingType() + "." + vistaraAirlineStr));
+            corporate.getCorporateId().add(corporateId);
+            fareOptions.setCorporate(corporate);
+
             pricingTickInfo.setPricingTicketing(pricingTicketing);
             fareOptions.setPricingTickInfo(pricingTickInfo);
+
+            //TODO: May or may not be needed
+//            if (!reIssueTicketRequest.isSeaman() && searchOfficeId.equalsIgnoreCase("BOMVS34C3")) {
+//                CodedAttributeType222439S feeIdDescription = new CodedAttributeType222439S();
+//                CodedAttributeInformationType305810C feeIdFFI = new CodedAttributeInformationType305810C();
+//                feeIdFFI.setFeeType("FFI");
+//                feeIdFFI.setFeeIdNumber("3");
+//                feeIdDescription.getFeeId().add(feeIdFFI);
+//
+//                CodedAttributeInformationType305810C feeIdUPH = new CodedAttributeInformationType305810C();
+//                feeIdUPH.setFeeType("UPH");
+//                feeIdUPH.setFeeIdNumber("3");
+//                feeIdDescription.getFeeId().add(feeIdUPH);
+//
+//                fareOptions.setFeeIdDescription(feeIdDescription);
+//            }
 
             reIssueSearch.setFareOptions(fareOptions);
 
@@ -595,8 +650,7 @@ public class ReIssueTicket {
 
                 //Adding original segment details here
                 com.amadeus.xml.fmtctq_18_2_1a.ConnectionTypeI connectPointDetails = new com.amadeus.xml.fmtctq_18_2_1a.ConnectionTypeI();
-                List<com.amadeus.xml.fmtctq_18_2_1a.ConnectionDetailsTypeI> connectionDetails = getConnectionDetailsTypeIS(journey);
-                connectPointDetails.getConnectionDetails().addAll(connectionDetails);
+                connectPointDetails.getConnectionDetails().addAll(getConnectionDetailsTypeIS(journey));
                 ticketRequestedSegment.setConnectPointDetails(connectPointDetails);
 
                 ticketRequestedSegments.add(ticketRequestedSegment);
@@ -613,7 +667,7 @@ public class ReIssueTicket {
             com.amadeus.xml.fmtctq_18_2_1a.ConnectionDetailsTypeI fromLocation = new com.amadeus.xml.fmtctq_18_2_1a.ConnectionDetailsTypeI();
             fromLocation.setLocation(journey.getAirSegmentList().get(0).getFromLocation());
             connectionDetails.add(fromLocation);
-            for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
+            for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
                 com.amadeus.xml.fmtctq_18_2_1a.ConnectionDetailsTypeI toLocation = new com.amadeus.xml.fmtctq_18_2_1a.ConnectionDetailsTypeI();
                 toLocation.setLocation(airSegmentInformation.getToLocation());
                 connectionDetails.add(toLocation);

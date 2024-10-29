@@ -19,6 +19,8 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import services.*;
+
+import services.ancillary.AncillaryService;
 import services.reissue.ReIssueService;
 
 import java.io.IOException;
@@ -69,6 +71,9 @@ public class Application {
 
     @Autowired
     private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
+
+    @Autowired
+    private AncillaryService ancillaryService;
 
 
     static Logger logger = LoggerFactory.getLogger("gds");
@@ -525,6 +530,20 @@ public class Application {
         String resultToken = json.get("resultToken").asText();
         AncillaryServicesResponse ancillaryServicesResponse = flightInfoService.getExtraServicesfromTmx(resultToken);
         return ok(Json.toJson(ancillaryServicesResponse));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result addAdditionalBaggageRequest() {
+
+        JsonNode json = request().body().asJson();
+        String gdsPnr = json.get("gdsPnr").asText();
+        String provider = json.get("provider").asText();
+
+        AncillaryServicesResponse baggageDetails = ancillaryService.getAdditionalBaggageInfo(gdsPnr, provider);
+        logger.debug("Ancillary - Baggage response {} ", Json.toJson(baggageDetails));
+
+        return ok(Json.toJson(baggageDetails));
+
     }
 
     public Result home(){
