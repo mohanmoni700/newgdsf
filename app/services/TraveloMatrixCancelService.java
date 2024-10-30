@@ -19,7 +19,7 @@ public class TraveloMatrixCancelService {
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
     public CancelPNRTMX cancelPNRTMX = new CancelPNRTMX();
-    public CancelPNRResponse cancelPNR(String pnr,String appRef,String bookingId){
+    public CancelPNRResponse cancelPNR(String pnr,String appRef,String bookingId, Boolean isFullPNR){
        CancelPNRResponse cancelPNRResponse = null;
        travelomatrixLogger.debug("TMX cancel PNR called...........");
         JsonNode jsonResponse = cancelPNRTMX.CancelPNR(pnr, appRef, bookingId);

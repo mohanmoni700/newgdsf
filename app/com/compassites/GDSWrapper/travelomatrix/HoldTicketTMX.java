@@ -32,8 +32,8 @@ public class HoldTicketTMX {
     @Autowired
     public WSRequestHolder wsrholder;
 
-    public JsonNode HoldBooking(TravellerMasterInfo travellerMasterInfo){
-        JsonNode jsonRequest = getJsonforHoldBookingRequest(travellerMasterInfo);
+    public JsonNode HoldBooking(TravellerMasterInfo travellerMasterInfo,Long seqno){
+        JsonNode jsonRequest = getJsonforHoldBookingRequest(travellerMasterInfo,seqno);
         JsonNode response = null;
         try {
             wsrholder= wsconf.getRequestHolder("/HoldTicket");
@@ -50,13 +50,20 @@ public class HoldTicketTMX {
 
     }
 
-    public JsonNode getJsonforHoldBookingRequest(TravellerMasterInfo travellerMasterInfo){
+    public JsonNode getJsonforHoldBookingRequest(TravellerMasterInfo travellerMasterInfo,Long seqno){
         JsonNode jsonNode = null;
         try{
             HoldTicketRequest holdTicketRequest = new HoldTicketRequest();
-            holdTicketRequest.setAppReference(travellerMasterInfo.getAppReference());
-            holdTicketRequest.setSequenceNumber(0L);
-            holdTicketRequest.setResultToken(travellerMasterInfo.getItinerary().getResultToken());
+
+            holdTicketRequest.setSequenceNumber(seqno);
+            if(seqno == 0) {
+                holdTicketRequest.setAppReference(travellerMasterInfo.getAppReference());
+                holdTicketRequest.setResultToken(travellerMasterInfo.getItinerary().getResultToken());
+            }else{
+                holdTicketRequest.setAppReference(travellerMasterInfo.getAppReference());
+                holdTicketRequest.setResultToken(travellerMasterInfo.getItinerary().getReturnResultToken());
+            }
+
             List<Passenger> passengerList = new ArrayList<>();
             //ADT
             for( Traveller traveller : travellerMasterInfo.getTravellersList()) {

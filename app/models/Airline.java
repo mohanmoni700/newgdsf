@@ -253,4 +253,19 @@ public class Airline {
 		return airline;
 	}
 
+	public static Airline getAirlineByIataCode(String airlineCode) {
+
+		Airline airline = null;
+
+		List<Airline> airlines = Airline.find.where().eq("iata_code", airlineCode).findList();
+		if (airlines.size() > 0) {
+			airline = Airline.find.where().eq("iata_code", airlineCode).findList().get(0);
+		} else {
+			airline = new Airline();
+			airline.setIataCode(airlineCode);
+		}
+
+		return airline;
+	}
+
 }

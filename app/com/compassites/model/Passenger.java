@@ -1,5 +1,7 @@
 package com.compassites.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Renu
@@ -7,10 +9,12 @@ package com.compassites.model;
  * Time: 2:22 PM
  * To change this template use File | Settings | File Templates.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Passenger {
     private String name;
     private Integer age;
     private PassengerTypeCode passengerType;
+    private String ticketNumber;
 
     public String getName() {
         return name;
@@ -34,5 +38,13 @@ public class Passenger {
 
     public void setPassengerType(PassengerTypeCode passengerType) {
         this.passengerType = passengerType;
+    }
+
+    public String getTicketNumber() {
+        return ticketNumber;
+    }
+
+    public void setTicketNumber(String ticketNumber) {
+        this.ticketNumber = ticketNumber;
     }
 }

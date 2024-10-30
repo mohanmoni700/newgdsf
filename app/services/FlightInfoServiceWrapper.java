@@ -104,10 +104,10 @@ public class FlightInfoServiceWrapper {
    /*
       This function Fetches Fare rules based from TraveloMatrix API
     */
-	public List<HashMap> getFareRuleFromTmx(String resultToken){
+	public List<HashMap> getFareRuleFromTmx(String resultToken,String returnResultToken){
 
 		List<HashMap> miniRule = new ArrayList<>();
-		miniRule=traveloMatrixFlightInfoServiceImpl.flightFareRules(resultToken);
+		miniRule=traveloMatrixFlightInfoServiceImpl.flightFareRules(resultToken,returnResultToken);
 
 		return miniRule;
 	}

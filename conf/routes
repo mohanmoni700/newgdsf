@@ -18,32 +18,36 @@ POST	/getBookingDetails						   @controllers.Application.getBookingDetails()
 POST	/getBookingDetailsByOfficeId			   @controllers.Application.getBookingDetailsByOfficeId()
 POST	/lowestFare                                @controllers.Application.getLowestFare()
 POST 	/cancelPNR                                 @controllers.Application.cancelPNR()
+POST 	/ticketCancelDocument                      @controllers.Application.ticketCancelDocument()
 POST    /getBookingDetailsForPNR                   @controllers.Application.getBookingDetailsForPNR()
 POST    /generateTempPNR                           @controllers.Application.generateTempPNR()
+GET     /getQueueListInfo                          @controllers.Application.getQueueListInfo()
+GET     /displayTST/:pnr/:provider                 @controllers.Application.displayTST(pnr:String, provider:String)
+GET     /displayPNR/:pnr/:provider                 @controllers.Application.displayPNR(pnr:String, provider:String)
+POST    /splitPNR                                  @controllers.Application.splitPNR()
+POST    /priceBookedPNR                            @controllers.Application.priceBookedPNR()
+GET     /getTicktedMessage                         @controllers.Application.getTicktedMessage()
+POST    /getTripDetails                            @controllers.Application.getTripDetails()
+POST    /removeTicktedMessage                      @controllers.Application.removeTicktedMessage()
+POST    /getMessagesFromQueue                      @controllers.Application.getMessagesFromQueue()
+GET     /                                          @controllers.Application.home()
 
-GET     /getQueueListInfo                       @controllers.Application.getQueueListInfo()
-
-GET     /displayTST/:pnr/:provider                       @controllers.Application.displayTST(pnr:String, provider:String)
-
-GET     /displayPNR/:pnr/:provider                       @controllers.Application.displayPNR(pnr:String, provider:String)
-
-POST     /splitPNR                               @controllers.Application.splitPNR()
-
-POST    /priceBookedPNR                         @controllers.Application.priceBookedPNR()
-
-GET     /getTicktedMessage                          @controllers.Application.getTicktedMessage()
-POST    /getTripDetails                             @controllers.Application.getTripDetails()
-POST    /removeTicktedMessage                       @controllers.Application.removeTicktedMessage()
-POST     /getMessagesFromQueue                       @controllers.Application.getMessagesFromQueue()
-
-GET     /                                           @controllers.Application.home()
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file                               controllers.Assets.at(path="/public", file)
 
-POST   /getFareRuleFromTmx           @controllers.Application.getFareRuleFromTmx()
-
-#upload ticket for travelomatrix
-POST  /uploadTicket               @controllers.Application.uploadTicket()
+POST   /getFareRuleFromTmx                         @controllers.Application.getFareRuleFromTmx()
 
 #upload ticket for travelomatrix
-POST  /commitBooking               @controllers.Application.commitBooking()
+POST  /uploadTicket                                @controllers.Application.uploadTicket()
+
+#upload ticket for travelomatrix
+POST  /commitBooking                               @controllers.Application.commitBooking()
+
+#Reissue
+POST /reIssueTicket                                @controllers.Application.reIssueTicket()
+
+#Refund
+POST  /checkRefundEligibility       @controllers.Application.checkRefundEligibiliy()
+POST  /processFullRefund            @controllers.Application.processFullRefund()
+POST  /checkPartRefundEligibility   @controllers.Application.checkPartRefundEligibility()
+POST  /processPartialRefund         @controllers.Application.processPartialRefund()
