@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
@@ -69,6 +71,15 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         } catch (Exception e) {
             logger.debug("Error with reissue : {}", e.getMessage(), e);
             serviceHandler.logOut(amadeusSessionWrapper);
+            if (e.getMessage().contains("Application|NO MATCH FOR RECORD LOCATOR")) {
+                reissueSearchResponse = new SearchResponse();
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setProvider("Amadeus");
+                errorMessage.setType(ErrorMessage.ErrorType.ERROR);
+                errorMessage.setGdsPNR(reIssueTicketRequest.getGdsPNR());
+                errorMessage.setMessage("PNR Not On Record");
+                reissueSearchResponse.getErrorMessageList().add(errorMessage);
+            }
         }
 
         return reissueSearchResponse;
@@ -81,27 +92,45 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
         SearchResponse reissueSearchResponse = new SearchResponse();
 
+        List<TicketProcessEDocReply.DocGroup> docGroupList = reIssueCheckTicketStatus.getDocGroup();
+
         outerLoop:
-        for (TicketProcessEDocReply.DocGroup docGroup : reIssueCheckTicketStatus.getDocGroup()) {
-            for (TicketProcessEDocReply.DocGroup.DocDetailsGroup docDetailsGroup : docGroup.getDocDetailsGroup()) {
+        for (TicketProcessEDocReply.DocGroup docGroup : docGroupList) {
+            List<TicketProcessEDocReply.DocGroup.DocDetailsGroup> docDetailsGroupList = docGroup.getDocDetailsGroup();
+
+            for (TicketProcessEDocReply.DocGroup.DocDetailsGroup docDetailsGroup : docDetailsGroupList) {
                 String ticketNumber = docDetailsGroup.getDocInfo().getDocumentDetails().getNumber();
+                List<TicketProcessEDocReply.DocGroup.DocDetailsGroup.CouponGroup> couponGroupList = docDetailsGroup.getCouponGroup();
 
-                for (TicketProcessEDocReply.DocGroup.DocDetailsGroup.CouponGroup couponGroup : docDetailsGroup.getCouponGroup()) {
-                    CouponInformationTypeI couponInfo = couponGroup.getCouponInfo();
+                for (TicketProcessEDocReply.DocGroup.DocDetailsGroup.CouponGroup couponGroup : couponGroupList) {
+                    List<CouponInformationDetailsTypeI> couponDetailsList = couponGroup.getCouponInfo().getCouponDetails();
 
-                    for (CouponInformationDetailsTypeI couponDetails : couponInfo.getCouponDetails()) {
+                    for (CouponInformationDetailsTypeI couponDetails : couponDetailsList) {
 
                         String couponStatus = couponDetails.getCpnStatus();
 
-                        // If the coupon status is not "I", the ticket is not open for reissue
+                        // If the coupon status is not "I", the ticket is not open for reissue (I = Open Ticket)
                         if (!"I".equalsIgnoreCase(couponStatus)) {
-
                             ErrorMessage errorMessage = new ErrorMessage();
                             errorMessage.setProvider("Amadeus");
                             errorMessage.setType(ErrorMessage.ErrorType.ERROR);
                             errorMessage.setGdsPNR(gdsPnr);
                             errorMessage.setTicketNumber(ticketNumber);
-                            errorMessage.setMessage("Ticket status for ticketNumber : " + ticketNumber + " is : " + couponStatus);
+
+                            switch (couponStatus) {
+                                case "AL":
+                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + "AirPort Controlled");
+                                    break;
+                                case "RF":
+                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + "Refunded");
+                                    break;
+                                case "V":
+                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + "Voided");
+                                    break;
+                                default:
+                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + couponStatus);
+                                    break;
+                            }
 
                             reissueSearchResponse.getErrorMessageList().add(errorMessage);
                             break outerLoop;
@@ -122,9 +151,9 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
         outerLoop:
         for (TicketCheckEligibilityReply.EligibilityInfo eligibilityInfo : checkEligibilityReply.getEligibilityInfo()) {
-            AttributeType94871S generalEligibilityInfo = eligibilityInfo.getGeneralEligibilityInfo();
+            List<AttributeInformationType> eligibilityIds = eligibilityInfo.getGeneralEligibilityInfo().getEligibilityId();
 
-            for (AttributeInformationType eligibilityId : generalEligibilityInfo.getEligibilityId()) {
+            for (AttributeInformationType eligibilityId : eligibilityIds) {
 
                 String eligibilityType = eligibilityId.getEligibilityType();
                 String eligibilityValue = eligibilityId.getEligibilityValue();
@@ -146,7 +175,6 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
         return reissueSearchResponse;
     }
-
 
 
 }

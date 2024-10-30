@@ -1,0 +1,225 @@
+package com.compassites.model;
+
+public class BaggageDetails{
+
+    private Long contactMasterId;
+
+    private String baggageId;
+
+    private String code;
+
+    private String destination;
+
+    private String origin;
+
+    private Long price;
+
+    private String weight;
+
+    private String ticketNumber;
+
+    private String piece;
+
+    private String rfic;
+
+    private String rfisc;
+
+    private boolean isRefundable;
+
+    private boolean isMIF;
+
+    private String bkm;
+
+    private String serviceId;
+
+    private String carrierCode;
+
+    private Long basePrice;
+
+    private Long tax;
+
+    private boolean isFMT;
+
+    private boolean isWVAL;
+
+    private boolean isPVAL;
+
+    private boolean isFTXT;
+
+    public String getPiece() {
+        return piece;
+    }
+
+    public void setPiece(String piece) {
+        this.piece = piece;
+    }
+
+    public String getRfic() {
+        return rfic;
+    }
+
+    public void setRfic(String rfic) {
+        this.rfic = rfic;
+    }
+
+    public String getRfisc() {
+        return rfisc;
+    }
+
+    public void setRfisc(String rfisc) {
+        this.rfisc = rfisc;
+    }
+
+    public boolean isRefundable() {
+        return isRefundable;
+    }
+
+    public void setRefundable(boolean refundable) {
+        isRefundable = refundable;
+    }
+
+    public boolean isMIF() {
+        return isMIF;
+    }
+
+    public void setMIF(boolean MIF) {
+        isMIF = MIF;
+    }
+
+    public String getBkm() {
+        return bkm;
+    }
+
+    public void setBkm(String bkm) {
+        this.bkm = bkm;
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getCarrierCode() {
+        return carrierCode;
+    }
+
+    public void setCarrierCode(String carrierCode) {
+        this.carrierCode = carrierCode;
+    }
+
+    public Long getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(Long basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public Long getTax() {
+        return tax;
+    }
+
+    public void setTax(Long tax) {
+        this.tax = tax;
+    }
+
+    public boolean isFMT() {
+        return isFMT;
+    }
+
+    public void setFMT(boolean FMT) {
+        isFMT = FMT;
+    }
+
+    public boolean isWVAL() {
+        return isWVAL;
+    }
+
+    public void setWVAL(boolean WVAL) {
+        isWVAL = WVAL;
+    }
+
+    public boolean isPVAL() {
+        return isPVAL;
+    }
+
+    public void setPVAL(boolean PVAL) {
+        isPVAL = PVAL;
+    }
+
+    public boolean isFTXT() {
+        return isFTXT;
+    }
+
+    public void setFTXT(boolean FTXT) {
+        isFTXT = FTXT;
+    }
+
+    public String getTicketNumber() {
+        return ticketNumber;
+    }
+
+    public void setTicketNumber(String ticketNumber) {
+        this.ticketNumber = ticketNumber;
+    }
+
+    public String getBaggageId() {
+        return baggageId;
+    }
+
+    public void setBaggageId(String baggageId) {
+        this.baggageId = baggageId;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public Long getPrice() {
+        return price;
+    }
+
+    public void setPrice(Long price) {
+        this.price = price;
+    }
+
+    public String getWeight() {
+        return weight;
+    }
+
+    public void setWeight(String weight) {
+        this.weight = weight;
+    }
+
+    public Long getContactMasterId() {
+        return contactMasterId;
+    }
+
+    public void setContactMasterId(Long contactMasterId) {
+        this.contactMasterId = contactMasterId;
+    }
+}
+

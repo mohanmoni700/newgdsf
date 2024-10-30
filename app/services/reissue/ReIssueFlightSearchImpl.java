@@ -85,12 +85,15 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             for (FlightSearchOffice office : reissueFlightSearch.getOfficeList()) {
 
                 logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
-                futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
-                    public SearchResponse call() throws Exception {
+                if (!office.getOfficeId().equalsIgnoreCase("BOMAK38SN")) {
 
-                        return reIssueSearch(reIssueTicketRequest, allowedCarriers, office, amadeusSessionWrapper);
-                    }
-                }));
+                    futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
+                        public SearchResponse call() throws Exception {
+
+                            return reIssueSearch(reIssueTicketRequest, allowedCarriers, office, amadeusSessionWrapper);
+                        }
+                    }));
+                }
             }
         } catch (Exception e) {
             logger.debug("Error In reissue search {}", e.getMessage(), e);
@@ -141,10 +144,8 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
                         searchResponseFinal.setProvider(searchResponse.getProvider());
                         logger.debug("counter :" + counter + "Search Response FligthItinary Size: " + searchResponse.getAirSolution().getFlightItineraryList().size());
                         logger.debug("\n\n----------- before MergeResults " + counter + "--------" + searchResponse.getFlightSearchOffice().getOfficeId());
-//                        AmadeusFlightSearch.printHashmap(hashMap,false);
                         mergeResults(hashMap, searchResponse);
                         logger.debug("----------- After MergeResults " + counter + "--------" + searchResponse.getFlightSearchOffice().getOfficeId());
-                        //AmadeusFlightSearch.printHashmap(hashMap,false);
 
                         errorMessageList.addAll(searchResponse.getErrorMessageList());
 
@@ -278,6 +279,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         return searchResponse;
     }
 
+    //TODO: Will add MNR search and baggage here
     private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(ReIssueTicketRequest reIssueTicketRequest, TicketATCShopperMasterPricerTravelBoardSearchReply TicketATCShopperMasterPricerTravelBoardSearchReply, FlightSearchOffice office) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try {
@@ -663,7 +665,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
                 }
             }
         } catch (Exception e) {
-            logger.error("MergeResults:: ex:" + e.getMessage(), e);
+            logger.error("MergeResults:: ex:{}", e.getMessage(), e);
         }
     }
 

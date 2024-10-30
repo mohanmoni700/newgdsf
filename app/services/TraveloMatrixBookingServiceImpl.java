@@ -6,6 +6,7 @@ import com.compassites.constants.TraveloMatrixConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.travelomatrix.ResponseModels.Baggage;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.CommitBookingReply;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.Detail;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.PassengerDetail;
@@ -246,6 +247,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setChangedPrice(new BigDecimal(updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice().getTotalDisplayFare()));
        }
         pnrResponse.setFlightAvailable(availbleFlights);
+        pnrResponse.setSearchResultToken(travellerMasterInfo.getItinerary().getResultToken());
+        pnrResponse.setReturnSearchResultToken(travellerMasterInfo.getItinerary().getReturnResultToken());
         pnrResponse.setResultToken(updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getResultToken());
         Price price = updateFareQuotesReply.getUpdateFareQuote().getFareQuoteDetails().getJourneyList().getPrice();
         PricingInformation pricingInformation = new PricingInformation();
@@ -329,16 +332,36 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         issuanceResponse.setIssued(true);
         Map<String,String> tickenetNumberMap = new HashMap<>();
         List<PassengerDetail> passengerDetailList =  commitBookingReply.getCommitBooking().getBookingDetails().getPassengerDetails();
+        List<BaggageDetails> excessBaggageList = new ArrayList<>();
         for(PassengerDetail passengerDetail:passengerDetailList){
             String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
             tickenetNumberMap.put(passengerType,ticketNumber);
+            List<Baggage> baggage =  passengerDetail.getBaggageList();
+            if(baggage!= null && baggage.size() > 0) {
+                for (Baggage baggage1 : baggage) {
+                    BaggageDetails baggageDetails = new BaggageDetails();
+                    baggageDetails.setPrice(baggage1.getPrice());
+                    baggageDetails.setWeight(baggage1.getWeight());
+                    baggageDetails.setTicketNumber(ticketNumber);
+                    excessBaggageList.add(baggageDetails);
+                }
+            }else{
+                BaggageDetails baggageDetails = new BaggageDetails();
+                baggageDetails.setPrice(100L);
+                baggageDetails.setWeight("15 Kg");
+                baggageDetails.setTicketNumber(ticketNumber);
+                excessBaggageList.add(baggageDetails);
+            }
         }
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
         issuanceResponse.setBookingId(commitBookingReply.getCommitBooking().getBookingDetails().getBookingId());
         String baggage = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
         String updatedBagunits = updateBaggeUnits(baggage);
         issuanceResponse.setBaggage(updatedBagunits);
+        //excessBaggage
+        if(excessBaggageList.size() > 0)
+        issuanceResponse.setTmxBaggageDetails(excessBaggageList);
         return issuanceResponse;
     }
 
@@ -375,6 +398,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 tickenetNumberMap.put(passengerType,ticketNumber);
             }
         pnrResponse.setTicketNumberMap(tickenetNumberMap);
+        pnrResponse.setSearchResultToken(travellerMasterInfo.getSearchResultToken());
+        pnrResponse.setReturnSearchResultToken(travellerMasterInfo.getReturnSearchResultToken());
         return pnrResponse;
     }
 
@@ -680,13 +705,13 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             tickenetNumberMap.put(passengerType,ticketNumber);
         }
         List<PassengerDetail> repassengerDetailList =  returnJourney.getCommitBooking().getBookingDetails().getPassengerDetails();
-        for(PassengerDetail passengerDetail:passengerDetailList){
+        for(PassengerDetail passengerDetail:repassengerDetailList){
             String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
             reTickenetNumberMap.put(passengerType,ticketNumber);
         }
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
-        issuanceResponse.setTicketNumberMap(reTickenetNumberMap);
+        issuanceResponse.setReticketNumberMap(reTickenetNumberMap);
         issuanceResponse.setBookingId(onwardJourney.getCommitBooking().getBookingDetails().getBookingId());
         issuanceResponse.setBookingId(returnJourney.getCommitBooking().getBookingDetails().getBookingId());
         String baggage = onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();

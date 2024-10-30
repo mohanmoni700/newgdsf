@@ -51,3 +51,8 @@ POST  /checkRefundEligibility       @controllers.Application.checkRefundEligibil
 POST  /processFullRefund            @controllers.Application.processFullRefund()
 POST  /checkPartRefundEligibility   @controllers.Application.checkPartRefundEligibility()
 POST  /processPartialRefund         @controllers.Application.processPartialRefund()
+
+
+#Ancillary
+POST /showAdditionalBaggageInfo     @controllers.Application.addAdditionalBaggageRequest()
+POST  /fetchTmxBaggage              @controllers.Application.fetchTmxBaggage()

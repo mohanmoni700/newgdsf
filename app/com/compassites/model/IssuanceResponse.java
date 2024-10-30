@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.traveller.Traveller;
+import org.hibernate.mapping.Bag;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -67,6 +68,16 @@ public class IssuanceResponse implements Serializable{
     }
     private String baggage ;
     private String bookingId;
+
+    private List<BaggageDetails> tmxBaggageDetails;
+
+    public List<BaggageDetails> getTmxBaggageDetails() {
+        return tmxBaggageDetails;
+    }
+
+    public void setTmxBaggageDetails(List<BaggageDetails> tmxBaggageDetails) {
+        this.tmxBaggageDetails = tmxBaggageDetails;
+    }
 
     private String returnAirlinePnr;
 
