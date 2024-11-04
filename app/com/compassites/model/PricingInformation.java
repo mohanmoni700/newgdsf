@@ -74,6 +74,10 @@ public class PricingInformation {
 
 	private Boolean isPriceChanged;
 
+	private MnrSearchFareRules mnrSearchFareRules;
+
+	private MnrSearchBaggage mnrSearchBaggage;
+
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();
 		segmentWisePricing = false;
@@ -351,5 +355,21 @@ public class PricingInformation {
 
 	public void setTstPriceMap(Map<String, TSTPrice> tstPriceMap) {
 		this.tstPriceMap = tstPriceMap;
+	}
+
+	public MnrSearchFareRules getMnrSearchFareRules() {
+		return mnrSearchFareRules;
+	}
+
+	public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
+		this.mnrSearchFareRules = mnrSearchFareRules;
+	}
+
+	public MnrSearchBaggage getMnrSearchBaggage() {
+		return mnrSearchBaggage;
+	}
+
+	public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
+		this.mnrSearchBaggage = mnrSearchBaggage;
 	}
 }

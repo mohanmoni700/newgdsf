@@ -64,10 +64,6 @@ public class FlightItinerary implements Serializable{
     
     private PricingInformation seamanPricingInformation;
 
-    private MnrSearchFareRules mnrSearchFareRules;
-
-    private MnrSearchBaggage mnrSearchBaggage;
-
     private ReIssuePricingInformation reIssuePricingInformation;
 
     @Property
@@ -339,22 +335,6 @@ public class FlightItinerary implements Serializable{
 
     public void setReturnResultToken(String returnResultToken) {
         this.returnResultToken = returnResultToken;
-    }
-
-    public MnrSearchFareRules getMnrSearchFareRules() {
-        return mnrSearchFareRules;
-    }
-
-    public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
-        this.mnrSearchFareRules = mnrSearchFareRules;
-    }
-
-    public MnrSearchBaggage getMnrSearchBaggage() {
-        return mnrSearchBaggage;
-    }
-
-    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
-        this.mnrSearchBaggage = mnrSearchBaggage;
     }
 
 }
