@@ -110,7 +110,9 @@ public class AmadeusFlightSearch implements FlightSearch {
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
                 seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
+
                 amadeusLogger.debug("AmadeusSearchRes seamenReply " + new Date() + " Office ID : " + amadeusSessionWrapper.getOfficeId() + " ------->>" + new XStream().toXML(seamenReply));
+
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
 //                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
@@ -213,7 +215,9 @@ public class AmadeusFlightSearch implements FlightSearch {
         searchResponse.setAirSolution(airSolution);
         searchResponse.setProvider(provider());
         searchResponse.setFlightSearchOffice(office);
+
         if (searchParameters.getJourneyType().equals(JourneyType.ONE_WAY)) {
+
             searchResponse.setGroupingItinerary(integerListConcurrentHashMap);
         }
         return searchResponse;
@@ -273,7 +277,9 @@ public class AmadeusFlightSearch implements FlightSearch {
             List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList = fareMasterPricerTravelBoardSearchReply.getServiceFeesGrp();
             String currency = fareMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
 
+
             int k = 300;
+
             for (Recommendation recommendation : fareMasterPricerTravelBoardSearchReply.getRecommendation()) {
                 for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                     FlightItinerary flightItinerary = new FlightItinerary();
@@ -281,7 +287,9 @@ public class AmadeusFlightSearch implements FlightSearch {
                     flightItinerary.setPricingInformation(getPricingInformation(recommendation, office.getOfficeId(), segmentRef, mnrGrp, baggageList));
                     flightItinerary.getPricingInformation().setGdsCurrency(currency);
                     flightItinerary.getPricingInformation().setPricingOfficeId(office.getOfficeId());
+
                     flightItinerary.getPricingInformation().setPaxFareDetailsList(createFareDetails(recommendation, flightItinerary.getJourneyList()));
+
 
                     List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
 
@@ -351,7 +359,9 @@ public class AmadeusFlightSearch implements FlightSearch {
         }
     }
 
+
     private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber) {
+
         try {
             //System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
             flightItinerary.setFareType(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getDescription());
@@ -421,7 +431,9 @@ public class AmadeusFlightSearch implements FlightSearch {
 
     private Journey setJourney(Journey journey, FlightIndex.GroupOfFlights groupOfFlight, Recommendation recommendation, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, int flightHash, StringBuilder groupingKey, String officeId) {
         //no of stops
+
         journey.setNoOfStops(groupOfFlight.getFlightDetails().size() - 1);
+
 
         //set travel time
         for (ProposedSegmentDetailsType proposedSegmentDetailsType : groupOfFlight.getPropFlightGrDetail().getFlightProposal()) {
@@ -481,6 +493,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         }
         return fareDesc;
     }
+
 
     private void getConnectionTime(List<AirSegmentInformation> airSegments) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
@@ -561,6 +574,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         }
 
         //hopping
+
         if (flightDetails.getTechnicalStop() != null) {
             List<HoppingFlightInformation> hoppingFlightInformations = null;
             for (DateAndTimeInformationType dateAndTimeInformationType : flightDetails.getTechnicalStop()) {
@@ -800,6 +814,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         return contextList;
     }
 
+
     // Fare rules at search level set here
     private MnrSearchFareRules createSearchFareRules(ReferenceInfoType segmentRef, FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp) {
         MnrSearchFareRules mnrSearchFareRules = new MnrSearchFareRules();
@@ -809,6 +824,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             BigDecimal cancellationFeeBeforeDeparture = null;
             Boolean isChangeAllowedBeforeDeparture = false;
             Boolean isCancellationAllowedBeforeDeparture = false;
+
 
             // Getting the reference Number here for 'M'
             String referenceNumber = segmentRef.getReferencingDetail().stream()
@@ -870,10 +886,6 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchFareRules;
         } catch (Exception e) {
-            logger.error("Mini rule error " + e.getMessage(), e);
-            return null;
-        }
-    }
 
     // Change and Cancellation fee extraction logic
     private BigDecimal getFeeAmount(MonetaryInformationType174241S monInfo) {
@@ -908,6 +920,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             MnrSearchBaggage mnrSearchBaggage = new MnrSearchBaggage();
             mnrSearchBaggage.setProvider(AMADEUS.toString());
 
+
             // Baggage reference number
             String baggageReferenceNumber = segmentRef.getReferencingDetail().stream()
                     .filter(referencingDetail -> "B".equalsIgnoreCase(referencingDetail.getRefQualifier()))
@@ -937,6 +950,7 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchBaggage;
         } catch (Exception e) {
+
             logger.debug("Error with baggage information at Search level", e);
             return null;
         }
