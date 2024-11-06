@@ -832,6 +832,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                     .findFirst()
                     .orElse(null);
 
+
             if (referenceNumber == null) {
                 return mnrSearchFareRules;
             }
@@ -885,8 +886,20 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchFareRules;
         } catch (Exception e) {
-            logger.error("Mini rule error " + e.getMessage());
-            return null;
+
+    // Change and Cancellation fee extraction logic
+    private BigDecimal getFeeAmount(MonetaryInformationType174241S monInfo) {
+
+        if (monInfo.getMonetaryDetails() != null && "BDT".equalsIgnoreCase(monInfo.getMonetaryDetails().getTypeQualifier())) {
+
+            return monInfo.getMonetaryDetails().getAmount();
+        } else if (monInfo.getOtherMonetaryDetails() != null) {
+
+            return monInfo.getOtherMonetaryDetails().stream()
+                    .filter(details -> "BDT".equalsIgnoreCase(details.getTypeQualifier()))
+                    .map(MonetaryInformationDetailsType245528C::getAmount)
+                    .findFirst()
+                    .orElse(null);
         }
     }
 
@@ -930,6 +943,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                     .map(referencingDetail -> String.valueOf(referencingDetail.getRefNumber()))
                     .findFirst()
                     .orElse(null);
+
 
             if (baggageReferenceNumber == null) {
                 return mnrSearchBaggage;
