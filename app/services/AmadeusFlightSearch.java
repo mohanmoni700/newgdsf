@@ -825,13 +825,13 @@ public class AmadeusFlightSearch implements FlightSearch {
             Boolean isChangeAllowedBeforeDeparture = false;
             Boolean isCancellationAllowedBeforeDeparture = false;
 
-
             // Getting the reference Number here for 'M'
             String referenceNumber = segmentRef.getReferencingDetail().stream()
                     .filter(detail -> "M".equalsIgnoreCase(detail.getRefQualifier()))
                     .map(detail -> String.valueOf(detail.getRefNumber()))
                     .findFirst()
                     .orElse(null);
+
 
             if (referenceNumber == null) {
                 return mnrSearchFareRules;
@@ -901,6 +901,22 @@ public class AmadeusFlightSearch implements FlightSearch {
                     .findFirst()
                     .orElse(null);
         }
+    }
+
+    // Change and Cancellation fee extraction logic
+    private BigDecimal getFeeAmount(MonetaryInformationType174241S monInfo) {
+
+        if (monInfo.getMonetaryDetails() != null && "BDT".equalsIgnoreCase(monInfo.getMonetaryDetails().getTypeQualifier())) {
+
+            return monInfo.getMonetaryDetails().getAmount();
+        } else if (monInfo.getOtherMonetaryDetails() != null) {
+
+            return monInfo.getOtherMonetaryDetails().stream()
+                    .filter(details -> "BDT".equalsIgnoreCase(details.getTypeQualifier()))
+                    .map(MonetaryInformationDetailsType245528C::getAmount)
+                    .findFirst()
+                    .orElse(null);
+        }
 
         return null;
     }
@@ -928,6 +944,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                     .findFirst()
                     .orElse(null);
 
+
             if (baggageReferenceNumber == null) {
                 return mnrSearchBaggage;
             }
@@ -950,7 +967,6 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchBaggage;
         } catch (Exception e) {
-
             logger.debug("Error with baggage information at Search level", e);
             return null;
         }
