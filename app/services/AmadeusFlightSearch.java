@@ -886,6 +886,10 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchFareRules;
         } catch (Exception e) {
+            logger.error("Mini rule error " + e.getMessage());
+            return null;
+        }
+    }
 
     // Change and Cancellation fee extraction logic
     private BigDecimal getFeeAmount(MonetaryInformationType174241S monInfo) {
