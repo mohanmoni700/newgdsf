@@ -825,7 +825,6 @@ public class AmadeusFlightSearch implements FlightSearch {
             Boolean isChangeAllowedBeforeDeparture = false;
             Boolean isCancellationAllowedBeforeDeparture = false;
 
-
             // Getting the reference Number here for 'M'
             String referenceNumber = segmentRef.getReferencingDetail().stream()
                     .filter(detail -> "M".equalsIgnoreCase(detail.getRefQualifier()))
@@ -886,6 +885,10 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchFareRules;
         } catch (Exception e) {
+            logger.error("Mini rule error " + e.getMessage());
+            return null;
+        }
+    }
 
     // Change and Cancellation fee extraction logic
     private BigDecimal getFeeAmount(MonetaryInformationType174241S monInfo) {
@@ -950,7 +953,6 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchBaggage;
         } catch (Exception e) {
-
             logger.debug("Error with baggage information at Search level", e);
             return null;
         }
