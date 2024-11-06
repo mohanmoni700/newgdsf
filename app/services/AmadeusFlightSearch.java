@@ -905,22 +905,6 @@ public class AmadeusFlightSearch implements FlightSearch {
                     .findFirst()
                     .orElse(null);
         }
-    }
-
-    // Change and Cancellation fee extraction logic
-    private BigDecimal getFeeAmount(MonetaryInformationType174241S monInfo) {
-
-        if (monInfo.getMonetaryDetails() != null && "BDT".equalsIgnoreCase(monInfo.getMonetaryDetails().getTypeQualifier())) {
-
-            return monInfo.getMonetaryDetails().getAmount();
-        } else if (monInfo.getOtherMonetaryDetails() != null) {
-
-            return monInfo.getOtherMonetaryDetails().stream()
-                    .filter(details -> "BDT".equalsIgnoreCase(details.getTypeQualifier()))
-                    .map(MonetaryInformationDetailsType245528C::getAmount)
-                    .findFirst()
-                    .orElse(null);
-        }
 
         return null;
     }
