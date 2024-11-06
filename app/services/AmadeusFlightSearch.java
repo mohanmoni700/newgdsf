@@ -825,7 +825,6 @@ public class AmadeusFlightSearch implements FlightSearch {
             Boolean isChangeAllowedBeforeDeparture = false;
             Boolean isCancellationAllowedBeforeDeparture = false;
 
-
             // Getting the reference Number here for 'M'
             String referenceNumber = segmentRef.getReferencingDetail().stream()
                     .filter(detail -> "M".equalsIgnoreCase(detail.getRefQualifier()))
@@ -954,7 +953,6 @@ public class AmadeusFlightSearch implements FlightSearch {
 
             return mnrSearchBaggage;
         } catch (Exception e) {
-
             logger.debug("Error with baggage information at Search level", e);
             return null;
         }
