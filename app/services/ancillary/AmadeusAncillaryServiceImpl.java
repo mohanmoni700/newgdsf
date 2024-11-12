@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,6 +146,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                         baggageDetails.setRfic(serviceCodes.getSpecialCondition());
                         baggageDetails.setRfisc(serviceCodes.getOtherSpecialCondition());
 
+
                         //Setting Booking Method, MIF and Refundable here
                         List<AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
                         for (AttributeType serviceAttribute : serviceAttributes) {
@@ -165,6 +167,11 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                 if (attributeType.equalsIgnoreCase("ROR") && attributeDescription.equalsIgnoreCase("Y")) {
                                     baggageDetails.setRefundable(true);
                                 }
+
+                                if (attributeType.equalsIgnoreCase("CNM")) {
+                                    baggageDetails.setBaggageDescription(attributeDescription);
+                                }
+
                             }
                         }
 
@@ -179,24 +186,65 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
                             ssrCode = specialRequirementsInfo.getSsrCode();
 
-//                        if(ssrCode.equalsIgnoreCase("PDBG")){
-//                            break;
-//                        }
-
                             baggageDetails.setCode(ssrCode);
                             baggageDetails.setCarrierCode(specialRequirementsInfo.getAirlineCode());
 
-                            //Setting excess baggage value here
-                            List<ServiceIntegratedCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup> fsfkwDataGroup = serviceDetailsGroup.getFsfkwDataGroup();
-                            for (ServiceIntegratedCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup fsfkwData : fsfkwDataGroup) {
-                                AttributeType208309S fsfkwValues = fsfkwData.getFsfkwValues();
-                                RangeDetailsType208311S fsfkwRanges = fsfkwData.getFsfkwRanges();
+                            //Setting excess baggage value here with respect to airline filing
+                            if (!ssrCode.equalsIgnoreCase("PDBG")) {
 
-                                if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("WVAL")) {
-                                    baggageDetails.setWeight(fsfkwRanges.getRangeDetails().getMax() + " KG");
+                                List<ServiceIntegratedCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup> fsfkwDataGroup = serviceDetailsGroup.getFsfkwDataGroup();
+                                for (ServiceIntegratedCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup fsfkwData : fsfkwDataGroup) {
+                                    AttributeType208309S fsfkwValues = fsfkwData.getFsfkwValues();
+                                    RangeDetailsType208311S fsfkwRanges = fsfkwData.getFsfkwRanges();
+
+                                    if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("WVAL")) {
+                                        baggageDetails.setWeight(fsfkwRanges.getRangeDetails().getMax() + " KG");
+                                    }
+                                    if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("PVAL")) {
+                                        baggageDetails.setPiece(fsfkwRanges.getRangeDetails().getMax() + " PC");
+                                    }
                                 }
-                                if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("PVAL")) {
-                                    baggageDetails.setPiece(fsfkwRanges.getRangeDetails().getMax() + " PC");
+                            }
+
+                            if (ssrCode.equalsIgnoreCase("PDBG")) {
+
+                                ServiceIntegratedCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
+                                List<AttributeType> baggageAttributes = baggageDescriptionGroup.getBaggageAttributes();
+                                List<RangeDetailsType191709S> ranges = baggageDescriptionGroup.getRange();
+                                ExcessBaggageType baggageData = baggageDescriptionGroup.getBaggageData();
+
+                                for (RangeDetailsType191709S range : ranges) {
+                                    String quantity = range.getRangeQualifier();
+                                    List<RangeType> rangeDetails = range.getRangeDetails();
+                                    for (RangeType rangeDetail : rangeDetails) {
+                                        String rangeType = rangeDetail.getDataType();
+                                        if (rangeType.equalsIgnoreCase("K") || rangeType.equalsIgnoreCase("P")) {
+                                            BigDecimal max = rangeDetail.getMax();
+                                            BigDecimal min = rangeDetail.getMin();
+                                            BigDecimal value = null;
+
+                                            if (min != null && max != null) {
+                                                value = max;
+                                            } else if (max != null) {
+                                                value = max;
+                                            } else if (min != null) {
+                                                value = min;
+                                            }
+
+                                            switch (rangeType) {
+
+                                                case "K":
+                                                    baggageDetails.setWeight(value + " KG");
+                                                    break;
+                                                case "P":
+                                                    baggageDetails.setPiece(value + " PC");
+                                                    break;
+                                                default:
+                                                    baggageDetails.setWeight(null);
+                                                    baggageDetails.setPiece(null);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
