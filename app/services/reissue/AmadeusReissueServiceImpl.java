@@ -1,17 +1,15 @@
 package services.reissue;
 
 import com.amadeus.xml.fatcer_13_1_1a.AttributeInformationType;
-import com.amadeus.xml.fatcer_13_1_1a.AttributeType94871S;
 import com.amadeus.xml.fatcer_13_1_1a.TicketCheckEligibilityReply;
 import com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.tatres_20_1_1a.CouponInformationDetailsTypeI;
-import com.amadeus.xml.tatres_20_1_1a.CouponInformationTypeI;
 import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.SearchResponse;
-import dto.reissue.ReIssueTicketRequest;
+import dto.reissue.ReIssueSearchRequest;
 import models.AmadeusSessionWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
     private ReIssueFlightSearch reIssueFlightSearch;
 
     @Override
-    public SearchResponse reIssueTicket(ReIssueTicketRequest reIssueTicketRequest) {
+    public SearchResponse reIssueTicket(ReIssueSearchRequest reIssueSearchRequest) {
 
         ServiceHandler serviceHandler = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
@@ -42,27 +40,27 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
             amadeusSessionWrapper = serviceHandler.logIn("DELVS38LF");
 
             //1. Retrieving the PNR
-            PNRReply pnrReply = serviceHandler.retrivePNR(reIssueTicketRequest.getGdsPNR(), amadeusSessionWrapper);
+            PNRReply pnrReply = serviceHandler.retrivePNR(reIssueSearchRequest.getGdsPNR(), amadeusSessionWrapper);
 
             //2. Checking the status of the ticket here
-            TicketProcessEDocReply reIssueCheckTicketStatus = serviceHandler.reIssueCheckTicketStatus(reIssueTicketRequest, amadeusSessionWrapper);
-            reissueSearchResponse = checkIfTicketStatusIsOpen(reIssueCheckTicketStatus, reIssueTicketRequest.getGdsPNR());
+            TicketProcessEDocReply reIssueCheckTicketStatus = serviceHandler.reIssueCheckTicketStatus(reIssueSearchRequest, amadeusSessionWrapper);
+            reissueSearchResponse = checkIfTicketStatusIsOpen(reIssueCheckTicketStatus, reIssueSearchRequest.getGdsPNR());
 
             //3. Checking the Eligibility if ticket status is open, else sending error message;
             TicketCheckEligibilityReply checkEligibilityReply;
             if (reissueSearchResponse.getErrorMessageList().isEmpty()) {
-                checkEligibilityReply = serviceHandler.reIssueTicketCheckEligibility(reIssueTicketRequest, amadeusSessionWrapper);
+                checkEligibilityReply = serviceHandler.reIssueTicketCheckEligibility(reIssueSearchRequest, amadeusSessionWrapper);
             } else {
                 return reissueSearchResponse;
             }
 
             //Checking the eligibility here
-            reissueSearchResponse = checkIfTicketIsAllowedForReIssuance(checkEligibilityReply, reIssueTicketRequest.getGdsPNR());
+            reissueSearchResponse = checkIfTicketIsAllowedForReIssuance(checkEligibilityReply, reIssueSearchRequest.getGdsPNR());
 
             //4. Initiated ATC search for allowed carriers
             if (reissueSearchResponse.getErrorMessageList().isEmpty()) {
                 TravelFlightInformationType allowedCarriers = checkEligibilityReply.getAllowedCarriers();
-                reissueSearchResponse = reIssueFlightSearch.reIssueFlightSearch(reIssueTicketRequest, allowedCarriers, amadeusSessionWrapper);
+                reissueSearchResponse = reIssueFlightSearch.reIssueFlightSearch(reIssueSearchRequest, allowedCarriers, amadeusSessionWrapper);
             } else {
                 return reissueSearchResponse;
             }
@@ -76,7 +74,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setProvider("Amadeus");
                 errorMessage.setType(ErrorMessage.ErrorType.ERROR);
-                errorMessage.setGdsPNR(reIssueTicketRequest.getGdsPNR());
+                errorMessage.setGdsPNR(reIssueSearchRequest.getGdsPNR());
                 errorMessage.setMessage("PNR Not On Record");
                 reissueSearchResponse.getErrorMessageList().add(errorMessage);
             }
@@ -133,7 +131,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
                             }
 
                             reissueSearchResponse.getErrorMessageList().add(errorMessage);
-                            break outerLoop;
+//                            break outerLoop;
                         }
                     }
                 }
@@ -153,13 +151,18 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         for (TicketCheckEligibilityReply.EligibilityInfo eligibilityInfo : checkEligibilityReply.getEligibilityInfo()) {
             List<AttributeInformationType> eligibilityIds = eligibilityInfo.getGeneralEligibilityInfo().getEligibilityId();
 
+            boolean isChangeNotAllowed = false;
+            boolean isChangeGeographyNotAllowed = false;
+
             for (AttributeInformationType eligibilityId : eligibilityIds) {
 
                 String eligibilityType = eligibilityId.getEligibilityType();
                 String eligibilityValue = eligibilityId.getEligibilityValue();
 
-                if ("CH".equals(eligibilityType) && !"Y".equalsIgnoreCase(eligibilityValue)) {
+                isChangeNotAllowed = "CH".equals(eligibilityType) && !"Y".equalsIgnoreCase(eligibilityValue);
+                isChangeGeographyNotAllowed = "CHGEO".equalsIgnoreCase(eligibilityType) && !"Y".equalsIgnoreCase(eligibilityValue);
 
+                if (isChangeNotAllowed || isChangeGeographyNotAllowed) {
 
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setProvider("Amadeus");

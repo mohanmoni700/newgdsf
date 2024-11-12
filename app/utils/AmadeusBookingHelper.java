@@ -1,10 +1,12 @@
 package utils;
 
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
+import com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType111975C;
+import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType127526C;
 import com.amadeus.xml.tpcbrr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
@@ -673,154 +675,159 @@ public class AmadeusBookingHelper {
     }
 
 
-    public static List<Journey> getJourneyListFromPNRResponse(PNRReply gdsPNRReply, RedisTemplate redisTemplate){
+    public static List<Journey> getJourneyListFromPNRResponse(PNRReply gdsPNRReply, RedisTemplate redisTemplate) {
 
         List<Journey> journeyList = new ArrayList<>();
         List<AirSegmentInformation> airSegmentList = new ArrayList<>();
-       
+
         Journey journey = new Journey();
         for (PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply
                 .getOriginDestinationDetails()) {
             for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails
                     .getItineraryInfo()) {
                 String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
-                if(segType.equalsIgnoreCase("AIR")) {
-                AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+                if (segType.equalsIgnoreCase("AIR")) {
+                    AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
 
-                String fromLoc = itineraryInfo.getTravelProduct()
-                        .getBoardpointDetail().getCityCode();
-                String toLoc = itineraryInfo.getTravelProduct()
-                        .getOffpointDetail().getCityCode();
-                airSegmentInformation.setFromLocation(fromLoc);
-                airSegmentInformation.setToLocation(toLoc);
-                airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct() != null ? itineraryInfo.getTravelProduct().getProductDetails().getClassOfService() : "");
-                airSegmentInformation.setCabinClass(itineraryInfo.getCabinDetails() != null ? itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator() : "");
-                Airport fromAirport = Airport
-                        .getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
-                Airport toAirport = Airport.getAirport(airSegmentInformation
-                        .getToLocation(), redisTemplate);
+                    ElementManagementSegmentType elementManagementItinerary = itineraryInfo.getElementManagementItinerary();
+                    ReferencingDetailsType127526C reference = elementManagementItinerary.getReference();
+                    airSegmentInformation.setAmadeusSegmentQualifier(reference.getQualifier());
+                    airSegmentInformation.setAmadeusSegmentRefNumber(reference.getNumber());
 
-                SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
-                String DATE_FORMAT = "ddMMyyHHmm";
-                DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat
-                        .forPattern(DATE_FORMAT);
-                DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport
-                        .getTime_zone());
-                DateTimeZone toDateTimeZone = DateTimeZone.forID(toAirport
-                        .getTime_zone());
-                String fromDateTime = itineraryInfo.getTravelProduct()
-                        .getProduct().getArrDate()
-                        + itineraryInfo.getTravelProduct().getProduct()
-                        .getArrTime();
-                String toDateTime = itineraryInfo.getTravelProduct()
-                        .getProduct().getDepDate()
-                        + itineraryInfo.getTravelProduct().getProduct()
-                        .getDepTime();
-                DateTime departureDate = DATETIME_FORMATTER.withZone(
-                        dateTimeZone).parseDateTime(toDateTime);
-                // dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
-                DateTime arrivalDate = DATETIME_FORMATTER.withZone(
-                        toDateTimeZone).parseDateTime(fromDateTime);
+                    String fromLoc = itineraryInfo.getTravelProduct()
+                            .getBoardpointDetail().getCityCode();
+                    String toLoc = itineraryInfo.getTravelProduct()
+                            .getOffpointDetail().getCityCode();
+                    airSegmentInformation.setFromLocation(fromLoc);
+                    airSegmentInformation.setToLocation(toLoc);
+                    airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct() != null ? itineraryInfo.getTravelProduct().getProductDetails().getClassOfService() : "");
+                    airSegmentInformation.setCabinClass(itineraryInfo.getCabinDetails() != null ? itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator() : "");
+                    Airport fromAirport = Airport
+                            .getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
+                    Airport toAirport = Airport.getAirport(airSegmentInformation
+                            .getToLocation(), redisTemplate);
 
-                airSegmentInformation.setFlightNumber(itineraryInfo
-                        .getTravelProduct().getProductDetails()
-                        .getIdentification());
+                    SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
+                    String DATE_FORMAT = "ddMMyyHHmm";
+                    DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat
+                            .forPattern(DATE_FORMAT);
+                    DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport
+                            .getTime_zone());
+                    DateTimeZone toDateTimeZone = DateTimeZone.forID(toAirport
+                            .getTime_zone());
+                    String fromDateTime = itineraryInfo.getTravelProduct()
+                            .getProduct().getArrDate()
+                            + itineraryInfo.getTravelProduct().getProduct()
+                            .getArrTime();
+                    String toDateTime = itineraryInfo.getTravelProduct()
+                            .getProduct().getDepDate()
+                            + itineraryInfo.getTravelProduct().getProduct()
+                            .getDepTime();
+                    DateTime departureDate = DATETIME_FORMATTER.withZone(
+                            dateTimeZone).parseDateTime(toDateTime);
+                    // dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+                    DateTime arrivalDate = DATETIME_FORMATTER.withZone(
+                            toDateTimeZone).parseDateTime(fromDateTime);
+
+                    airSegmentInformation.setFlightNumber(itineraryInfo
+                            .getTravelProduct().getProductDetails()
+                            .getIdentification());
 
 
-                airSegmentInformation.setDepartureDate(departureDate
-                        .toDate());
-                airSegmentInformation.setDepartureTime(departureDate
-                        .toString());
-                airSegmentInformation
-                        .setArrivalTime(arrivalDate.toString());
-                airSegmentInformation.setArrivalDate(arrivalDate.toDate());
+                    airSegmentInformation.setDepartureDate(departureDate
+                            .toDate());
+                    airSegmentInformation.setDepartureTime(departureDate
+                            .toString());
+                    airSegmentInformation
+                            .setArrivalTime(arrivalDate.toString());
+                    airSegmentInformation.setArrivalDate(arrivalDate.toDate());
 
-                airSegmentInformation.setFromDate(fromDateTime);
-                airSegmentInformation.setToDate(toDateTime);
+                    airSegmentInformation.setFromDate(fromDateTime);
+                    airSegmentInformation.setToDate(toDateTime);
 
-                if (itineraryInfo.getFlightDetail() != null
-                        && itineraryInfo.getFlightDetail()
-                        .getDepartureInformation() != null) {
-                    airSegmentInformation.setFromTerminal(itineraryInfo
-                            .getFlightDetail().getDepartureInformation()
-                            .getDepartTerminal());
-                }
-                if (itineraryInfo.getFlightDetail() != null
-                        && itineraryInfo.getFlightDetail()
-                        .getArrivalStationInfo() != null) {
-                    airSegmentInformation.setToTerminal(itineraryInfo
-                            .getFlightDetail().getArrivalStationInfo().getTerminal());
-                }
-                airSegmentInformation.setCarrierCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification());
-                airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification(), redisTemplate));
-                airSegmentInformation.setFromAirport(Airport.getAirport(fromLoc, redisTemplate));
-                airSegmentInformation.setToAirport(Airport.getAirport(toLoc, redisTemplate));
-                String responseEquipment = itineraryInfo.getFlightDetail()
-                        .getProductDetails().getEquipment();
-                if (responseEquipment != null) {
-                    itineraryInfo.getFlightDetail().getProductDetails()
-                            .getEquipment();
-                }
-                airSegmentInformation.setEquipment(responseEquipment);
-
-                //duration
-                DateTimeFormatter DATETIME_FORMATTER1 = DateTimeFormat.forPattern(DATE_FORMAT);
-                DateTimeZone dateTimeZone1 = DateTimeZone.forID(fromAirport.getTime_zone());
-                DateTimeZone toDateTimeZone1 = DateTimeZone.forID(toAirport.getTime_zone());
-                DateTime departureDate1 = DATETIME_FORMATTER1.withZone(dateTimeZone1).parseDateTime(toDateTime);
-                dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
-                DateTime arrivalDate1 = DATETIME_FORMATTER1.withZone(toDateTimeZone1).parseDateTime(fromDateTime);
-
-                airSegmentInformation.setDepartureDate(departureDate1.toDate());
-                airSegmentInformation.setDepartureTime(departureDate1.toString());
-                airSegmentInformation.setArrivalTime(arrivalDate1.toString());
-                airSegmentInformation.setArrivalDate(arrivalDate1.toDate());
-                airSegmentInformation.setFromAirport(fromAirport);
-                airSegmentInformation.setToAirport(toAirport);
-                Minutes diff = Minutes.minutesBetween(departureDate1, arrivalDate1);
-                airSegmentInformation.setTravelTime("" + diff.getMinutes());
-
-                //hopping                
-                if (isHoppingStopExists(itineraryInfo)) {
-                    if (itineraryInfo.getLegInfo() != null && itineraryInfo.getLegInfo().size() >= 2) {
-                        itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate();
-                        itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime();
-
-                        itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate();
-                        itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime();
-
-                        itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId();
-
-                        List<HoppingFlightInformation> hoppingFlightInformations = null;
-
-                        //Arrival
-                        HoppingFlightInformation hop = new HoppingFlightInformation();
-                        hop.setLocation(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId());
-                        hop.setStartTime(new StringBuilder(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime()).insert(2, ":").toString());
-                        SimpleDateFormat dateParser = new SimpleDateFormat("ddMMyy");
-                        Date startDate = null;
-                        Date endDate = null;
-                        try {
-                            startDate = dateParser.parse(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate());
-                            endDate = dateParser.parse(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate());
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
-                        hop.setStartDate(dateFormat.format(startDate));
-                        //Departure
-                        hop.setEndTime(new StringBuilder(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime()).insert(2, ":").toString());
-                        hop.setEndDate(dateFormat.format(endDate));
-                        if (hoppingFlightInformations == null) {
-                            hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
-                        }
-                        hoppingFlightInformations.add(hop);
-
-                        airSegmentInformation.setHoppingFlightInformations(hoppingFlightInformations);
+                    if (itineraryInfo.getFlightDetail() != null
+                            && itineraryInfo.getFlightDetail()
+                            .getDepartureInformation() != null) {
+                        airSegmentInformation.setFromTerminal(itineraryInfo
+                                .getFlightDetail().getDepartureInformation()
+                                .getDepartTerminal());
                     }
+                    if (itineraryInfo.getFlightDetail() != null
+                            && itineraryInfo.getFlightDetail()
+                            .getArrivalStationInfo() != null) {
+                        airSegmentInformation.setToTerminal(itineraryInfo
+                                .getFlightDetail().getArrivalStationInfo().getTerminal());
+                    }
+                    airSegmentInformation.setCarrierCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification());
+                    airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification(), redisTemplate));
+                    airSegmentInformation.setFromAirport(Airport.getAirport(fromLoc, redisTemplate));
+                    airSegmentInformation.setToAirport(Airport.getAirport(toLoc, redisTemplate));
+                    String responseEquipment = itineraryInfo.getFlightDetail()
+                            .getProductDetails().getEquipment();
+                    if (responseEquipment != null) {
+                        itineraryInfo.getFlightDetail().getProductDetails()
+                                .getEquipment();
+                    }
+                    airSegmentInformation.setEquipment(responseEquipment);
+
+                    //duration
+                    DateTimeFormatter DATETIME_FORMATTER1 = DateTimeFormat.forPattern(DATE_FORMAT);
+                    DateTimeZone dateTimeZone1 = DateTimeZone.forID(fromAirport.getTime_zone());
+                    DateTimeZone toDateTimeZone1 = DateTimeZone.forID(toAirport.getTime_zone());
+                    DateTime departureDate1 = DATETIME_FORMATTER1.withZone(dateTimeZone1).parseDateTime(toDateTime);
+                    dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
+                    DateTime arrivalDate1 = DATETIME_FORMATTER1.withZone(toDateTimeZone1).parseDateTime(fromDateTime);
+
+                    airSegmentInformation.setDepartureDate(departureDate1.toDate());
+                    airSegmentInformation.setDepartureTime(departureDate1.toString());
+                    airSegmentInformation.setArrivalTime(arrivalDate1.toString());
+                    airSegmentInformation.setArrivalDate(arrivalDate1.toDate());
+                    airSegmentInformation.setFromAirport(fromAirport);
+                    airSegmentInformation.setToAirport(toAirport);
+                    Minutes diff = Minutes.minutesBetween(departureDate1, arrivalDate1);
+                    airSegmentInformation.setTravelTime("" + diff.getMinutes());
+
+                    //hopping
+                    if (isHoppingStopExists(itineraryInfo)) {
+                        if (itineraryInfo.getLegInfo() != null && itineraryInfo.getLegInfo().size() >= 2) {
+                            itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate();
+                            itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime();
+
+                            itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate();
+                            itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime();
+
+                            itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId();
+
+                            List<HoppingFlightInformation> hoppingFlightInformations = null;
+
+                            //Arrival
+                            HoppingFlightInformation hop = new HoppingFlightInformation();
+                            hop.setLocation(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getBoardPointDetails().getTrueLocationId());
+                            hop.setStartTime(new StringBuilder(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalTime()).insert(2, ":").toString());
+                            SimpleDateFormat dateParser = new SimpleDateFormat("ddMMyy");
+                            Date startDate = null;
+                            Date endDate = null;
+                            try {
+                                startDate = dateParser.parse(itineraryInfo.getLegInfo().get(0).getLegTravelProduct().getFlightDate().getArrivalDate());
+                                endDate = dateParser.parse(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureDate());
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+                            hop.setStartDate(dateFormat.format(startDate));
+                            //Departure
+                            hop.setEndTime(new StringBuilder(itineraryInfo.getLegInfo().get(1).getLegTravelProduct().getFlightDate().getDepartureTime()).insert(2, ":").toString());
+                            hop.setEndDate(dateFormat.format(endDate));
+                            if (hoppingFlightInformations == null) {
+                                hoppingFlightInformations = new ArrayList<HoppingFlightInformation>();
+                            }
+                            hoppingFlightInformations.add(hop);
+
+                            airSegmentInformation.setHoppingFlightInformations(hoppingFlightInformations);
+                        }
+                    }
+                    airSegmentList.add(airSegmentInformation);
                 }
-                airSegmentList.add(airSegmentInformation);
-            }
             }
             journey.setAirSegmentList(airSegmentList);
             journeyList.add(journey);

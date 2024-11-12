@@ -1,16 +1,14 @@
 package dto.reissue;
 
-import com.compassites.model.BookingType;
-import com.compassites.model.CabinClass;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Passenger;
+import com.compassites.model.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ReIssueTicketRequest implements Serializable {
+public class ReIssueSearchRequest implements Serializable {
 
     private boolean isSeaman;
 
@@ -24,6 +22,8 @@ public class ReIssueTicketRequest implements Serializable {
 
     private String provider;
 
+    private JourneyType journeyType;
+
     private FlightItinerary flightItinerary;
 
     private List<Passenger> passengers;
@@ -31,6 +31,8 @@ public class ReIssueTicketRequest implements Serializable {
     private List<ReIssueSearchParameters> requestedChange;
 
     private CabinClass cabinClass;
+
+    private boolean isClassChanged;
 
     public boolean isSeaman() {
         return isSeaman;
@@ -80,6 +82,14 @@ public class ReIssueTicketRequest implements Serializable {
         this.provider = provider;
     }
 
+    public JourneyType getJourneyType() {
+        return journeyType;
+    }
+
+    public void setJourneyType(JourneyType journeyType) {
+        this.journeyType = journeyType;
+    }
+
     public FlightItinerary getFlightItinerary() {
         return flightItinerary;
     }
@@ -112,8 +122,17 @@ public class ReIssueTicketRequest implements Serializable {
         this.cabinClass = cabinClass;
     }
 
+    @JsonProperty("isClassChanged")
+    public boolean isClassChanged() {
+        return isClassChanged;
+    }
+
+    public void setClassChanged(boolean classChanged) {
+        isClassChanged = classChanged;
+    }
+
     public BookingType getBookingType() {
-        if(this.isSeaman()){
+        if (this.isSeaman()) {
             return BookingType.SEAMEN;
         } else {
             return BookingType.NON_MARINE;

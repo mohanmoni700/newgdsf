@@ -1,7 +1,7 @@
 package services.reissue;
 
 import com.compassites.model.SearchResponse;
-import dto.reissue.ReIssueTicketRequest;
+import dto.reissue.ReIssueSearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,11 +12,11 @@ public class ReIssueServiceWrapper implements ReIssueService {
     AmadeusReissueService amadeusReissueService;
 
     @Override
-    public SearchResponse reIssueTicket(ReIssueTicketRequest reIssueTicketRequest){
+    public SearchResponse reIssueTicket(ReIssueSearchRequest reIssueSearchRequest){
 
         SearchResponse reIssueTicketResponse = null;
-        if(reIssueTicketRequest.getProvider().equals("Amadeus")){
-            reIssueTicketResponse = amadeusReissueService.reIssueTicket(reIssueTicketRequest);
+        if(reIssueSearchRequest.getProvider().equals("Amadeus")){
+            reIssueTicketResponse = amadeusReissueService.reIssueTicket(reIssueSearchRequest);
         }
 
         return  reIssueTicketResponse;

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import dto.reissue.ReIssueTicketRequest;
+import dto.reissue.ReIssueSearchRequest;
 import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
 import org.slf4j.Logger;
@@ -455,11 +455,11 @@ public class Application {
     public Result reIssueTicket() {
         JsonNode json = request().body().asJson();
 
-        ReIssueTicketRequest reIssueTicketRequest = Json.fromJson(json, ReIssueTicketRequest.class);
-        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueTicketRequest));
+        ReIssueSearchRequest reIssueSearchRequest = Json.fromJson(json, ReIssueSearchRequest.class);
+        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueSearchRequest));
 
         //Complete the response Body later
-        SearchResponse reIssueTicketResponse = reIssueService.reIssueTicket(reIssueTicketRequest);
+        SearchResponse reIssueTicketResponse = reIssueService.reIssueTicket(reIssueSearchRequest);
         logger.debug("ReissueTicket response Body{}", Json.toJson(reIssueTicketResponse));
 
         return ok(Json.toJson(reIssueTicketResponse));

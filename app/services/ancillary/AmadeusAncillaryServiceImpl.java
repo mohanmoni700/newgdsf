@@ -103,7 +103,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         }
     }
 
-    private static AncillaryServicesResponse getAdditionalBaggageInformation(ServiceIntegratedCatalogueReply serviceIntegratedCatalogueReply, AncillaryServicesResponse excessBaggageInfo) {
+    private static void getAdditionalBaggageInformation(ServiceIntegratedCatalogueReply serviceIntegratedCatalogueReply, AncillaryServicesResponse excessBaggageInfo) {
 
         List<BaggageDetails> baggageList = new ArrayList<>();
 
@@ -265,12 +265,10 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
             excessBaggageInfo.setSuccess(true);
             excessBaggageInfo.setBaggageList(baggageList);
-            return excessBaggageInfo;
 
         } catch (Exception e) {
             logger.debug("Error with add Baggage information : {} ", e.getMessage(), e);
             excessBaggageInfo.setSuccess(false);
-            return excessBaggageInfo;
         }
     }
 
