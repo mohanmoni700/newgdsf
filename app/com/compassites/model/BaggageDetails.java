@@ -10,6 +10,8 @@ public class BaggageDetails{
 
     private String destination;
 
+    private String baggageDescription;
+
     private String origin;
 
     private Long price;
@@ -220,6 +222,14 @@ public class BaggageDetails{
 
     public void setContactMasterId(Long contactMasterId) {
         this.contactMasterId = contactMasterId;
+    }
+
+    public String getBaggageDescription() {
+        return baggageDescription;
+    }
+
+    public void setBaggageDescription(String baggageDescription) {
+        this.baggageDescription = baggageDescription;
     }
 }
 
