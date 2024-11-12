@@ -4,6 +4,7 @@ import com.compassites.model.BaggageDetails;
 import com.compassites.model.MealDetails;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.math.BigInteger;
 import java.util.Map;
 
 /**
@@ -27,6 +28,12 @@ public class Traveller {
 	private BaggageDetails baggageDetails;
 
 	private MealDetails mealDetails;
+
+	private String amadeusPaxRefQualifier;
+
+	private BigInteger amadeusPaxRefNumber;
+
+	private String amadeusPaxSegLineRef;
 
 	public MealDetails getMealDetails() {
 		return mealDetails;
@@ -113,4 +120,29 @@ public class Traveller {
     public void setTicketNumberMap(Map<String, String> ticketNumberMap) {
         this.ticketNumberMap = ticketNumberMap;
     }
+
+	public String getAmadeusPaxRefQualifier() {
+		return amadeusPaxRefQualifier;
+	}
+
+	public void setAmadeusPaxRefQualifier(String amadeusPaxRefQualifier) {
+		this.amadeusPaxRefQualifier = amadeusPaxRefQualifier;
+	}
+
+	public BigInteger getAmadeusPaxRefNumber() {
+		return amadeusPaxRefNumber;
+	}
+
+	public void setAmadeusPaxRefNumber(BigInteger amadeusPaxRefNumber) {
+		this.amadeusPaxRefNumber = amadeusPaxRefNumber;
+	}
+
+	public String getAmadeusPaxSegLineRef() {
+		return amadeusPaxSegLineRef;
+	}
+
+	public void setAmadeusPaxSegLineRef(String amadeusPaxSegLineRef) {
+		this.amadeusPaxSegLineRef = amadeusPaxSegLineRef;
+	}
+
 }

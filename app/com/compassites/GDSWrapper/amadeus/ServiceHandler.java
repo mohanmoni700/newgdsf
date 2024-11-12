@@ -1,9 +1,7 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.wsdl.ticketgtp_v3_v2.TicketGTPPT;
 import com.amadeus.xml.AmadeusWebServices;
 import com.amadeus.xml.AmadeusWebServicesPT;
-import com.amadeus.xml._2010._06.ticketgtp_v3.*;
 import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.fatceq_13_1_1a.TicketCheckEligibility;
@@ -17,11 +15,7 @@ import com.amadeus.xml.fmtctq_18_2_1a.TicketATCShopperMasterPricerTravelBoardSea
 import com.amadeus.xml.fmtctr_18_2_1a.TicketATCShopperMasterPricerTravelBoardSearchReply;
 import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
-import com.amadeus.xml.pnracc_11_3_1a.OriginatorDetailsTypeI;
-import com.amadeus.xml.pnracc_11_3_1a.OriginatorIdentificationDetailsTypeI;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
-import com.amadeus.xml.pnracc_11_3_1a.POSGroupType;
-import com.amadeus.xml.pnracc_12_2_1a.OriginatorIdentificationDetailsTypeI170735C;
 import com.amadeus.xml.pnradd_11_3_1a.PNRAddMultiElements;
 import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve;
 import com.amadeus.xml.pnrxcl_11_3_1a.*;
@@ -56,7 +50,7 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
-import dto.reissue.ReIssueTicketRequest;
+import dto.reissue.ReIssueSearchRequest;
 import models.AmadeusSessionWrapper;
 import models.FlightSearchOffice;
 import org.slf4j.Logger;
@@ -595,10 +589,10 @@ public class ServiceHandler {
 
     }
 
-    public TicketProcessEDocReply reIssueCheckTicketStatus(ReIssueTicketRequest reIssueTicketRequest, AmadeusSessionWrapper amadeusSessionWrapper) {
+    public TicketProcessEDocReply reIssueCheckTicketStatus(ReIssueSearchRequest reIssueSearchRequest, AmadeusSessionWrapper amadeusSessionWrapper) {
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
-        TicketProcessEDoc ticketProcessEDocReq = ReIssueTicket.ReIssueCheckTicketStatus.createReissueTicketStatusCheck(reIssueTicketRequest);
+        TicketProcessEDoc ticketProcessEDocReq = ReIssueTicket.ReIssueCheckTicketStatus.createReissueTicketStatusCheck(reIssueSearchRequest);
         amadeusLogger.info("ReIssueTicketStatusCheckRequest {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReq));
         TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDocReq, amadeusSessionWrapper.getmSession());
         amadeusLogger.info("ReIssueTicketStatusCheckReply {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
@@ -606,10 +600,10 @@ public class ServiceHandler {
 
     }
 
-    public TicketCheckEligibilityReply reIssueTicketCheckEligibility(ReIssueTicketRequest reIssueTicketRequest, AmadeusSessionWrapper amadeusSessionWrapper) {
+    public TicketCheckEligibilityReply reIssueTicketCheckEligibility(ReIssueSearchRequest reIssueSearchRequest, AmadeusSessionWrapper amadeusSessionWrapper) {
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
-        TicketCheckEligibility ticketCheckEligibility = ReIssueTicket.ReIssueCheckEligibility.createCheckEligibilityRequest(reIssueTicketRequest, amadeusSessionWrapper.getOfficeId());
+        TicketCheckEligibility ticketCheckEligibility = ReIssueTicket.ReIssueCheckEligibility.createCheckEligibilityRequest(reIssueSearchRequest, amadeusSessionWrapper.getOfficeId());
         amadeusLogger.debug("ReIssueTicketCheckEligibilityRequest {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCheckEligibility));
         TicketCheckEligibilityReply ticketCheckEligibilityReply = mPortType.ticketCheckEligibility(ticketCheckEligibility, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("ReIssueTicketCheckEligibilityReply {} SessionId: {}  \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCheckEligibilityReply));
@@ -617,10 +611,10 @@ public class ServiceHandler {
 
     }
 
-    public TicketATCShopperMasterPricerTravelBoardSearchReply reIssueATCAirlineSearch(ReIssueTicketRequest reissueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
+    public TicketATCShopperMasterPricerTravelBoardSearchReply reIssueATCAirlineSearch(ReIssueSearchRequest reissueSearchRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
-        TicketATCShopperMasterPricerTravelBoardSearch reIssueATCSearchRequest = ReIssueTicket.ReIssueATCSearch.createReissueATCSearchRequest(reissueTicketRequest, allowedCarriers, amadeusSessionWrapper.getOfficeId());
+        TicketATCShopperMasterPricerTravelBoardSearch reIssueATCSearchRequest = ReIssueTicket.ReIssueATCSearch.createReissueATCSearchRequest(reissueSearchRequest, allowedCarriers, amadeusSessionWrapper.getOfficeId());
         amadeusLogger.debug("ReIssueATCSearch Request on {}, SessionId: {}, Office ID: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(reIssueATCSearchRequest));
         TicketATCShopperMasterPricerTravelBoardSearchReply reIssueATCSearchReply = mPortType.ticketATCShopperMasterPricerTravelBoardSearch(reIssueATCSearchRequest, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("ReIssueATCSearch Response {} SessionId: {}, Office ID: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(reIssueATCSearchReply));

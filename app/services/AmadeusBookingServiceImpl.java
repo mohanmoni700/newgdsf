@@ -7,6 +7,7 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply.DataElementsMaster.DataElementsIn
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
+import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType127526C;
 import com.amadeus.xml.pnracc_11_3_1a.TravellerDetailsTypeI;
 import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationDetailsTypeI;
 import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationType;
@@ -1505,12 +1506,24 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			List<TravellerInfo> travellerinfoList = gdsPNRReply.getTravellerInfo();
 			Preferences preferences = getPreferenceFromPNR(gdsPNRReply);
 			for (TravellerInfo travellerInfo : travellerinfoList) {
+				Traveller traveller = new Traveller();
+
+				com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType elementManagementPassenger = travellerInfo.getElementManagementPassenger();
+				ReferencingDetailsType127526C reference = elementManagementPassenger.getReference();
+				traveller.setAmadeusPaxRefQualifier(reference.getQualifier());
+				traveller.setAmadeusPaxRefNumber(reference.getNumber());
+
+				String segmentName = elementManagementPassenger.getSegmentName();
+				BigInteger lineNumber = elementManagementPassenger.getLineNumber();
+				String amadeusPaxSegLineRef = segmentName + lineNumber;
+				traveller.setAmadeusPaxSegLineRef(amadeusPaxSegLineRef);
+
 				PassengerData passengerData = travellerInfo.getPassengerData().get(0);
 				String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
 				String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
 				String passengerType = passengerData.getTravellerInformation().getPassenger().get(0).getType();
 				String firstName = "";
-				Traveller traveller = new Traveller();
+
 				PersonalDetails personalDetails = new PersonalDetails();
 				String[] names = firstNameResponse.split("\\s");
 				//personalDetails.setFirstName(names[0]);
