@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.traveller.Traveller;
+import models.CartAirSegmentDTO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -48,13 +49,9 @@ public class IssuanceRequest implements Serializable{
 
     private List<BaggageDetails> baggageDetails;
 
-    public List<BaggageDetails> getBaggageDetails() {
-        return baggageDetails;
-    }
+    private List<Traveller> bookingTravellerList;
 
-    public void setBaggageDetails(List<BaggageDetails> baggageDetails) {
-        this.baggageDetails = baggageDetails;
-    }
+    private List<CartAirSegmentDTO> ctSegmentDtoList;
 
     public String getReGdsPNR() {
         return reGdsPNR;
@@ -198,5 +195,29 @@ public class IssuanceRequest implements Serializable{
 
     public void setJocPNR(String jocPNR) {
       this.jocPNR = jocPNR;
+    }
+
+    public List<Traveller> getBookingTravellerList() {
+        return bookingTravellerList;
+    }
+
+    public void setBookingTravellerList(List<Traveller> bookingTravellerList) {
+        this.bookingTravellerList = bookingTravellerList;
+    }
+
+    public List<CartAirSegmentDTO> getCtSegmentDtoList() {
+        return ctSegmentDtoList;
+    }
+
+    public void setCtSegmentDtoList(List<CartAirSegmentDTO> ctSegmentDtoList) {
+        this.ctSegmentDtoList = ctSegmentDtoList;
+    }
+
+    public List<BaggageDetails> getBaggageDetails() {
+        return baggageDetails;
+    }
+
+    public void setBaggageDetails(List<BaggageDetails> baggageDetails) {
+        this.baggageDetails = baggageDetails;
     }
 }

@@ -115,8 +115,12 @@ public class Application {
     }
 
     public Result splitPNR(){
+        logger.debug("-----------------splitPNR called: ");
         JsonNode json = request().body().asJson();
+        logger.debug("split PNR........ " + Json.toJson(json));
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        logger.debug("split PNR called " + Json.toJson(issuanceRequest));
+        logger.debug("getProvider..."+issuanceRequest.getProvider());
         SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest);
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
