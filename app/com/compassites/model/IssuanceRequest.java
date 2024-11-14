@@ -53,6 +53,8 @@ public class IssuanceRequest implements Serializable{
 
     private List<CartAirSegmentDTO> ctSegmentDtoList;
 
+    private List<String> ticketsList;
+
     public String getReGdsPNR() {
         return reGdsPNR;
     }
@@ -219,5 +221,13 @@ public class IssuanceRequest implements Serializable{
 
     public void setBaggageDetails(List<BaggageDetails> baggageDetails) {
         this.baggageDetails = baggageDetails;
+    }
+
+    public List<String> getTicketsList() {
+        return ticketsList;
+    }
+
+    public void setTicketsList(List<String> ticketsList) {
+        this.ticketsList = ticketsList;
     }
 }

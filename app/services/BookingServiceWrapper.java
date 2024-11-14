@@ -90,10 +90,10 @@ public class BookingServiceWrapper {
 		return pnrResponse;
 	}
 
-	public SplitPNRResponse splitPNR( IssuanceRequest issuanceRequest){
+	public SplitPNRResponse splitPNR( IssuanceRequest issuanceRequest, String type){
 		SplitPNRResponse splitPNRResponse = null;
 		if("Amadeus".equalsIgnoreCase(issuanceRequest.getProvider())) {
-			splitPNRResponse = amadeusBookingService.splitPNR(issuanceRequest);
+			splitPNRResponse = amadeusBookingService.splitPNR(issuanceRequest,type);
 		}
 		return splitPNRResponse;
 	}

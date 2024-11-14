@@ -56,6 +56,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.compassites.constants.StaticConstatnts.VOID_TICKET;
+
 /**
  * Created by Yaseen
  */
@@ -67,6 +69,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
     private AmadeusSessionManager amadeusSessionManager;
+
+
+	@Autowired
+	private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
 
 	@Autowired
 	private AmadeusSourceOfficeService amadeusSourceOfficeService;
@@ -202,13 +208,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 	}
 
 	@Override
-	public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest) {
+	public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest, String type) {
 		logger.debug("split PNR called " + Json.toJson(issuanceRequest));
 		//ServiceHandler serviceHandler = null;
 		PNRResponse pnrResponse = new PNRResponse();
 		SplitPNRResponse splitPNRResponse = new SplitPNRResponse();
 		JsonNode jsonNode = null;
-		CancelPNRResponse cancelPNRResponse = null;
+		CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
 		PricingInformation pricingInfo = null;
 		List<Journey> journeyList = null;
 		AmadeusCancelServiceImpl amadeusCancelService = new AmadeusCancelServiceImpl();
@@ -280,10 +286,27 @@ public class AmadeusBookingServiceImpl implements BookingService {
 								}
 							}
 						}
-						cancelPNRResponse = cancelPNR(childPNR, false, segmentMap, amadeusSessionWrapper);
-
+						if(type.equalsIgnoreCase(VOID_TICKET)) {
+							TicketCancelDocumentResponse  ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(),issuanceRequest.getTicketsList());
+							if(ticketCancelDocumentResponse.isSuccess()){
+								cancelPNRResponse.setSuccess(true);
+							}else{
+								cancelPNRResponse.setSuccess(false);
+							}
+						}else{
+							cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
+						}
 					} else {
-						cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
+						if(type.equalsIgnoreCase(VOID_TICKET)) {
+							TicketCancelDocumentResponse  ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(),issuanceRequest.getTicketsList());
+							if(ticketCancelDocumentResponse.isSuccess()){
+								cancelPNRResponse.setSuccess(true);
+							}else{
+								cancelPNRResponse.setSuccess(false);
+							}
+						}else {
+							cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
+						}
 					}
 					splitPNRResponse.setCancelPNRResponse(cancelPNRResponse);
 					serviceHandler.saveChildPNR("10", amadeusSessionWrapper);
