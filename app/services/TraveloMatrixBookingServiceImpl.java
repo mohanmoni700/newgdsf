@@ -49,7 +49,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
     }
 
     @Override
-    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest) {
+    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest, String type) {
         return null;
     }
 

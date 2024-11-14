@@ -632,6 +632,52 @@ public class ServiceHandler {
         return serviceIntegratedCatalogueReply;
 
     }
+    public PNRReply partialCancelPNR(String pnr, PNRReply gdsPNRReply,Map<BigInteger, String> segmentMap, AmadeusSessionWrapper amadeusSessionWrapper){
+        logger.debug("partialCancelPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+
+        PNRCancel pnrCancel = new PNRCancel();
+        OptionalPNRActionsType pnrActionsType = new OptionalPNRActionsType();
+        pnrActionsType.getOptionCode().add(BigInteger.valueOf(11));
+        pnrCancel.setPnrActions(pnrActionsType);
+        CancelPNRElementType cancelPNRElementType = new CancelPNRElementType();
+        List<ElementIdentificationType> elementIdentificationTypeList = cancelPNRElementType.getElement();
+        if(!segmentMap.isEmpty()) {
+            // Iterating over the Map
+            ElementIdentificationType elementIdentificationType = new ElementIdentificationType();
+            for (Map.Entry<BigInteger, String> entry : segmentMap.entrySet()) {
+                BigInteger key = entry.getKey();
+                String value = entry.getValue();
+                elementIdentificationType.setNumber(key);
+                elementIdentificationType.setIdentifier(value);
+                elementIdentificationTypeList.add(elementIdentificationType);
+            }
+        }else {
+            for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
+                for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
+                    ElementIdentificationType elementIdentificationType = new ElementIdentificationType();
+                    String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                    if (segType.equalsIgnoreCase("AIR")) {
+                        BigInteger segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                        String segQualifier = itineraryInfo.getElementManagementItinerary().getReference().getQualifier();
+                        elementIdentificationType.setNumber(segmentRef);
+                        elementIdentificationType.setIdentifier(segQualifier);
+                        elementIdentificationTypeList.add(elementIdentificationType);
+                    }
+                }
+            }
+        }
+        cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ELEMENT_TYPE);
+        pnrCancel.getCancelElements().add(cancelPNRElementType);
+
+        amadeusLogger.debug("pnrCancelReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrCancel));
+        //PNRReply pnrReply = new PNRReply();
+        PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("pnrCancelRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pnrReply));
+        return pnrReply;
+
+    }
 
 }
-

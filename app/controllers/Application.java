@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.compassites.constants.StaticConstatnts.CANCEL_PNR;
+import static com.compassites.constants.StaticConstatnts.VOID_TICKET;
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
 
@@ -115,13 +117,25 @@ public class Application {
     }
 
     public Result splitPNR(){
+        logger.debug("-----------------splitPNR called: ");
         JsonNode json = request().body().asJson();
+        logger.debug("split PNR........ " + Json.toJson(json));
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
-        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest);
+        logger.debug("split PNR called " + Json.toJson(issuanceRequest));
+        logger.debug("getProvider..."+issuanceRequest.getProvider());
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest,CANCEL_PNR);
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
     }
 
+    public Result ticketCancelDocuments() {
+        logger.info("ticketCancelDocuments called ");
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest, VOID_TICKET);
+        logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
+        return ok(Json.toJson(splitPNRResponse));
+    }
     public Result checkFareChangeAndAvailability(){
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);
