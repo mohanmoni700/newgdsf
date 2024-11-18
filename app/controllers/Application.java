@@ -560,6 +560,17 @@ public class Application {
 
     }
 
+    public Result ticketRebookAndRepricePNR(){
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- ticketRebookAndRepricePNR PNR Request: " + json);
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        ReIssueSearchRequest reIssueTicketRequest = new ReIssueSearchRequest();
+        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueTicketRequest));
+        PNRResponse pnrResponse = reIssueService.ticketRebookAndRepricePNR(travellerMasterInfo, reIssueTicketRequest);
+        logger.debug("-----------------PNR Response for ticketRebookAndRepricePNR: " + Json.toJson(pnrResponse));
+        return Controller.ok(Json.toJson(pnrResponse));
+    }
+
     public Result home(){
         return ok("GDS Service running.....");
     }

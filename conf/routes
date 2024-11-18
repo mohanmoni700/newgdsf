@@ -46,6 +46,7 @@ POST  /commitBooking                               @controllers.Application.comm
 
 #Reissue
 POST /reIssueTicket                                @controllers.Application.reIssueTicket()
+POST /ticketRebookAndRepricePNR                    @controllers.Application.ticketRebookAndRepricePNR()
 
 #Refund
 POST  /checkRefundEligibility       @controllers.Application.checkRefundEligibiliy()
