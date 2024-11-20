@@ -650,7 +650,6 @@ public class ReIssueTicket {
 
         //Mapping dates to amadeus required format
         private static String mapDate(Date changeDate) {
-
             DateTime dateTime = new DateTime(changeDate);
             String amadeusDate;
 
