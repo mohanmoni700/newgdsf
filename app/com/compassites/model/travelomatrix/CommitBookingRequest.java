@@ -4,9 +4,10 @@ package com.compassites.model.travelomatrix;
 import java.util.List;
 import javax.annotation.Generated;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CommitBookingRequest {
     @JsonProperty("AppReference")
     private String appReference;

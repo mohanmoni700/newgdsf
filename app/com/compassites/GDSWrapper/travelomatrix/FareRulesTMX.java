@@ -9,6 +9,7 @@ import configs.WsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import play.Play;
 import play.libs.ws.WSRequestHolder;
 
 import java.util.TimeZone;
@@ -29,10 +30,11 @@ public class FareRulesTMX {
         JsonNode jsonRequest = getJsonFromResultToken(resultToken);
         JsonNode response = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/FareRule");
             travelomatrixLogger.debug("TraveloMatrix getFareRules : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrix getFareRules : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
             travelomatrixLogger.debug("TraveloMatrix getFareRules : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
         }catch(Exception e){

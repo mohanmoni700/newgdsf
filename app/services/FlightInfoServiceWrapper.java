@@ -108,9 +108,4 @@ public class FlightInfoServiceWrapper {
 		return miniRule;
 	}
 
-	public AncillaryServicesResponse getExtraServicesfromTmx(String resultToken){
-
-		AncillaryServicesResponse ancillaryServicesResponse = traveloMatrixFlightInfoServiceImpl.getExtraServicesfromTmx(resultToken);
-		return ancillaryServicesResponse;
-	}
 }

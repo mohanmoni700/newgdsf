@@ -66,6 +66,9 @@ public class Application {
     private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
 
     @Autowired
+    private AncillaryService ancillaryService;
+
+    @Autowired
     private ReIssueService reIssueService;
 
     @Autowired
@@ -73,9 +76,6 @@ public class Application {
 
     @Autowired
     private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
-
-    @Autowired
-    private AncillaryService ancillaryService;
 
 
     static Logger logger = LoggerFactory.getLogger("gds");
@@ -539,10 +539,14 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result fetchTmxBaggage() {
+    public Result fetchTmxExtraServices() {
         JsonNode json = request().body().asJson();
         String resultToken = json.get("resultToken").asText();
-        AncillaryServicesResponse ancillaryServicesResponse = flightInfoService.getExtraServicesfromTmx(resultToken);
+        String reResulttoken = json.get("reResulttoken").asText();
+        String journeyType = json.get("journeyType").asText();
+        Boolean isLCC = json.get("isLCC").asBoolean();
+
+        AncillaryServicesResponse ancillaryServicesResponse =ancillaryService.getTmxExtraServices(resultToken,reResulttoken,journeyType,isLCC);
         return ok(Json.toJson(ancillaryServicesResponse));
     }
 

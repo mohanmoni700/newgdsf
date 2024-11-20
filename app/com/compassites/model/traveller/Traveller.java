@@ -2,9 +2,14 @@ package com.compassites.model.traveller;
 
 import com.compassites.model.BaggageDetails;
 import com.compassites.model.MealDetails;
+import com.compassites.model.MealDetailsMap;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+
+import java.util.List;
+
 import java.math.BigInteger;
+
 import java.util.Map;
 
 /**
@@ -25,21 +30,21 @@ public class Traveller {
 
 	private VisaDetails visaDetails;
 
-	private BaggageDetails baggageDetails;
+	private List<BaggageDetails> baggageDetails;
 
-	private MealDetails mealDetails;
+	private List<MealDetails> mealDetails;
 
-	private String amadeusPaxRefQualifier;
+  private String amadeusPaxRefQualifier;
 
 	private BigInteger amadeusPaxRefNumber;
 
 	private String amadeusPaxSegLineRef;
-
-	public MealDetails getMealDetails() {
+  
+	public List<MealDetails> getMealDetails() {
 		return mealDetails;
 	}
 
-	public void setMealDetails(MealDetails mealDetails) {
+	public void setMealDetails(List<MealDetails> mealDetails) {
 		this.mealDetails = mealDetails;
 	}
 
@@ -81,11 +86,11 @@ public class Traveller {
 		this.passportDetails = passportDetails;
 	}
 
-	public BaggageDetails getBaggageDetails() {
+	public List<BaggageDetails> getBaggageDetails() {
 		return baggageDetails;
 	}
 
-	public void setBaggageDetails(BaggageDetails baggageDetails) {
+	public void setBaggageDetails(List<BaggageDetails> baggageDetails) {
 		this.baggageDetails = baggageDetails;
 	}
 

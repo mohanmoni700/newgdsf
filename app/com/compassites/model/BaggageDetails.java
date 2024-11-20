@@ -1,52 +1,34 @@
 package com.compassites.model;
 
-public class BaggageDetails{
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class BaggageDetails {
     private Long contactMasterId;
-
     private String baggageId;
-
     private String code;
-
     private String destination;
-
     private String baggageDescription;
-
     private String origin;
-
     private Long price;
-
     private String weight;
-
-    private String ticketNumber;
-
     private String piece;
-
     private String rfic;
-
     private String rfisc;
-
     private boolean isRefundable;
-
     private boolean isMIF;
-
     private String bkm;
-
     private String serviceId;
-
     private String carrierCode;
-
     private Long basePrice;
-
     private Long tax;
-
     private boolean isFMT;
-
     private boolean isWVAL;
-
     private boolean isPVAL;
-
     private boolean isFTXT;
+    private Long ticketId;
+    private String tmxTicketNumber;
+    private Boolean returnDetails;
 
     public String getPiece() {
         return piece;
@@ -70,14 +52,6 @@ public class BaggageDetails{
 
     public void setRfisc(String rfisc) {
         this.rfisc = rfisc;
-    }
-
-    public boolean isRefundable() {
-        return isRefundable;
-    }
-
-    public void setRefundable(boolean refundable) {
-        isRefundable = refundable;
     }
 
     public boolean isMIF() {
@@ -128,44 +102,24 @@ public class BaggageDetails{
         this.tax = tax;
     }
 
-    public boolean isFMT() {
-        return isFMT;
+    public boolean isRefundable() {
+        return isRefundable;
     }
 
-    public void setFMT(boolean FMT) {
-        isFMT = FMT;
+    public void setRefundable(boolean refundable) {
+        isRefundable = refundable;
     }
 
-    public boolean isWVAL() {
-        return isWVAL;
+    public Boolean getReturnDetails() {
+        return returnDetails;
     }
 
-    public void setWVAL(boolean WVAL) {
-        isWVAL = WVAL;
+    public void setReturnDetails(Boolean returnDetails) {
+        this.returnDetails = returnDetails;
     }
 
-    public boolean isPVAL() {
-        return isPVAL;
-    }
-
-    public void setPVAL(boolean PVAL) {
-        isPVAL = PVAL;
-    }
-
-    public boolean isFTXT() {
-        return isFTXT;
-    }
-
-    public void setFTXT(boolean FTXT) {
-        isFTXT = FTXT;
-    }
-
-    public String getTicketNumber() {
-        return ticketNumber;
-    }
-
-    public void setTicketNumber(String ticketNumber) {
-        this.ticketNumber = ticketNumber;
+    public String getSegment() {
+        return segment;
     }
 
     public String getBaggageId() {
@@ -174,6 +128,30 @@ public class BaggageDetails{
 
     public void setBaggageId(String baggageId) {
         this.baggageId = baggageId;
+    }
+
+
+    public void setSegment(String segment) {
+        this.segment = segment;
+    }
+
+    private String segment;
+
+    public String getTmxTicketNumber() {
+        return tmxTicketNumber;
+    }
+
+    public void setTmxTicketNumber(String tmxTicketNumber) {
+        this.tmxTicketNumber = tmxTicketNumber;
+    }
+
+    public Long getTicketId() {
+        return ticketId;
+    }
+
+    public void setTicketId(Long ticketId) {
+        this.ticketId = ticketId;
+
     }
 
     public String getCode() {
@@ -216,6 +194,39 @@ public class BaggageDetails{
         this.weight = weight;
     }
 
+
+    public boolean isFMT() {
+        return isFMT;
+    }
+
+    public void setFMT(boolean FMT) {
+        isFMT = FMT;
+    }
+
+    public boolean isWVAL() {
+        return isWVAL;
+    }
+
+    public void setWVAL(boolean WVAL) {
+        isWVAL = WVAL;
+    }
+
+    public boolean isPVAL() {
+        return isPVAL;
+    }
+
+    public void setPVAL(boolean PVAL) {
+        isPVAL = PVAL;
+    }
+
+    public boolean isFTXT() {
+        return isFTXT;
+    }
+
+    public void setFTXT(boolean FTXT) {
+        isFTXT = FTXT;
+    }
+
     public Long getContactMasterId() {
         return contactMasterId;
     }
@@ -231,5 +242,6 @@ public class BaggageDetails{
     public void setBaggageDescription(String baggageDescription) {
         this.baggageDescription = baggageDescription;
     }
+
 }
 

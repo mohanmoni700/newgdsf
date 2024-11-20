@@ -96,9 +96,30 @@ public class AirSegmentInformation implements Serializable{
     private String cabinBaggage;
     private Long availbleSeats;
 
+
+    private Long fatv;
+    private Long fdtv;
+
+    public Long getFatv() {
+        return fatv;
+    }
+
+    public void setFatv(Long fatv) {
+        this.fatv = fatv;
+    }
+
+    public Long getFdtv() {
+        return fdtv;
+    }
+
+    public void setFdtv(Long fdtv) {
+        this.fdtv = fdtv;
+    }
+
     private String amadeusSegmentQualifier;
 
     private BigInteger amadeusSegmentRefNumber;
+
 
     public String getBaggage() {
         return baggage;
