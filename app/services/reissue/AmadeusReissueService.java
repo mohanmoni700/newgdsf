@@ -1,6 +1,8 @@
 package services.reissue;
 
+import com.compassites.model.PNRResponse;
 import com.compassites.model.SearchResponse;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import dto.reissue.ReIssueSearchRequest;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 public interface AmadeusReissueService {
 
     SearchResponse reIssueTicket(ReIssueSearchRequest reIssueSearchRequest);
+    PNRResponse ticketRebookAndRepricePNR(TravellerMasterInfo travellerMasterInfo, ReIssueSearchRequest reIssueTicketRequest);
 
 }
 

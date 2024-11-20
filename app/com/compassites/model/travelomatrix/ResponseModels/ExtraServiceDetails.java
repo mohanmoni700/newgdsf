@@ -15,6 +15,9 @@ public class ExtraServiceDetails {
     private List<List<Baggage>> baggage;
     @JsonProperty("Meals")
     private List<List<Meal>> meals;
+    @JsonProperty("MealPreference")
+    private List<List<Meal>> mealPreference;
+
     @JsonProperty("Seat")
     private List<List<List<Seat>>> seat;
 
@@ -32,6 +35,14 @@ public class ExtraServiceDetails {
 
     public void setMeals(List<List<Meal>> meals) {
         this.meals = meals;
+    }
+
+    public List<List<Meal>> getMealPreference() {
+        return mealPreference;
+    }
+
+    public void setMealPreference(List<List<Meal>> mealPreference) {
+        this.mealPreference = mealPreference;
     }
 
     public List<List<List<Seat>>> getSeat() {

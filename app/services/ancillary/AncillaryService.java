@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 @Service
 public interface AncillaryService {
 
+
     AncillaryServicesResponse getAdditionalBaggageInfo(String gdsPnr, String provider);
 
+    public AncillaryServicesResponse getTmxExtraServices(String resultToken,String reResulttoken,String journeyType,Boolean isLCC);
 }
+

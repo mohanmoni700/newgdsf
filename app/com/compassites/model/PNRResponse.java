@@ -2,6 +2,7 @@ package com.compassites.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -74,6 +75,27 @@ public class PNRResponse {
     private String searchResultToken;
 
     private String returnSearchResultToken;
+
+    private List<BaggageDetails> tmxBaggageDetails;
+
+    public List<MealDetails> getTmxMealDetails() {
+        return tmxMealDetails;
+    }
+
+    public void setTmxMealDetails(List<MealDetails> tmxMealDetails) {
+        this.tmxMealDetails = tmxMealDetails;
+    }
+
+    private List<MealDetails> tmxMealDetails;
+
+    public List<BaggageDetails> getTmxBaggageDetails() {
+        return tmxBaggageDetails;
+    }
+
+    public void setTmxBaggageDetails(List<BaggageDetails> tmxBaggageDetails) {
+        this.tmxBaggageDetails = tmxBaggageDetails;
+    }
+
 
     public String getSearchResultToken() {
         return searchResultToken;

@@ -9,5 +9,5 @@ import java.util.List;
 public interface TraveloMatrixFlightInfoService {
     public List<HashMap> flightFareRules(String resultToken,String returnResultToken);
     public FlightItinerary getFlightInfo(FlightItinerary flightItinerary);
-    public AncillaryServicesResponse getExtraServicesfromTmx(String resultToken);
+
 }

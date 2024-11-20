@@ -13,11 +13,19 @@ import com.amadeus.xml.fmtctq_18_2_1a.*;
 import com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C;
 import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentificationType;
 import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentityType;
+import com.amadeus.xml.tarcpq_13_2_1a.TicketReissueConfirmedPricing;
+import com.amadeus.xml.taripq_19_1_1a.*;
+import com.amadeus.xml.taripq_19_1_1a.CompanyIdentificationTypeI;
+import com.amadeus.xml.taripq_19_1_1a.ItemNumberIdentificationType;
+import com.amadeus.xml.taripq_19_1_1a.ItemNumberType;
+import com.amadeus.xml.taripq_19_1_1a.ReferencingDetailsType;
+import com.amadeus.xml.taripq_19_1_1a.ReferenceInfoType;
 import com.amadeus.xml.fmtctq_18_2_1a.ProductTypeDetailsType120801C;
 import com.amadeus.xml.tatreq_20_1_1a.MessageActionDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.MessageFunctionBusinessDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
 import com.compassites.model.*;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import dto.reissue.ReIssueSearchParameters;
 import dto.reissue.ReIssueSearchRequest;
 import org.joda.time.DateTime;
@@ -27,6 +35,7 @@ import utils.CorporateCodeHelper;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -641,7 +650,6 @@ public class ReIssueTicket {
 
         //Mapping dates to amadeus required format
         private static String mapDate(Date changeDate) {
-
             DateTime dateTime = new DateTime(changeDate);
             String amadeusDate;
 
@@ -727,4 +735,81 @@ public class ReIssueTicket {
         }
     }
 
+    public static TicketReissueConfirmedPricing getTicketReissueConfirmedPricing(List<String> tickets) {
+        TicketReissueConfirmedPricing reissueConfirmedPricing = new TicketReissueConfirmedPricing();
+        List<TicketReissueConfirmedPricing.TicketInfo> ticketInfos = new ArrayList<>();
+        for (String ticket : tickets) {
+            com.amadeus.xml.tarcpq_13_2_1a.TicketNumberTypeI ticketNumberTypeI = new com.amadeus.xml.tarcpq_13_2_1a.TicketNumberTypeI();
+            com.amadeus.xml.tarcpq_13_2_1a.TicketNumberDetailsTypeI ticketNumberDetailsTypeI = new com.amadeus.xml.tarcpq_13_2_1a.TicketNumberDetailsTypeI();
+            ticketNumberDetailsTypeI.setNumber(ticket);
+            ticketNumberDetailsTypeI.setType("ET");
+            ticketNumberTypeI.setDocumentDetails(ticketNumberDetailsTypeI);
+            TicketReissueConfirmedPricing.TicketInfo ticketInfo = new TicketReissueConfirmedPricing.TicketInfo();
+            ticketInfo.setPaperticketDetailsFirstCoupon(ticketNumberTypeI);
+            ticketInfos.add(ticketInfo);
+        }
+        reissueConfirmedPricing.getTicketInfo().addAll(ticketInfos);
+        return reissueConfirmedPricing;
+    }
+    public static TicketRepricePNRWithBookingClass getTicketRepricePNRWithBookingClass(TravellerMasterInfo travellerMasterInfo, List<String> tickets) {
+        TicketRepricePNRWithBookingClass ticketRepricePNRWithBookingClass = new TicketRepricePNRWithBookingClass();
+
+        //exchangeInformationGroup
+        List<TicketRepricePNRWithBookingClass.ExchangeInformationGroup> exchangeInformationGroups = new ArrayList<>();
+        int i = 0;
+        for (String ticket : tickets) {
+            TicketRepricePNRWithBookingClass.ExchangeInformationGroup informationGroup = new TicketRepricePNRWithBookingClass.ExchangeInformationGroup();
+
+            ItemNumberType itemNumberType = new ItemNumberType();
+            ItemNumberIdentificationType numberIdentificationType = new ItemNumberIdentificationType();
+            numberIdentificationType.setNumber(String.valueOf(i++));
+            itemNumberType.getItemNumberDetails().add(numberIdentificationType);
+            informationGroup.setTransactionIdentifier(itemNumberType);
+
+            TicketRepricePNRWithBookingClass.ExchangeInformationGroup.DocumentInfoGroup documentInfoGroup = new TicketRepricePNRWithBookingClass.ExchangeInformationGroup.DocumentInfoGroup();
+            com.amadeus.xml.taripq_19_1_1a.TicketNumberTypeI ticketNumberTypeI = new com.amadeus.xml.taripq_19_1_1a.TicketNumberTypeI();
+            com.amadeus.xml.taripq_19_1_1a.TicketNumberDetailsTypeI ticketNumberDetailsTypeI = new com.amadeus.xml.taripq_19_1_1a.TicketNumberDetailsTypeI();
+            ticketNumberDetailsTypeI.setNumber(ticket);
+            ticketNumberDetailsTypeI.setType("ET");
+            ticketNumberTypeI.setDocumentDetails(ticketNumberDetailsTypeI);
+            documentInfoGroup.setPaperticketDetailsLastCoupon(ticketNumberTypeI);
+            informationGroup.getDocumentInfoGroup().add(documentInfoGroup);
+            exchangeInformationGroups.add(informationGroup);
+        }
+        ticketRepricePNRWithBookingClass.getExchangeInformationGroup().addAll(exchangeInformationGroups);
+
+        //Pricing Options
+        List<TicketRepricePNRWithBookingClass.PricingOption> pricingOptions = new ArrayList<>();
+        List<String> pricingOption = Arrays.asList("RP", "RU", "VC", "SEL");
+        pricingOption.stream().forEach(option -> {
+            TicketRepricePNRWithBookingClass.PricingOption pricingOpt = new TicketRepricePNRWithBookingClass.PricingOption();
+            PricingOptionKeyType pricingOptionKeyType = new PricingOptionKeyType();
+            pricingOptionKeyType.setPricingOptionKey(option);
+            pricingOpt.setPricingOptionKey(pricingOptionKeyType);
+            if (option.equals("VC")) {
+                //TODO update CarrierInformation
+                TransportIdentifierType transportIdentifierType = new TransportIdentifierType();
+                CompanyIdentificationTypeI companyIdentificationTypeI = new CompanyIdentificationTypeI();
+                companyIdentificationTypeI.setOtherCompany("AI");
+                transportIdentifierType.setCompanyIdentification(companyIdentificationTypeI);
+                pricingOpt.setCarrierInformation(transportIdentifierType);
+            }if (option.equals("SEL")) {
+                List<ReferencingDetailsType> referencingDetailsTypes = new ArrayList<>();
+                ReferencingDetailsType referencingDetailsTypeP = new ReferencingDetailsType();
+                referencingDetailsTypeP.setType("P");
+                referencingDetailsTypeP.setValue("1");
+                ReferencingDetailsType referencingDetailsTypeE = new ReferencingDetailsType();
+                referencingDetailsTypeE.setType("E");
+                referencingDetailsTypeE.setValue("1");
+                referencingDetailsTypes.add(referencingDetailsTypeP);
+                referencingDetailsTypes.add(referencingDetailsTypeE);
+                ReferenceInfoType referenceInfoType = new ReferenceInfoType();
+                referenceInfoType.getReferenceDetails().addAll(referencingDetailsTypes);
+                pricingOpt.setPaxSegTstReference(referenceInfoType);
+            }
+            pricingOptions.add(pricingOpt);
+        });
+        ticketRepricePNRWithBookingClass.getPricingOption().addAll(pricingOptions);
+        return ticketRepricePNRWithBookingClass;
+    }
 }

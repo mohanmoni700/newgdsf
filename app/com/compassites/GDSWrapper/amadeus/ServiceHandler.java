@@ -21,6 +21,10 @@ import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve;
 import com.amadeus.xml.pnrxcl_11_3_1a.*;
 import com.amadeus.xml.qdqlrq_11_1_1a.QueueList;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
+import com.amadeus.xml.tarcpq_13_2_1a.TicketReissueConfirmedPricing;
+import com.amadeus.xml.tarcpr_13_2_1a.TicketReissueConfirmedPricingReply;
+import com.amadeus.xml.taripq_19_1_1a.TicketRepricePNRWithBookingClass;
+import com.amadeus.xml.taripr_19_1_1a.TicketRepricePNRWithBookingClassReply;
 import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
 import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
@@ -679,5 +683,21 @@ public class ServiceHandler {
         return pnrReply;
 
     }
+    public TicketRepricePNRWithBookingClassReply repricePNRWithBookingClassReply(AmadeusSessionWrapper amadeusSessionWrapper, TravellerMasterInfo travellerMasterInfo, List<String> tickets) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketRepricePNRWithBookingClass ticketRepricePNRWithBookingClass = ReIssueTicket.getTicketRepricePNRWithBookingClass(travellerMasterInfo, tickets);
+        amadeusLogger.debug("TicketRepricePNRWithBookingClass Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketRepricePNRWithBookingClass));
+        TicketRepricePNRWithBookingClassReply repricePNRWithBookingClassReply = mPortType.ticketRepricePNRWithBookingClass(ticketRepricePNRWithBookingClass, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("TicketRepricePNRWithBookingClassReply Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(repricePNRWithBookingClassReply));
+        return repricePNRWithBookingClassReply;
+    }
 
+    public TicketReissueConfirmedPricingReply ticketReissueConfirmedPricingReply(AmadeusSessionWrapper amadeusSessionWrapper, List<String> tickets) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketReissueConfirmedPricing ticketReissueConfirmedPricing = ReIssueTicket.getTicketReissueConfirmedPricing(tickets);
+        amadeusLogger.debug("TicketReissueConfirmedPricing Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketReissueConfirmedPricing));
+        TicketReissueConfirmedPricingReply ticketReissueConfirmedPricingReply = mPortType.ticketReissueConfirmedPricing(ticketReissueConfirmedPricing, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("TicketReissueConfirmedPricingReply Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketReissueConfirmedPricingReply));
+        return ticketReissueConfirmedPricingReply;
+    }
 }
