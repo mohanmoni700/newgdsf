@@ -11,6 +11,10 @@ public class PassengerTax {
 	
 	private BigDecimal totalTax;
 
+	private BigDecimal onwardTax;
+
+	private BigDecimal returnTax;
+
 //	private BigDecimal baseFare;
 
 	private Map<String, BigDecimal> taxes;
@@ -35,6 +39,22 @@ public class PassengerTax {
 //		return baseFare;
 //	}
 //
+
+	public BigDecimal getOnwardTax() {
+		return onwardTax;
+	}
+
+	public void setOnwardTax(BigDecimal onwardTax) {
+		this.onwardTax = onwardTax;
+	}
+
+	public BigDecimal getReturnTax() {
+		return returnTax;
+	}
+
+	public void setReturnTax(BigDecimal returnTax) {
+		this.returnTax = returnTax;
+	}
 //	public void setBaseFare(BigDecimal baseFare) {
 //		this.baseFare = baseFare;
 //	}

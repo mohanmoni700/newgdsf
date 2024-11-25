@@ -245,13 +245,18 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         PricingInformation pricingInformation = new PricingInformation();
         Long agentCommission = journeyDetails.getPrice().getPriceBreakup().getAgentCommission();
         Long agentTds = journeyDetails.getPrice().getPriceBreakup().getAgentTdsOnCommision();
+        int adultCount = Integer.parseInt(journeyDetails.getPrice().getPassengerBreakup().getADT().getPassengerCount());
+        int chdCount = (journeyDetails.getPrice().getPassengerBreakup().getcHD() != null)  ?
+                         Integer.parseInt(journeyDetails.getPrice().getPassengerBreakup().getcHD().getPassengerCount()) : 0;
+        int infCount = (journeyDetails.getPrice().getPassengerBreakup().getiNF() != null ) ?
+                       Integer.parseInt(journeyDetails.getPrice().getPassengerBreakup().getiNF().getPassengerCount()) : 0;
         pricingInformation.setBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare() - agentCommission +agentTds));
         pricingInformation.setGdsCurrency(journeyDetails.getPrice().getCurrency());
-        pricingInformation.setAdtBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getBasePrice()-agentCommission+agentTds));
+        pricingInformation.setAdtBasePrice(new BigDecimal((journeyDetails.getPrice().getPassengerBreakup().getADT().getBasePrice()-agentCommission+agentTds)/adultCount));
         if(journeyDetails.getPrice().getPassengerBreakup().getcHD() != null)
-            pricingInformation.setChdBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getBasePrice()-agentCommission+agentTds));
+            pricingInformation.setChdBasePrice(new BigDecimal((journeyDetails.getPrice().getPassengerBreakup().getcHD().getBasePrice()-agentCommission+agentTds)/chdCount));
         if(journeyDetails.getPrice().getPassengerBreakup().getiNF() != null)
-            pricingInformation.setInfBasePrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getBasePrice()-agentCommission+agentTds));
+            pricingInformation.setInfBasePrice(new BigDecimal((journeyDetails.getPrice().getPassengerBreakup().getiNF().getBasePrice()-agentCommission+agentTds)/infCount));
         //pricingInformation.setAdtTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getADT().getTotalPrice()));
         if(journeyDetails.getPrice().getPassengerBreakup().getcHD() != null)
             pricingInformation.setChdTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getcHD().getTotalPrice()-agentCommission+agentTds));
@@ -274,7 +279,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             PassengerTax adutlPassengerTax = new PassengerTax();
             adutlPassengerTax.setPassengerCount(Integer.parseInt(adt.getPassengerCount()));
             adutlPassengerTax.setPassengerType("ADT");
-            adutlPassengerTax.setTotalTax(new BigDecimal(adt.getTax()));
+            adutlPassengerTax.setTotalTax(new BigDecimal(adt.getTax()/adultCount));
             passengerTaxesList.add(adutlPassengerTax);
         }
         CHD chd = journeyDetails.getPrice().getPassengerBreakup().getcHD();
@@ -282,7 +287,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             PassengerTax chdPassengerTax = new PassengerTax();
             chdPassengerTax.setPassengerCount(Integer.parseInt(chd.getPassengerCount()));
             chdPassengerTax.setPassengerType("CHD");
-            chdPassengerTax.setTotalTax(new BigDecimal(chd.getTax()));
+            chdPassengerTax.setTotalTax(new BigDecimal(chd.getTax()/chdCount));
             passengerTaxesList.add(chdPassengerTax);
         }
 
@@ -291,7 +296,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             PassengerTax infPassengerTax = new PassengerTax();
             infPassengerTax.setPassengerCount(Integer.parseInt(inf.getPassengerCount()));
             infPassengerTax.setPassengerType("INF");
-            infPassengerTax.setTotalTax(new BigDecimal(inf.getTax()));
+            infPassengerTax.setTotalTax(new BigDecimal(inf.getTax()/infCount));
             passengerTaxesList.add(infPassengerTax);
         }
         pricingInformation.setPassengerTaxes(passengerTaxesList);
@@ -318,11 +323,19 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                             (returnPrice.getPassengerBreakup().getADT().getBasePrice()- returnAgentCommission+returnAgentTds))/adultCount;
         Long adtTotalPrice = (onwardPrice.getPassengerBreakup().getADT().getTotalPrice()-onwardAgentCommission+onwardAgentTds) +
                              (returnPrice.getPassengerBreakup().getADT().getTotalPrice() -returnAgentCommission+returnAgentTds);
+
+        pricingInformation.setAdtOnwardBasePrice(new BigDecimal(onwardPrice.getPassengerBreakup().getADT().getBasePrice()  -onwardAgentCommission+onwardAgentTds).divide(new BigDecimal(adultCount)));
+        pricingInformation.setAdtReturnBasePrice(new BigDecimal(returnPrice.getPassengerBreakup().getADT().getBasePrice() -returnAgentCommission+returnAgentTds).divide(new BigDecimal(adultCount)));
+
         pricingInformation.setAdtBasePrice(new BigDecimal(adtBasicFare));
         pricingInformation.setAdtTotalPrice(new BigDecimal(adtTotalPrice));
         if(onwardPrice.getPassengerBreakup().getcHD() != null && returnPrice.getPassengerBreakup().getcHD() != null) {
             Long chdBasePrice = ((onwardPrice.getPassengerBreakup().getcHD().getBasePrice() -onwardAgentCommission+onwardAgentTds) +
                     (returnPrice.getPassengerBreakup().getcHD().getBasePrice() - returnAgentCommission+returnAgentTds))/chdCount;
+
+            pricingInformation.setChdOnwardBasePrice(new BigDecimal(onwardPrice.getPassengerBreakup().getcHD().getBasePrice()  -onwardAgentCommission+onwardAgentTds).divide(new BigDecimal(chdCount)));
+            pricingInformation.setChdReturnBasePrice(new BigDecimal(returnPrice.getPassengerBreakup().getcHD().getBasePrice() -returnAgentCommission+returnAgentTds).divide(new BigDecimal(chdCount)));
+
             Long chdTotalPrice = (onwardPrice.getPassengerBreakup().getcHD().getTotalPrice() -onwardAgentCommission+onwardAgentTds) +
                     (returnPrice.getPassengerBreakup().getcHD().getTotalPrice()- returnAgentCommission+returnAgentTds);
             pricingInformation.setChdBasePrice(new BigDecimal(chdBasePrice));
@@ -331,6 +344,10 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         if(onwardPrice.getPassengerBreakup().getiNF() != null && returnPrice.getPassengerBreakup().getiNF() != null) {
             Long infBasePrice = ((onwardPrice.getPassengerBreakup().getiNF().getBasePrice() -onwardAgentCommission+onwardAgentTds) +
                     (returnPrice.getPassengerBreakup().getiNF().getBasePrice() - returnAgentCommission+returnAgentTds))/infCount;
+
+            pricingInformation.setInfOnwardBasePrice(new BigDecimal(onwardPrice.getPassengerBreakup().getiNF().getBasePrice()  -onwardAgentCommission+onwardAgentTds).divide(new BigDecimal(infCount)));
+            pricingInformation.setInfReturnBasePrice(new BigDecimal(returnPrice.getPassengerBreakup().getiNF().getBasePrice() -returnAgentCommission+returnAgentTds).divide(new BigDecimal(infCount)));
+
             Long infoTotalPrice = (onwardPrice.getPassengerBreakup().getiNF().getTotalPrice() -onwardAgentCommission+onwardAgentTds)
                     + (returnPrice.getPassengerBreakup().getiNF().getTotalPrice() - returnAgentCommission+returnAgentTds);
             pricingInformation.setInfBasePrice(new BigDecimal(infBasePrice));
@@ -351,12 +368,14 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         pricingInformation.setPricingOfficeId(TraveloMatrixConstants.tmofficeId);
         List<PassengerTax> passengerTaxesList = new ArrayList<>();
         ADT onwardAdt = onwardPrice.getPassengerBreakup().getADT();
-        ADT returnAdt = onwardPrice.getPassengerBreakup().getADT();
+        ADT returnAdt = returnPrice.getPassengerBreakup().getADT();
         if(onwardAdt != null && returnAdt != null) {
             PassengerTax adutlPassengerTax = new PassengerTax();
             adutlPassengerTax.setPassengerCount(Integer.parseInt(onwardAdt.getPassengerCount()));
             adutlPassengerTax.setPassengerType("ADT");
-            adutlPassengerTax.setTotalTax(new BigDecimal(onwardAdt.getTax()+returnAdt.getTax()));
+            adutlPassengerTax.setTotalTax(new BigDecimal((onwardAdt.getTax()+returnAdt.getTax())/adultCount));
+            adutlPassengerTax.setOnwardTax(new BigDecimal(onwardAdt.getTax()/adultCount));
+            adutlPassengerTax.setReturnTax(new BigDecimal(returnAdt.getTax()/adultCount));
             passengerTaxesList.add(adutlPassengerTax);
         }
         CHD chd = onwardPrice.getPassengerBreakup().getcHD();
@@ -364,7 +383,9 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             PassengerTax chdPassengerTax = new PassengerTax();
             chdPassengerTax.setPassengerCount(Integer.parseInt(chd.getPassengerCount()));
             chdPassengerTax.setPassengerType("CHD");
-            chdPassengerTax.setTotalTax(new BigDecimal(chd.getTax()+returnPrice.getPassengerBreakup().getcHD().getTax()));
+            chdPassengerTax.setTotalTax(new BigDecimal((chd.getTax()+returnPrice.getPassengerBreakup().getcHD().getTax())/chdCount));
+            chdPassengerTax.setOnwardTax(new BigDecimal(chd.getTax()/chdCount));
+            chdPassengerTax.setReturnTax(new BigDecimal(returnPrice.getPassengerBreakup().getcHD().getTax()/chdCount));
             passengerTaxesList.add(chdPassengerTax);
         }
 
@@ -373,7 +394,9 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             PassengerTax infPassengerTax = new PassengerTax();
             infPassengerTax.setPassengerCount(Integer.parseInt(inf.getPassengerCount()));
             infPassengerTax.setPassengerType("INF");
-            infPassengerTax.setTotalTax(new BigDecimal(inf.getTax()+returnPrice.getPassengerBreakup().getiNF().getTax()));
+            infPassengerTax.setTotalTax(new BigDecimal((inf.getTax()+returnPrice.getPassengerBreakup().getiNF().getTax())/infCount));
+            infPassengerTax.setOnwardTax(new BigDecimal(inf.getTax()/infCount));
+            infPassengerTax.setReturnTax(new BigDecimal(returnPrice.getPassengerBreakup().getiNF().getTax()/infCount));
             passengerTaxesList.add(infPassengerTax);
         }
         pricingInformation.setPassengerTaxes(passengerTaxesList);
