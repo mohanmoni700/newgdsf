@@ -207,7 +207,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             throw new RuntimeException(e);
         }
 
-        if(travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP") && travellerMasterInfo.getItinerary().getReturnResultToken() != null){
+        if(travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP") && travellerMasterInfo.getItinerary().getReturnResultToken() != null && pnrResponse.getErrorMessage() == null){
             String returResultToken = travellerMasterInfo.getItinerary().getReturnResultToken();
             JsonNode returnjsonResponse = bookingFlights.getUpdatedFares(returResultToken);
             try {
@@ -271,17 +271,20 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         PricingInformation pricingInformation = new PricingInformation();
         pricingInformation.setBasePrice(new BigDecimal(price.getPriceBreakup().getBasicFare()));
         pricingInformation.setTotalBasePrice(new BigDecimal(price.getTotalDisplayFare()));
-        pricingInformation.setAdtBasePrice(new BigDecimal(price.getPassengerBreakup().getADT().getBasePrice()));
+        int adtCount = Integer.parseInt(price.getPassengerBreakup().getADT().getPassengerCount());
+        int chdCount = (price.getPassengerBreakup().getCHD() != null) ? Integer.parseInt(price.getPassengerBreakup().getCHD().getPassengerCount()) : 0;
+        int infCount = (price.getPassengerBreakup().getINF() != null) ? Integer.parseInt(price.getPassengerBreakup().getINF().getPassengerCount()) : 0;
+        pricingInformation.setAdtBasePrice(new BigDecimal(price.getPassengerBreakup().getADT().getBasePrice()/adtCount));
         pricingInformation.setAdtTotalPrice(new BigDecimal(price.getPassengerBreakup().getADT().getTotalPrice()));
         //pricingInformation.setAdtTotalPrice(totalPrice);
         pricingInformation.setGdsCurrency(price.getCurrency());
         pricingInformation.setTax(new BigDecimal(price.getPriceBreakup().getTax()));
         if(price.getPassengerBreakup().getCHD() != null)
-            pricingInformation.setChdBasePrice(new BigDecimal(price.getPassengerBreakup().getCHD().getBasePrice()));
+            pricingInformation.setChdBasePrice(new BigDecimal(price.getPassengerBreakup().getCHD().getBasePrice()/chdCount));
         else
             pricingInformation.setChdBasePrice(new BigDecimal(0));
         if(price.getPassengerBreakup().getINF() != null)
-            pricingInformation.setInfBasePrice(new BigDecimal(price.getPassengerBreakup().getINF().getBasePrice()));
+            pricingInformation.setInfBasePrice(new BigDecimal(price.getPassengerBreakup().getINF().getBasePrice()/infCount));
         else
          pricingInformation.setInfBasePrice(new BigDecimal(0));
         pricingInformation.setCurrency(price.getCurrency());
@@ -291,20 +294,20 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         PassengerTax adtPassengerTax = new PassengerTax();
         adtPassengerTax.setPassengerType("ADT");
         adtPassengerTax.setPassengerCount(Integer.parseInt(price.getPassengerBreakup().getADT().getPassengerCount()));
-        adtPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getADT().getTax()));
+        adtPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getADT().getTax()/adtCount));
         passengerTaxList.add(adtPassengerTax);
         if(price.getPassengerBreakup().getCHD() != null){
             PassengerTax chdPassengerTax = new PassengerTax();
             chdPassengerTax.setPassengerType("CHD");
             chdPassengerTax.setPassengerCount(Integer.parseInt(price.getPassengerBreakup().getCHD().getPassengerCount()));
-            chdPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getCHD().getTax()));
+            chdPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getCHD().getTax()/chdCount));
             passengerTaxList.add(chdPassengerTax);
         }
         if(price.getPassengerBreakup().getINF() != null){
             PassengerTax infPassengerTax = new PassengerTax();
             infPassengerTax.setPassengerType("INF");
             infPassengerTax.setPassengerCount(Integer.parseInt(price.getPassengerBreakup().getINF().getPassengerCount()));
-            infPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getINF().getTax()));
+            infPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getINF().getTax()/infCount));
             passengerTaxList.add(infPassengerTax);
         }
 
@@ -590,7 +593,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         }
 
         if(travellerMasterInfo.getItinerary().getPricingInformation().getOnwardTotalBasePrice() == onwordPnrResponse.getPricingInfo().getTotalBasePrice()
-           && travellerMasterInfo.getItinerary().getPricingInformation().getOnwardTotalBasePrice() == onwordPnrResponse.getPricingInfo().getTotalBasePrice()){
+           && travellerMasterInfo.getItinerary().getPricingInformation().getReturnTotalBasePrice() == returnPnrResponse.getPricingInfo().getTotalBasePrice()){
             pnrResponse.setPriceChanged(false);
         }else{
             pnrResponse.setPriceChanged(false);
@@ -608,18 +611,30 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pricingInformation.setBasePrice(onwordPnrResponse.getPricingInfo().getBasePrice().add(returnPnrResponse.getPricingInfo().getBasePrice()));
         pricingInformation.setTotalBasePrice(onwordPnrResponse.getPricingInfo().getTotalBasePrice().add(returnPnrResponse.getPricingInfo().getTotalBasePrice()));
         pricingInformation.setAdtBasePrice(onwordPnrResponse.getPricingInfo().getAdtBasePrice().add(returnPnrResponse.getPricingInfo().getAdtBasePrice()));
+        pricingInformation.setAdtOnwardBasePrice(onwordPnrResponse.getPricingInfo().getAdtBasePrice());
+        pricingInformation.setAdtReturnBasePrice(returnPnrResponse.getPricingInfo().getAdtBasePrice());
         pricingInformation.setAdtTotalPrice(onwordPnrResponse.getPricingInfo().getAdtTotalPrice().add(returnPnrResponse.getPricingInfo().getAdtTotalPrice()));
         //pricingInformation.setAdtTotalPrice(totalPrice);
         pricingInformation.setGdsCurrency(onwordPnrResponse.getPricingInfo().getGdsCurrency());
         pricingInformation.setTax(onwordPnrResponse.getPricingInfo().getTax().add(returnPnrResponse.getPricingInfo().getTax()));
-        if(!onwordPnrResponse.getPricingInfo().getChdBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getChdBasePrice().equals(0) )
+        if(!onwordPnrResponse.getPricingInfo().getChdBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getChdBasePrice().equals(0) ) {
             pricingInformation.setChdBasePrice(onwordPnrResponse.getPricingInfo().getChdBasePrice().add(returnPnrResponse.getPricingInfo().getChdBasePrice()));
-        else
+            pricingInformation.setChdOnwardBasePrice(onwordPnrResponse.getPricingInfo().getChdBasePrice());
+            pricingInformation.setChdReturnBasePrice(returnPnrResponse.getPricingInfo().getChdBasePrice());
+        }else {
             pricingInformation.setChdBasePrice(new BigDecimal(0));
-        if(!onwordPnrResponse.getPricingInfo().getInfBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getInfBasePrice().equals(0))
+            pricingInformation.setChdOnwardBasePrice(new BigDecimal(0));
+            pricingInformation.setChdReturnBasePrice(new BigDecimal(0));
+        }
+        if(!onwordPnrResponse.getPricingInfo().getInfBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getInfBasePrice().equals(0)) {
             pricingInformation.setInfBasePrice(onwordPnrResponse.getPricingInfo().getInfBasePrice().add(returnPnrResponse.getPricingInfo().getInfBasePrice()));
-        else
+            pricingInformation.setInfOnwardBasePrice(onwordPnrResponse.getPricingInfo().getInfBasePrice());
+            pricingInformation.setInfReturnBasePrice(returnPnrResponse.getPricingInfo().getInfBasePrice());
+        } else {
             pricingInformation.setInfBasePrice(new BigDecimal(0));
+            pricingInformation.setInfOnwardBasePrice(new BigDecimal(0));
+            pricingInformation.setInfReturnBasePrice(new BigDecimal(0));
+        }
         pricingInformation.setCurrency(onwordPnrResponse.getPricingInfo().getCurrency());
         pricingInformation.setTotalPrice(onwordPnrResponse.getPricingInfo().getTotalPrice().add(returnPnrResponse.getPricingInfo().getTotalPrice()));
         pricingInformation.setTotalPriceValue(onwordPnrResponse.getPricingInfo().getTotalPriceValue().add(returnPnrResponse.getPricingInfo().getTotalPriceValue()));
@@ -628,6 +643,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         adtPassengerTax.setPassengerType("ADT");
         adtPassengerTax.setPassengerCount(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getPassengerCount());
         adtPassengerTax.setTotalTax(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax().add(returnPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax()));
+        adtPassengerTax.setOnwardTax(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax());
+        adtPassengerTax.setReturnTax(returnPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax());
         passengerTaxList.add(adtPassengerTax);
 
         PassengerTax onchdPassengerTax = new PassengerTax();
@@ -651,6 +668,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             chdPassengerTax.setPassengerType("CHD");
             chdPassengerTax.setPassengerCount(onchdPassengerTax.getPassengerCount());
             chdPassengerTax.setTotalTax(onchdPassengerTax.getTotalTax().add(rechdPassengerTax.getTotalTax()));
+            chdPassengerTax.setOnwardTax(onchdPassengerTax.getTotalTax());
+            chdPassengerTax.setReturnTax(rechdPassengerTax.getTotalTax());
             passengerTaxList.add(chdPassengerTax);
         }
         if(oninfPassengerTax.getPassengerType() != null && oninfPassengerTax.getPassengerType().equalsIgnoreCase("INF")){
@@ -658,6 +677,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             infPassengerTax.setPassengerType("INF");
             infPassengerTax.setPassengerCount(oninfPassengerTax.getPassengerCount());
             infPassengerTax.setTotalTax(oninfPassengerTax.getTotalTax().add(reinfPassengerTax.getTotalTax()));
+            infPassengerTax.setOnwardTax(oninfPassengerTax.getTotalTax());
+            infPassengerTax.setReturnTax(reinfPassengerTax.getTotalTax());
             passengerTaxList.add(infPassengerTax);
         }
         pricingInformation.setPassengerTaxes(passengerTaxList);

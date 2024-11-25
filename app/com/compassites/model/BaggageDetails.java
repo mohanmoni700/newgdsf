@@ -242,5 +242,6 @@ public class BaggageDetails {
     public void setBaggageDescription(String baggageDescription) {
         this.baggageDescription = baggageDescription;
     }
+
 }
 
