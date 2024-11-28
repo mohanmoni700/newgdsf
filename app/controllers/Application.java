@@ -78,9 +78,6 @@ public class Application {
     private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
 
     @Autowired
-    private AncillaryService ancillaryService;
-
-    @Autowired
     private SplitTicketSearchWrapper splitTicketSearchWrapper;
 
     static Logger logger = LoggerFactory.getLogger("gds");
