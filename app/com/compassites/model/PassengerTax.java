@@ -1,9 +1,10 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Map;
 
-public class PassengerTax {
+public class PassengerTax implements Serializable {
 
 	private int passengerCount;
 

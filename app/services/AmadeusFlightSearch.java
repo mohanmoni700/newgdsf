@@ -224,24 +224,29 @@ public class AmadeusFlightSearch implements FlightSearch {
     }
 
     //todo to be removed
-    public static void printHashmap(ConcurrentHashMap<Integer, FlightItinerary> hashMap, boolean iSeaman) {
-        System.out.println("Is Seaman :" + iSeaman + "  count:" + hashMap.values().size());
-        logger.debug("Is Seaman :" + iSeaman + "  count:" + hashMap.values().size());
-        boolean isMarine = false;
-        if (iSeaman)
-            isMarine = true;
-
-        for (Map.Entry<Integer, FlightItinerary> entry : hashMap.entrySet()) {
-            FlightItinerary value = entry.getValue();
-            if (entry.getKey() == 1521758370 || entry.getKey() == 1521756448) {
-                //System.out.println("");
-            }
-            if (value.getSeamanPricingInformation() != null && value.getSeamanPricingInformation().getTotalPriceValue() != null) {
+    public static void printHashmap(ConcurrentHashMap<Integer, FlightItinerary> hashMap, boolean iSeaman){
+        try {
+            System.out.println("Is Seaman :" + iSeaman + "  count:" + hashMap.values().size());
+            logger.debug("Is Seaman :" + iSeaman + "  count:" + hashMap.values().size());
+            boolean isMarine = false;
+            if (iSeaman)
                 isMarine = true;
+
+            for (Map.Entry<Integer, FlightItinerary> entry : hashMap.entrySet()) {
+                FlightItinerary value = entry.getValue();
+                if (entry.getKey() == 1521758370 || entry.getKey() == 1521756448) {
+                    //System.out.println("");
+                }
+                if (value.getSeamanPricingInformation() != null && value.getSeamanPricingInformation().getTotalPriceValue() != null) {
+                    isMarine = true;
+                }
+                String v = ", " + isMarine + ", " + value.getPricingInformation().getPricingOfficeId() + ", " + value.getPricingInformation().getTotalPriceValue() +
+                        ", " + value.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode() + ", " + value.getJourneyList().get(0).getAirSegmentList().get(0).getFlightNumber() + ",  " + value.getJourneyList().get(0).getTravelTimeStr();
+                System.out.println(entry.getKey() + ",  " + v);
+                //logger.debug(entry.getKey() + ",  " + v);
             }
-            String v = ", " + isMarine + ", " + value.getPricingInformation().getPricingOfficeId() + ", " + value.getPricingInformation().getTotalPriceValue() +
-                    ", " + value.getJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode() + ", " + value.getJourneyList().get(0).getAirSegmentList().get(0).getFlightNumber() + ",  " + value.getJourneyList().get(0).getTravelTimeStr();
-            System.out.println(entry.getKey() + ",  " + v);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

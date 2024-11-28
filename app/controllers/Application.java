@@ -77,6 +77,11 @@ public class Application {
     @Autowired
     private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
 
+    @Autowired
+    private AncillaryService ancillaryService;
+
+    @Autowired
+    private SplitTicketSearchWrapper splitTicketSearchWrapper;
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -93,8 +98,16 @@ public class Application {
         }
 //        SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         logger.debug("SearchParamerters: " + json.toString());
-        flightSearchWrapper.search(searchParameters);
-//        mergeSearchResults.searchAndMerge(searchParameters);
+        if (searchParameters.isSplitTicket()) {
+            try {
+                splitTicketSearchWrapper.searchSplitTicket(searchParameters);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            flightSearchWrapper.search(searchParameters);
+        }
+        //mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 
@@ -366,6 +379,8 @@ public class Application {
         JsonNode jsonNode = null;
         if (PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)){
             jsonNode = mystiflyBookingService.getBookingDetails(pnr);
+        } else if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
+            jsonNode = amadeusBookingService.getBookingDetails(pnr);
         }
         return ok(jsonNode);
 

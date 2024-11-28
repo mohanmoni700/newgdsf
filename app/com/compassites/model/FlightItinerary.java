@@ -40,6 +40,46 @@ public class FlightItinerary implements Serializable{
     
     private boolean priceOnlyPTC;
 
+    private String fromLocation;
+
+    private String toLocation;
+
+    public String getFromLocation() {
+        return fromLocation;
+    }
+
+    public void setFromLocation(String fromLocation) {
+        this.fromLocation = fromLocation;
+    }
+
+    public String getToLocation() {
+        return toLocation;
+    }
+
+    public void setToLocation(String toLocation) {
+        this.toLocation = toLocation;
+    }
+
+    public List<PricingInformation> splitPricingInformationList;
+
+    public List<PricingInformation> getSplitPricingInformationList() {
+        return splitPricingInformationList;
+    }
+
+    public void setSplitPricingInformationList(List<PricingInformation> splitPricingInformationList) {
+        this.splitPricingInformationList = splitPricingInformationList;
+    }
+
+    private boolean isSplitTicket;
+
+    public boolean isSplitTicket() {
+        return isSplitTicket;
+    }
+
+    public void setSplitTicket(boolean splitTicket) {
+        isSplitTicket = splitTicket;
+    }
+
     private ConcurrentHashMap<String, List<FlightItinerary>> groupingMap;
 
     public ConcurrentHashMap<String, List<FlightItinerary>> getGroupingMap() {

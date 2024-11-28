@@ -2,6 +2,8 @@ package com.compassites.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.io.Serializable;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Renu
@@ -10,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * To change this template use File | Settings | File Templates.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Passenger {
+public class Passenger implements Serializable,Cloneable {
     private String name;
     private Integer age;
     private PassengerTypeCode passengerType;

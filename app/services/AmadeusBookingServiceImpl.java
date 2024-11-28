@@ -747,7 +747,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		if (sellFromRecommendation.getErrorAtMessageLevel() != null
 				&& sellFromRecommendation.getErrorAtMessageLevel().size() > 0
 				&& (sellFromRecommendation.getItineraryDetails() == null)) {
-
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "Amadeus");
 			pnrResponse.setErrorMessage(errorMessage);
@@ -1426,15 +1425,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			 res = comparePrice(cancelMonInfo);
 		}
 		else {
-			if(cancelMonInfo != null)
-			res = cancelMonInfo.get(0);
+			if(cancelMonInfo.size()>0) {
+				res = cancelMonInfo.get(0);
+			}
 		}
 		returnList.add(hash.get(res));
 		if(changeMonInfo.size()>1){
 			res = comparePrice(changeMonInfo);
 		}
 		else {
-			res = changeMonInfo.get(0);
+			if(cancelMonInfo.size()>0) {
+				res = cancelMonInfo.get(0);
+			}
 		}
 		returnList.add(hash.get(res));
 		return returnList;
@@ -1462,11 +1464,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			com.amadeus.xml.tmrqrr_11_1_1a.CategoryDescriptionType catType = monetaryInformationType1.getMnrRulesInfoGrp().get(monInfoSize-1).getMnrCatInfo().getDescriptionInfo();
 			if(catType.getNumber().equals(BigInteger.valueOf(33))) {*/
 				List<Integer> size = getMnrInfo(monetaryInformationType1);
-
-				monetaryInformationType = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(0)).getMnrMonInfoGrp();
-				restriAppInfoGrp = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(0)).getMnrRestriAppInfoGrp();
-				changeRestriAppInfoGrp = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(1)).getMnrRestriAppInfoGrp();
-				changeMnrMonInfoGrp = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(1)).getMnrMonInfoGrp();
+				if(size.size() >0) {
+					monetaryInformationType = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(0)).getMnrMonInfoGrp();
+					restriAppInfoGrp = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(0)).getMnrRestriAppInfoGrp();
+				}
+				if(size.size()>1) {
+					changeRestriAppInfoGrp = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(1)).getMnrRestriAppInfoGrp();
+					changeMnrMonInfoGrp = monetaryInformationType1.getMnrRulesInfoGrp().get(size.get(1)).getMnrMonInfoGrp();
+				}
 			/*}*/
             for (ReferencingDetailsType mnrPaxRef : monetaryInformationType1.getPaxRef().getPassengerReference()) {
 

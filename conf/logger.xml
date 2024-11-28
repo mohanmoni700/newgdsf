@@ -119,6 +119,22 @@
         </encoder>
     </appender>
 
+    <appender name="SPLIT_TICKET_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${application.home}/logs/splitticket.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Daily rollover with compression -->
+            <fileNamePattern>${application.home}/logs/splitticket-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <!-- keep 30 days worth of history -->
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="gds" level="DEBUG" additivity="false">
+        <appender-ref ref="SPLIT_TICKET_LOG_FILE" />
+    </logger>
     <logger name="play" level="DEBUG" additivity="false">
         <appender-ref ref="PLAY_LOG_FILE" />
     </logger>

@@ -1,8 +1,9 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class PriceDetails {
+public class PriceDetails implements Serializable {
 	
 	private Long id;
 	
