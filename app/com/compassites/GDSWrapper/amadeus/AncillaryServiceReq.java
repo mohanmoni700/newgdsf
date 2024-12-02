@@ -66,6 +66,14 @@ public class AncillaryServiceReq {
 
             pricingOption.add(scdPricingOption);
 
+            //BGR
+            ServiceIntegratedCatalogue.PricingOption bgrPricingOption = new ServiceIntegratedCatalogue.PricingOption();
+            PricingOptionKeyType bgrPricingOptionKey = new PricingOptionKeyType();
+            bgrPricingOptionKey.setPricingOptionKey("BGR");
+            bgrPricingOption.setPricingOptionKey(bgrPricingOptionKey);
+
+            pricingOption.add(bgrPricingOption);
+
             serviceIntegratedCatalogue.getPricingOption().addAll(pricingOption);
 
             return serviceIntegratedCatalogue;
