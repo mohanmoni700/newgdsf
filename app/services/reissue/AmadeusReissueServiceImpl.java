@@ -10,7 +10,6 @@ import com.amadeus.xml.taripr_19_1_1a.TicketRepricePNRWithBookingClassReply;
 import com.amadeus.xml.tatres_20_1_1a.CouponInformationDetailsTypeI;
 import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
-import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -131,20 +130,22 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
                             switch (couponStatus) {
                                 case "AL":
-                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + "AirPort Controlled");
+                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "AirPort Controlled");
                                     break;
                                 case "RF":
-                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + "Refunded");
+                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "Refunded");
                                     break;
                                 case "V":
-                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + "Voided");
+                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "Voided");
                                     break;
                                 default:
-                                    errorMessage.setMessage("Status of Ticket Number : " + ticketNumber + " is : " + couponStatus);
+                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + couponStatus);
                                     break;
                             }
 
-                            reissueSearchResponse.getErrorMessageList().add(errorMessage);
+                            if (!reissueSearchResponse.getErrorMessageList().contains(errorMessage)) {
+                                reissueSearchResponse.getErrorMessageList().add(errorMessage);
+                            }
 //                            break outerLoop;
                         }
                     }
@@ -222,12 +223,13 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
             TicketReissueConfirmedPricingReply ticketReissueConfirmedPricingReply = serviceHandler.ticketReissueConfirmedPricingReply(amadeusSessionWrapper, ticketList);
             reply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
             FarePricePNRWithBookingClassReply pricePNRReply = null;
-            pnrResponse = createPNRResponse(reply,pricePNRReply,pnrResponse,travellerMasterInfo);
+            pnrResponse = createPNRResponse(reply, pricePNRReply, pnrResponse, travellerMasterInfo);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return pnrResponse;
     }
+
     public PNRResponse createPNRResponse(PNRReply gdsPNRReply,
                                          FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
 //		PNRResponse pnrResponse = new PNRResponse();
@@ -238,11 +240,11 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
         }*/
         pnrResponse.setFlightAvailable(true);
-        if(gdsPNRReply.getSecurityInformation() != null && gdsPNRReply.getSecurityInformation().getSecondRpInformation() != null)
+        if (gdsPNRReply.getSecurityInformation() != null && gdsPNRReply.getSecurityInformation().getSecondRpInformation() != null)
             pnrResponse.setCreationOfficeId(gdsPNRReply.getSecurityInformation().getSecondRpInformation().getCreationOfficeId());
 //		pnrResponse.setTaxDetailsList(AmadeusBookingHelper
 //				.getTaxDetails(pricePNRReply));
-        logger.debug("todo createPNRResponse: "+ Json.stringify(Json.toJson(pnrResponse)) );
+        logger.debug("todo createPNRResponse: " + Json.stringify(Json.toJson(pnrResponse)));
         return pnrResponse;
     }
 
@@ -286,16 +288,16 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 		//com.amadeus.xml.pnrret_11_3_1a.PNRRetriev
 		return null;
 	}*/
-    public List<String> getTicketList(List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElementsIndivList){
-        List<String> ticketsList =  dataElementsIndivList.stream().flatMap(dataElementsIndiv -> dataElementsIndiv.getOtherDataFreetext().stream()).
+    public List<String> getTicketList(List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElementsIndivList) {
+        List<String> ticketsList = dataElementsIndivList.stream().flatMap(dataElementsIndiv -> dataElementsIndiv.getOtherDataFreetext().stream()).
                 filter(longFreeTextType -> longFreeTextType.getFreetextDetail().getType().equalsIgnoreCase("P06"))
                 .map(longFreeTextType -> longFreeTextType.getLongFreetext().toString()).collect(Collectors.toList());
 
         List<String> finalticketsList = new ArrayList<>();
-        for(String ticket : ticketsList){
+        for (String ticket : ticketsList) {
             String[] arraayStr = ticket.split("/");
             String[] data = arraayStr[0].split(" ");
-            String ticketnumber = data[1].replace("-","");
+            String ticketnumber = data[1].replace("-", "");
             finalticketsList.add(ticketnumber);
         }
 

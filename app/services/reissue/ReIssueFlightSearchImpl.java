@@ -1,6 +1,7 @@
 package services.reissue;
 
 import com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType;
+import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply;
 import com.amadeus.xml.fmtctr_18_2_1a.*;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
@@ -40,6 +41,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+
+import static com.compassites.model.PROVIDERS.AMADEUS;
 
 @Component
 public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
@@ -234,7 +237,8 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             TicketATCShopperMasterPricerTravelBoardSearchReply.ErrorMessage seamenErrorMessage = (seamenReply.getErrorMessage() != null) ? seamenReply.getErrorMessage() : null;
             if (seamenErrorMessage != null) {
                 String errorCode = seamenErrorMessage.getApplicationError().getApplicationErrorDetail().getError();
-                errorMessage(searchResponse, errorCode);
+                List<String> errorMessageTextList = seamenErrorMessage.getErrorMessageText().getDescription();
+                errorMessage(searchResponse, errorCode, errorMessageTextList);
             } else {
                 airSolution.setSeamenHashMap(getFlightItineraryHashmap(reIssueSearchRequest, seamenReply, office));
             }
@@ -242,7 +246,8 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             TicketATCShopperMasterPricerTravelBoardSearchReply.ErrorMessage nonSeamanErrorMessage = (nonSeamanReply.getErrorMessage() != null) ? nonSeamanReply.getErrorMessage() : null;
             if (nonSeamanErrorMessage != null) {
                 String errorCode = nonSeamanErrorMessage.getApplicationError().getApplicationErrorDetail().getError();
-                errorMessage(searchResponse, errorCode);
+                List<String> errorMessageTextList = nonSeamanErrorMessage.getErrorMessageText().getDescription();
+                errorMessage(searchResponse, errorCode, errorMessageTextList);
             } else {
                 airSolution.setNonSeamenHashMap(getFlightItineraryHashmap(reIssueSearchRequest, nonSeamanReply, office));
             }
@@ -255,21 +260,30 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
     }
 
     //Setting Search response related error messages here
-    private static void errorMessage(SearchResponse searchResponse, String errorCode) {
+    private static void errorMessage(SearchResponse searchResponse, String errorCode, List<String> errorMessageTextList) {
 
         ErrorMessage errorMessage = new ErrorMessage();
+        String errorMessageText = errorMessageTextList.get(0);
 
         try {
             switch (errorCode) {
                 case "931":
                 case "977":
+                case "996":
                     errorMessage.setMessage("NO AVAILABLE FLIGHT FOUND FOR THE REQUESTED ITINERARY");
+//                    errorMessage.setMessage(errorMessageText);
                     errorMessage.setProvider("Amadeus");
                     errorMessage.setErrorCode(errorCode);
                     break;
 
                 case "866":
                     errorMessage.setMessage("NO FARE FOUND FOR REQUESTED ITINERARY");
+                    errorMessage.setProvider("Amadeus");
+                    errorMessage.setErrorCode(errorCode);
+                    break;
+
+                case "1003":
+                    errorMessage.setMessage("PLEASE CHECK THE DATES AND TRY AGAIN");
                     errorMessage.setProvider("Amadeus");
                     errorMessage.setErrorCode(errorCode);
                     break;
@@ -292,25 +306,37 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         searchResponse.getErrorMessageList().add(errorMessage);
     }
 
-    //TODO: Will add MNR search and baggage here
-    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(ReIssueSearchRequest reIssueSearchRequest, TicketATCShopperMasterPricerTravelBoardSearchReply TicketATCShopperMasterPricerTravelBoardSearchReply, FlightSearchOffice office) {
+    //TODO: Should Probably add fare rules too, but MNR is not supported in ATC
+    private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(ReIssueSearchRequest reIssueSearchRequest, TicketATCShopperMasterPricerTravelBoardSearchReply ticketATCShopperMasterPricerTravelBoardSearchReply, FlightSearchOffice office) {
+
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
+
         try {
-            String currency = TicketATCShopperMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
+
+            String currency = ticketATCShopperMasterPricerTravelBoardSearchReply.getConversionRate().getConversionRateDetail().get(0).getCurrency();
             String officeId = office.getOfficeId();
-            List<TicketATCShopperMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = TicketATCShopperMasterPricerTravelBoardSearchReply.getFlightIndex();
-            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation : TicketATCShopperMasterPricerTravelBoardSearchReply.getRecommendation()) {
-                for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
+
+            List<TicketATCShopperMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList = ticketATCShopperMasterPricerTravelBoardSearchReply.getFlightIndex();
+            List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList = ticketATCShopperMasterPricerTravelBoardSearchReply.getServiceFeesGrp();
+            List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation> recommendationsList = ticketATCShopperMasterPricerTravelBoardSearchReply.getRecommendation();
+
+            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation : recommendationsList) {
+
+                List<com.amadeus.xml.fmtctr_18_2_1a.ReferenceInfoType> getSegmentFlightRefList = recommendation.getSegmentFlightRef();
+                for (ReferenceInfoType segmentRef : getSegmentFlightRefList) {
+
                     FlightItinerary flightItinerary = new FlightItinerary();
+
                     //Journey Related Information
                     flightItinerary.setPassportMandatory(false);
                     flightItinerary = createJourneyInformation(reIssueSearchRequest, segmentRef, flightItinerary, flightIndexList, recommendation);
 
                     //Pricing Related Information
+                    flightItinerary.setReIssuePricingInformation(getReIssuePricingInformation(recommendation, officeId, currency, segmentRef, baggageList));
                     if (reIssueSearchRequest.isSeaman()) {
                         flightItinerary.setPriceOnlyPTC(true);
                     }
-                    flightItinerary.setReIssuePricingInformation(getReIssuePricingInformation(recommendation, officeId, currency));
+
 
                     flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
                 }
@@ -324,10 +350,14 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
 
     private FlightItinerary createJourneyInformation(ReIssueSearchRequest reIssueSearchRequest, ReferenceInfoType segmentRef, FlightItinerary flightItinerary, List<TicketATCShopperMasterPricerTravelBoardSearchReply.FlightIndex> flightIndexList, TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation) {
+
         List<String> contextList = getAvailabilityCtx(segmentRef, recommendation.getSpecificRecDetails());
         int flightIndexNumber = 0;
         int segmentIndex = 0;
-        for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
+
+        List<ReferencingDetailsType191583C> referencingDetailsTypeList = segmentRef.getReferencingDetail();
+
+        for (ReferencingDetailsType191583C referencingDetailsType : referencingDetailsTypeList) {
             //0 is for forward journey and refQualifier should be S for segment
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("S")) {
                 Journey journey = new Journey();
@@ -347,6 +377,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
     }
 
     public List<String> getAvailabilityCtx(ReferenceInfoType segmentRef, List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails> specificRecDetails) {
+
         List<String> contextList = new ArrayList<>();
 
 
@@ -355,15 +386,22 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             recDetailsMap.put(specificRecDetail.getSpecificRecItem().getRefNumber(), specificRecDetail);
         }
 
-        for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
+        List<com.amadeus.xml.fmtctr_18_2_1a.ReferencingDetailsType191583C> getReferencingDetailList = segmentRef.getReferencingDetail();
+        for (ReferencingDetailsType191583C referencingDetailsType : getReferencingDetailList) {
             if ("A".equalsIgnoreCase(referencingDetailsType.getRefQualifier())) {
                 BigInteger refNumber = referencingDetailsType.getRefNumber();
                 TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails specificRecDetail = recDetailsMap.get(refNumber);
 
                 if (specificRecDetail != null) {
-                    for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails specificProductDetails : specificRecDetail.getSpecificProductDetails()) {
-                        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails.FareContextDetails fareContextDetails : specificProductDetails.getFareContextDetails()) {
-                            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails.FareContextDetails.CnxContextDetails cnxContextDetails : fareContextDetails.getCnxContextDetails()) {
+
+                    List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails> specificProductDetailsList = specificRecDetail.getSpecificProductDetails();
+                    for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails specificProductDetails : specificProductDetailsList) {
+
+                        List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails.FareContextDetails> fareContextDetailsList = specificProductDetails.getFareContextDetails();
+                        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails.FareContextDetails fareContextDetails : fareContextDetailsList) {
+
+                            List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails.FareContextDetails.CnxContextDetails> cnxContextDetailsList = fareContextDetails.getCnxContextDetails();
+                            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails.SpecificProductDetails.FareContextDetails.CnxContextDetails cnxContextDetails : cnxContextDetailsList) {
                                 contextList.addAll(cnxContextDetails.getFareCnxInfo().getContextDetails().getAvailabilityCnxType());
                             }
                         }
@@ -402,7 +440,10 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         if (recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getTransportStageQualifier().equals("V")) {
             validatingCarrierCode = recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getCompany();
         }
-        for (TicketATCShopperMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : groupOfFlight.getFlightDetails()) {
+
+        List<TicketATCShopperMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails> flightDetailsList = groupOfFlight.getFlightDetails();
+
+        for (TicketATCShopperMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails : flightDetailsList) {
             AirSegmentInformation airSegmentInformation = setSegmentInformation(flightDetails, fareBasis, validatingCarrierCode);
             if (airSegmentInformation.getToAirport().getAirportName() != null && airSegmentInformation.getFromAirport().getAirportName() != null) {
                 journey.getAirSegmentList().add(airSegmentInformation);
@@ -433,6 +474,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
     }
 
     private AirSegmentInformation setSegmentInformation(TicketATCShopperMasterPricerTravelBoardSearchReply.FlightIndex.GroupOfFlights.FlightDetails flightDetails, String fareBasis, String validatingCarrierCode) {
+
         AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
         TravelProductType flightInformation = flightDetails.getFlightInformation();
 
@@ -504,7 +546,9 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
 
             hoppingFlightInformations = new ArrayList<>();
-            for (DateAndTimeInformationType dateAndTimeInformationType : flightDetails.getTechnicalStop()) {
+
+            List<DateAndTimeInformationType> dateAndTimeInformationTypeList = flightDetails.getTechnicalStop();
+            for (DateAndTimeInformationType dateAndTimeInformationType : dateAndTimeInformationTypeList) {
                 HoppingFlightInformation hop = new HoppingFlightInformation();
 
                 List<DateAndTimeDetailsType> stopDetails = dateAndTimeInformationType.getStopDetails();
@@ -584,7 +628,8 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
     }
 
 
-    private ReIssuePricingInformation getReIssuePricingInformation(TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation, String officeId, String gdsCurrency) {
+    private ReIssuePricingInformation getReIssuePricingInformation(TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation, String officeId, String gdsCurrency, ReferenceInfoType segmentRef, List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
+
         ReIssuePricingInformation reIssuePricingInformation = new ReIssuePricingInformation();
 
         reIssuePricingInformation.setPricingOfficeId(officeId);
@@ -626,7 +671,8 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         }
 
         List<PassengerTax> passengerTaxes = new ArrayList<>();
-        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
+        List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct> paxFareProductList = recommendation.getPaxFareProduct();
+        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : paxFareProductList) {
             PassengerTax passengerTax = new PassengerTax();
             int paxCount = paxFareProduct.getPaxReference().get(0).getTraveller().size();
             String paxType = paxFareProduct.getPaxReference().get(0).getPtc().get(0);
@@ -661,6 +707,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             passengerTaxes.add(passengerTax);
         }
         reIssuePricingInformation.setPassengerTaxes(passengerTaxes);
+        reIssuePricingInformation.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
 
         reIssuePricingInformation.setPaxFareDetailsList(createFareDetails(recommendation));
 
@@ -683,6 +730,48 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         }
     }
 
+    private MnrSearchBaggage createBaggageInformation(ReferenceInfoType segmentRef, List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageListInfo) {
+
+        try {
+            MnrSearchBaggage mnrSearchBaggage = new MnrSearchBaggage();
+            mnrSearchBaggage.setProvider(AMADEUS.toString());
+
+
+            // Baggage reference number
+            String baggageReferenceNumber = segmentRef.getReferencingDetail().stream()
+                    .filter(referencingDetail -> "B".equalsIgnoreCase(referencingDetail.getRefQualifier()))
+                    .map(referencingDetail -> String.valueOf(referencingDetail.getRefNumber()))
+                    .findFirst()
+                    .orElse(null);
+
+
+            if (baggageReferenceNumber == null) {
+                return mnrSearchBaggage;
+            }
+
+            // Find the baggage allowance info
+            String baggageAllowed = baggageListInfo.stream()
+                    .filter(serviceFeesGrp -> serviceFeesGrp.getServiceTypeInfo().getCarrierFeeDetails().getType().equalsIgnoreCase("FBA"))
+                    .flatMap(serviceFeesGrp -> serviceFeesGrp.getFreeBagAllowanceGrp().stream())
+                    .filter(freeBagAllowance ->
+                            freeBagAllowance.getItemNumberInfo().getItemNumberDetails().get(0).getNumber().toString().equals(baggageReferenceNumber))
+                    .map(freeBagAllowance -> {
+                        BigInteger baggageValue = freeBagAllowance.getFreeBagAllownceInfo().getBaggageDetails().getFreeAllowance();
+                        String baggageUnit = freeBagAllowance.getFreeBagAllownceInfo().getBaggageDetails().getQuantityCode();
+                        return baggageValue + " " + MnrSearchBaggage.baggageCodes.get(baggageUnit);
+                    })
+                    .findFirst()
+                    .orElse(null);
+
+            mnrSearchBaggage.setAllowedBaggage(baggageAllowed);
+
+            return mnrSearchBaggage;
+        } catch (Exception e) {
+            logger.debug("Error with baggage information at Search level", e);
+            return null;
+        }
+
+    }
 
     //    public SearchResponse reIssueFlightSearch(ReIssueTicketRequest reIssueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
 //        List<FlightSearchOffice> officeList = getOfficeList();
