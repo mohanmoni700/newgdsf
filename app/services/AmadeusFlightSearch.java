@@ -796,8 +796,6 @@ public class AmadeusFlightSearch implements FlightSearch {
     public List getAvailabilityCtx(ReferenceInfoType segmentRef, List<SpecificRecDetails> specificRecDetails) {
         List<String> contextList = new ArrayList<>();
         for (ReferencingDetailsType191583C referencingDetailsType : segmentRef.getReferencingDetail()) {
-
-
             if (referencingDetailsType.getRefQualifier().equalsIgnoreCase("A")) {
                 BigInteger refNumber = referencingDetailsType.getRefNumber();
                 for (SpecificRecDetails specificRecDetail : specificRecDetails) {
@@ -807,15 +805,12 @@ public class AmadeusFlightSearch implements FlightSearch {
                                 for (SpecificRecDetails.SpecificProductDetails.FareContextDetails.CnxContextDetails cnxContextDetails : fareContextDetails.getCnxContextDetails()) {
                                     contextList.addAll(cnxContextDetails.getFareCnxInfo().getContextDetails().getAvailabilityCnxType());
                                 }
-
                             }
                         }
                     }
                 }
             }
-
         }
-
         return contextList;
     }
 

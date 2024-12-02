@@ -94,7 +94,10 @@ public class HoldTicketTMX {
                     formattedDate = outputFormat.format(date);
                     passenger.setDateOfBirth(formattedDate);
                 }
-                passenger.setFirstName(traveller.getPersonalDetails().getFirstName());
+                String firstName = traveller.getPersonalDetails().getFirstName();
+                if(traveller.getPersonalDetails().getMiddleName() != null && traveller.getPersonalDetails().getMiddleName() !="")
+                    firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+                passenger.setFirstName(firstName);
                 passenger.setLastName(traveller.getPersonalDetails().getLastName());
                 passenger.setTitle(traveller.getPersonalDetails().getSalutation());
                 passenger.setAddressLine1(traveller.getPersonalDetails().getAddressLine());

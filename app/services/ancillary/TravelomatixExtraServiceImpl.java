@@ -66,7 +66,7 @@ public class TravelomatixExtraServiceImpl implements TravelomatixExtraService {
                 }else{
                     //Segment based mapping for round_trip and multicity
                    baggageMap = getBaggageDetailsMap(extraServicesReply,Boolean.FALSE);
-                    if(extraServicesReply1.getStatus() != 0) {
+                    if(extraServicesReply1 != null && extraServicesReply1.getStatus() != 0) {
                         HashMap<String,List<BaggageDetails>> returnBaggageMap =   getBaggageDetailsMap(extraServicesReply1,Boolean.TRUE);
                         for(Map.Entry<String,List<BaggageDetails>> entry: returnBaggageMap.entrySet()){
                             baggageMap.put(entry.getKey(),entry.getValue());
@@ -210,7 +210,7 @@ public class TravelomatixExtraServiceImpl implements TravelomatixExtraService {
                     }
                 }
             }
-            if(baggageDetailsList != null){
+            if(baggageDetailsList != null && baggageDetailsList.size() > 0){
                 baggageMap = baggageDetailsList.stream()
                         .collect(Collectors.groupingBy(BaggageDetails::getSegment, HashMap::new, Collectors.toList()));
 
