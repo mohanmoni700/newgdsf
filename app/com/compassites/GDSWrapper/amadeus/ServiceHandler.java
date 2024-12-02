@@ -39,6 +39,8 @@ import com.amadeus.xml.tpicgq_17_1_1a.ServiceIntegratedCatalogue;
 import com.amadeus.xml.tpicgr_17_1_1a.ServiceIntegratedCatalogueReply;
 import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
+import com.amadeus.xml.tpscgq_17_1_1a.ServiceStandaloneCatalogue;
+import com.amadeus.xml.tpscgr_17_1_1a.ServiceStandaloneCatalogueReply;
 import com.amadeus.xml.trcanq_14_1_1a.*;
 import com.amadeus.xml.trcanr_14_1_1a.TicketCancelDocumentReply;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket;
@@ -56,6 +58,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import dto.reissue.ReIssueSearchRequest;
 import models.AmadeusSessionWrapper;
+import models.AncillaryServiceRequest;
 import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -649,6 +652,18 @@ public class ServiceHandler {
         return serviceIntegratedCatalogueReply;
 
     }
+
+    public ServiceStandaloneCatalogueReply getAdditionalBaggageInfoStandalone(AmadeusSessionWrapper amadeusSessionWrapper,  List<Map<String, String>> passengerRefMap, AncillaryServiceRequest ancillaryServiceRequest){
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        ServiceStandaloneCatalogue serviceStandaloneCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowAdditionalBaggageInformationRequestStandalone(passengerRefMap, ancillaryServiceRequest);
+        amadeusLogger.debug("ServiceStandaloneCatalogue Additional Baggage Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogue));
+        ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = mPortType.serviceStandaloneCatalogue(serviceStandaloneCatalogue, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("ServiceStandaloneCatalogue Additional Baggage Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogueReply));
+        return serviceStandaloneCatalogueReply;
+
+    }
+
     public PNRReply partialCancelPNR(String pnr, PNRReply gdsPNRReply,Map<BigInteger, String> segmentMap, AmadeusSessionWrapper amadeusSessionWrapper){
         logger.debug("partialCancelPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
 

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import dto.reissue.ReIssueSearchRequest;
+import models.AncillaryServiceRequest;
 import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
 import org.slf4j.Logger;
@@ -574,6 +575,19 @@ public class Application {
 
         return ok(Json.toJson(baggageDetails));
 
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result addAdditionalBaggageRequestStandalone() {
+
+        JsonNode json = request().body().asJson();
+
+        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json,AncillaryServiceRequest.class);
+
+        AncillaryServicesResponse baggageDetailsStandalone = ancillaryService.getAdditionalBaggageInfoStandalone(ancillaryServiceRequest);
+        logger.debug("Ancillary - Baggage response Standalone {} ", Json.toJson(baggageDetailsStandalone));
+
+        return ok(Json.toJson(baggageDetailsStandalone));
     }
 
     public Result ticketRebookAndRepricePNR(){

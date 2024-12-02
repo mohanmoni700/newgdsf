@@ -61,4 +61,5 @@ POST  /processPartialRefund         @controllers.Application.processPartialRefun
 #Ancillary
 POST /showAdditionalBaggageInfo     @controllers.Application.addAdditionalBaggageRequest()
 POST  /fetchTmxExtraServices              @controllers.Application.fetchTmxExtraServices()
+POST /showAdditionalBaggageInfoStandalone  @controllers.Application.addAdditionalBaggageRequestStandalone()
 
