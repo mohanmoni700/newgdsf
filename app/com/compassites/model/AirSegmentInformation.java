@@ -113,7 +113,7 @@ public class AirSegmentInformation implements Serializable{
     public void setFdtv(Long fdtv) {
         this.fdtv = fdtv;
     }
-  
+
     private String amadeusSegmentQualifier;
 
     private BigInteger amadeusSegmentRefNumber;

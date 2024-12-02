@@ -1,19 +1,12 @@
-package com.compassites.model;
+package com.compassites.model.splitticket;
 
+import com.compassites.model.FlightItinerary;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created with IntelliJ IDEA.
- * User: Renu
- * Date: 5/22/14
- * Time: 2:20 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AirSolution {
     public AirSolution(){
 
@@ -24,22 +17,9 @@ public class AirSolution {
 
     private List<FlightItinerary> flightItineraryList;
 
-    private boolean isReIssueSearch;
-
-    private ConcurrentHashMap<String, List<Integer>> groupingKeyMap;
-
-    @JsonIgnore
     private ConcurrentHashMap<Integer, FlightItinerary> seamenHashMap;
 
     private ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap;
-
-    public ConcurrentHashMap<String, List<Integer>> getGroupingKeyMap() {
-        return groupingKeyMap;
-    }
-
-    public void setGroupingKeyMap(ConcurrentHashMap<String, List<Integer>> groupingKeyMap) {
-        this.groupingKeyMap = groupingKeyMap;
-    }
 
     public List<FlightItinerary> getFlightItineraryList() {
         return flightItineraryList;
@@ -65,19 +45,11 @@ public class AirSolution {
         this.nonSeamenHashMap = nonSeamenHashMap;
     }
 
-    public boolean isReIssueSearch() {
-        return isReIssueSearch;
-    }
-
-    public void setReIssueSearch(boolean reIssueSearch) {
-        isReIssueSearch = reIssueSearch;
-    }
-
     @Override
-	public String toString() {
-		return "AirSolution [flightItineraryList=" + flightItineraryList + ", seamenHashMap=" + seamenHashMap
-				+ ", nonSeamenHashMap=" + nonSeamenHashMap + "]";
-	}
-    
-    
+    public String toString() {
+        return "AirSolution [flightItineraryList=" + flightItineraryList + ", seamenHashMap=" + seamenHashMap
+                + ", nonSeamenHashMap=" + nonSeamenHashMap + "]";
+    }
+
+
 }

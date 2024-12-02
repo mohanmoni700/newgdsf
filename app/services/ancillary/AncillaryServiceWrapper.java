@@ -1,6 +1,7 @@
 package services.ancillary;
 
 import com.compassites.model.AncillaryServicesResponse;
+import models.AncillaryServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,18 @@ public class AncillaryServiceWrapper implements AncillaryService{
         return ancillaryServicesResponse;
     }
 
+
+    @Override
+    public AncillaryServicesResponse getAdditionalBaggageInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest) {
+
+        AncillaryServicesResponse ancillaryServicesResponse = null;
+
+        if (ancillaryServiceRequest.getProvider().equalsIgnoreCase("Amadeus")) {
+            ancillaryServicesResponse = amadeusAncillaryService.additionalBaggageInformationStandalone(ancillaryServiceRequest);
+        }
+
+        return ancillaryServicesResponse;
+    }
 
 }
 

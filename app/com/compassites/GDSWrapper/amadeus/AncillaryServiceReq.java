@@ -4,10 +4,15 @@ import com.amadeus.xml.tpicgq_17_1_1a.AttributeInformationTypeU;
 import com.amadeus.xml.tpicgq_17_1_1a.AttributeType;
 import com.amadeus.xml.tpicgq_17_1_1a.PricingOptionKeyType;
 import com.amadeus.xml.tpicgq_17_1_1a.ServiceIntegratedCatalogue;
-import com.amadeus.xml.tpicgr_17_1_1a.ServiceIntegratedCatalogueReply;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.amadeus.xml.tpscgq_17_1_1a.*;
+import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.FlightItinerary;
+import com.compassites.model.Journey;
+import com.compassites.model.Passenger;
+import models.AncillaryServiceRequest;
+import org.joda.time.DateTime;
+import java.math.BigInteger;
+import java.util.*;
 
 public class AncillaryServiceReq {
 
@@ -61,11 +66,243 @@ public class AncillaryServiceReq {
 
             pricingOption.add(scdPricingOption);
 
+            //BGR
+            ServiceIntegratedCatalogue.PricingOption bgrPricingOption = new ServiceIntegratedCatalogue.PricingOption();
+            PricingOptionKeyType bgrPricingOptionKey = new PricingOptionKeyType();
+            bgrPricingOptionKey.setPricingOptionKey("BGR");
+            bgrPricingOption.setPricingOptionKey(bgrPricingOptionKey);
+
+            pricingOption.add(bgrPricingOption);
+
             serviceIntegratedCatalogue.getPricingOption().addAll(pricingOption);
 
             return serviceIntegratedCatalogue;
         }
 
+        public static ServiceStandaloneCatalogue createShowAdditionalBaggageInformationRequestStandalone(List<Map<String, String>> passengerRefMap, AncillaryServiceRequest ancillaryServiceRequest) {
+
+            ServiceStandaloneCatalogue serviceStandaloneCatalogue = new ServiceStandaloneCatalogue();
+
+            List<Passenger> passengerList = ancillaryServiceRequest.getPassengers();
+
+            List<PassengerInfoType> passengerInfoGroup = new ArrayList<>();
+
+            //Passenger Info Being Set here
+            int passengerCounter=0;
+            for (Passenger passenger : passengerList) {
+
+                PassengerInfoType passengerInfoType = new PassengerInfoType();
+                SpecificTravellerTypeI specificTravellerDetails = new SpecificTravellerTypeI();
+                SpecificTravellerDetailsTypeI travellerDetails = new SpecificTravellerDetailsTypeI();
+
+                travellerDetails.setReferenceNumber(String.valueOf(++passengerCounter));
+                specificTravellerDetails.setTravellerDetails(travellerDetails);
+                passengerInfoType.setSpecificTravellerDetails(specificTravellerDetails);
+
+
+                FareInformationType fareInfo = new FareInformationType();
+                fareInfo.setValueQualifier(passenger.getPassengerType().name());
+                passengerInfoType.setFareInfo(fareInfo);
+
+
+                passengerInfoGroup.add(passengerInfoType);
+            }
+
+            serviceStandaloneCatalogue.getPassengerInfoGroup().addAll(passengerInfoGroup);
+
+
+            //Flight Info Being set here
+            List<ServiceStandaloneCatalogue.FlightInfo> flightInfoList = new ArrayList<>();
+
+            FlightItinerary flightItinerary = ancillaryServiceRequest.getFlightItinerary();
+
+            List<Journey> journeyList;
+            if (ancillaryServiceRequest.isSeamen()) {
+                journeyList = flightItinerary.getJourneyList();
+            } else {
+                journeyList = flightItinerary.getNonSeamenJourneyList();
+            }
+
+            String fareBasis = null;
+
+            for (Journey journey : journeyList) {
+
+                List<AirSegmentInformation> airSegmentList = journey.getAirSegmentList();
+                int counter = 0;
+
+                fareBasis = airSegmentList.get(0).getFareBasis();
+
+                for (AirSegmentInformation airSegmentInformation : airSegmentList) {
+
+                    ServiceStandaloneCatalogue.FlightInfo flightInfo = new ServiceStandaloneCatalogue.FlightInfo();
+                    TravelProductInformationType flightDetails = new TravelProductInformationType();
+
+                    ProductDateTimeType flightDate = new ProductDateTimeType();
+
+//                  flightDate.setArrivalDate(mapDate(airSegmentInformation.getArrivalDate().toString()));
+                    flightDate.setDepartureDate(mapDate(airSegmentInformation.getDepartureDate().toString()));
+//                  flightDate.setArrivalTime(mapTime(airSegmentInformation.getArrivalTime()));
+//                  flightDate.setDepartureTime(mapTime(airSegmentInformation.getDepartureTime()));
+                    flightDetails.setFlightDate(flightDate);
+
+                    //Origin
+                    LocationType boardPointDetails = new LocationType();
+                    boardPointDetails.setTrueLocationId(airSegmentInformation.getFromLocation());
+                    flightDetails.setBoardPointDetails(boardPointDetails);
+
+                    //Destination
+                    LocationType offPointDetails = new LocationType();
+                    offPointDetails.setTrueLocationId(airSegmentInformation.getToLocation());
+                    flightDetails.setOffpointDetails(offPointDetails);
+
+                    //Operating company
+                    CompanyIdentificationType companyDetails = new CompanyIdentificationType();
+                    companyDetails.setOperatingCompany(airSegmentInformation.getOperatingAirline().getIataCode());
+                    flightDetails.setCompanyDetails(companyDetails);
+
+                    // Flight Number and Booking Class
+                    ProductIdentificationDetailsType flightIdentification = new ProductIdentificationDetailsType();
+                    flightIdentification.setFlightNumber(airSegmentInformation.getFlightNumber());
+                    flightIdentification.setBookingClass(airSegmentInformation.getBookingClass());
+                    flightDetails.setFlightIdentification(flightIdentification);
+
+                    // Flight Indicator X or V (Since Unknown or also takes in 1 or U)
+                    ProductTypeDetailsType219501C flightTypeDetails = new ProductTypeDetailsType219501C();
+                    flightTypeDetails.getFlightIndicator().add("1");
+                    flightDetails.setFlightTypeDetails(flightTypeDetails);
+
+                    //Item / segment sequence number
+                    flightDetails.setItemNumber(BigInteger.valueOf(++counter));
+
+                    //Cabin Designator
+                    TravelItineraryInformationTypeI travelItineraryInfo = new TravelItineraryInformationTypeI();
+                    travelItineraryInfo.setCabinDesignator(travelItineraryInfo.getCabinDesignator());
+                    flightInfo.setTravelItineraryInfo(travelItineraryInfo);
+
+                    //Leg Details
+                    AdditionalProductDetailsTypeI additionalFlightInfo = new AdditionalProductDetailsTypeI();
+                    AdditionalProductTypeI legDetails = new AdditionalProductTypeI();
+                    legDetails.setEquipment(airSegmentInformation.getEquipment());
+                    flightInfo.setAdditionalFlightInfo(additionalFlightInfo);
+
+                    flightInfoList.add(flightInfo);
+
+                }
+
+            }
+
+            serviceStandaloneCatalogue.getFlightInfo().addAll(flightInfoList);
+
+
+
+            //Pricing option being set here
+            List<ServiceStandaloneCatalogue.PricingOption> pricingOption = new ArrayList<>();
+
+
+            ServiceStandaloneCatalogue.PricingOption grpPricingOption = new ServiceStandaloneCatalogue.PricingOption();
+
+            com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType pricingOptionKey = new com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType();
+            pricingOptionKey.setPricingOptionKey("GRP");
+            grpPricingOption.setPricingOptionKey(pricingOptionKey);
+
+            com.amadeus.xml.tpscgq_17_1_1a.AttributeType optionDetail = new com.amadeus.xml.tpscgq_17_1_1a.AttributeType();
+            com.amadeus.xml.tpscgq_17_1_1a.AttributeInformationTypeU baggageCriteriaDetails = new com.amadeus.xml.tpscgq_17_1_1a.AttributeInformationTypeU();
+            baggageCriteriaDetails.setAttributeType("BG");
+            optionDetail.getCriteriaDetails().add(baggageCriteriaDetails);
+
+            grpPricingOption.setOptionDetail(optionDetail);
+
+            pricingOption.add(grpPricingOption);
+
+            //MIF - > To identify special airlines
+            ServiceStandaloneCatalogue.PricingOption mifPricingOption = new ServiceStandaloneCatalogue.PricingOption();
+            com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType mifPricingOptionKey = new com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType();
+            mifPricingOptionKey.setPricingOptionKey("MIF");
+            mifPricingOption.setPricingOptionKey(mifPricingOptionKey);
+
+            pricingOption.add(mifPricingOption);
+
+            // OIS -> Show Only Issuable recommendation
+            ServiceStandaloneCatalogue.PricingOption oisPricingOption = new ServiceStandaloneCatalogue.PricingOption();
+            com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType oisPricingOptionKey = new com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType();
+            oisPricingOptionKey.setPricingOptionKey("OIS");
+            oisPricingOption.setPricingOptionKey(oisPricingOptionKey);
+
+            pricingOption.add(oisPricingOption);
+
+            //SCD -> Show Commercial Description
+            ServiceStandaloneCatalogue.PricingOption scdPricingOption = new ServiceStandaloneCatalogue.PricingOption();
+            com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType scdPricingOptionKey = new com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType();
+            scdPricingOptionKey.setPricingOptionKey("SCD");
+            scdPricingOption.setPricingOptionKey(scdPricingOptionKey);
+
+            pricingOption.add(scdPricingOption);
+
+            //BGR -> Baggage Ready is being set here
+            ServiceStandaloneCatalogue.PricingOption bgrPricingOption = new ServiceStandaloneCatalogue.PricingOption();
+            com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType bgrPricingOptionKey = new com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType();
+            bgrPricingOptionKey.setPricingOptionKey("BGR");
+            bgrPricingOption.setPricingOptionKey(bgrPricingOptionKey);
+
+            pricingOption.add(bgrPricingOption);
+
+
+            //FAR -> Fare Information is being set here
+            ServiceStandaloneCatalogue.PricingOption farPricingOption = new ServiceStandaloneCatalogue.PricingOption();
+            com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType farPricingOptionKey = new com.amadeus.xml.tpscgq_17_1_1a.PricingOptionKeyType();
+            farPricingOptionKey.setPricingOptionKey("FAR");
+
+            com.amadeus.xml.tpscgq_17_1_1a.AttributeType farOptionDetail = new com.amadeus.xml.tpscgq_17_1_1a.AttributeType();
+            com.amadeus.xml.tpscgq_17_1_1a.AttributeInformationTypeU farCriteriaDetails = new com.amadeus.xml.tpscgq_17_1_1a.AttributeInformationTypeU();
+            farCriteriaDetails.setAttributeType("B");
+            farCriteriaDetails.setAttributeDescription(fareBasis);
+            farOptionDetail.getCriteriaDetails().add(farCriteriaDetails);
+
+            farPricingOption.setPricingOptionKey(farPricingOptionKey);
+            farPricingOption.setOptionDetail(farOptionDetail);
+
+            pricingOption.add(farPricingOption);
+
+            return serviceStandaloneCatalogue;
+        }
+
+        private static String mapDate (String changeDate){
+            DateTime dateTime = new DateTime(changeDate);
+            String amadeusDate;
+
+            String day;
+            String month;
+            String year;
+
+            day = "" + dateTime.getDayOfMonth();
+            month = "" + dateTime.getMonthOfYear();
+            year = "" + dateTime.getYearOfCentury();
+
+            day = day.length() == 1 ? "0" + day : day;
+            month = month.length() == 1 ? "0" + month : month;
+            year = year.length() == 1 ? "0" + year : year;
+            amadeusDate = day + month + year;
+
+            return amadeusDate;
+        }
+
+        private static String mapTime (String changeTime){
+            DateTime timeDate = new DateTime(changeTime);
+            String amadeusTime;
+
+            String hour;
+            String minute;
+
+            hour = "" + timeDate.getHourOfDay();
+            minute = "" + timeDate.getMinuteOfHour();
+
+            hour = hour.length() == 1 ? "0" + hour : hour;
+            minute = minute.length() == 1 ? "0" + minute : minute;
+
+            amadeusTime = hour + minute;
+
+            return amadeusTime;
+        }
     }
 
 }

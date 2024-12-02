@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Map;
 /**
  * Created by mahendra-singh on 23/5/14.
  */
-public class PricingInformation {
+public class PricingInformation implements Serializable {
 
 	private boolean isLCC;
 

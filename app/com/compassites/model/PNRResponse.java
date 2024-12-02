@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Map;
 /**
  * Created by user on 18-08-2014.
  */
-public class PNRResponse {
+public class PNRResponse implements Serializable  {
 
     private  String pnrNumber;
 

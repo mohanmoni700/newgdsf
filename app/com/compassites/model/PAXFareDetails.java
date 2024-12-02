@@ -1,12 +1,13 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by mahendra-singh on 1/10/14.
  */
-public class PAXFareDetails {
+public class PAXFareDetails implements Serializable {
 
     private List<FareJourney> fareJourneyList;
 

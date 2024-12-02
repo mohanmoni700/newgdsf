@@ -126,7 +126,10 @@ public class BookingFlights {
                 }
                 String formattedDate = outputFormat.format(date);
             passenger.setDateOfBirth(formattedDate);
-            passenger.setFirstName(traveller.getPersonalDetails().getFirstName());
+            String firstName = traveller.getPersonalDetails().getFirstName();
+            if(traveller.getPersonalDetails().getMiddleName() != null)
+                firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+            passenger.setFirstName(firstName.trim());
             passenger.setLastName(traveller.getPersonalDetails().getLastName());
             passenger.setTitle(traveller.getPersonalDetails().getSalutation());
             passenger.setAddressLine1(traveller.getPersonalDetails().getAddressLine());
@@ -166,7 +169,7 @@ public class BookingFlights {
                 passenger.setBaggageId(baggageIds);
             }
 
-            if(mealDetailsList != null ) {
+            if(mealDetailsList != null &&  mealDetailsList.size() > 0) {
                 List<String> mealIds = new ArrayList<>();
                 for (MealDetails mealDetails : mealDetailsList) {
                    if(returnJourney){
