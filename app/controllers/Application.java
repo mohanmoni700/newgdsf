@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import dto.OpenTicketDTO;
+import dto.OpenTicketResponse;
 import dto.reissue.ReIssueSearchRequest;
 import models.AncillaryServiceRequest;
 import models.MiniRule;
@@ -80,6 +82,9 @@ public class Application {
 
     @Autowired
     private SplitTicketSearchWrapper splitTicketSearchWrapper;
+
+    @Autowired
+    private OpenTicketReportService openTicketReportService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -599,6 +604,19 @@ public class Application {
         PNRResponse pnrResponse = reIssueService.ticketRebookAndRepricePNR(travellerMasterInfo, reIssueTicketRequest);
         logger.debug("-----------------PNR Response for ticketRebookAndRepricePNR: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
+    }
+
+    public Result openTicketReport() throws IOException {
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- openTicketReport Request: " + json);
+        ObjectMapper mapper = new ObjectMapper();
+        List<OpenTicketDTO> openTicketDTOS = mapper.readValue(
+                json.toString(),
+                mapper.getTypeFactory().constructCollectionType(List.class, OpenTicketDTO.class)
+        );
+        List<OpenTicketResponse> openTicketResponses = openTicketReportService.openTicketReport(openTicketDTOS);
+        logger.debug(" open ticket response "+Json.toJson(openTicketResponses));
+        return ok(Json.toJson(openTicketResponses));
     }
 
     public Result home(){

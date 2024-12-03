@@ -63,3 +63,6 @@ POST /showAdditionalBaggageInfo     @controllers.Application.addAdditionalBaggag
 POST  /fetchTmxExtraServices              @controllers.Application.fetchTmxExtraServices()
 POST /showAdditionalBaggageInfoStandalone  @controllers.Application.addAdditionalBaggageRequestStandalone()
 
+#Report
+POST    /openTicketReport   @controllers.Application.openTicketReport()
+
