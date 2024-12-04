@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import utils.ErrorMessageHelper;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -113,6 +114,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
                 travelomatrixLogger.error("Error in json parsor :HoldBooking: " + e.getMessage());
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                pnrResponse.setErrorMessage(errorMessage);
                 throw new RuntimeException(e);
 
             }
@@ -160,6 +163,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 }
             }
         } catch (JsonProcessingException e) {
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            issuanceResponse.setErrorMessage(errorMessage);
             throw new RuntimeException(e);
         }
         return issuanceResponse;
@@ -182,6 +187,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             }
         }catch(JsonProcessingException e){
             e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            issuanceResponse.setErrorMessage(errorMessage);
             throw new RuntimeException(e);
         }
 
@@ -212,6 +219,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            pnrResponse.setErrorMessage(errorMessage);
             throw new RuntimeException(e);
         }
 
