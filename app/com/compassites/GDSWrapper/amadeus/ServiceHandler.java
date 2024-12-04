@@ -56,6 +56,7 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
+import dto.OpenTicketDTO;
 import dto.reissue.ReIssueSearchRequest;
 import models.AmadeusSessionWrapper;
 import models.AncillaryServiceRequest;
@@ -727,5 +728,14 @@ public class ServiceHandler {
         TicketReissueConfirmedPricingReply ticketReissueConfirmedPricingReply = mPortType.ticketReissueConfirmedPricing(ticketReissueConfirmedPricing, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("TicketReissueConfirmedPricingReply Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketReissueConfirmedPricingReply));
         return ticketReissueConfirmedPricingReply;
+    }
+
+    public TicketProcessEDocReply ticketProcessEDocReply(AmadeusSessionWrapper amadeusSessionWrapper, List<OpenTicketDTO> openTicketDTOS) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        TicketProcessEDoc ticketProcessEDoc = OpenTicketReport.OpenTicketReportRequest.createOpenTicketRequest(openTicketDTOS);
+        amadeusLogger.debug("Open Ticket Request Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDoc));
+        TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDoc, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("Open Ticket Response Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
+        return ticketProcessEDocReply;
     }
 }
