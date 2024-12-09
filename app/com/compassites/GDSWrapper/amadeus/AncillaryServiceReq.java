@@ -10,7 +10,6 @@ import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.Passenger;
 import models.AncillaryServiceRequest;
-import org.joda.time.DateTime;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -139,10 +138,8 @@ public class AncillaryServiceReq {
 
                     ProductDateTimeType flightDate = new ProductDateTimeType();
 
-//                  flightDate.setArrivalDate(mapDate(airSegmentInformation.getArrivalDate().toString()));
-                    flightDate.setDepartureDate(mapDate(airSegmentInformation.getDepartureDate().toString()));
-//                  flightDate.setArrivalTime(mapTime(airSegmentInformation.getArrivalTime()));
-//                  flightDate.setDepartureTime(mapTime(airSegmentInformation.getDepartureTime()));
+                    // Departure date
+                    flightDate.setDepartureDate(airSegmentInformation.getToDate());
                     flightDetails.setFlightDate(flightDate);
 
                     //Origin
@@ -155,9 +152,10 @@ public class AncillaryServiceReq {
                     offPointDetails.setTrueLocationId(airSegmentInformation.getToLocation());
                     flightDetails.setOffpointDetails(offPointDetails);
 
-                    //Operating company
+                    //Operating company --> Marketing Carrier Code
                     CompanyIdentificationType companyDetails = new CompanyIdentificationType();
-                    companyDetails.setOperatingCompany(airSegmentInformation.getOperatingAirline().getIataCode());
+                    companyDetails.setOperatingCompany(airSegmentInformation.getOperatingCarrierCode());
+                    companyDetails.setMarketingCompany(airSegmentInformation.getOperatingCarrierCode());
                     flightDetails.setCompanyDetails(companyDetails);
 
                     // Flight Number and Booking Class
@@ -174,16 +172,18 @@ public class AncillaryServiceReq {
                     //Item / segment sequence number
                     flightDetails.setItemNumber(BigInteger.valueOf(++counter));
 
+                    flightInfo.setFlightDetails(flightDetails);
+
                     //Cabin Designator
                     TravelItineraryInformationTypeI travelItineraryInfo = new TravelItineraryInformationTypeI();
-                    travelItineraryInfo.setCabinDesignator(travelItineraryInfo.getCabinDesignator());
+                    travelItineraryInfo.setCabinDesignator(airSegmentInformation.getCabinClass());
                     flightInfo.setTravelItineraryInfo(travelItineraryInfo);
 
                     //Leg Details
-                    AdditionalProductDetailsTypeI additionalFlightInfo = new AdditionalProductDetailsTypeI();
-                    AdditionalProductTypeI legDetails = new AdditionalProductTypeI();
-                    legDetails.setEquipment(airSegmentInformation.getEquipment());
-                    flightInfo.setAdditionalFlightInfo(additionalFlightInfo);
+//                    AdditionalProductDetailsTypeI additionalFlightInfo = new AdditionalProductDetailsTypeI();
+//                    AdditionalProductTypeI legDetails = new AdditionalProductTypeI();
+//                    legDetails.setEquipment(airSegmentInformation.getEquipment());
+//                    flightInfo.setAdditionalFlightInfo(additionalFlightInfo);
 
                     flightInfoList.add(flightInfo);
 
@@ -263,46 +263,12 @@ public class AncillaryServiceReq {
 
             pricingOption.add(farPricingOption);
 
+            serviceStandaloneCatalogue.getPricingOption().addAll(pricingOption);
+
             return serviceStandaloneCatalogue;
         }
 
-        private static String mapDate (String changeDate){
-            DateTime dateTime = new DateTime(changeDate);
-            String amadeusDate;
 
-            String day;
-            String month;
-            String year;
-
-            day = "" + dateTime.getDayOfMonth();
-            month = "" + dateTime.getMonthOfYear();
-            year = "" + dateTime.getYearOfCentury();
-
-            day = day.length() == 1 ? "0" + day : day;
-            month = month.length() == 1 ? "0" + month : month;
-            year = year.length() == 1 ? "0" + year : year;
-            amadeusDate = day + month + year;
-
-            return amadeusDate;
-        }
-
-        private static String mapTime (String changeTime){
-            DateTime timeDate = new DateTime(changeTime);
-            String amadeusTime;
-
-            String hour;
-            String minute;
-
-            hour = "" + timeDate.getHourOfDay();
-            minute = "" + timeDate.getMinuteOfHour();
-
-            hour = hour.length() == 1 ? "0" + hour : hour;
-            minute = minute.length() == 1 ? "0" + minute : minute;
-
-            amadeusTime = hour + minute;
-
-            return amadeusTime;
-        }
     }
 
 }

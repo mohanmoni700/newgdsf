@@ -1,5 +1,7 @@
 package com.compassites.model;
 
+import com.compassites.model.travelomatrix.AmadeusPaxInformation;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -78,6 +80,8 @@ public class PNRResponse implements Serializable  {
     private String returnSearchResultToken;
 
     private List<BaggageDetails> tmxBaggageDetails;
+
+    private List<AmadeusPaxInformation> amadeusPaxReference;
 
     public List<MealDetails> getTmxMealDetails() {
         return tmxMealDetails;
@@ -214,6 +218,13 @@ public class PNRResponse implements Serializable  {
         return validTillDate;
     }
 
+    public List<AmadeusPaxInformation> getAmadeusPaxReference() {
+        return amadeusPaxReference;
+    }
+
+    public void setAmadeusPaxReference(List<AmadeusPaxInformation> amadeusPaxReference) {
+        this.amadeusPaxReference = amadeusPaxReference;
+    }
     public void setValidTillDate(Date validTillDate) {
         this.validTillDate = validTillDate;
     }
