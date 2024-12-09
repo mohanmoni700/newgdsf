@@ -110,7 +110,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
         List<BaggageDetails> baggageList = new ArrayList<>();
 
-        boolean canIssue = true;
 
         try {
             List<ServiceIntegratedCatalogueReply.SsrInformation> ssrInformation = serviceIntegratedCatalogueReply.getSsrInformation();
@@ -129,21 +128,48 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                 if (serviceType.equalsIgnoreCase("FBA")) {
 
                     ServiceIntegratedCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
-                    BaggageDetailsType baggageDetails = baggageDescriptionGroup.getBaggageData().getBaggageDetails();
+                    if (baggageDescriptionGroup.getBaggageData().getBaggageDetails() != null) {
+                        BaggageDetailsType baggageDetails = baggageDescriptionGroup.getBaggageData().getBaggageDetails();
 
-                    String unitQualifier = baggageDetails.getUnitQualifier();
-                    switch (unitQualifier) {
+                        String unitQualifier = baggageDetails.getUnitQualifier();
+                        switch (unitQualifier) {
 
-                        case "K":
-                            freeBaggageUnit = "KG";
-                            break;
-                        case "P":
-                            freeBaggageUnit = "PC";
-                            break;
+                            case "K":
+                                freeBaggageUnit = "KG";
+                                break;
+                            case "P":
+                                freeBaggageUnit = "PC";
+                                break;
 
+                        }
+
+                        freeBaggageValue = String.valueOf(baggageDetails.getMeasurement());
                     }
 
-                    freeBaggageValue = String.valueOf(baggageDetails.getMeasurement());
+                    if (!baggageDescriptionGroup.getRange().isEmpty()) {
+                        for (RangeDetailsType191709S rangeDetailsType191709S : baggageDescriptionGroup.getRange()) {
+                            String rangeQualifier = rangeDetailsType191709S.getRangeQualifier();
+                            List<RangeType> rangeTypes = rangeDetailsType191709S.getRangeDetails();
+
+                            BigDecimal value = null;
+                            for (RangeType rangeDetail : rangeTypes) {
+                                String rangeType = rangeDetail.getDataType();
+                                if (rangeType.equalsIgnoreCase("K")) {
+                                    BigDecimal max = rangeDetail.getMax();
+                                    BigDecimal min = rangeDetail.getMin();
+                                    if (min != null && max != null) {
+                                        value = max;
+                                    } else if (max != null) {
+                                        value = max;
+                                    } else if (min != null) {
+                                        value = min;
+                                    }
+                                    freeBaggageUnit = "KG";
+                                }
+                            }
+                            freeBaggageValue = String.valueOf(value);
+                        }
+                    }
                 }
             }
 
@@ -162,6 +188,8 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                     BaggageDetails baggageDetails = new BaggageDetails();
 
                     baggageDetails.setServiceId(serviceNumber);
+
+                    boolean canIssue = true;
 
                     //Checking if the baggage can be issued here
                     List<ServiceIntegratedCatalogueReply.ServiceGroup.QuotaGroup> quotaGroups = serviceGroup.getQuotaGroup();
@@ -225,10 +253,11 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                             //Setting excess baggage value here with respect to airline filing
 
 
+                            ServiceIntegratedCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup;
                             switch (ssrCode) {
 
                                 case "PDBG":
-                                    ServiceIntegratedCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
+                                    baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
                                     List<AttributeType> baggageAttributes = baggageDescriptionGroup.getBaggageAttributes();
                                     List<RangeDetailsType191709S> ranges = baggageDescriptionGroup.getRange();
                                     ExcessBaggageType baggageData = baggageDescriptionGroup.getBaggageData();
@@ -238,7 +267,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                         List<RangeType> rangeDetails = range.getRangeDetails();
                                         for (RangeType rangeDetail : rangeDetails) {
                                             String rangeType = rangeDetail.getDataType();
-                                            if (rangeType.equalsIgnoreCase("K") || rangeType.equalsIgnoreCase("P")) {
+                                            if (rangeType.equalsIgnoreCase("K")) {
                                                 BigDecimal max = rangeDetail.getMax();
                                                 BigDecimal min = rangeDetail.getMin();
                                                 BigDecimal value = null;
@@ -277,20 +306,61 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
                                     baggageDetails.setPiece("1 PC");
 
-                                    break ;
+                                    break;
 
 
                                 default:
                                     List<ServiceIntegratedCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup> fsfkwDataGroup = serviceDetailsGroup.getFsfkwDataGroup();
-                                    for (ServiceIntegratedCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup fsfkwData : fsfkwDataGroup) {
-                                        AttributeType208309S fsfkwValues = fsfkwData.getFsfkwValues();
-                                        RangeDetailsType208311S fsfkwRanges = fsfkwData.getFsfkwRanges();
+                                    baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
 
-                                        if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("WVAL")) {
-                                            baggageDetails.setWeight(fsfkwRanges.getRangeDetails().getMax() + " KG");
+                                    if (fsfkwDataGroup != null && !fsfkwDataGroup.isEmpty()) {
+                                        for (ServiceIntegratedCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup fsfkwData : fsfkwDataGroup) {
+                                            AttributeType208309S fsfkwValues = fsfkwData.getFsfkwValues();
+                                            RangeDetailsType208311S fsfkwRanges = fsfkwData.getFsfkwRanges();
+
+                                            if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("WVAL")) {
+                                                baggageDetails.setWeight(fsfkwRanges.getRangeDetails().getMax() + " KG");
+                                            }
+                                            if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("PVAL")) {
+                                                baggageDetails.setPiece(fsfkwRanges.getRangeDetails().getMax() + " PC");
+                                            }
                                         }
-                                        if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("PVAL")) {
-                                            baggageDetails.setPiece(fsfkwRanges.getRangeDetails().getMax() + " PC");
+                                    } else if (baggageDescriptionGroup != null) {
+
+                                        List<RangeDetailsType191709S> rangeList = baggageDescriptionGroup.getRange();
+
+                                        for (RangeDetailsType191709S range : rangeList) {
+                                            String quantity = range.getRangeQualifier();
+                                            List<RangeType> rangeDetails = range.getRangeDetails();
+                                            for (RangeType rangeDetail : rangeDetails) {
+                                                String rangeType = rangeDetail.getDataType();
+                                                if (rangeType.equalsIgnoreCase("K")) {
+                                                    BigDecimal max = rangeDetail.getMax();
+                                                    BigDecimal min = rangeDetail.getMin();
+                                                    BigDecimal value = null;
+
+                                                    if (min != null && max != null) {
+                                                        value = max;
+                                                    } else if (max != null) {
+                                                        value = max;
+                                                    } else if (min != null) {
+                                                        value = min;
+                                                    }
+
+                                                    switch (rangeType) {
+
+                                                        case "K":
+                                                            baggageDetails.setWeight(value + " KG");
+                                                            break;
+                                                        case "P":
+                                                            baggageDetails.setPiece(value + " PC");
+                                                            break;
+                                                        default:
+                                                            baggageDetails.setWeight(null);
+                                                            baggageDetails.setPiece(null);
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                             }
@@ -416,7 +486,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
     }
 
     @Override
-    public AncillaryServicesResponse additionalBaggageInformationStandalone( AncillaryServiceRequest ancillaryServiceRequest) {
+    public AncillaryServicesResponse additionalBaggageInformationStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
 
         ServiceHandler serviceHandler = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
@@ -451,7 +521,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
         List<BaggageDetails> baggageList = new ArrayList<>();
 
-        boolean canIssue = true;
 
         try {
             List<ServiceStandaloneCatalogueReply.SsrInformation> ssrInformation = serviceStandaloneCatalogueReply.getSsrInformation();
@@ -469,21 +538,48 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                 if (serviceType.equalsIgnoreCase("FBA")) {
 
                     ServiceStandaloneCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
-                    com.amadeus.xml.tpscgr_17_1_1a.BaggageDetailsType baggageDetails = baggageDescriptionGroup.getBaggageData().getBaggageDetails();
 
-                    String unitQualifier = baggageDetails.getUnitQualifier();
-                    switch (unitQualifier) {
+                    if (baggageDescriptionGroup.getBaggageData().getBaggageDetails() != null) {
+                        com.amadeus.xml.tpscgr_17_1_1a.BaggageDetailsType baggageDetails = baggageDescriptionGroup.getBaggageData().getBaggageDetails();
 
-                        case "K":
-                            freeBaggageUnit = "KG";
-                            break;
-                        case "P":
-                            freeBaggageUnit = "PC";
-                            break;
+                        String unitQualifier = baggageDetails.getUnitQualifier();
+                        switch (unitQualifier) {
 
+                            case "K":
+                                freeBaggageUnit = "KG";
+                                break;
+                            case "P":
+                                freeBaggageUnit = "PC";
+                                break;
+
+                        }
+
+                        freeBaggageValue = String.valueOf(baggageDetails.getMeasurement());
                     }
 
-                    freeBaggageValue = String.valueOf(baggageDetails.getMeasurement());
+                    if (!baggageDescriptionGroup.getRange().isEmpty()) {
+
+                        com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S range = baggageDescriptionGroup.getRange().get(0);
+
+                        String rangeQualifier = range.getRangeQualifier();
+                        List<com.amadeus.xml.tpscgr_17_1_1a.RangeType> rangeDetails = range.getRangeDetails();
+
+                        switch (rangeQualifier) {
+
+                            case "W":
+                            case "WGHT":
+                                freeBaggageUnit = "KG";
+
+                        }
+
+                        for (com.amadeus.xml.tpscgr_17_1_1a.RangeType rangeType : rangeDetails) {
+                            if (rangeType.getDataType().equalsIgnoreCase("K")) {
+                                freeBaggageValue = String.valueOf(rangeType.getMax());
+                                break;
+                            }
+                        }
+
+                    }
                 }
             }
 
@@ -501,6 +597,8 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                     BaggageDetails baggageDetails = new BaggageDetails();
 
                     baggageDetails.setServiceId(serviceNumber);
+
+                    boolean canIssue = true;
 
                     //Checking if the baggage can be issued here
                     List<ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup> quotaGroups = serviceGroup.getQuotaGroup();
@@ -562,50 +660,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                             baggageDetails.setCarrierCode(specialRequirementsInfo.getAirlineCode());
 
                             //Setting excess baggage value here with respect to airline filing
-
                             switch (ssrCode) {
-
-                                case "PDBG":
-
-                                    ServiceStandaloneCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
-                                    List<com.amadeus.xml.tpscgr_17_1_1a.AttributeType> baggageAttributes = baggageDescriptionGroup.getBaggageAttributes();
-                                    List<com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S> ranges = baggageDescriptionGroup.getRange();
-                                    com.amadeus.xml.tpscgr_17_1_1a.ExcessBaggageType baggageData = baggageDescriptionGroup.getBaggageData();
-
-                                    for (com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S range : ranges) {
-                                        String quantity = range.getRangeQualifier();
-                                        List<com.amadeus.xml.tpscgr_17_1_1a.RangeType> rangeDetails = range.getRangeDetails();
-                                        for (com.amadeus.xml.tpscgr_17_1_1a.RangeType rangeDetail : rangeDetails) {
-                                            String rangeType = rangeDetail.getDataType();
-                                            if (rangeType.equalsIgnoreCase("K") || rangeType.equalsIgnoreCase("P")) {
-                                                BigDecimal max = rangeDetail.getMax();
-                                                BigDecimal min = rangeDetail.getMin();
-                                                BigDecimal value = null;
-
-                                                if (min != null && max != null) {
-                                                    value = max;
-                                                } else if (max != null) {
-                                                    value = max;
-                                                } else if (min != null) {
-                                                    value = min;
-                                                }
-
-                                                switch (rangeType) {
-
-                                                    case "K":
-                                                        baggageDetails.setWeight(value + " KG");
-                                                        break;
-                                                    case "P":
-                                                        baggageDetails.setPiece(value + " PC");
-                                                        break;
-                                                    default:
-                                                        baggageDetails.setWeight(null);
-                                                        baggageDetails.setPiece(null);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    break;
 
                                 case "ABAG":
                                 case "BBAG":
@@ -631,67 +686,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                         }
                                     }
                             }
-
-
-
-//                            if (!ssrCode.equalsIgnoreCase("PDBG")) {
-//
-//                                List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup> fsfkwDataGroup = serviceDetailsGroup.getFsfkwDataGroup();
-//                                for (ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup fsfkwData : fsfkwDataGroup) {
-//                                    com.amadeus.xml.tpscgr_17_1_1a.AttributeType208309S fsfkwValues = fsfkwData.getFsfkwValues();
-//                                    com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType208311S fsfkwRanges = fsfkwData.getFsfkwRanges();
-//
-//                                    if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("WVAL")) {
-//                                        baggageDetails.setWeight(fsfkwRanges.getRangeDetails().getMax() + " KG");
-//                                    }
-//                                    if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("PVAL")) {
-//                                        baggageDetails.setPiece(fsfkwRanges.getRangeDetails().getMax() + " PC");
-//                                    }
-//                                }
-//                            }
-//
-//                            if (ssrCode.equalsIgnoreCase("PDBG")) {
-//
-//                                ServiceStandaloneCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
-//                                List<com.amadeus.xml.tpscgr_17_1_1a.AttributeType> baggageAttributes = baggageDescriptionGroup.getBaggageAttributes();
-//                                List<com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S> ranges = baggageDescriptionGroup.getRange();
-//                                com.amadeus.xml.tpscgr_17_1_1a.ExcessBaggageType baggageData = baggageDescriptionGroup.getBaggageData();
-//
-//                                for (com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S range : ranges) {
-//                                    String quantity = range.getRangeQualifier();
-//                                    List<com.amadeus.xml.tpscgr_17_1_1a.RangeType> rangeDetails = range.getRangeDetails();
-//                                    for (com.amadeus.xml.tpscgr_17_1_1a.RangeType rangeDetail : rangeDetails) {
-//                                        String rangeType = rangeDetail.getDataType();
-//                                        if (rangeType.equalsIgnoreCase("K") || rangeType.equalsIgnoreCase("P")) {
-//                                            BigDecimal max = rangeDetail.getMax();
-//                                            BigDecimal min = rangeDetail.getMin();
-//                                            BigDecimal value = null;
-//
-//                                            if (min != null && max != null) {
-//                                                value = max;
-//                                            } else if (max != null) {
-//                                                value = max;
-//                                            } else if (min != null) {
-//                                                value = min;
-//                                            }
-//
-//                                            switch (rangeType) {
-//
-//                                                case "K":
-//                                                    baggageDetails.setWeight(value + " KG");
-//                                                    break;
-//                                                case "P":
-//                                                    baggageDetails.setPiece(value + " PC");
-//                                                    break;
-//                                                default:
-//                                                    baggageDetails.setWeight(null);
-//                                                    baggageDetails.setPiece(null);
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-                       }
+                        }
 
                         //Setting mandatory manual inputs here
                         if (baggageDetails.isMIF()) {
