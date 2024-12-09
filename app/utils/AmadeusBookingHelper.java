@@ -19,9 +19,11 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.travelomatrix.AmadeusPaxInformation;
 import models.Airline;
 import models.Airport;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
@@ -121,6 +123,43 @@ public class AmadeusBookingHelper {
         pnrResponse.setPriceChanged(true);
         pnrResponse.setFlightAvailable(true);
 
+    }
+
+
+    public static AmadeusPaxInformation extractPassengerData(PNRReply.TravellerInfo travellerInfo){
+
+        AmadeusPaxInformation amadeusPaxInformation = new AmadeusPaxInformation();
+
+        com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType passengerReference = travellerInfo.getElementManagementPassenger();
+        String referenceNumber = String.valueOf(passengerReference.getReference().getNumber());
+        String lineNumber = String.valueOf(passengerReference.getLineNumber());
+        PNRReply.TravellerInfo.PassengerData passengerData = travellerInfo.getPassengerData().get(0);
+
+        String salutation = null;
+        String firstName = null;
+        String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
+
+        String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
+        String[] names = firstNameResponse.split("\\s");
+
+        if (names.length > 1) {
+            //personalDetails.setSalutation(names[names.length-1]);
+            for (String name : names) {
+                if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms") || name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")) {
+                    salutation = WordUtils.capitalizeFully(name);
+                } else {
+                    firstName = name;
+                }
+            }
+        }
+
+        amadeusPaxInformation.setSalutation(salutation);
+        amadeusPaxInformation.setFirstName(firstName);
+        amadeusPaxInformation.setLastName(lastName);
+        amadeusPaxInformation.setPaxRef(referenceNumber);
+        amadeusPaxInformation.setLineNumber(lineNumber);
+
+        return amadeusPaxInformation;
     }
 
     public static boolean createOfflineTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){

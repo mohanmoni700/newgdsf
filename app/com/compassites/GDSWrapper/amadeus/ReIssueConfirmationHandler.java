@@ -2,6 +2,10 @@ package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.wsdl.ticket_rebookandrepricepnr_v1_v2.TicketRebookAndRepricePNRPT;
 import com.amadeus.wsdl.ticket_rebookandrepricepnr_v1_v2.TicketRebookAndRepricePNRService;
+import com.amadeus.xml._2010._06.retailing_types_v2.CommitType;
+import com.amadeus.xml._2010._06.retailing_types_v2.ReservationType;
+import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRQ;
+import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +32,9 @@ public class ReIssueConfirmationHandler {
         URL url = null;
         try {
             endPoint = play.Play.application().configuration().getString("amadeus.endPointURL");
-            url = RefundServiceHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_Ticket_RebookAndRepricePNR_1.0_2.0.wsdl");
+            url = ReIssueConfirmationHandler.class.getResource("/wsdl/amadeus/1ASIWFLYFYH_PDT_Ticket_RebookAndRepricePNR_1.0_2.0.wsdl");
         } catch (Exception e) {
-            logger.debug("Error in loading Ticket_RebookAndRepricePNR URL : ", e);
+            logger.debug("Error in loading Ticket_RebookAndRepricePNR URL : {} \n ", e.getMessage(), e);
         }
         wsdlUrl = url;
     }
@@ -51,6 +55,23 @@ public class ReIssueConfirmationHandler {
     }
 
 
+    public AMATicketRebookAndRepricePNRRQ rebookAndRepricePNR(){
+
+        AMATicketRebookAndRepricePNRRQ amaTicketRebookAndRepricePNRRQ = new AMATicketRebookAndRepricePNRRQ();
+
+        ReservationType reservation = new ReservationType();
+        CommitType commit = new CommitType();
+        AMATicketRebookAndRepricePNRRQ.Rebooking rebooking = new AMATicketRebookAndRepricePNRRQ.Rebooking();
+        AMATicketRebookAndRepricePNRRQ.Repricing repricing = new AMATicketRebookAndRepricePNRRQ.Repricing();
+
+        //Set the PNR here
+//        reservation.setBookingIdentifier();
+
+
+
+
+        return new AMATicketRebookAndRepricePNRRQ();
+    }
 
 
 }

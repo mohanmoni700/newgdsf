@@ -32,6 +32,7 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Preferences;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.travelomatrix.AmadeusPaxInformation;
 import com.fasterxml.jackson.databind.JsonNode;
 //import com.sun.org.apache.xpath.internal.operations.Bool;
 import models.AmadeusSessionWrapper;
@@ -829,6 +830,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		//for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
 			pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
 		//}
+
+		//Creating Amadeus Pax Reference and Line number here
+		pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
+
         if(pricePNRReply != null){
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
         }
@@ -841,6 +846,17 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		return pnrResponse;
 	}
 
+	public static List<AmadeusPaxInformation> createAmadeusPaxRefInfo(PNRReply gdsPNRReply) {
+
+		List<AmadeusPaxInformation> amadeusPaxInformationList = new ArrayList<>();
+		List<TravellerInfo> travellerInfoList = gdsPNRReply.getTravellerInfo();
+
+		for (PNRReply.TravellerInfo travellerInfo : travellerInfoList) {
+			amadeusPaxInformationList.add(AmadeusBookingHelper.extractPassengerData(travellerInfo));
+		}
+
+		return amadeusPaxInformationList;
+	}
 
     public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
 		Date lastTicketingDate = null;
