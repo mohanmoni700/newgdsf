@@ -31,8 +31,8 @@ POST    /getTripDetails                            @controllers.Application.getT
 POST    /removeTicktedMessage                      @controllers.Application.removeTicktedMessage()
 POST    /getMessagesFromQueue                      @controllers.Application.getMessagesFromQueue()
 GET     /                                          @controllers.Application.home()
-POST 	/ticketCancelDocuments                      @controllers.Application.ticketCancelDocuments()
-
+POST 	/ticketCancelDocuments                     @controllers.Application.ticketCancelDocuments()
+POST 	/refundSplitTicket                         @controllers.Application.refundSplitTicket()
 POST    /splitTicket                               @controllers.SplitTicketController.findPossibleRoutes
 
 # Map static resources from the /public folder to the /assets URL path
