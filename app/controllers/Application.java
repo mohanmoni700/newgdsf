@@ -605,7 +605,6 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
-
     public Result refundSplitTicket() {
         logger.info("refundSplitTicket called ");
         JsonNode json = request().body().asJson();
@@ -614,6 +613,7 @@ public class Application {
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
       }
+
     public Result openTicketReport() throws IOException {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- openTicketReport Request: " + json);
