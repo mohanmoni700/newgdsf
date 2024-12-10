@@ -57,7 +57,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.compassites.constants.StaticConstatnts.VOID_TICKET;
+import static com.compassites.constants.StaticConstatnts.*;
 
 /**
  * Created by Yaseen
@@ -309,10 +309,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 							cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
 						}
 					}
+					if(!type.equalsIgnoreCase(REFUND_TICKET))
 					splitPNRResponse.setCancelPNRResponse(cancelPNRResponse);
 					serviceHandler.saveChildPNR("10", amadeusSessionWrapper);
-					FarePricePNRWithBookingClassReply pricePNRReply = null;
-					pricePNRReply = checkPNRPrice(issuanceRequest, tstRefNo, pricePNRReply, pnrResponse, amadeusSessionWrapper);
+					if(!type.equalsIgnoreCase(REFUND_TICKET)) {
+						FarePricePNRWithBookingClassReply pricePNRReply = null;
+						pricePNRReply = checkPNRPrice(issuanceRequest, tstRefNo, pricePNRReply, pnrResponse, amadeusSessionWrapper);
+					}
 
 				} catch (Exception ex) {
 					logger.error("error in cancelPNR : ", ex);
@@ -575,9 +578,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 		for (Traveller traveller:issuanceRequest.getTravellerList()){
 			String firstName = traveller.getPersonalDetails().getFirstName();
+			String middleName = traveller.getPersonalDetails().getMiddleName();
 			String salutation = traveller.getPersonalDetails().getSalutation();
 			String lastName = traveller.getPersonalDetails().getLastName();
-			String fullName = (firstName+" "+salutation+lastName).toUpperCase();
+			String fullName = firstName;
+			if(middleName != null){
+				fullName = (fullName+" "+middleName+" " + salutation + lastName).toUpperCase();
+			}else {
+				fullName = (fullName+" " + salutation + lastName).toUpperCase();
+			}
 			logger.info("fullName..."+fullName);
 			String paxRef = travellerSegMap.get(fullName).toString();
 			String paxRefArray[] = paxRef.split("-");

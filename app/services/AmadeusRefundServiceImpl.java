@@ -23,6 +23,7 @@ import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import play.Play;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -105,7 +106,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                 ticketCheckEligibilityRes.setMessage(errorMessage);
                             } else {
                                 ticketCheckEligibilityRes.setStatus(Boolean.TRUE);
-                                ticketCheckEligibilityRes.setRefundableAmount(totalRefundable);
+                                ticketCheckEligibilityRes.setRefundableAmount(calculateTotalRefund(totalRefundable));
                             }
                             AMATicketIgnoreRefundRS amaTicketIgnoreRefundRS = refundServiceHandler.ticketIgnoreRefundRQ(amadeusSessionWrapper);
                             pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
@@ -317,7 +318,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                 }
                             }
                             ticketCheckEligibilityRes.setStatus(Boolean.TRUE);
-                            ticketCheckEligibilityRes.setRefundableAmount(totalRefundable);
+                            ticketCheckEligibilityRes.setRefundableAmount(calculateTotalRefund(totalRefundable));
                             AMATicketIgnoreRefundRS amaTicketIgnoreRefundRS = refundServiceHandler.ticketIgnoreRefundRQ(amadeusSessionWrapper);
                             pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
                         } else {
@@ -423,14 +424,13 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                         }
                                     }
                                 }
-                                //PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
-//                                if(cancelFullPNR.getGeneralErrorInfo().size() == 0){
-//                                    logger.debug("PNR Cancelled for PNR:",gdsPnr);
-//                                }
-                                ticketProcessRefundRes.setRefundableAmount(totalRefundable.toString());
+
+                                ticketProcessRefundRes.setRefundableAmount(calculateTotalRefund(totalRefundable).toString());
                                 ticketProcessRefundRes.setStatus(Boolean.TRUE);
                                 ticketProcessRefundRes.setRefTicketsList(refundedTickets);
                             }
+                            //split the ticket
+
                         } else {
                             AMATicketIgnoreRefundRS amaTicketIgnoreRefundRS = refundServiceHandler.ticketIgnoreRefundRQ(amadeusSessionWrapper);
                             pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
@@ -540,5 +540,22 @@ public class AmadeusRefundServiceImpl implements RefundService{
             }
         }
         return tickets;
+    }
+    /*
+    1) In case of Non Seaman wherein there are cancellations charges, the calculations will be as below
+ Refund Amt Rs 9000 + RAF Rs 300 = INR 9300 + Tax 18% = Rs 10974/-
+
+2) In case of Seaman wherein there are no cancellation charges, the calculations will be as below
+Refund Amt NIL + RAF Rs 300 = INR 300 + Tax 18% = Rs 354/-
+
+     */
+
+    public BigDecimal calculateTotalRefund(BigDecimal totalRefund){
+        BigDecimal rafAmount = new BigDecimal( Play.application().configuration().getInt("amadeus.refundRAF"));
+        BigDecimal taxRate = new BigDecimal( Play.application().configuration().getDouble("amadeus.refundTaxRate"));
+        BigDecimal totalBeforeTax = totalRefund.add(rafAmount);
+        BigDecimal taxAmount = totalBeforeTax.multiply(taxRate);
+        totalBeforeTax = totalBeforeTax.add(taxAmount);
+      return totalBeforeTax;
     }
 }

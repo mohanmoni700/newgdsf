@@ -14,4 +14,6 @@ public class StaticConstatnts {
     public static final String VOID_TICKET = "voidTicket";
 
     public static final String CANCEL_PNR = "cancelPNR";
+
+    public static final String REFUND_TICKET = "ticketRefunded";
 }

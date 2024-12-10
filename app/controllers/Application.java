@@ -33,8 +33,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.compassites.constants.StaticConstatnts.CANCEL_PNR;
-import static com.compassites.constants.StaticConstatnts.VOID_TICKET;
+import static com.compassites.constants.StaticConstatnts.*;
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
 
@@ -605,6 +604,15 @@ public class Application {
         logger.debug("-----------------PNR Response for ticketRebookAndRepricePNR: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
+
+    public Result refundSplitTicket() {
+        logger.info("refundSplitTicket called ");
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest, REFUND_TICKET);
+        logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
+        return ok(Json.toJson(splitPNRResponse));
+      }
 
     public Result openTicketReport() throws IOException {
         JsonNode json = request().body().asJson();
