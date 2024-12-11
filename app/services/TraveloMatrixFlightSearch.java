@@ -212,7 +212,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                             if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
                                 continue;
                             }
-                            consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails(),flightHash, groupingKeyMap);
+                            consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails(),flightHash, groupingKeyMap,journyeType);
                             flightItinerary.setJourneyList(consolidatedJourney);
                             flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
                             flightItinerary.setPassportMandatory(Boolean.FALSE);
@@ -404,7 +404,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         return pricingInformation;
     }
 
-    public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap) {
+    public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, String journyeType) {
        //calculate duration
         Long durationTime = 0L;
         Long layOver = 0L;
@@ -468,7 +468,9 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             asJourney.setProvider(TraveloMatrixConstants.provider);
             asJourney.setAirSegmentList(airSegmentInformationList);
             asJourney.setNoOfStops(airSegmentInformationList.size()-1);
-            asJourney.setGroupingKey(groupingKey.toString());
+            if(journyeType.equalsIgnoreCase(JourneyType.ONE_WAY.name())) {
+                asJourney.setGroupingKey(groupingKey.toString());
+            }
             //Convert minutes to milliseconds
             if(layOver == 0 && airSegmentInformationList.size() > 1){
                layOver = airSegmentInformationList.get(airSegmentInformationList.size()-1).getFdtv() -
