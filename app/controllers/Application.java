@@ -622,9 +622,30 @@ public class Application {
                 json.toString(),
                 mapper.getTypeFactory().constructCollectionType(List.class, OpenTicketDTO.class)
         );
-        List<OpenTicketResponse> openTicketResponses = openTicketReportService.openTicketReport(openTicketDTOS);
+        List<OpenTicketResponse> openTicketResponses = new ArrayList<>();
+        int chunkSize = 50;
+        if (openTicketDTOS.size()>chunkSize) {
+            List<List<OpenTicketDTO>> chunks = splitList(openTicketDTOS, chunkSize);
+            for (int i = 0; i < chunks.size(); i++) {
+                List<OpenTicketResponse> openTicketResponses1 = openTicketReportService.openTicketReport(chunks.get(i));
+                openTicketResponses.addAll(openTicketResponses1);
+            }
+        } else {
+            openTicketResponses = openTicketReportService.openTicketReport(openTicketDTOS);
+        }
         logger.debug(" open ticket response "+Json.toJson(openTicketResponses));
         return ok(Json.toJson(openTicketResponses));
+    }
+
+    private List<List<OpenTicketDTO>> splitList(List<OpenTicketDTO> list, int chunkSize) {
+        List<List<OpenTicketDTO>> chunks = new ArrayList<>();
+        int totalSize = list.size();
+
+        for (int i = 0; i < totalSize; i += chunkSize) {
+            int end = Math.min(totalSize, i + chunkSize);
+            chunks.add((List<OpenTicketDTO>) new ArrayList<>(list.subList(i, end)));
+        }
+        return chunks;
     }
 
     public Result home(){
