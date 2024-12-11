@@ -42,9 +42,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             //1. Retrieving the PNR
             PNRReply pnrReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
 
-            List<Map<String, String>> passengerRefMap = getPassengerRefAndNames(pnrReply);
-            excessBaggageInfo.setPassengerMap(passengerRefMap);
-
             //2. Getting the BaggageDetails here
             ServiceIntegratedCatalogueReply serviceIntegratedCatalogueReply = serviceHandler.getAdditionalBaggageInformationAmadeus(amadeusSessionWrapper);
 
@@ -59,52 +56,52 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         return excessBaggageInfo;
     }
 
-    private static List<Map<String, String>> getPassengerRefAndNames(PNRReply pnrReply) {
-
-        List<Map<String, String>> passengerMapList = new ArrayList<>();
-
-        try {
-            List<PNRReply.TravellerInfo> travellerInfoList = pnrReply.getTravellerInfo();
-            for (PNRReply.TravellerInfo travellerInfo : travellerInfoList) {
-                Map<String, String> passengerMap = new HashMap<>();
-
-                ElementManagementSegmentType passengerReference = travellerInfo.getElementManagementPassenger();
-                String referenceNumber = String.valueOf(passengerReference.getReference().getNumber());
-
-
-                PNRReply.TravellerInfo.PassengerData passengerData = travellerInfo.getPassengerData().get(0);
-
-                String salutation = null;
-                String firstName = null;
-                String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
-
-                String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
-                String[] names = firstNameResponse.split("\\s");
-
-                if (names.length > 1) {
-                    //personalDetails.setSalutation(names[names.length-1]);
-                    for (String name : names) {
-                        if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms") || name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")) {
-                            salutation = WordUtils.capitalizeFully(name);
-                        } else {
-                            firstName = name;
-                        }
-                    }
-                }
-
-                String fullName = salutation + " " + firstName + " " + lastName;
-
-                passengerMap.put(referenceNumber, fullName);
-                passengerMapList.add(passengerMap);
-
-            }
-
-            return passengerMapList;
-        } catch (Exception e) {
-            logger.debug("Error setting passenger reference : {} ", e.getMessage(), e);
-            return null;
-        }
-    }
+//    private static List<Map<String, String>> getPassengerRefAndNames(PNRReply pnrReply) {
+//
+//        List<Map<String, String>> passengerMapList = new ArrayList<>();
+//
+//        try {
+//            List<PNRReply.TravellerInfo> travellerInfoList = pnrReply.getTravellerInfo();
+//            for (PNRReply.TravellerInfo travellerInfo : travellerInfoList) {
+//                Map<String, String> passengerMap = new HashMap<>();
+//
+//                ElementManagementSegmentType passengerReference = travellerInfo.getElementManagementPassenger();
+//                String referenceNumber = String.valueOf(passengerReference.getReference().getNumber());
+//
+//
+//                PNRReply.TravellerInfo.PassengerData passengerData = travellerInfo.getPassengerData().get(0);
+//
+//                String salutation = null;
+//                String firstName = null;
+//                String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
+//
+//                String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
+//                String[] names = firstNameResponse.split("\\s");
+//
+//                if (names.length > 1) {
+//                    //personalDetails.setSalutation(names[names.length-1]);
+//                    for (String name : names) {
+//                        if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms") || name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")) {
+//                            salutation = WordUtils.capitalizeFully(name);
+//                        } else {
+//                            firstName = name;
+//                        }
+//                    }
+//                }
+//
+//                String fullName = salutation + " " + firstName + " " + lastName;
+//
+//                passengerMap.put(referenceNumber, fullName);
+//                passengerMapList.add(passengerMap);
+//
+//            }
+//
+//            return passengerMapList;
+//        } catch (Exception e) {
+//            logger.debug("Error setting passenger reference : {} ", e.getMessage(), e);
+//            return null;
+//        }
+//    }
 
     private static void getAdditionalBaggageInformation(ServiceIntegratedCatalogueReply serviceIntegratedCatalogueReply, AncillaryServicesResponse excessBaggageInfo) {
 
@@ -217,20 +214,28 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                 String attributeType = criteriaDetail.getAttributeType();
                                 String attributeDescription = criteriaDetail.getAttributeDescription();
 
-                                if (attributeType.equalsIgnoreCase("BKM")) {
-                                    baggageDetails.setBkm(attributeDescription);
-                                }
+                                switch (attributeType.toUpperCase()) {
 
-                                if (attributeType.equalsIgnoreCase("MIF") && !attributeDescription.equalsIgnoreCase("N")) {
-                                    baggageDetails.setMIF(true);
-                                }
+                                    case "BKM":
+                                        baggageDetails.setBkm(attributeDescription);
+                                        break ;
 
-                                if (attributeType.equalsIgnoreCase("ROR") && attributeDescription.equalsIgnoreCase("Y")) {
-                                    baggageDetails.setRefundable(true);
-                                }
+                                    case "MIF":
+                                        if (!attributeDescription.equalsIgnoreCase("N")) {
+                                            baggageDetails.setMIF(true);
+                                        }
+                                        break ;
 
-                                if (attributeType.equalsIgnoreCase("CNM")) {
-                                    baggageDetails.setBaggageDescription(attributeDescription);
+                                    case "ROR":
+                                        if (attributeDescription.equalsIgnoreCase("Y")) {
+                                            baggageDetails.setRefundable(true);
+                                        }
+                                        break ;
+
+                                    case "CNM":
+                                        baggageDetails.setBaggageDescription(attributeDescription);
+                                        break ;
+
                                 }
 
                             }
@@ -365,53 +370,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                     }
                             }
 
-//                            if (!ssrCode.equalsIgnoreCase("PDBG")) {
-//
-//
-//                            }
-//
-//                            if (ssrCode.equalsIgnoreCase("PDBG")) {
-//
-//                                ServiceIntegratedCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
-//                                List<AttributeType> baggageAttributes = baggageDescriptionGroup.getBaggageAttributes();
-//                                List<RangeDetailsType191709S> ranges = baggageDescriptionGroup.getRange();
-//                                ExcessBaggageType baggageData = baggageDescriptionGroup.getBaggageData();
-//
-//                                for (RangeDetailsType191709S range : ranges) {
-//                                    String quantity = range.getRangeQualifier();
-//                                    List<RangeType> rangeDetails = range.getRangeDetails();
-//                                    for (RangeType rangeDetail : rangeDetails) {
-//                                        String rangeType = rangeDetail.getDataType();
-//                                        if (rangeType.equalsIgnoreCase("K") || rangeType.equalsIgnoreCase("P")) {
-//                                            BigDecimal max = rangeDetail.getMax();
-//                                            BigDecimal min = rangeDetail.getMin();
-//                                            BigDecimal value = null;
-//
-//                                            if (min != null && max != null) {
-//                                                value = max;
-//                                            } else if (max != null) {
-//                                                value = max;
-//                                            } else if (min != null) {
-//                                                value = min;
-//                                            }
-//
-//                                            switch (rangeType) {
-//
-//                                                case "K":
-//                                                    baggageDetails.setWeight(value + " KG");
-//                                                    break;
-//                                                case "P":
-//                                                    baggageDetails.setPiece(value + " PC");
-//                                                    break;
-//                                                default:
-//                                                    baggageDetails.setWeight(null);
-//                                                    baggageDetails.setPiece(null);
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-
                         }
 
                         //Setting mandatory manual inputs here
@@ -500,11 +458,8 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             //1. Retrieving the PNR
             PNRReply pnrReply = serviceHandler.retrivePNR(ancillaryServiceRequest.getGdsPNR(), amadeusSessionWrapper);
 
-            List<Map<String, String>> passengerRefMap = getPassengerRefAndNames(pnrReply);
-            excessBaggageInfoStandalone.setPassengerMap(passengerRefMap);
-
             //2. Getting the BaggageDetails here
-            ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getAdditionalBaggageInfoStandalone(amadeusSessionWrapper, passengerRefMap, ancillaryServiceRequest);
+            ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getAdditionalBaggageInfoStandalone(amadeusSessionWrapper, ancillaryServiceRequest);
 
             getAdditionalBaggageInformationStandalone(serviceStandaloneCatalogueReply, excessBaggageInfoStandalone);
 
@@ -626,22 +581,29 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                 String attributeType = criteriaDetail.getAttributeType();
                                 String attributeDescription = criteriaDetail.getAttributeDescription();
 
-                                if (attributeType.equalsIgnoreCase("BKM")) {
-                                    baggageDetails.setBkm(attributeDescription);
-                                }
+                                switch (attributeType.toUpperCase()) {
 
-                                if (attributeType.equalsIgnoreCase("MIF") && !attributeDescription.equalsIgnoreCase("N")) {
-                                    baggageDetails.setMIF(true);
-                                }
+                                    case "BKM":
+                                        baggageDetails.setBkm(attributeDescription);
+                                    break ;
 
-                                if (attributeType.equalsIgnoreCase("ROR") && attributeDescription.equalsIgnoreCase("Y")) {
-                                    baggageDetails.setRefundable(true);
-                                }
+                                    case "MIF":
+                                        if (!attributeDescription.equalsIgnoreCase("N")) {
+                                            baggageDetails.setMIF(true);
+                                        }
+                                    break ;
 
-                                if (attributeType.equalsIgnoreCase("CNM")) {
-                                    baggageDetails.setBaggageDescription(attributeDescription);
-                                }
+                                    case "ROR":
+                                        if (attributeDescription.equalsIgnoreCase("Y")) {
+                                            baggageDetails.setRefundable(true);
+                                        }
+                                    break ;
 
+                                    case "CNM":
+                                        baggageDetails.setBaggageDescription(attributeDescription);
+                                    break ;
+
+                                }
                             }
                         }
 
@@ -660,13 +622,52 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                             baggageDetails.setCarrierCode(specialRequirementsInfo.getAirlineCode());
 
                             //Setting excess baggage value here with respect to airline filing
+
+                            ServiceStandaloneCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup;
                             switch (ssrCode) {
+
+                                case "PDBG":
+                                    baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
+                                    List<com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S> ranges = baggageDescriptionGroup.getRange();
+
+                                    outerForLoopRange:
+                                    for (com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S range : ranges) {
+                                        List<com.amadeus.xml.tpscgr_17_1_1a.RangeType> rangeDetails = range.getRangeDetails();
+                                        for (com.amadeus.xml.tpscgr_17_1_1a.RangeType rangeDetail : rangeDetails) {
+                                            String rangeType = rangeDetail.getDataType();
+                                            if (rangeType.equals("K")) {
+                                                BigDecimal max = rangeDetail.getMax();
+                                                BigDecimal min = rangeDetail.getMin();
+                                                BigDecimal value = null;
+
+                                                if (min != null && max != null) {
+                                                    value = max;
+                                                } else if (max != null) {
+                                                    value = max;
+                                                } else if (min != null) {
+                                                    value = min;
+                                                }
+
+                                                baggageDetails.setWeight(value + " KG");
+                                                break outerForLoopRange;
+                                            }
+                                        }
+                                    }
+                                    break;
+
 
                                 case "ABAG":
                                 case "BBAG":
                                 case "CBAG":
                                 case "DBAG":
                                 case "EBAG":
+                                case "PBAG":
+                                case "SBAG":
+
+                                case "OVBG":
+                                case "HPBG":
+                                case "XWBG":
+                                case "CHDS":
 
                                     baggageDetails.setPiece("1 PC");
 
@@ -674,15 +675,47 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
                                 default:
                                     List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup> fsfkwDataGroup = serviceDetailsGroup.getFsfkwDataGroup();
-                                    for (ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup fsfkwData : fsfkwDataGroup) {
-                                        com.amadeus.xml.tpscgr_17_1_1a.AttributeType208309S fsfkwValues = fsfkwData.getFsfkwValues();
-                                        com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType208311S fsfkwRanges = fsfkwData.getFsfkwRanges();
+                                    baggageDescriptionGroup = serviceGroup.getBaggageDescriptionGroup();
 
-                                        if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("WVAL")) {
-                                            baggageDetails.setWeight(fsfkwRanges.getRangeDetails().getMax() + " KG");
+                                    if (fsfkwDataGroup != null && !fsfkwDataGroup.isEmpty()) {
+                                        for (ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup.FsfkwDataGroup fsfkwData : fsfkwDataGroup) {
+                                            com.amadeus.xml.tpscgr_17_1_1a.AttributeType208309S fsfkwValues = fsfkwData.getFsfkwValues();
+                                            com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType208311S fsfkwRanges = fsfkwData.getFsfkwRanges();
+
+                                            if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("WVAL")) {
+                                                baggageDetails.setWeight(fsfkwRanges.getRangeDetails().getMax() + " KG");
+                                            }
+                                            if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("PVAL")) {
+                                                baggageDetails.setPiece(fsfkwRanges.getRangeDetails().getMax() + " PC");
+                                            }
                                         }
-                                        if (fsfkwValues.getCriteriaDetails().getAttributeType().equalsIgnoreCase("PVAL")) {
-                                            baggageDetails.setPiece(fsfkwRanges.getRangeDetails().getMax() + " PC");
+                                    } else if (baggageDescriptionGroup != null) {
+                                        List<com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S> rangeList = baggageDescriptionGroup.getRange();
+
+                                        for (com.amadeus.xml.tpscgr_17_1_1a.RangeDetailsType191709S range : rangeList) {
+                                            List<com.amadeus.xml.tpscgr_17_1_1a.RangeType> rangeDetails = range.getRangeDetails();
+                                            for (com.amadeus.xml.tpscgr_17_1_1a.RangeType rangeDetail : rangeDetails) {
+                                                String rangeType = rangeDetail.getDataType();
+                                                switch (rangeType) {
+                                                    case "K":
+
+                                                        BigDecimal max = rangeDetail.getMax();
+                                                        BigDecimal min = rangeDetail.getMin();
+                                                        BigDecimal value = null;
+
+                                                        if (min != null && max != null) {
+                                                            value = max;
+                                                        } else if (max != null) {
+                                                            value = max;
+                                                        } else if (min != null) {
+                                                            value = min;
+                                                        }
+
+                                                        baggageDetails.setWeight(value + " KG");
+                                                }
+                                                break;
+                                            }
+
                                         }
                                     }
                             }

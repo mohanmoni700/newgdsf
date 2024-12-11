@@ -78,7 +78,7 @@ public class AncillaryServiceReq {
             return serviceIntegratedCatalogue;
         }
 
-        public static ServiceStandaloneCatalogue createShowAdditionalBaggageInformationRequestStandalone(List<Map<String, String>> passengerRefMap, AncillaryServiceRequest ancillaryServiceRequest) {
+        public static ServiceStandaloneCatalogue createShowAdditionalBaggageInformationRequestStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
 
             ServiceStandaloneCatalogue serviceStandaloneCatalogue = new ServiceStandaloneCatalogue();
 
@@ -186,9 +186,7 @@ public class AncillaryServiceReq {
 //                    flightInfo.setAdditionalFlightInfo(additionalFlightInfo);
 
                     flightInfoList.add(flightInfo);
-
                 }
-
             }
 
             serviceStandaloneCatalogue.getFlightInfo().addAll(flightInfoList);

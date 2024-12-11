@@ -12,15 +12,15 @@ public class AncillaryServicesResponse {
     private List<BaggageDetails> baggageList;
 
 
-    public List<Map<String, String>> getPassengerMap() {
-        return passengerMap;
-    }
-
-    public void setPassengerMap(List<Map<String, String>> passengerMap) {
-        this.passengerMap = passengerMap;
-    }
-
-    private List<Map<String, String>> passengerMap;
+//    public List<Map<String, String>> getPassengerMap() {
+//        return passengerMap;
+//    }
+//
+//    public void setPassengerMap(List<Map<String, String>> passengerMap) {
+//        this.passengerMap = passengerMap;
+//    }
+//
+//    private List<Map<String, String>> passengerMap;
 
     public HashMap<String, List<BaggageDetails>> getBaggageMap() {
         return baggageMap;
