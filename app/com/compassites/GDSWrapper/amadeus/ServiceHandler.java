@@ -654,10 +654,10 @@ public class ServiceHandler {
 
     }
 
-    public ServiceStandaloneCatalogueReply getAdditionalBaggageInfoStandalone(AmadeusSessionWrapper amadeusSessionWrapper,  List<Map<String, String>> passengerRefMap, AncillaryServiceRequest ancillaryServiceRequest){
+    public ServiceStandaloneCatalogueReply getAdditionalBaggageInfoStandalone(AmadeusSessionWrapper amadeusSessionWrapper, AncillaryServiceRequest ancillaryServiceRequest){
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
-        ServiceStandaloneCatalogue serviceStandaloneCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowAdditionalBaggageInformationRequestStandalone(passengerRefMap, ancillaryServiceRequest);
+        ServiceStandaloneCatalogue serviceStandaloneCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowAdditionalBaggageInformationRequestStandalone(ancillaryServiceRequest);
         amadeusLogger.debug("ServiceStandaloneCatalogue Additional Baggage Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogue));
         ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = mPortType.serviceStandaloneCatalogue(serviceStandaloneCatalogue, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("ServiceStandaloneCatalogue Additional Baggage Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogueReply));
