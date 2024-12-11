@@ -458,7 +458,7 @@ public class FlightSearchWrapper {
                     for (Journey journey : nonSeamenItinerary.getJourneyList()) {
                         Journey journey1 = new Journey();
                         String groupKey = journey.getGroupingKey();
-                        if (concurrentHashMap != null && concurrentHashMap.size() > 0 && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.get(groupKey).size() > 1) {
+                        if (concurrentHashMap != null && concurrentHashMap.size() > 0 && groupKey!=null && concurrentHashMap.containsKey(groupKey) && concurrentHashMap.get(groupKey).size() > 1) {
                             List<Integer> hashCodes = concurrentHashMap.get(groupKey);
                             List<FlightItinerary> flightItineraries = new ArrayList<>();
                             boolean isSkip = true;
