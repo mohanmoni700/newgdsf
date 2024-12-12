@@ -100,15 +100,15 @@ public class Application {
         }
 //        SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         logger.debug("SearchParamerters: " + json.toString());
-        if (searchParameters.isSplitTicket()) {
+        /*if (searchParameters.isSplitTicket()) {
             try {
                 splitTicketSearchWrapper.searchSplitTicket(searchParameters);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else {
-            flightSearchWrapper.search(searchParameters);
-        }
+        } else {*/
+        flightSearchWrapper.search(searchParameters);
+        //}
         //mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
