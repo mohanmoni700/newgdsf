@@ -133,6 +133,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
                         counter++;
                         try {
                             searchResponses1 = future.get();
+                            logger.debug("result size "+searchResponses1.size());
                         } catch (RetryException retryOnFailure) {
                             exceptionCounter++;
                             logger.error("retrialError in FlightSearchWrapper : ", retryOnFailure);
