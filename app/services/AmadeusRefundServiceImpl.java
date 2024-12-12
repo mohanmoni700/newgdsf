@@ -106,7 +106,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                 ticketCheckEligibilityRes.setMessage(errorMessage);
                             } else {
                                 ticketCheckEligibilityRes.setStatus(Boolean.TRUE);
-                                ticketCheckEligibilityRes.setRefundableAmount(calculateTotalRefund(totalRefundable));
+                                ticketCheckEligibilityRes.setRefundableAmount(totalRefundable);
                             }
                             AMATicketIgnoreRefundRS amaTicketIgnoreRefundRS = refundServiceHandler.ticketIgnoreRefundRQ(amadeusSessionWrapper);
                             pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
@@ -318,7 +318,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                 }
                             }
                             ticketCheckEligibilityRes.setStatus(Boolean.TRUE);
-                            ticketCheckEligibilityRes.setRefundableAmount(calculateTotalRefund(totalRefundable));
+                            ticketCheckEligibilityRes.setRefundableAmount(totalRefundable);
                             AMATicketIgnoreRefundRS amaTicketIgnoreRefundRS = refundServiceHandler.ticketIgnoreRefundRQ(amadeusSessionWrapper);
                             pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
                         } else {
