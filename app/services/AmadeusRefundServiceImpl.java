@@ -425,7 +425,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                     }
                                 }
 
-                                ticketProcessRefundRes.setRefundableAmount(calculateTotalRefund(totalRefundable).toString());
+                                ticketProcessRefundRes.setRefundableAmount(totalRefundable.toString());
                                 ticketProcessRefundRes.setStatus(Boolean.TRUE);
                                 ticketProcessRefundRes.setRefTicketsList(refundedTickets);
                             }
@@ -550,12 +550,12 @@ Refund Amt NIL + RAF Rs 300 = INR 300 + Tax 18% = Rs 354/-
 
      */
 
-    public BigDecimal calculateTotalRefund(BigDecimal totalRefund){
-        BigDecimal rafAmount = new BigDecimal( Play.application().configuration().getInt("amadeus.refundRAF"));
-        BigDecimal taxRate = new BigDecimal( Play.application().configuration().getDouble("amadeus.refundTaxRate"));
-        BigDecimal totalBeforeTax = totalRefund.add(rafAmount);
-        BigDecimal taxAmount = totalBeforeTax.multiply(taxRate);
-        totalBeforeTax = totalBeforeTax.add(taxAmount);
-      return totalBeforeTax;
-    }
+//    public BigDecimal calculateTotalRefund(BigDecimal totalRefund){
+//        BigDecimal rafAmount = new BigDecimal( Play.application().configuration().getInt("amadeus.refundRAF"));
+//        BigDecimal taxRate = new BigDecimal( Play.application().configuration().getDouble("amadeus.refundTaxRate"));
+//        BigDecimal totalBeforeTax = totalRefund.add(rafAmount);
+//        BigDecimal taxAmount = totalBeforeTax.multiply(taxRate);
+//        totalBeforeTax = totalBeforeTax.add(taxAmount);
+//      return totalBeforeTax;
+//    }
 }
