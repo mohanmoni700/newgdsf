@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import dto.OpenTicketDTO;
 import dto.OpenTicketResponse;
+import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AncillaryServiceRequest;
 import models.MiniRule;
@@ -483,17 +484,32 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result reIssueTicket() {
+    public Result reIssueSearchFlights() {
         JsonNode json = request().body().asJson();
 
         ReIssueSearchRequest reIssueSearchRequest = Json.fromJson(json, ReIssueSearchRequest.class);
-        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueSearchRequest));
+        logger.debug("Reissue Search Flight Request Body{}", Json.toJson(reIssueSearchRequest));
 
         //Complete the response Body later
         SearchResponse reIssueTicketResponse = reIssueService.reIssueTicket(reIssueSearchRequest);
         logger.debug("ReissueTicket response Body{}", Json.toJson(reIssueTicketResponse));
 
         return ok(Json.toJson(reIssueTicketResponse));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result confirmReIssue() {
+
+        JsonNode json = request().body().asJson();
+
+        ReIssueConfirmationRequest reIssueConfirmationRequest = Json.fromJson(json, ReIssueConfirmationRequest.class);
+        logger.debug("Reissue Confirmation Request Body{}", Json.toJson(reIssueConfirmationRequest));
+
+        //Complete the response Body later
+        PNRResponse reIssuePNRResponse = reIssueService.confirmReissue(reIssueConfirmationRequest);
+        logger.debug("Reissue Confirmation Response Body{}", Json.toJson(reIssuePNRResponse));
+
+        return ok(Json.toJson(reIssueConfirmationRequest));
     }
 
 

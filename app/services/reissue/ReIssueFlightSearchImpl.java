@@ -1,13 +1,12 @@
 package services.reissue;
 
 import com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType;
-import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply;
 import com.amadeus.xml.fmtctr_18_2_1a.*;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.constants.AmadeusConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
+import com.compassites.model.amadeus.reissue.ReIssuePerPaxPricingInfo;
 import com.compassites.model.amadeus.reissue.ReIssuePricingInformation;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
@@ -34,7 +33,6 @@ import utils.ErrorMessageHelper;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
@@ -48,8 +46,6 @@ import static com.compassites.model.PROVIDERS.AMADEUS;
 public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
     static Logger logger = LoggerFactory.getLogger("gds");
-
-    private static final Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
     @Autowired
     private AmadeusSessionManager amadeusSessionManager;
@@ -329,12 +325,20 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
                     //Journey Related Information
                     flightItinerary.setPassportMandatory(false);
-                    flightItinerary = createJourneyInformation(reIssueSearchRequest, segmentRef, flightItinerary, flightIndexList, recommendation);
+                    try {
+                        flightItinerary = createJourneyInformation(reIssueSearchRequest, segmentRef, flightItinerary, flightIndexList, recommendation);
+                    } catch (Exception e) {
+                        logger.debug("Error Creating Reissue Search Results Journey Information {} ", e.getMessage(), e);
+                    }
 
                     //Pricing Related Information
-                    flightItinerary.setReIssuePricingInformation(getReIssuePricingInformation(recommendation, officeId, currency, segmentRef, baggageList));
-                    if (reIssueSearchRequest.isSeaman()) {
-                        flightItinerary.setPriceOnlyPTC(true);
+                    try {
+                        flightItinerary.setReIssuePricingInformation(getReIssuePricingInformation(recommendation, officeId, currency, segmentRef, baggageList));
+                        if (reIssueSearchRequest.isSeaman()) {
+                            flightItinerary.setPriceOnlyPTC(true);
+                        }
+                    } catch (Exception e) {
+                        logger.debug("Error Creating Reissue Search Results Pricing Information {} ", e.getMessage(), e);
                     }
 
 
@@ -343,7 +347,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             }
             return flightItineraryHashMap;
         } catch (Exception e) {
-            logger.debug("error in getFlightItineraryHashmap :" + e.getMessage());
+            logger.debug("Error in getFlightItineraryHashmap :{}", e.getMessage());
         }
         return flightItineraryHashMap;
     }
@@ -435,6 +439,9 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         //FareBasis set here
         String fareBasis = getFareBasis(recommendation.getPaxFareProduct().get(0).getFareDetails().get(0));
 
+        //Fare Description and Last Ticketing date set here
+        setFareDescriptionAndLastTktDate(journey, recommendation.getPaxFareProduct().get(0).getFare());
+
         //Segment information set here
         String validatingCarrierCode = null;
         if (recommendation.getPaxFareProduct().get(0).getPaxFareDetail().getCodeShareDetails().get(0).getTransportStageQualifier().equals("V")) {
@@ -452,6 +459,25 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         }
         getConnectionTime(journey.getAirSegmentList());
         return journey;
+    }
+
+    public void setFareDescriptionAndLastTktDate(Journey journey, List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.Fare> fares) {
+        String fareDesc = "";
+        List<String> lastTktDate = new ArrayList<>();
+
+        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.Fare fare : fares) {
+            if (fare.getPricingMessage().getFreeTextQualification().getTextSubjectQualifier().equalsIgnoreCase("PEN")) {
+                fareDesc = fare.getPricingMessage().getDescription().get(0).toString();
+            }
+            if (fare.getPricingMessage().getFreeTextQualification().getTextSubjectQualifier().equalsIgnoreCase("LTD")) {
+                if (!fare.getPricingMessage().getDescription().isEmpty()) {
+                    lastTktDate.addAll(fare.getPricingMessage().getDescription());
+                }
+            }
+        }
+
+        journey.setFareDescription(fareDesc);
+        journey.setLastTktDate(lastTktDate);
     }
 
     private void getConnectionTime(List<AirSegmentInformation> airSegments) {
@@ -599,34 +625,6 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         return duration;
     }
 
-    private List<PAXFareDetails> createFareDetails(TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation) {
-        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
-
-        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
-            PAXFareDetails paxFareDetails = new PAXFareDetails();
-
-            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails : paxFareProduct.getFareDetails()) {
-                FareJourney fareJourney = new FareJourney();
-
-                PassengerTypeCode passengerTypeCode = PassengerTypeCode.valueOf(fareDetails.getGroupOfFares().get(0).getProductInformation().getFareProductDetail().getPassengerType());
-                paxFareDetails.setPassengerTypeCode(passengerTypeCode);
-
-                for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares : fareDetails.getGroupOfFares()) {
-                    FareSegment fareSegment = new FareSegment();
-                    fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
-                    fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
-                    fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
-
-                    fareJourney.getFareSegmentList().add(fareSegment);
-                }
-                paxFareDetails.getFareJourneyList().add(fareJourney);
-            }
-            paxFareDetailsList.add(paxFareDetails);
-        }
-
-        return paxFareDetailsList;
-    }
-
 
     private ReIssuePricingInformation getReIssuePricingInformation(TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation, String officeId, String gdsCurrency, ReferenceInfoType segmentRef, List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
 
@@ -634,8 +632,9 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
         reIssuePricingInformation.setPricingOfficeId(officeId);
         reIssuePricingInformation.setGdsCurrency(gdsCurrency);
-
         reIssuePricingInformation.setProvider("Amadeus");
+
+        ///Total Price Being set here
         List<MonetaryInformationDetailsType> monetaryDetails = recommendation.getRecPriceInfo().getMonetaryDetail();
         BigDecimal totalFare = monetaryDetails.get(0).getAmount();
         BigDecimal totalTax = monetaryDetails.get(1).getAmount();
@@ -670,48 +669,93 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             }
         }
 
-        List<PassengerTax> passengerTaxes = new ArrayList<>();
+        /// Pax wise pricing info set here
+        List<ReIssuePerPaxPricingInfo> paxWisePricingList = new ArrayList<>();
         List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct> paxFareProductList = recommendation.getPaxFareProduct();
         for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : paxFareProductList) {
-            PassengerTax passengerTax = new PassengerTax();
             int paxCount = paxFareProduct.getPaxReference().get(0).getTraveller().size();
             String paxType = paxFareProduct.getPaxReference().get(0).getPtc().get(0);
             PricingTicketingSubsequentType216944S paxFareDetail = paxFareProduct.getPaxFareDetail();
-            BigDecimal amount = paxFareDetail.getTotalFareAmount();
-            BigDecimal tax = paxFareDetail.getTotalTaxAmount();
-            BigDecimal baseFare = amount.subtract(tax);
+            List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails> fareDetailsList = paxFareProduct.getFareDetails();
             switch (paxType.toUpperCase()) {
                 case "ADT":
                 case "SEA":
-                    reIssuePricingInformation.setAdtBasePrice(baseFare);
-                    reIssuePricingInformation.setAdtTotalPrice(amount);
-                    passengerTax.setPassengerType("ADT");
-                    passengerTax.setTotalTax(tax);
-                    passengerTax.setPassengerCount(paxCount);
+                    paxWisePricingList.add(paxWisePricing(paxCount, PassengerTypeCode.ADT, paxFareDetail, fareDetailsList));
                     break;
                 case "CHD":
-                    reIssuePricingInformation.setChdBasePrice(baseFare);
-                    reIssuePricingInformation.setChdTotalPrice(amount);
-                    passengerTax.setPassengerType("CHD");
-                    passengerTax.setTotalTax(tax);
-                    passengerTax.setPassengerCount(paxCount);
+                    paxWisePricingList.add(paxWisePricing(paxCount, PassengerTypeCode.CHD, paxFareDetail, fareDetailsList));
                     break;
                 case "INF":
-                    reIssuePricingInformation.setInfBasePrice(baseFare);
-                    reIssuePricingInformation.setInfTotalPrice(amount);
-                    passengerTax.setPassengerType("INF");
-                    passengerTax.setTotalTax(tax);
-                    passengerTax.setPassengerCount(paxCount);
+                    paxWisePricingList.add(paxWisePricing(paxCount, PassengerTypeCode.INF, paxFareDetail, fareDetailsList));
                     break;
             }
-            passengerTaxes.add(passengerTax);
         }
-        reIssuePricingInformation.setPassengerTaxes(passengerTaxes);
+        reIssuePricingInformation.setPaxWisePricing(paxWisePricingList);
         reIssuePricingInformation.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
 
-        reIssuePricingInformation.setPaxFareDetailsList(createFareDetails(recommendation));
-
         return reIssuePricingInformation;
+    }
+
+    private static ReIssuePerPaxPricingInfo paxWisePricing(int paxCount, PassengerTypeCode paxType, PricingTicketingSubsequentType216944S paxFareDetail,
+                                                           List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails> fareDetailsList) {
+
+        try {
+            ReIssuePerPaxPricingInfo reIssuePerPaxPricingInfo = new ReIssuePerPaxPricingInfo();
+
+            reIssuePerPaxPricingInfo.setPaxCount(paxCount);
+            reIssuePerPaxPricingInfo.setPaxType(paxType);
+            BigDecimal amount = paxFareDetail.getTotalFareAmount();
+            BigDecimal tax = paxFareDetail.getTotalTaxAmount();
+            BigDecimal baseFare = amount.subtract(tax);
+
+            reIssuePerPaxPricingInfo.setBaseFare(baseFare);
+            reIssuePerPaxPricingInfo.setTotalAmount(amount);
+            reIssuePerPaxPricingInfo.setTaxAmount(tax);
+
+            List<MonetaryInformationDetailsType> monetaryDetailsList = paxFareDetail.getMonetaryDetails();
+
+            for (MonetaryInformationDetailsType monetaryInformationDetailsType : monetaryDetailsList) {
+                switch (monetaryInformationDetailsType.getAmountType().toUpperCase()) {
+                    case "D":
+                        reIssuePerPaxPricingInfo.setGrandTotalDifferenceAmountD(monetaryInformationDetailsType.getAmount());
+                        break;
+                    case "B":
+                        reIssuePerPaxPricingInfo.setTaxDifferenceB(monetaryInformationDetailsType.getAmount());
+                        break;
+                    case "P":
+                        reIssuePerPaxPricingInfo.setPenaltyAmountP(monetaryInformationDetailsType.getAmount());
+                        break;
+                    case "A":
+                        reIssuePerPaxPricingInfo.setAdditionalCollectionA(monetaryInformationDetailsType.getAmount());
+                        break;
+                    case "C":
+                        reIssuePerPaxPricingInfo.setMcoResidualValueC(monetaryInformationDetailsType.getAmount());
+                        break;
+                }
+            }
+
+            PAXFareDetails paxFareDetails = new PAXFareDetails();
+            paxFareDetails.setPassengerTypeCode(paxType);
+            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails : fareDetailsList) {
+                FareJourney fareJourney = new FareJourney();
+
+                for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares : fareDetails.getGroupOfFares()) {
+                    FareSegment fareSegment = new FareSegment();
+                    fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
+                    fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
+                    fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
+
+                    fareJourney.getFareSegmentList().add(fareSegment);
+                }
+                paxFareDetails.getFareJourneyList().add(fareJourney);
+            }
+            reIssuePerPaxPricingInfo.setPaxFareDetails(paxFareDetails);
+
+            return reIssuePerPaxPricingInfo;
+        } catch (Exception e) {
+            logger.debug("Error Creating Per Pax Reissue Pricing Information {} ", e.getMessage(), e);
+            return null;
+        }
     }
 
     private void mergeResults(ConcurrentHashMap<Integer, FlightItinerary> allFlightItineraries, SearchResponse searchResponse) {
@@ -773,7 +817,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
     }
 
-    //    public SearchResponse reIssueFlightSearch(ReIssueTicketRequest reIssueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
+//    public SearchResponse reIssueFlightSearch(ReIssueTicketRequest reIssueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
 //        List<FlightSearchOffice> officeList = getOfficeList();
 //        ConcurrentHashMap<Integer, FlightItinerary> hashMap = new ConcurrentHashMap<>();
 //        List<ErrorMessage> errorMessages = new CopyOnWriteArrayList<>();

@@ -15,8 +15,10 @@ import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.SearchResponse;
+import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AmadeusSessionWrapper;
+import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Component;
 import play.Configuration;
 import play.Play;
 import play.libs.Json;
+import services.AmadeusSourceOfficeService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +37,24 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
     private static final Logger logger = LoggerFactory.getLogger("gds");
 
+    private final ReIssueFlightSearch reIssueFlightSearch;
+    private final ReIssueBookingService reIssueBookingService;
+    private final ServiceHandler serviceHandler;
+    private final AmadeusSourceOfficeService amadeusSourceOfficeService;
+
     @Autowired
-    private ReIssueFlightSearch reIssueFlightSearch;
-    @Autowired
-    private ServiceHandler serviceHandler;
+    public AmadeusReissueServiceImpl(
+            ReIssueFlightSearch reIssueFlightSearch,
+            ReIssueBookingService reIssueBookingService,
+            ServiceHandler serviceHandler,
+            AmadeusSourceOfficeService amadeusSourceOfficeService
+    ) {
+        this.reIssueFlightSearch = reIssueFlightSearch;
+        this.reIssueBookingService = reIssueBookingService;
+        this.serviceHandler = serviceHandler;
+        this.amadeusSourceOfficeService = amadeusSourceOfficeService;
+    }
+
 
     @Override
     public SearchResponse reIssueTicket(ReIssueSearchRequest reIssueSearchRequest) {
@@ -50,7 +67,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         try {
             serviceHandler = new ServiceHandler();
 //            amadeusSessionWrapper = serviceHandler.logIn();
-            amadeusSessionWrapper = serviceHandler.logIn("DELVS38LF");
+            amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice());
 
             //1. Retrieving the PNR
             PNRReply pnrReply = serviceHandler.retrivePNR(reIssueSearchRequest.getGdsPNR(), amadeusSessionWrapper);
@@ -105,7 +122,6 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
         List<TicketProcessEDocReply.DocGroup> docGroupList = reIssueCheckTicketStatus.getDocGroup();
 
-        outerLoop:
         for (TicketProcessEDocReply.DocGroup docGroup : docGroupList) {
             List<TicketProcessEDocReply.DocGroup.DocDetailsGroup> docDetailsGroupList = docGroup.getDocDetailsGroup();
 
@@ -120,7 +136,8 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
                         String couponStatus = couponDetails.getCpnStatus();
 
-                        // If the coupon status is not "I", the ticket is not open for reissue (I = Open Ticket)
+                        //TODO: To handle Airport Control 24hrs status here as per new requirement.
+                        //If the coupon status is not "I", the ticket is not open for reissue (I = Open Ticket)
                         if (!"I".equalsIgnoreCase(couponStatus)) {
                             ErrorMessage errorMessage = new ErrorMessage();
                             errorMessage.setProvider("Amadeus");
@@ -146,7 +163,6 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
                             if (!reissueSearchResponse.getErrorMessageList().contains(errorMessage)) {
                                 reissueSearchResponse.getErrorMessageList().add(errorMessage);
                             }
-//                            break outerLoop;
                         }
                     }
                 }
@@ -166,8 +182,8 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         for (TicketCheckEligibilityReply.EligibilityInfo eligibilityInfo : checkEligibilityReply.getEligibilityInfo()) {
             List<AttributeInformationType> eligibilityIds = eligibilityInfo.getGeneralEligibilityInfo().getEligibilityId();
 
-            boolean isChangeNotAllowed = false;
-            boolean isChangeGeographyNotAllowed = false;
+            boolean isChangeNotAllowed;
+            boolean isChangeGeographyNotAllowed;
 
             for (AttributeInformationType eligibilityId : eligibilityIds) {
 
@@ -194,6 +210,78 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         return reissueSearchResponse;
     }
 
+    @Override
+    public PNRResponse confirmReIssue(ReIssueConfirmationRequest reIssueConfirmationRequest) {
+
+        ServiceHandler serviceHandler = null;
+        PNRResponse reIssuePNRResponse = null;
+
+        try {
+
+            serviceHandler = new ServiceHandler();
+            FlightSearchOffice officeId = null;
+
+            //Dynamic Office ID here
+            if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("BOMVS34C3")) {
+                officeId = amadeusSourceOfficeService.getPrioritySourceOffice();
+            } else if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("DELVS38LF")) {
+                officeId = amadeusSourceOfficeService.getPrioritySourceOffice();
+            }
+
+            //Splitting and generating a new PNR to be reissued here (Login And LogOut as the Ticket_RebookAndRepricePNR is stateful and needs a fresh PNR retrieve)
+            String newPnrToBeReIssued = splitAndGetNewPnrToReissue(reIssueConfirmationRequest, officeId, serviceHandler);
+
+            //Cancel, Rebook and reprice here and generate a new PNR Response
+            reIssuePNRResponse = reIssueBookingService.confirmReissue(newPnrToBeReIssued, reIssueConfirmationRequest, officeId);
+
+
+            return reIssuePNRResponse;
+        } catch (Exception e) {
+            logger.debug("An Error occurred while processing reissue {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+
+    private static String splitAndGetNewPnrToReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, FlightSearchOffice officeId, ServiceHandler serviceHandler) {
+
+        String childPnr = null;
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        try {
+
+            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+
+            //Retrieving PNR here for stateful operation
+            serviceHandler.retrivePNR(reIssueConfirmationRequest.getOriginalGdsPnr(), amadeusSessionWrapper);
+
+            //Splitting the PNR
+            serviceHandler.splitPNRForReissue(reIssueConfirmationRequest, amadeusSessionWrapper);
+
+            //Saving the Original Booking after the Split
+            serviceHandler.saveChildPNR("14", amadeusSessionWrapper);
+
+            //Saving the Child PNR and retrieving the PNR
+            PNRReply newSplitPnrReply = serviceHandler.saveChildPNR("11", amadeusSessionWrapper);
+            List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElementsDivList = newSplitPnrReply.getDataElementsMaster().getDataElementsIndiv();
+            for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : dataElementsDivList) {
+                if ("SP".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+                    if (dataElementsDiv.getReferencedRecord() != null) {
+                        childPnr = dataElementsDiv.getReferencedRecord().getReferencedReservationInfo().getReservation().getControlNumber();
+                    }
+                }
+            }
+
+            //Final save of the PNR (Ending Transaction)
+            serviceHandler.saveChildPNR("10", amadeusSessionWrapper);
+
+            return childPnr;
+        } catch (Exception e) {
+            logger.debug("Error Splitting the PNR : {} for Reissue \n {} ", reIssueConfirmationRequest.getOriginalGdsPnr(), e.getMessage(), e);
+            return null;
+        } finally {
+            serviceHandler.logOut(amadeusSessionWrapper);
+        }
+    }
 
     public PNRResponse ticketRebookAndRepricePNR(TravellerMasterInfo travellerMasterInfo, ReIssueSearchRequest reIssueTicketRequest) {
         String officeId = null;
@@ -263,31 +351,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         return null;
     }
 
-    /**
-     * import com.amadeus.wsdl.ticket_rebookandrepricepnr_v1_v2.TicketRebookAndRepricePNRPT;
-     * import com.amadeus.xml.AmadeusWebServices;
-     * import com.amadeus.xml.AmadeusWebServicesPT;
-     * import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRQ;
-     * import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRS;
-     *
-     * @param
-     * @return
-     */
 
-//	@Autowired
-//	TicketRebookAndRepricePNRPT ticketRebookAndRepricePNRPT;
-/*	@Override
-	public PNRResponse ticketRebookAndRepricePNR(TravellerMasterInfo travellerMasterInfo) {
-		AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
-		PNRReply pnrReply = serviceHandler.retrivePNR(travellerMasterInfo.getGdsPNR(), amadeusSessionWrapper);
-		//AMATicketRebookAndRepricePNRRQ req = new AMATicketRebookAndRepricePNRRQ();
-		//req.set
-		//Holder holder = new Holder();
-
-		//AMATicketRebookAndRepricePNRRS reprice = ticketRebookAndRepricePNRPT.ticketRebookAndRepricePNR(req,amadeusSessionWrapper, holder);
-		//com.amadeus.xml.pnrret_11_3_1a.PNRRetriev
-		return null;
-	}*/
     public List<String> getTicketList(List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElementsIndivList) {
         List<String> ticketsList = dataElementsIndivList.stream().flatMap(dataElementsIndiv -> dataElementsIndiv.getOtherDataFreetext().stream()).
                 filter(longFreeTextType -> longFreeTextType.getFreetextDetail().getType().equalsIgnoreCase("P06"))
@@ -303,4 +367,6 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
         return finalticketsList;
     }
+
+
 }
