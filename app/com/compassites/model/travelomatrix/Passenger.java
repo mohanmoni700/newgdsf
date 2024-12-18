@@ -3,12 +3,13 @@ package com.compassites.model.travelomatrix;
 
 import javax.annotation.Generated;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Passenger {
 
     @JsonProperty("AddressLine1")

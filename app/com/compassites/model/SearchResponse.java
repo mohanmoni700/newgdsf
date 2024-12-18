@@ -22,6 +22,8 @@ public class SearchResponse {
 
     private FlightSearchOffice flightSearchOffice;
 
+    private String airSegmentKey;
+
     private List<ErrorMessage> errorMessageList;
 
     private boolean isReIssueSearch;
@@ -83,6 +85,12 @@ public class SearchResponse {
 		return "SearchResponse [airSolution=" + airSolution + ", provider=" + provider + ", errorMessageList="
 				+ errorMessageList + "]";
 	}
-    
-    
+
+    public String getAirSegmentKey() {
+        return airSegmentKey;
+    }
+
+    public void setAirSegmentKey(String airSegmentKey) {
+        this.airSegmentKey = airSegmentKey;
+    }
 }

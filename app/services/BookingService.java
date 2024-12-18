@@ -14,6 +14,6 @@ public interface BookingService {
 
     public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo);
 
-    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest);
+    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest, String type);
   /*  public void cancelMystiflyBooking(String pnr);*/
 }

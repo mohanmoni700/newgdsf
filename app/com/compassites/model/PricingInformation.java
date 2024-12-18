@@ -1,5 +1,6 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Map;
 /**
  * Created by mahendra-singh on 23/5/14.
  */
-public class PricingInformation {
+public class PricingInformation implements Serializable {
 
 	private boolean isLCC;
 
@@ -19,6 +20,66 @@ public class PricingInformation {
     private BigDecimal chdBasePrice;
 	
     private BigDecimal infBasePrice;
+
+	private BigDecimal adtOnwardBasePrice;
+
+	private BigDecimal chdOnwardBasePrice;
+
+	private BigDecimal infOnwardBasePrice;
+
+	private BigDecimal adtReturnBasePrice;
+
+	private BigDecimal chdReturnBasePrice;
+
+	private BigDecimal infReturnBasePrice;
+
+	public BigDecimal getAdtOnwardBasePrice() {
+		return adtOnwardBasePrice;
+	}
+
+	public void setAdtOnwardBasePrice(BigDecimal adtOnwardBasePrice) {
+		this.adtOnwardBasePrice = adtOnwardBasePrice;
+	}
+
+	public BigDecimal getChdOnwardBasePrice() {
+		return chdOnwardBasePrice;
+	}
+
+	public void setChdOnwardBasePrice(BigDecimal chdOnwardBasePrice) {
+		this.chdOnwardBasePrice = chdOnwardBasePrice;
+	}
+
+	public BigDecimal getInfOnwardBasePrice() {
+		return infOnwardBasePrice;
+	}
+
+	public void setInfOnwardBasePrice(BigDecimal infOnwardBasePrice) {
+		this.infOnwardBasePrice = infOnwardBasePrice;
+	}
+
+	public BigDecimal getAdtReturnBasePrice() {
+		return adtReturnBasePrice;
+	}
+
+	public void setAdtReturnBasePrice(BigDecimal adtReturnBasePrice) {
+		this.adtReturnBasePrice = adtReturnBasePrice;
+	}
+
+	public BigDecimal getChdReturnBasePrice() {
+		return chdReturnBasePrice;
+	}
+
+	public void setChdReturnBasePrice(BigDecimal chdReturnBasePrice) {
+		this.chdReturnBasePrice = chdReturnBasePrice;
+	}
+
+	public BigDecimal getInfReturnBasePrice() {
+		return infReturnBasePrice;
+	}
+
+	public void setInfReturnBasePrice(BigDecimal infReturnBasePrice) {
+		this.infReturnBasePrice = infReturnBasePrice;
+	}
 
 	private BigDecimal adtTotalPrice;
 

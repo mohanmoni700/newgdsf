@@ -8,7 +8,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import dto.reissue.ReIssueTicketRequest;
+import dto.OpenTicketDTO;
+import dto.OpenTicketResponse;
+import dto.reissue.ReIssueSearchRequest;
+import models.AncillaryServiceRequest;
 import models.MiniRule;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirMessageQueueRS;
 import org.slf4j.Logger;
@@ -30,6 +33,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.compassites.constants.StaticConstatnts.*;
 import static play.mvc.Controller.request;
 import static play.mvc.Results.ok;
 
@@ -64,6 +68,9 @@ public class Application {
     private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
 
     @Autowired
+    private AncillaryService ancillaryService;
+
+    @Autowired
     private ReIssueService reIssueService;
 
     @Autowired
@@ -73,8 +80,10 @@ public class Application {
     private AmadeusTicketCancelDocumentServiceImpl amadeusTicketCancelDocumentServiceImpl;
 
     @Autowired
-    private AncillaryService ancillaryService;
+    private SplitTicketSearchWrapper splitTicketSearchWrapper;
 
+    @Autowired
+    private OpenTicketReportService openTicketReportService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -91,8 +100,16 @@ public class Application {
         }
 //        SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         logger.debug("SearchParamerters: " + json.toString());
+        /*if (searchParameters.isSplitTicket()) {
+            try {
+                splitTicketSearchWrapper.searchSplitTicket(searchParameters);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {*/
         flightSearchWrapper.search(searchParameters);
-//        mergeSearchResults.searchAndMerge(searchParameters);
+        //}
+        //mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 
@@ -115,13 +132,25 @@ public class Application {
     }
 
     public Result splitPNR(){
+        logger.debug("-----------------splitPNR called: ");
         JsonNode json = request().body().asJson();
+        logger.debug("split PNR........ " + Json.toJson(json));
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
-        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest);
+        logger.debug("split PNR called " + Json.toJson(issuanceRequest));
+        logger.debug("getProvider..."+issuanceRequest.getProvider());
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest,CANCEL_PNR);
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
     }
 
+    public Result ticketCancelDocuments() {
+        logger.info("ticketCancelDocuments called ");
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest, VOID_TICKET);
+        logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
+        return ok(Json.toJson(splitPNRResponse));
+    }
     public Result checkFareChangeAndAvailability(){
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);
@@ -352,6 +381,8 @@ public class Application {
         JsonNode jsonNode = null;
         if (PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)){
             jsonNode = mystiflyBookingService.getBookingDetails(pnr);
+        } else if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
+            jsonNode = amadeusBookingService.getBookingDetails(pnr);
         }
         return ok(jsonNode);
 
@@ -455,11 +486,11 @@ public class Application {
     public Result reIssueTicket() {
         JsonNode json = request().body().asJson();
 
-        ReIssueTicketRequest reIssueTicketRequest = Json.fromJson(json, ReIssueTicketRequest.class);
-        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueTicketRequest));
+        ReIssueSearchRequest reIssueSearchRequest = Json.fromJson(json, ReIssueSearchRequest.class);
+        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueSearchRequest));
 
         //Complete the response Body later
-        SearchResponse reIssueTicketResponse = reIssueService.reIssueTicket(reIssueTicketRequest);
+        SearchResponse reIssueTicketResponse = reIssueService.reIssueTicket(reIssueSearchRequest);
         logger.debug("ReissueTicket response Body{}", Json.toJson(reIssueTicketResponse));
 
         return ok(Json.toJson(reIssueTicketResponse));
@@ -525,10 +556,14 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result fetchTmxBaggage() {
+    public Result fetchTmxExtraServices() {
         JsonNode json = request().body().asJson();
         String resultToken = json.get("resultToken").asText();
-        AncillaryServicesResponse ancillaryServicesResponse = flightInfoService.getExtraServicesfromTmx(resultToken);
+        String reResulttoken = json.get("reResulttoken").asText();
+        String journeyType = json.get("journeyType").asText();
+        Boolean isLCC = json.get("isLCC").asBoolean();
+
+        AncillaryServicesResponse ancillaryServicesResponse =ancillaryService.getTmxExtraServices(resultToken,reResulttoken,journeyType,isLCC);
         return ok(Json.toJson(ancillaryServicesResponse));
     }
 
@@ -544,6 +579,73 @@ public class Application {
 
         return ok(Json.toJson(baggageDetails));
 
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result addAdditionalBaggageRequestStandalone() {
+
+        JsonNode json = request().body().asJson();
+
+        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json,AncillaryServiceRequest.class);
+
+        AncillaryServicesResponse baggageDetailsStandalone = ancillaryService.getAdditionalBaggageInfoStandalone(ancillaryServiceRequest);
+        logger.debug("Ancillary - Baggage response Standalone {} ", Json.toJson(baggageDetailsStandalone));
+
+        return ok(Json.toJson(baggageDetailsStandalone));
+    }
+
+    public Result ticketRebookAndRepricePNR(){
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- ticketRebookAndRepricePNR PNR Request: " + json);
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        ReIssueSearchRequest reIssueTicketRequest = new ReIssueSearchRequest();
+        logger.debug("ReissueTicket Request Body{}", Json.toJson(reIssueTicketRequest));
+        PNRResponse pnrResponse = reIssueService.ticketRebookAndRepricePNR(travellerMasterInfo, reIssueTicketRequest);
+        logger.debug("-----------------PNR Response for ticketRebookAndRepricePNR: " + Json.toJson(pnrResponse));
+        return Controller.ok(Json.toJson(pnrResponse));
+    }
+
+    public Result refundSplitTicket() {
+        logger.info("refundSplitTicket called ");
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest, REFUND_TICKET);
+        logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
+        return ok(Json.toJson(splitPNRResponse));
+      }
+
+    public Result openTicketReport() throws IOException {
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- openTicketReport Request: " + json);
+        ObjectMapper mapper = new ObjectMapper();
+        List<OpenTicketDTO> openTicketDTOS = mapper.readValue(
+                json.toString(),
+                mapper.getTypeFactory().constructCollectionType(List.class, OpenTicketDTO.class)
+        );
+        List<OpenTicketResponse> openTicketResponses = new ArrayList<>();
+        int chunkSize = 50;
+        if (openTicketDTOS.size()>chunkSize) {
+            List<List<OpenTicketDTO>> chunks = splitList(openTicketDTOS, chunkSize);
+            for (int i = 0; i < chunks.size(); i++) {
+                List<OpenTicketResponse> openTicketResponses1 = openTicketReportService.openTicketReport(chunks.get(i));
+                openTicketResponses.addAll(openTicketResponses1);
+            }
+        } else {
+            openTicketResponses = openTicketReportService.openTicketReport(openTicketDTOS);
+        }
+        logger.debug(" open ticket response "+Json.toJson(openTicketResponses));
+        return ok(Json.toJson(openTicketResponses));
+    }
+
+    private List<List<OpenTicketDTO>> splitList(List<OpenTicketDTO> list, int chunkSize) {
+        List<List<OpenTicketDTO>> chunks = new ArrayList<>();
+        int totalSize = list.size();
+
+        for (int i = 0; i < totalSize; i += chunkSize) {
+            int end = Math.min(totalSize, i + chunkSize);
+            chunks.add((List<OpenTicketDTO>) new ArrayList<>(list.subList(i, end)));
+        }
+        return chunks;
     }
 
     public Result home(){

@@ -1,9 +1,11 @@
 package com.compassites.model;
 
+import java.io.Serializable;
+
 /**
  * Created by user on 16-09-2014.
  */
-public class FareSegment {
+public class FareSegment implements Serializable {
 
     private String bookingClass;
 

@@ -113,7 +113,7 @@ public class TravelportBookingServiceImpl implements BookingService {
 	}
 
 	@Override
-	public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest){
+	public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest, String type){
 		SplitPNRResponse splitPNRResponse = null;
 		return splitPNRResponse;
 	}

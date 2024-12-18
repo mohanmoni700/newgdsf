@@ -1,7 +1,7 @@
 package services;
 
 import com.compassites.GDSWrapper.travelomatrix.BookingFlights;
-import com.compassites.constants.StaticConstatnts;
+import com.compassites.GDSWrapper.travelomatrix.ExtraServicesTMX;
 import com.compassites.constants.TraveloMatrixConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
@@ -10,27 +10,28 @@ import com.compassites.model.travelomatrix.ResponseModels.Baggage;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.CommitBookingReply;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.Detail;
 import com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply.PassengerDetail;
+import com.compassites.model.travelomatrix.ResponseModels.ExtraServicesReply;
 import com.compassites.model.travelomatrix.ResponseModels.HoldTicket.HoldTicketResponse;
 import com.compassites.model.travelomatrix.ResponseModels.IssueTicket.IssueTicketResponse;
+import com.compassites.model.travelomatrix.ResponseModels.Meal;
 import com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.Price;
 import com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.UpdateFareQuotesReply;
 
 import com.compassites.GDSWrapper.travelomatrix.HoldTicketTMX;
 import com.compassites.GDSWrapper.travelomatrix.IssueHoldTicketTMX;
 import com.compassites.model.travelomatrix.ResponseModels.UpdatePNR.UpdatePNRResponse;
-import com.compassites.model.travelomatrix.UpdatePNRRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import utils.ErrorMessageHelper;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 
 @Service
-
 public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
     static org.slf4j.Logger travelomatrixLogger = LoggerFactory.getLogger("travelomatrix");
@@ -41,6 +42,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
     public HoldTicketTMX holdTicketTMX = new HoldTicketTMX();
 
+    public ExtraServicesTMX extraServicesTMX = new ExtraServicesTMX();
+
     public IssueHoldTicketTMX issueHoldTicketTMX = new IssueHoldTicketTMX();
 
     @Override
@@ -49,17 +52,36 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
     }
 
     @Override
-    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest) {
+    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest, String type) {
         return null;
     }
 
     @Override
+    /*
+      This is called for GDS carriers
+     */
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
         PNRResponse pnrResponse = null;
         travelomatrixLogger.debug("generatePNR called...........");
 
         if(travellerMasterInfo.isBookAndHold()) {
             //Book and Hold
+            if(isExtraservicesAdded(travellerMasterInfo)) {
+                try {
+                    JsonNode onwardExtraServicesReply = extraServicesTMX.getExtraServices(travellerMasterInfo.getSearchResultToken());
+                    ExtraServicesReply onWardServicesReply = new ObjectMapper().treeToValue(onwardExtraServicesReply, ExtraServicesReply.class);
+                    ExtraServicesReply returnServicesReply = null;
+                    if (travellerMasterInfo.getReturnSearchResultToken() != null) {
+                        JsonNode returnExtraServicesReply =  extraServicesTMX.getExtraServices(travellerMasterInfo.getReturnSearchResultToken());
+                        returnServicesReply = new ObjectMapper().treeToValue(onwardExtraServicesReply, ExtraServicesReply.class);
+                    }
+                    fetchAndUpdateExtraServices(travellerMasterInfo,onWardServicesReply,returnServicesReply);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+
             JsonNode jsonResponse = holdTicketTMX.HoldBooking(travellerMasterInfo,0L);
             JsonNode returnjsonResponse = null;
             if(travellerMasterInfo.getItinerary().getReturnResultToken() != null && travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP"))
@@ -92,6 +114,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
                 travelomatrixLogger.error("Error in json parsor :HoldBooking: " + e.getMessage());
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                pnrResponse.setErrorMessage(errorMessage);
                 throw new RuntimeException(e);
 
             }
@@ -107,7 +131,9 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         return pnrResponse;
     }
 
-
+/*
+   This is called for LCC carriers
+ */
     public IssuanceResponse commitBooking(IssuanceRequest issuanceRequest)  {
         IssuanceResponse issuanceResponse = new IssuanceResponse();
         JsonNode jsonResponse = bookingFlights.commitBooking(issuanceRequest,false);
@@ -128,15 +154,17 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                     CommitBookingReply recommitBookingReply =  new ObjectMapper().treeToValue(rejsonResponse, CommitBookingReply.class);
                     if (recommitBookingReply.getStatus().equalsIgnoreCase("0")) {
                         travelomatrixLogger.debug("No Response receieved for CommitBooking from Travelomatrix : " + recommitBookingReply);
-                        issuanceResponse = getCommitBookingResponse(commitBookingReply);
+                        issuanceResponse = getCommitBookingResponse(commitBookingReply,issuanceRequest.getTravellerList());
                     } else {
                         issuanceResponse = getMergedCommitBookingResponse(commitBookingReply,recommitBookingReply);
                     }
                 }else{
-                    issuanceResponse = getCommitBookingResponse(commitBookingReply);
+                    issuanceResponse = getCommitBookingResponse(commitBookingReply,issuanceRequest.getTravellerList());
                 }
             }
         } catch (JsonProcessingException e) {
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            issuanceResponse.setErrorMessage(errorMessage);
             throw new RuntimeException(e);
         }
         return issuanceResponse;
@@ -159,12 +187,16 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             }
         }catch(JsonProcessingException e){
             e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            issuanceResponse.setErrorMessage(errorMessage);
             throw new RuntimeException(e);
         }
 
-
       return issuanceResponse;
     }
+    /*
+      This is called for both GDS and LCC
+     */
     public PNRResponse checkFareChangeAndAvailability(
             TravellerMasterInfo travellerMasterInfo) {
         PNRResponse pnrResponse = null;
@@ -187,10 +219,12 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            pnrResponse.setErrorMessage(errorMessage);
             throw new RuntimeException(e);
         }
 
-        if(travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP") && travellerMasterInfo.getItinerary().getReturnResultToken() != null){
+        if(travellerMasterInfo.getJourneyType().equalsIgnoreCase("ROUND_TRIP") && travellerMasterInfo.getItinerary().getReturnResultToken() != null && pnrResponse.getErrorMessage() == null){
             String returResultToken = travellerMasterInfo.getItinerary().getReturnResultToken();
             JsonNode returnjsonResponse = bookingFlights.getUpdatedFares(returResultToken);
             try {
@@ -254,17 +288,20 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         PricingInformation pricingInformation = new PricingInformation();
         pricingInformation.setBasePrice(new BigDecimal(price.getPriceBreakup().getBasicFare()));
         pricingInformation.setTotalBasePrice(new BigDecimal(price.getTotalDisplayFare()));
-        pricingInformation.setAdtBasePrice(new BigDecimal(price.getPassengerBreakup().getADT().getBasePrice()));
+        int adtCount = Integer.parseInt(price.getPassengerBreakup().getADT().getPassengerCount());
+        int chdCount = (price.getPassengerBreakup().getCHD() != null) ? Integer.parseInt(price.getPassengerBreakup().getCHD().getPassengerCount()) : 0;
+        int infCount = (price.getPassengerBreakup().getINF() != null) ? Integer.parseInt(price.getPassengerBreakup().getINF().getPassengerCount()) : 0;
+        pricingInformation.setAdtBasePrice(new BigDecimal(price.getPassengerBreakup().getADT().getBasePrice()/adtCount));
         pricingInformation.setAdtTotalPrice(new BigDecimal(price.getPassengerBreakup().getADT().getTotalPrice()));
         //pricingInformation.setAdtTotalPrice(totalPrice);
         pricingInformation.setGdsCurrency(price.getCurrency());
         pricingInformation.setTax(new BigDecimal(price.getPriceBreakup().getTax()));
         if(price.getPassengerBreakup().getCHD() != null)
-            pricingInformation.setChdBasePrice(new BigDecimal(price.getPassengerBreakup().getCHD().getBasePrice()));
+            pricingInformation.setChdBasePrice(new BigDecimal(price.getPassengerBreakup().getCHD().getBasePrice()/chdCount));
         else
             pricingInformation.setChdBasePrice(new BigDecimal(0));
         if(price.getPassengerBreakup().getINF() != null)
-            pricingInformation.setInfBasePrice(new BigDecimal(price.getPassengerBreakup().getINF().getBasePrice()));
+            pricingInformation.setInfBasePrice(new BigDecimal(price.getPassengerBreakup().getINF().getBasePrice()/infCount));
         else
          pricingInformation.setInfBasePrice(new BigDecimal(0));
         pricingInformation.setCurrency(price.getCurrency());
@@ -274,20 +311,20 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         PassengerTax adtPassengerTax = new PassengerTax();
         adtPassengerTax.setPassengerType("ADT");
         adtPassengerTax.setPassengerCount(Integer.parseInt(price.getPassengerBreakup().getADT().getPassengerCount()));
-        adtPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getADT().getTax()));
+        adtPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getADT().getTax()/adtCount));
         passengerTaxList.add(adtPassengerTax);
         if(price.getPassengerBreakup().getCHD() != null){
             PassengerTax chdPassengerTax = new PassengerTax();
             chdPassengerTax.setPassengerType("CHD");
             chdPassengerTax.setPassengerCount(Integer.parseInt(price.getPassengerBreakup().getCHD().getPassengerCount()));
-            chdPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getCHD().getTax()));
+            chdPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getCHD().getTax()/chdCount));
             passengerTaxList.add(chdPassengerTax);
         }
         if(price.getPassengerBreakup().getINF() != null){
             PassengerTax infPassengerTax = new PassengerTax();
             infPassengerTax.setPassengerType("INF");
             infPassengerTax.setPassengerCount(Integer.parseInt(price.getPassengerBreakup().getINF().getPassengerCount()));
-            infPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getINF().getTax()));
+            infPassengerTax.setTotalTax(new BigDecimal(price.getPassengerBreakup().getINF().getTax()/infCount));
             passengerTaxList.add(infPassengerTax);
         }
 
@@ -314,7 +351,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         return pnrResponse;
     }
 
-    public IssuanceResponse getCommitBookingResponse(CommitBookingReply commitBookingReply){
+    public IssuanceResponse getCommitBookingResponse(CommitBookingReply commitBookingReply,List<Traveller> travellerList){
         IssuanceResponse issuanceResponse = new IssuanceResponse();
         String airlinePNR=commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
         issuanceResponse.setAirlinePnr(airlinePNR);
@@ -333,35 +370,63 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         Map<String,String> tickenetNumberMap = new HashMap<>();
         List<PassengerDetail> passengerDetailList =  commitBookingReply.getCommitBooking().getBookingDetails().getPassengerDetails();
         List<BaggageDetails> excessBaggageList = new ArrayList<>();
+        List<MealDetails> excessMealList = new ArrayList<>();
         for(PassengerDetail passengerDetail:passengerDetailList){
             String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
             tickenetNumberMap.put(passengerType,ticketNumber);
             List<Baggage> baggage =  passengerDetail.getBaggageList();
+            long contactMasterId = 0;
+            for(Traveller traveller:travellerList) {
+                String firstName = traveller.getPersonalDetails().getFirstName();
+                if(traveller.getPersonalDetails().getMiddleName() != null)
+                firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+                if(firstName.trim().equalsIgnoreCase(passengerDetail.getFirstName()) &&
+                    traveller.getPersonalDetails().getLastName().equalsIgnoreCase(passengerDetail.getLastName())
+                    )
+                contactMasterId = traveller.getContactId();
+            }
             if(baggage!= null && baggage.size() > 0) {
                 for (Baggage baggage1 : baggage) {
                     BaggageDetails baggageDetails = new BaggageDetails();
                     baggageDetails.setPrice(baggage1.getPrice());
                     baggageDetails.setWeight(baggage1.getWeight());
-                    baggageDetails.setTicketNumber(ticketNumber);
+                    baggageDetails.setTmxTicketNumber(ticketNumber);
+                    baggageDetails.setCode(baggage1.getCode());
+                    baggageDetails.setContactMasterId(contactMasterId);
                     excessBaggageList.add(baggageDetails);
                 }
-            }else{
-                BaggageDetails baggageDetails = new BaggageDetails();
-                baggageDetails.setPrice(100L);
-                baggageDetails.setWeight("15 Kg");
-                baggageDetails.setTicketNumber(ticketNumber);
-                excessBaggageList.add(baggageDetails);
             }
+            List<Meal> meals =  passengerDetail.getMealList();
+            if(meals!= null && meals.size() > 0) {
+                for (Meal meal : meals) {
+                    MealDetails mealDetails = new MealDetails();
+                    mealDetails.setMealDesc(meal.getDescription());
+                    mealDetails.setMealPrice(new BigDecimal(meal.getPrice()));
+                    mealDetails.setDestination(meal.getDestination());
+                    mealDetails.setOrigin(meal.getOrigin());
+                    mealDetails.setMealCode(meal.getCode());
+                    mealDetails.setTmxTicketNumber(ticketNumber);
+                    mealDetails.setContactMasterId(contactMasterId);
+                    excessMealList.add(mealDetails);
+                }
+            }
+
+
         }
+
+
+
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
         issuanceResponse.setBookingId(commitBookingReply.getCommitBooking().getBookingDetails().getBookingId());
         String baggage = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
         String updatedBagunits = updateBaggeUnits(baggage);
         issuanceResponse.setBaggage(updatedBagunits);
         //excessBaggage
-        if(excessBaggageList.size() > 0)
+        if(excessBaggageList!= null && excessBaggageList.size() > 0)
         issuanceResponse.setTmxBaggageDetails(excessBaggageList);
+        if(excessMealList!= null && excessMealList.size() > 0)
+            issuanceResponse.setTmxMealDetails(excessMealList);
         return issuanceResponse;
     }
 
@@ -419,6 +484,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         String appidReference = travellerMasterInfo.getAppReference();
         pnrResponse.setAppReference(appidReference);
         pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
+        pnrResponse.setSearchResultToken(travellerMasterInfo.getItinerary().getResultToken());
+        pnrResponse.setReturnSearchResultToken(travellerMasterInfo.getItinerary().getReturnResultToken());
         List<AirSegmentInformation> details = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList();
         int segmentnumber = 1;
         Map<String,String> airlinePNRMap = new HashMap<>();
@@ -468,14 +535,49 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             segmentnumber++;
         }
         pnrResponse.setAirlinePNRMap(airlinePNRMap);
+        List<BaggageDetails> excessBaggageList = new ArrayList<>();
+        List<MealDetails> excessMealList = new ArrayList<>();
        // Map<String,String> tickenetNumberMap = new HashMap<>();
         List<com.compassites.model.travelomatrix.ResponseModels.HoldTicket.PassengerDetail> passengerDetailList =  holdTicketResponse.getHoldTicket().getBookingDetails().getPassengerDetails();
         for(com.compassites.model.travelomatrix.ResponseModels.HoldTicket.PassengerDetail passengerDetail:passengerDetailList){
-            String passengerType = passengerDetail.getPassengerType();
-           // String ticketNumber  = passengerDetail.getTicketNumber();
-           // tickenetNumberMap.put(passengerType,ticketNumber);
+            long contactMasterId = 0;
+            for(Traveller traveller:travellerMasterInfo.getTravellersList()) {
+                String firstName = traveller.getPersonalDetails().getFirstName();
+                if(traveller.getPersonalDetails().getMiddleName() != null && traveller.getPersonalDetails().getMiddleName() !="")
+                    firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+                if(firstName.trim().equalsIgnoreCase(passengerDetail.getFirstName()) &&
+                        traveller.getPersonalDetails().getLastName().equalsIgnoreCase(passengerDetail.getLastName())
+                ) {
+                    contactMasterId = traveller.getPersonalDetails().getTravellerId();
+                }
+            }
+            List<Baggage> baggage =  passengerDetail.getBaggageList();
+            if(baggage!= null && baggage.size() > 0) {
+                for (Baggage baggage1 : baggage) {
+                    BaggageDetails baggageDetails = new BaggageDetails();
+                    baggageDetails.setPrice(baggage1.getPrice());
+                    baggageDetails.setWeight(baggage1.getWeight());
+                    baggageDetails.setContactMasterId(contactMasterId);
+                    excessBaggageList.add(baggageDetails);
+                }
+            }
+            List<Meal> meals =  passengerDetail.getMealList();
+            if(meals!= null && meals.size() > 0) {
+                for (Meal meal : meals) {
+                    MealDetails mealDetails = new MealDetails();
+                    mealDetails.setMealDesc(meal.getDescription());
+                    mealDetails.setMealPrice(new BigDecimal(meal.getPrice()));
+                    mealDetails.setDestination(meal.getDestination());
+                    mealDetails.setOrigin(meal.getOrigin());
+                    mealDetails.setContactMasterId(contactMasterId);
+                    excessMealList.add(mealDetails);
+                }
+            }
         }
-       // pnrResponse.setTicketNumberMap(tickenetNumberMap);
+
+        pnrResponse.setTmxMealDetails(excessMealList);
+        pnrResponse.setTmxBaggageDetails(excessBaggageList);
+
         return pnrResponse;
     }
 
@@ -538,7 +640,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         }
 
         if(travellerMasterInfo.getItinerary().getPricingInformation().getOnwardTotalBasePrice() == onwordPnrResponse.getPricingInfo().getTotalBasePrice()
-           && travellerMasterInfo.getItinerary().getPricingInformation().getOnwardTotalBasePrice() == onwordPnrResponse.getPricingInfo().getTotalBasePrice()){
+           && travellerMasterInfo.getItinerary().getPricingInformation().getReturnTotalBasePrice() == returnPnrResponse.getPricingInfo().getTotalBasePrice()){
             pnrResponse.setPriceChanged(false);
         }else{
             pnrResponse.setPriceChanged(false);
@@ -548,24 +650,38 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         pnrResponse.setFlightAvailable(availbleFlights);
         pnrResponse.setResultToken(onwordPnrResponse.getResultToken());
         pnrResponse.setReturnResultToken(returnPnrResponse.getResultToken());
+        pnrResponse.setSearchResultToken(travellerMasterInfo.getItinerary().getResultToken());
+        pnrResponse.setReturnSearchResultToken(travellerMasterInfo.getItinerary().getReturnResultToken());
         pnrResponse.setAppReference(travellerMasterInfo.getAppReference());
         pnrResponse.setReturnAppReference(travellerMasterInfo.getReturnAppRef());
         PricingInformation pricingInformation = new PricingInformation();
         pricingInformation.setBasePrice(onwordPnrResponse.getPricingInfo().getBasePrice().add(returnPnrResponse.getPricingInfo().getBasePrice()));
         pricingInformation.setTotalBasePrice(onwordPnrResponse.getPricingInfo().getTotalBasePrice().add(returnPnrResponse.getPricingInfo().getTotalBasePrice()));
         pricingInformation.setAdtBasePrice(onwordPnrResponse.getPricingInfo().getAdtBasePrice().add(returnPnrResponse.getPricingInfo().getAdtBasePrice()));
+        pricingInformation.setAdtOnwardBasePrice(onwordPnrResponse.getPricingInfo().getAdtBasePrice());
+        pricingInformation.setAdtReturnBasePrice(returnPnrResponse.getPricingInfo().getAdtBasePrice());
         pricingInformation.setAdtTotalPrice(onwordPnrResponse.getPricingInfo().getAdtTotalPrice().add(returnPnrResponse.getPricingInfo().getAdtTotalPrice()));
         //pricingInformation.setAdtTotalPrice(totalPrice);
         pricingInformation.setGdsCurrency(onwordPnrResponse.getPricingInfo().getGdsCurrency());
         pricingInformation.setTax(onwordPnrResponse.getPricingInfo().getTax().add(returnPnrResponse.getPricingInfo().getTax()));
-        if(!onwordPnrResponse.getPricingInfo().getChdBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getChdBasePrice().equals(0) )
+        if(!onwordPnrResponse.getPricingInfo().getChdBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getChdBasePrice().equals(0) ) {
             pricingInformation.setChdBasePrice(onwordPnrResponse.getPricingInfo().getChdBasePrice().add(returnPnrResponse.getPricingInfo().getChdBasePrice()));
-        else
+            pricingInformation.setChdOnwardBasePrice(onwordPnrResponse.getPricingInfo().getChdBasePrice());
+            pricingInformation.setChdReturnBasePrice(returnPnrResponse.getPricingInfo().getChdBasePrice());
+        }else {
             pricingInformation.setChdBasePrice(new BigDecimal(0));
-        if(!onwordPnrResponse.getPricingInfo().getInfBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getInfBasePrice().equals(0))
+            pricingInformation.setChdOnwardBasePrice(new BigDecimal(0));
+            pricingInformation.setChdReturnBasePrice(new BigDecimal(0));
+        }
+        if(!onwordPnrResponse.getPricingInfo().getInfBasePrice().equals(0) && !returnPnrResponse.getPricingInfo().getInfBasePrice().equals(0)) {
             pricingInformation.setInfBasePrice(onwordPnrResponse.getPricingInfo().getInfBasePrice().add(returnPnrResponse.getPricingInfo().getInfBasePrice()));
-        else
+            pricingInformation.setInfOnwardBasePrice(onwordPnrResponse.getPricingInfo().getInfBasePrice());
+            pricingInformation.setInfReturnBasePrice(returnPnrResponse.getPricingInfo().getInfBasePrice());
+        } else {
             pricingInformation.setInfBasePrice(new BigDecimal(0));
+            pricingInformation.setInfOnwardBasePrice(new BigDecimal(0));
+            pricingInformation.setInfReturnBasePrice(new BigDecimal(0));
+        }
         pricingInformation.setCurrency(onwordPnrResponse.getPricingInfo().getCurrency());
         pricingInformation.setTotalPrice(onwordPnrResponse.getPricingInfo().getTotalPrice().add(returnPnrResponse.getPricingInfo().getTotalPrice()));
         pricingInformation.setTotalPriceValue(onwordPnrResponse.getPricingInfo().getTotalPriceValue().add(returnPnrResponse.getPricingInfo().getTotalPriceValue()));
@@ -574,6 +690,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         adtPassengerTax.setPassengerType("ADT");
         adtPassengerTax.setPassengerCount(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getPassengerCount());
         adtPassengerTax.setTotalTax(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax().add(returnPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax()));
+        adtPassengerTax.setOnwardTax(onwordPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax());
+        adtPassengerTax.setReturnTax(returnPnrResponse.getPricingInfo().getPassengerTaxes().get(0).getTotalTax());
         passengerTaxList.add(adtPassengerTax);
 
         PassengerTax onchdPassengerTax = new PassengerTax();
@@ -597,6 +715,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             chdPassengerTax.setPassengerType("CHD");
             chdPassengerTax.setPassengerCount(onchdPassengerTax.getPassengerCount());
             chdPassengerTax.setTotalTax(onchdPassengerTax.getTotalTax().add(rechdPassengerTax.getTotalTax()));
+            chdPassengerTax.setOnwardTax(onchdPassengerTax.getTotalTax());
+            chdPassengerTax.setReturnTax(rechdPassengerTax.getTotalTax());
             passengerTaxList.add(chdPassengerTax);
         }
         if(oninfPassengerTax.getPassengerType() != null && oninfPassengerTax.getPassengerType().equalsIgnoreCase("INF")){
@@ -604,6 +724,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             infPassengerTax.setPassengerType("INF");
             infPassengerTax.setPassengerCount(oninfPassengerTax.getPassengerCount());
             infPassengerTax.setTotalTax(oninfPassengerTax.getTotalTax().add(reinfPassengerTax.getTotalTax()));
+            infPassengerTax.setOnwardTax(oninfPassengerTax.getTotalTax());
+            infPassengerTax.setReturnTax(reinfPassengerTax.getTotalTax());
             passengerTaxList.add(infPassengerTax);
         }
         pricingInformation.setPassengerTaxes(passengerTaxList);
@@ -717,7 +839,106 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         String baggage = onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
         String updatedBagunits = updateBaggeUnits(baggage);
         issuanceResponse.setBaggage(updatedBagunits);
+
         return issuanceResponse;
 
+    }
+
+    public Boolean isExtraservicesAdded(TravellerMasterInfo travellerMasterInfo){
+        List<Traveller> travellerList = travellerMasterInfo.getTravellersList();
+        for(Traveller traveller:travellerList){
+            if(traveller.getBaggageDetails()!= null || (traveller.getMealDetails() != null && traveller.getMealDetails().size() > 0)){
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+    //update Add ons with latest id
+    public void fetchAndUpdateExtraServices(TravellerMasterInfo travellerMasterInfo,ExtraServicesReply onWardServicesReply,ExtraServicesReply returnServicesReply){
+        logger.debug("ExtraServices are available");
+        if(onWardServicesReply != null && onWardServicesReply.getStatus() != 0){
+            List<List<Baggage>> baggageList = onWardServicesReply.getExtraServices().getExtraServiceDetails().getBaggage();
+            List<List<Meal>> mealsList = onWardServicesReply.getExtraServices().getExtraServiceDetails().getMeals();
+            List<Traveller> travellerList =  travellerMasterInfo.getTravellersList();
+            for(Traveller traveller : travellerList){
+                if(traveller.getBaggageDetails() != null){
+                    List<BaggageDetails> baggageDetailsList = traveller.getBaggageDetails();
+                    for(BaggageDetails baggageDetails:baggageDetailsList) {
+                        baggageDetails.setBaggageId("");
+                        for (List<Baggage> baggages : baggageList) {
+                            for (Baggage baggage : baggages) {
+                                if (baggage.getOrigin().equalsIgnoreCase(baggageDetails.getOrigin()) &&
+                                        baggage.getDestination().equalsIgnoreCase(baggageDetails.getDestination()) &&
+                                        baggage.getWeight().equalsIgnoreCase(baggageDetails.getWeight()) &&
+                                        baggage.getCode().equalsIgnoreCase(baggageDetails.getCode())) {
+                                    baggageDetails.setBaggageId(baggage.getBaggageId());
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(traveller.getMealDetails() != null){
+                    List<MealDetails> mealDetailsList = traveller.getMealDetails();
+                    for(MealDetails mealDetails:mealDetailsList){
+                        mealDetails.setMealId("");
+                        for(List<Meal> mealList: mealsList){
+                            for(Meal meal:mealList){
+                                if(
+                                        meal.getOrigin().equalsIgnoreCase(mealDetails.getOrigin()) &&
+                                        meal.getDestination().equalsIgnoreCase(mealDetails.getDestination() )&&
+                                        meal.getDescription().equalsIgnoreCase(mealDetails.getMealDesc()) &&
+                                        meal.getCode().equalsIgnoreCase(mealDetails.getMealCode())){
+                                    mealDetails.setMealId(meal.getMealId());
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        }
+        if(returnServicesReply != null && returnServicesReply.getStatus() != 0){
+            List<List<Baggage>> baggageList = onWardServicesReply.getExtraServices().getExtraServiceDetails().getBaggage();
+            List<List<Meal>> mealsList = onWardServicesReply.getExtraServices().getExtraServiceDetails().getMeals();
+            List<Traveller> travellerList =  travellerMasterInfo.getTravellersList();
+            for(Traveller traveller : travellerList){
+                if(traveller.getBaggageDetails() != null) {
+                    List<BaggageDetails> baggageDetailsList = traveller.getBaggageDetails();
+                    for (BaggageDetails baggageDetails : baggageDetailsList) {
+                        baggageDetails.setBaggageId("");
+                        for (List<Baggage> baggages : baggageList) {
+                            for (Baggage baggage : baggages) {
+                                if (baggage.getOrigin().equalsIgnoreCase(baggageDetails.getOrigin()) &&
+                                        baggage.getDestination().equalsIgnoreCase(baggageDetails.getDestination()) &&
+                                        baggage.getWeight().equalsIgnoreCase(baggageDetails.getWeight()) &&
+                                        baggage.getCode().equalsIgnoreCase(baggageDetails.getCode())) {
+                                    baggageDetails.setBaggageId(baggage.getBaggageId());
+                                }
+                            }
+
+                        }
+                    }
+                }
+                if(traveller.getMealDetails() != null){
+                    List<MealDetails> mealDetailsList = traveller.getMealDetails();
+                    for(MealDetails mealDetails:mealDetailsList){
+                        mealDetails.setMealId("");
+                        for(List<Meal> mealList: mealsList){
+                            for(Meal meal:mealList){
+                                if(meal.getOrigin().equalsIgnoreCase(mealDetails.getOrigin()) &&
+                                        meal.getDestination().equalsIgnoreCase(mealDetails.getDestination() )&&
+                                        meal.getDescription().equalsIgnoreCase(mealDetails.getMealDesc()) &&
+                                        meal.getCode().equalsIgnoreCase(mealDetails.getMealCode())){
+                                    mealDetails.setMealId(meal.getMealId());
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
     }
 }

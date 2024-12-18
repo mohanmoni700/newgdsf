@@ -31,6 +31,9 @@ POST    /getTripDetails                            @controllers.Application.getT
 POST    /removeTicktedMessage                      @controllers.Application.removeTicktedMessage()
 POST    /getMessagesFromQueue                      @controllers.Application.getMessagesFromQueue()
 GET     /                                          @controllers.Application.home()
+POST 	/ticketCancelDocuments                     @controllers.Application.ticketCancelDocuments()
+POST 	/refundSplitTicket                         @controllers.Application.refundSplitTicket()
+POST    /splitTicket                               @controllers.SplitTicketController.findPossibleRoutes
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                               controllers.Assets.at(path="/public", file)
@@ -45,6 +48,7 @@ POST  /commitBooking                               @controllers.Application.comm
 
 #Reissue
 POST /reIssueTicket                                @controllers.Application.reIssueTicket()
+POST /ticketRebookAndRepricePNR                    @controllers.Application.ticketRebookAndRepricePNR()
 
 #Refund
 POST  /checkRefundEligibility       @controllers.Application.checkRefundEligibiliy()
@@ -53,6 +57,12 @@ POST  /checkPartRefundEligibility   @controllers.Application.checkPartRefundElig
 POST  /processPartialRefund         @controllers.Application.processPartialRefund()
 
 
+
 #Ancillary
 POST /showAdditionalBaggageInfo     @controllers.Application.addAdditionalBaggageRequest()
-POST  /fetchTmxBaggage              @controllers.Application.fetchTmxBaggage()
+POST  /fetchTmxExtraServices              @controllers.Application.fetchTmxExtraServices()
+POST /showAdditionalBaggageInfoStandalone  @controllers.Application.addAdditionalBaggageRequestStandalone()
+
+#Report
+POST    /openTicketReport   @controllers.Application.openTicketReport()
+

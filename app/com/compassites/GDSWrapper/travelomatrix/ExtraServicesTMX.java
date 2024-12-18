@@ -7,6 +7,7 @@ import configs.WsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import play.Play;
 import play.libs.ws.WSRequestHolder;
 
 public class ExtraServicesTMX {
@@ -25,10 +26,11 @@ public class ExtraServicesTMX {
         JsonNode jsonRequest = getJsonFromResultToken(resultToken);
         JsonNode response = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/ExtraServices");
             travelomatrixLogger.debug("TraveloMatixExtraServices : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatixExtraServices : Call to Travelomatix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
             travelomatrixLogger.debug("TraveloMatixExtraServices : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatixExtraServices Response:"+response.toString());
         }catch(Exception e){

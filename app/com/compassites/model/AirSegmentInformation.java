@@ -7,6 +7,7 @@ import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -94,6 +95,29 @@ public class AirSegmentInformation implements Serializable{
     private String baggage;
     private String cabinBaggage;
     private Long availbleSeats;
+    private Long fatv;
+    private Long fdtv;
+
+    public Long getFatv() {
+        return fatv;
+    }
+
+    public void setFatv(Long fatv) {
+        this.fatv = fatv;
+    }
+
+    public Long getFdtv() {
+        return fdtv;
+    }
+
+    public void setFdtv(Long fdtv) {
+        this.fdtv = fdtv;
+    }
+
+    private String amadeusSegmentQualifier;
+
+    private BigInteger amadeusSegmentRefNumber;
+
 
     public String getBaggage() {
         return baggage;
@@ -449,4 +473,21 @@ public class AirSegmentInformation implements Serializable{
     public void setCabinClass(String cabinClass) {
         this.cabinClass = cabinClass;
     }
+
+    public String getAmadeusSegmentQualifier() {
+        return amadeusSegmentQualifier;
+    }
+
+    public void setAmadeusSegmentQualifier(String amadeusSegmentQualifier) {
+        this.amadeusSegmentQualifier = amadeusSegmentQualifier;
+    }
+
+    public BigInteger getAmadeusSegmentRefNumber() {
+        return amadeusSegmentRefNumber;
+    }
+
+    public void setAmadeusSegmentRefNumber(BigInteger amadeusSegmentRefNumber) {
+        this.amadeusSegmentRefNumber = amadeusSegmentRefNumber;
+    }
+
 }

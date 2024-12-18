@@ -1,13 +1,17 @@
 package com.compassites.model;
 
+import com.compassites.model.travelomatrix.AmadeusPaxInformation;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by user on 18-08-2014.
  */
-public class PNRResponse {
+public class PNRResponse implements Serializable  {
 
     private  String pnrNumber;
 
@@ -74,6 +78,29 @@ public class PNRResponse {
     private String searchResultToken;
 
     private String returnSearchResultToken;
+
+    private List<BaggageDetails> tmxBaggageDetails;
+
+    private List<AmadeusPaxInformation> amadeusPaxReference;
+
+    public List<MealDetails> getTmxMealDetails() {
+        return tmxMealDetails;
+    }
+
+    public void setTmxMealDetails(List<MealDetails> tmxMealDetails) {
+        this.tmxMealDetails = tmxMealDetails;
+    }
+
+    private List<MealDetails> tmxMealDetails;
+
+    public List<BaggageDetails> getTmxBaggageDetails() {
+        return tmxBaggageDetails;
+    }
+
+    public void setTmxBaggageDetails(List<BaggageDetails> tmxBaggageDetails) {
+        this.tmxBaggageDetails = tmxBaggageDetails;
+    }
+
 
     public String getSearchResultToken() {
         return searchResultToken;
@@ -191,6 +218,13 @@ public class PNRResponse {
         return validTillDate;
     }
 
+    public List<AmadeusPaxInformation> getAmadeusPaxReference() {
+        return amadeusPaxReference;
+    }
+
+    public void setAmadeusPaxReference(List<AmadeusPaxInformation> amadeusPaxReference) {
+        this.amadeusPaxReference = amadeusPaxReference;
+    }
     public void setValidTillDate(Date validTillDate) {
         this.validTillDate = validTillDate;
     }

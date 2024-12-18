@@ -142,7 +142,7 @@ public class PricePNR {
         validatingCarrier.setCarrierInformation(carrierInformation);
         pricepnr.setValidatingCarrier(validatingCarrier);
 
-        if(isDomesticFlight){
+        if(isDomesticFlight && flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList() != null && !flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList().isEmpty()){
             List<FareJourney> fareJourneys = flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList().get(0).getFareJourneyList();
             int journeyIndex = 1;
             for(FareJourney fareJourney : fareJourneys){

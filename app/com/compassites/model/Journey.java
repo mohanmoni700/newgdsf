@@ -6,6 +6,7 @@ import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
 import javax.xml.datatype.Duration;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Renu on 7/18/14.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Journey
+public class Journey implements Serializable
 {
 
     private Duration travelTime;
@@ -23,6 +24,46 @@ public class Journey
     private Long travelTimeMillis;
     private String airlinesStrForFilter;
     private Integer noOfStops;
+    private String segmentKey;
+
+    private String fromLocation;
+
+    private String toLocation;
+
+    private String fullSegmentKey;
+
+    public String getFullSegmentKey() {
+        return fullSegmentKey;
+    }
+
+    public void setFullSegmentKey(String fullSegmentKey) {
+        this.fullSegmentKey = fullSegmentKey;
+    }
+
+    public String getFromLocation() {
+        return fromLocation;
+    }
+
+    public void setFromLocation(String fromLocation) {
+        this.fromLocation = fromLocation;
+    }
+
+    public String getToLocation() {
+        return toLocation;
+    }
+
+    public void setToLocation(String toLocation) {
+        this.toLocation = toLocation;
+    }
+
+    public String getSegmentKey() {
+        return segmentKey;
+    }
+
+    public void setSegmentKey(String segmentKey) {
+        this.segmentKey = segmentKey;
+    }
+
     @JsonIgnore
     private Integer hashCode;
 

@@ -71,6 +71,16 @@ public class IssuanceResponse implements Serializable{
 
     private List<BaggageDetails> tmxBaggageDetails;
 
+    public List<MealDetails> getTmxMealDetails() {
+        return tmxMealDetails;
+    }
+
+    public void setTmxMealDetails(List<MealDetails> tmxMealDetails) {
+        this.tmxMealDetails = tmxMealDetails;
+    }
+
+    private List<MealDetails> tmxMealDetails;
+
     public List<BaggageDetails> getTmxBaggageDetails() {
         return tmxBaggageDetails;
     }

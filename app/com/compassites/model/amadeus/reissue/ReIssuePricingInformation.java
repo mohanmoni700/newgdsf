@@ -1,9 +1,6 @@
 package com.compassites.model.amadeus.reissue;
 
-import com.compassites.model.PAXFareDetails;
-import com.compassites.model.PassengerTax;
-import com.compassites.model.SegmentPricing;
-import com.compassites.model.TSTPrice;
+import com.compassites.model.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -83,6 +80,8 @@ public class ReIssuePricingInformation implements Serializable {
     private String fareSourceCode;
 
     private String pricingOfficeId;
+
+    private MnrSearchBaggage mnrSearchBaggage;
 
     public boolean isLCC() {
         return isLCC;
@@ -370,6 +369,14 @@ public class ReIssuePricingInformation implements Serializable {
 
     public void setPricingOfficeId(String pricingOfficeId) {
         this.pricingOfficeId = pricingOfficeId;
+    }
+
+    public MnrSearchBaggage getMnrSearchBaggage() {
+        return mnrSearchBaggage;
+    }
+
+    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
+        this.mnrSearchBaggage = mnrSearchBaggage;
     }
 
 }

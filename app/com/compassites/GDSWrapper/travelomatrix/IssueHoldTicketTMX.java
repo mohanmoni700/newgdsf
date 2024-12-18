@@ -10,6 +10,7 @@ import configs.WsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import play.Play;
 import play.libs.ws.WSRequestHolder;
 
 public class IssueHoldTicketTMX {
@@ -27,13 +28,14 @@ public class IssueHoldTicketTMX {
         JsonNode response = null;
         JsonNode reresponse = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/IssueHoldTicket");
             travelomatrixLogger.debug("TraveloMatrixissueHoldTicket : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrixissueHoldTicket : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
             if(issuanceRequest.getReBookingId() != null && issuanceRequest.getReAppRef() != null){
                 JsonNode rejsonRequest = getJsonforIssueHoldTicketRequest(issuanceRequest,true);
-                reresponse = wsrholder.post(rejsonRequest).get(30000).asJson();
+                reresponse = wsrholder.post(rejsonRequest).get(timeout).asJson();
                 if(reresponse != null){
                     travelomatrixLogger.debug("Travelomatrix Return Journey Issuance Ticket is trigreed for bookingId"+ issuanceRequest.getReBookingId());
                     travelomatrixLogger.debug("Travelomatrix Return Journey Issuance Ticket is trigreed and Response is not null" + reresponse.toString());
@@ -84,10 +86,11 @@ public class IssueHoldTicketTMX {
         JsonNode jsonRequest = getJsonforUpdatePNRRequest(appRef);
         JsonNode response = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/BookingDetails");
             travelomatrixLogger.debug("TraveloMatrixBookingDetails to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrixBookingDetails : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
             travelomatrixLogger.debug("TraveloMatrixBookingDetails : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrixBookingDetails Response:"+response.toString());
         }catch(Exception e){

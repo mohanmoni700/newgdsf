@@ -51,13 +51,6 @@ public class SearchParameters implements Serializable,Cloneable{
     private String searchBookingType;
     @Property
     private BookingType bookingType;
-    private boolean splitTicket;
-    public boolean isSplitTicket() {
-        return splitTicket;
-    }
-    public void setSplitTicket(boolean splitTicket) {
-        this.splitTicket = splitTicket;
-    }
     @Property
     private CabinClass cabinClass;
     @JsonIgnore
@@ -67,6 +60,16 @@ public class SearchParameters implements Serializable,Cloneable{
     private String transit;
     private String nationality;
 
+    private Integer sequence;
+
+    public Integer getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
+    }
+
     private List<String> preferredAirlinesList = new ArrayList<>();
     public String getNationality() {
         return nationality;
@@ -74,6 +77,16 @@ public class SearchParameters implements Serializable,Cloneable{
 
     public void setNationality(String nationality) {
         this.nationality = nationality;
+    }
+
+    private boolean splitTicket;
+
+    public boolean isSplitTicket() {
+        return splitTicket;
+    }
+
+    public void setSplitTicket(boolean splitTicket) {
+        this.splitTicket = splitTicket;
     }
 
     public SearchParameters(){
@@ -256,6 +269,9 @@ public class SearchParameters implements Serializable,Cloneable{
         key += "ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+ this.cabinClass;
         key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + preferredAirline;
         key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType+"JT"+this.journeyType;
+        if(this.splitTicket) {
+            key = key + "SPLIT:" + this.splitTicket;
+        }
         return key;
     }
 
