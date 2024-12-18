@@ -73,7 +73,7 @@ public class BookingServiceWrapper {
 			if(pnrResponse.getBookedStatus() != null && pnrResponse.getBookedStatus().equals("PENDING")){
 				pnrResponse.setFlightAvailable(false);
 				CancelServiceWrapper cancelServiceWrapper = null;
-				cancelServiceWrapper.cancelPNR(pnrResponse.getPnrNumber(),"Mystifly",null,null, false);
+				cancelServiceWrapper.cancelPNR(pnrResponse.getPnrNumber(),"Mystifly",null,null, false,null);
 			}
 		} else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)) {
 			pnrResponse =	traveloMatrixBookingService.generatePNR(travellerMasterInfo);
