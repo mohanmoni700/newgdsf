@@ -235,6 +235,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             }
         }catch(Exception e){
             logger.error("Error while creating the airsolution for travelomatrix" + e.getMessage());
+
             e.printStackTrace();
         }
 
@@ -270,6 +271,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         pricingInformation.setTotalPrice(totalFare);
         pricingInformation.setTotalPriceValue(totalFare);
         pricingInformation.setTotalCalculatedValue(totalFare);
+
         pricingInformation.setPriceChanged(Boolean.FALSE);
         pricingInformation.setLCC(journeyDetails.getAttr().getIsLCC());
         pricingInformation.setPricingOfficeId(TraveloMatrixConstants.tmofficeId);
@@ -667,5 +669,6 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         BigDecimal totalValue = new BigDecimal(finalFare);
         return totalValue;
     }
+
 
 }
