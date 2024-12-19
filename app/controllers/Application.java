@@ -340,6 +340,7 @@ public class Application {
         String appRef = Json.fromJson(json.findPath("appRef"), String.class);
         String bookingId = Json.fromJson(json.findPath("bookingId"), String.class);
         Boolean fullPNR = Json.fromJson(json.findPath("fullPNR"), Boolean.class);
+        Boolean isFullCancellation= Json.fromJson(json.findPath("isFullCancellation"), Boolean.class);
         JsonNode ticketsNode = json.get("tickets");
         List<String> ticketList = new LinkedList<>();
         if (ticketsNode != null && ticketsNode.isArray()) {
@@ -349,7 +350,7 @@ public class Application {
         }
         logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
 
-        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId,fullPNR,ticketList);
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId,fullPNR,ticketList,isFullCancellation);
 
         logger.debug("cancel pnr response " + Json.toJson(cancelPNRResponse));
         return ok(Json.toJson(cancelPNRResponse));
