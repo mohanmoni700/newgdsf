@@ -32,7 +32,7 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Preferences;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.compassites.model.travelomatrix.AmadeusPaxInformation;
+import com.compassites.model.amadeus.AmadeusPaxInformation;
 import com.fasterxml.jackson.databind.JsonNode;
 //import com.sun.org.apache.xpath.internal.operations.Bool;
 import models.AmadeusSessionWrapper;

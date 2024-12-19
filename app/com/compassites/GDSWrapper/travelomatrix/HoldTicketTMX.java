@@ -41,11 +41,11 @@ public class HoldTicketTMX {
         try {
             int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/HoldTicket");
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking : Request to TM : "+ jsonRequest.toString());
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
             response = wsrholder.post(jsonRequest).get(timeout).asJson();
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
-            travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking Response:"+response.toString());
         }catch(Exception e){
             travelomatrixLogger.error(e.getMessage());
             e.printStackTrace();

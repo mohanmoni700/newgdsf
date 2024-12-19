@@ -1,6 +1,6 @@
 package com.compassites.model;
 
-import com.compassites.model.travelomatrix.AmadeusPaxInformation;
+import com.compassites.model.amadeus.AmadeusPaxInformation;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -86,6 +86,8 @@ public class PNRResponse implements Serializable  {
     public List<MealDetails> getTmxMealDetails() {
         return tmxMealDetails;
     }
+
+    private boolean isReIssueSuccess;
 
     public void setTmxMealDetails(List<MealDetails> tmxMealDetails) {
         this.tmxMealDetails = tmxMealDetails;
@@ -363,6 +365,14 @@ public class PNRResponse implements Serializable  {
 
     public void setChangedPriceLow(boolean changedPriceLow) {
         isChangedPriceLow = changedPriceLow;
+    }
+
+    public boolean isReIssueSuccess() {
+        return isReIssueSuccess;
+    }
+
+    public void setReIssueSuccess(boolean reIssueSuccess) {
+        isReIssueSuccess = reIssueSuccess;
     }
 }
 

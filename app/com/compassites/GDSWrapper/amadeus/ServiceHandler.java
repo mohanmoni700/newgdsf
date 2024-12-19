@@ -57,6 +57,7 @@ import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import dto.OpenTicketDTO;
+import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AmadeusSessionWrapper;
 import models.AncillaryServiceRequest;
@@ -735,7 +736,19 @@ public class ServiceHandler {
         TicketProcessEDoc ticketProcessEDoc = OpenTicketReport.OpenTicketReportRequest.createOpenTicketRequest(openTicketDTOS);
         amadeusLogger.debug("Open Ticket Request Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDoc));
         TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDoc, amadeusSessionWrapper.getmSession());
-        amadeusLogger.debug("Open Ticket Response Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
+        amadeusLogger.debug("Open Ticket Response body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
         return ticketProcessEDocReply;
     }
+
+    public PNRReply splitPNRForReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, AmadeusSessionWrapper amadeusSessionWrapper){
+
+        amadeusSessionWrapper.incrementSequenceNumber();
+        com.amadeus.xml.pnrspl_11_3_1a.PNRSplit pnrSplit = ReIssueTicket.ReIssueConfirmation.splitPNRForReIssuedPax(reIssueConfirmationRequest);
+        amadeusLogger.debug("Splitting PNR for ReIssue Request Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrSplit));
+        PNRReply pnrReply = mPortType.pnrSplit(pnrSplit,amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("Splitting PNR for ReIssue Response Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+
+        return pnrReply;
+    }
+
 }

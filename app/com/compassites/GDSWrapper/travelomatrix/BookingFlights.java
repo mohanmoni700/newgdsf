@@ -77,11 +77,11 @@ public class BookingFlights {
         try {
             int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/CommitBooking");
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Request to TM : "+ jsonRequest.toString());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
             response = wsrholder.post(jsonRequest).get(timeout).asJson();
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
-            travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking Response:"+response.toString());
         }catch(Exception e){
             travelomatrixLogger.error(e.getMessage());
             e.printStackTrace();
