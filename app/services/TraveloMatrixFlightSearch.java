@@ -80,7 +80,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
                 if (response.getStatus()) {
                     travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
-                    AirSolution airSolution = getAirSolution(response,searchParameters.getJourneyType().toString());
+                    AirSolution airSolution = getAirSolution(response,searchParameters.getJourneyType().toString(),searchParameters.getTransit());
                     sr = new SearchResponse();
                     sr.setFlightSearchOffice(getOfficeList().get(0));
                     sr.setAirSolution(airSolution);
@@ -118,16 +118,16 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         return lfs;
     }
 
-    public AirSolution getAirSolution(TravelomatrixSearchReply response,String journeyType) {
+    public AirSolution getAirSolution(TravelomatrixSearchReply response,String journeyType,String connectingAirport) {
         AirSolution airSolution = new AirSolution();
         ConcurrentHashMap<String, List<Integer>> groupingKeyMap = new ConcurrentHashMap<>();
-        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = getFlightIternary(response.getSearch().getFlightDataList(),journeyType, groupingKeyMap);
+        ConcurrentHashMap<Integer, FlightItinerary> nonSeamenHashMap = getFlightIternary(response.getSearch().getFlightDataList(),journeyType, groupingKeyMap,connectingAirport);
         airSolution.setNonSeamenHashMap(nonSeamenHashMap);
         airSolution.setGroupingKeyMap(groupingKeyMap);
         return airSolution;
     }
 
-    public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList,String journyeType,ConcurrentHashMap<String, List<Integer>> groupingKeyMap) {
+    public  ConcurrentHashMap<Integer, FlightItinerary> getFlightIternary(FlightDataList flightDataList,String journyeType,ConcurrentHashMap<String, List<Integer>> groupingKeyMap,String connectingAirport) {
         ConcurrentHashMap<Integer, FlightItinerary> flightItineraryHashMap = new ConcurrentHashMap<>();
         try {
             int maxResults = Play.application().configuration().getInt("travelomatrix.noOfSearchResults");
@@ -143,6 +143,29 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     List<Journey> consolidatedJourney = new LinkedList<>();
                     Journey onWardJourney = new Journey();
                     Journey returnJourney = new Journey();
+                    if (isRefundable && !onWardjourneyList.get(index).getAttr().getIsRefundable()) {
+                        continue;
+                    }
+                    if (isRefundable && !returnJourneyList.get(index).getAttr().getIsRefundable()) {
+                        continue;
+                    }
+
+                    if(connectingAirport != null && connectingAirport !=""){
+                            List<Detail> detailsList = onWardjourneyList.get(index).getFlightDetails().getDetails().get(0);
+                            List<Detail> redetailsList = returnJourneyList.get(index).getFlightDetails().getDetails().get(0);
+                            if(detailsList.size() >= 1 ){
+                            boolean flag = detailsList.stream().anyMatch(data -> data.getDestination().getAirportCode().equalsIgnoreCase(connectingAirport));
+                                if(!flag){
+                                    continue;
+                                }
+                            }
+                            if(redetailsList.size() >= 1 ){
+                                boolean flag = redetailsList.stream().anyMatch(data -> data.getDestination().getAirportCode().equalsIgnoreCase(connectingAirport));
+                                if(!flag){
+                                    continue;
+                                }
+                            }
+                        }
                     if(index < onWardjourneyList.size() && index < returnJourneyList.size() && !onWardjourneyList.get(index).getAttr().getIsLCC() && !returnJourneyList.get(index).getAttr().getIsLCC()) {
                         onWardJourney = getOnwardJounery(onWardjourneyList.get(index).getFlightDetails());
                         returnJourney = getReturnJounery(returnJourneyList.get(index).getFlightDetails());
@@ -157,6 +180,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                         flightItinerary.setPricingInformation(pricingInformation);
                         flightItinerary.setResultToken(onWardjourneyList.get(index).getResultToken());
                         flightItinerary.setReturnResultToken(returnJourneyList.get(index).getResultToken());
+
                         flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
                     }
                     else{
@@ -211,6 +235,16 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                             }
                             if (nonStop && journeyDetails.getFlightDetails().getDetails().get(0).size() > 1) {
                                 continue;
+                            }
+
+                            if(connectingAirport != null && connectingAirport !=""){
+                                List<Detail> detailsList = journeyDetails.getFlightDetails().getDetails().get(0);
+                                if(detailsList.size() >= 1){
+                                    boolean flag = detailsList.stream().anyMatch(data -> data.getDestination().getAirportCode().equalsIgnoreCase(connectingAirport));
+                                    if(!flag){
+                                        continue;
+                                    }
+                                }
                             }
                             consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails(),flightHash, groupingKeyMap,journyeType);
                             flightItinerary.setJourneyList(consolidatedJourney);
@@ -414,6 +448,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         for(List<Detail> detailsList :flightDetails.getDetails()) {
             List<AirSegmentInformation> airSegmentInformationList = new ArrayList<>();
             StringBuilder groupingKey = new StringBuilder();
+
             for (Detail journeyData : detailsList) {
                 AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
                 airSegmentInformation.setFromLocation(journeyData.getOrigin().getAirportCode());
@@ -504,6 +539,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
         Journey onwardJourney = new Journey();
         for(List<Detail> detailsList :flightDetails.getDetails()) {
+
             List<AirSegmentInformation> airSegmentInformationList = new ArrayList<>();
             for (Detail journeyData : detailsList) {
                 AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
