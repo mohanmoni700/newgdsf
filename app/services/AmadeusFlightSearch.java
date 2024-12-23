@@ -3,6 +3,8 @@ package services;
 import com.amadeus.xml.fmptbr_14_2_1a.*;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails;
+import com.amadeus.xml.fmtctr_18_2_1a.ReferencingDetailsType195563C;
+import com.amadeus.xml.fmtctr_18_2_1a.TicketATCShopperMasterPricerTravelBoardSearchReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;
@@ -47,6 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.FlightIndex;
 import static com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation;
 import static com.compassites.model.PROVIDERS.AMADEUS;
+import static java.lang.String.valueOf;
 
 /**
  * Created with IntelliJ IDEA.
@@ -828,7 +831,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             // Getting the reference Number here for 'M'
             String referenceNumber = segmentRef.getReferencingDetail().stream()
                     .filter(detail -> "M".equalsIgnoreCase(detail.getRefQualifier()))
-                    .map(detail -> String.valueOf(detail.getRefNumber()))
+                    .map(detail -> valueOf(detail.getRefNumber()))
                     .findFirst()
                     .orElse(null);
 
@@ -917,7 +920,6 @@ public class AmadeusFlightSearch implements FlightSearch {
 
 
     //Baggage Information at search level here
-    //TODO (Known Issue) : baggageReferenceNumber having a value which does not exist in FBA
     private MnrSearchBaggage createBaggageInformation(ReferenceInfoType segmentRef, List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageListInfo) {
 
         try {
@@ -928,7 +930,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             // Baggage reference number
             String baggageReferenceNumber = segmentRef.getReferencingDetail().stream()
                     .filter(referencingDetail -> "B".equalsIgnoreCase(referencingDetail.getRefQualifier()))
-                    .map(referencingDetail -> String.valueOf(referencingDetail.getRefNumber()))
+                    .map(referencingDetail -> valueOf(referencingDetail.getRefNumber()))
                     .findFirst()
                     .orElse(null);
 
@@ -937,12 +939,45 @@ public class AmadeusFlightSearch implements FlightSearch {
                 return mnrSearchBaggage;
             }
 
+
+            // Finding the FBA reference from service group
+            String fbaRefValue = null;
+            outerForLoop:
+            for (FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp serviceFeesGrp : baggageListInfo) {
+
+                if (!"FBA".equalsIgnoreCase(serviceFeesGrp.getServiceTypeInfo().getCarrierFeeDetails().getType())) {
+                    continue;
+                }
+
+                List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp> serviceCoverageInfoGrpList = serviceFeesGrp.getServiceCoverageInfoGrp();
+                for (FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp serviceCoverageInfoGrp : serviceCoverageInfoGrpList) {
+                    String serviceGroupRef = serviceCoverageInfoGrp.getItemNumberInfo().getItemNumber().getNumber();
+                    if (!serviceGroupRef.equalsIgnoreCase(baggageReferenceNumber)) {
+                        continue;
+                    }
+
+                    List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp.ServiceCovInfoGrp> serviceCovInfoGrpList = serviceCoverageInfoGrp.getServiceCovInfoGrp();
+                    for (FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp.ServiceCovInfoGrp serviceCovInfoGrp : serviceCovInfoGrpList) {
+
+                        List<ReferencingDetailsType195561C> referencingDetailList = serviceCovInfoGrp.getRefInfo().getReferencingDetail();
+                        for (ReferencingDetailsType195561C referencingDetails : referencingDetailList) {
+
+                            if ("F".equalsIgnoreCase(referencingDetails.getRefQualifier())) {
+                                fbaRefValue = String.valueOf(referencingDetails.getRefNumber());
+                                break outerForLoop;
+                            }
+                        }
+                    }
+                }
+            }
+
             // Find the baggage allowance info
+            String finalFbaRefValue = fbaRefValue;
             String baggageAllowed = baggageListInfo.stream()
                     .filter(serviceFeesGrp -> serviceFeesGrp.getServiceTypeInfo().getCarrierFeeDetails().getType().equalsIgnoreCase("FBA"))
                     .flatMap(serviceFeesGrp -> serviceFeesGrp.getFreeBagAllowanceGrp().stream())
                     .filter(freeBagAllowance ->
-                            freeBagAllowance.getItemNumberInfo().getItemNumberDetails().get(0).getNumber().toString().equals(baggageReferenceNumber))
+                            freeBagAllowance.getItemNumberInfo().getItemNumberDetails().get(0).getNumber().toString().equals(finalFbaRefValue))
                     .map(freeBagAllowance -> {
                         BigInteger baggageValue = freeBagAllowance.getFreeBagAllownceInfo().getBaggageDetails().getFreeAllowance();
                         String baggageUnit = freeBagAllowance.getFreeBagAllownceInfo().getBaggageDetails().getQuantityCode();
