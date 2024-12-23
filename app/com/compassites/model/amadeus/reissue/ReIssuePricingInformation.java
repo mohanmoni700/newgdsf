@@ -11,6 +11,12 @@ public class ReIssuePricingInformation implements Serializable {
 
     private boolean isLCC;
 
+    private int adtCount;
+
+    private int chdCount;
+
+    private int infCount;
+
     private BigDecimal basePrice;
 
     private BigDecimal tax;
@@ -67,6 +73,30 @@ public class ReIssuePricingInformation implements Serializable {
 
     public void setLCC(boolean LCC) {
         isLCC = LCC;
+    }
+
+    public int getAdtCount() {
+        return adtCount;
+    }
+
+    public void setAdtCount(int adtCount) {
+        this.adtCount = adtCount;
+    }
+
+    public int getChdCount() {
+        return chdCount;
+    }
+
+    public void setChdCount(int chdCount) {
+        this.chdCount = chdCount;
+    }
+
+    public int getInfCount() {
+        return infCount;
+    }
+
+    public void setInfCount(int infCount) {
+        this.infCount = infCount;
     }
 
     public BigDecimal getBasePrice() {

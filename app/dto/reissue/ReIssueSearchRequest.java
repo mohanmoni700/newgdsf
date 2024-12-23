@@ -12,6 +12,12 @@ public class ReIssueSearchRequest implements Serializable {
 
     private boolean isSeaman;
 
+    private int actualAdultCount;
+
+    private int actualChildCount;
+
+    private int actualInfantCount;
+
     private int adultCount;
 
     private int childCount;
@@ -40,6 +46,30 @@ public class ReIssueSearchRequest implements Serializable {
 
     public void setSeaman(boolean seaman) {
         isSeaman = seaman;
+    }
+
+    public int getActualAdultCount() {
+        return actualAdultCount;
+    }
+
+    public void setActualAdultCount(int actualAdultCount) {
+        this.actualAdultCount = actualAdultCount;
+    }
+
+    public int getActualChildCount() {
+        return actualChildCount;
+    }
+
+    public void setActualChildCount(int actualChildCount) {
+        this.actualChildCount = actualChildCount;
+    }
+
+    public int getActualInfantCount() {
+        return actualInfantCount;
+    }
+
+    public void setActualInfantCount(int actualInfantCount) {
+        this.actualInfantCount = actualInfantCount;
     }
 
     public int getAdultCount() {

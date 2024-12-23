@@ -333,7 +333,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
                     //Pricing Related Information
                     try {
-                        flightItinerary.setReIssuePricingInformation(getReIssuePricingInformation(recommendation, officeId, currency, segmentRef, baggageList));
+                        flightItinerary.setReIssuePricingInformation(getReIssuePricingInformation(reIssueSearchRequest, recommendation, officeId, currency, segmentRef, baggageList));
                         if (reIssueSearchRequest.isSeaman()) {
                             flightItinerary.setPriceOnlyPTC(true);
                         }
@@ -626,13 +626,16 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
     }
 
 
-    private ReIssuePricingInformation getReIssuePricingInformation(TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation, String officeId, String gdsCurrency, ReferenceInfoType segmentRef, List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
+    private ReIssuePricingInformation getReIssuePricingInformation(ReIssueSearchRequest reIssueSearchRequest, TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation, String officeId, String gdsCurrency, ReferenceInfoType segmentRef, List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
 
         ReIssuePricingInformation reIssuePricingInformation = new ReIssuePricingInformation();
 
         reIssuePricingInformation.setPricingOfficeId(officeId);
         reIssuePricingInformation.setGdsCurrency(gdsCurrency);
         reIssuePricingInformation.setProvider("Amadeus");
+        reIssuePricingInformation.setAdtCount(reIssueSearchRequest.getActualAdultCount());
+        reIssuePricingInformation.setChdCount(reIssueSearchRequest.getActualChildCount());
+        reIssuePricingInformation.setInfCount(reIssueSearchRequest.getActualInfantCount());
 
         ///Total Price Being set here
         List<MonetaryInformationDetailsType> monetaryDetails = recommendation.getRecPriceInfo().getMonetaryDetail();
@@ -788,17 +791,46 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
                     .findFirst()
                     .orElse(null);
 
-
             if (baggageReferenceNumber == null) {
                 return mnrSearchBaggage;
             }
 
+            // Finding the FBA reference from service group
+            String fbaRefValue = null;
+            outerLoop:
+            for (TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp serviceFeesGrp : baggageListInfo) {
+
+                if (!"FBA".equalsIgnoreCase(serviceFeesGrp.getServiceTypeInfo().getCarrierFeeDetails().getType())) {
+                    continue;
+                }
+
+                List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp> serviceCoverageInfoGrpList = serviceFeesGrp.getServiceCoverageInfoGrp();
+                for (TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp serviceCoverageInfoGrp : serviceCoverageInfoGrpList) {
+                    String serviceGroupRef = serviceCoverageInfoGrp.getItemNumberInfo().getItemNumber().getNumber();
+                    if (!serviceGroupRef.equalsIgnoreCase(baggageReferenceNumber)) {
+                        continue;
+                    }
+
+                    List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp.ServiceCovInfoGrp> serviceCovInfoGrpList = serviceCoverageInfoGrp.getServiceCovInfoGrp();
+                    for (TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp.ServiceCoverageInfoGrp.ServiceCovInfoGrp serviceCovInfoGrp : serviceCovInfoGrpList) {
+
+                        List<ReferencingDetailsType195563C> referencingDetailList = serviceCovInfoGrp.getRefInfo().getReferencingDetail();
+                        for (ReferencingDetailsType195563C referencingDetails : referencingDetailList) {
+                            if ("F".equalsIgnoreCase(referencingDetails.getRefQualifier())) {
+                                fbaRefValue = String.valueOf(referencingDetails.getRefNumber());
+                                break outerLoop;
+                            }
+                        }
+                    }
+                }
+            }
+
             // Find the baggage allowance info
+            String finalFbaRefValue = fbaRefValue;
             String baggageAllowed = baggageListInfo.stream()
                     .filter(serviceFeesGrp -> serviceFeesGrp.getServiceTypeInfo().getCarrierFeeDetails().getType().equalsIgnoreCase("FBA"))
                     .flatMap(serviceFeesGrp -> serviceFeesGrp.getFreeBagAllowanceGrp().stream())
-                    .filter(freeBagAllowance ->
-                            freeBagAllowance.getItemNumberInfo().getItemNumberDetails().get(0).getNumber().toString().equals(baggageReferenceNumber))
+                    .filter(freeBagAllowance -> freeBagAllowance.getItemNumberInfo().getItemNumberDetails().get(0).getNumber().toString().equals(finalFbaRefValue))
                     .map(freeBagAllowance -> {
                         BigInteger baggageValue = freeBagAllowance.getFreeBagAllownceInfo().getBaggageDetails().getFreeAllowance();
                         String baggageUnit = freeBagAllowance.getFreeBagAllownceInfo().getBaggageDetails().getQuantityCode();

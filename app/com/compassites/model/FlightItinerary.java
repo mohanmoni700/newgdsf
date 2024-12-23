@@ -109,6 +109,7 @@ public class FlightItinerary implements Serializable{
     @Property
     private List<Journey> journeyList;
 
+    @Property
     private List<Journey> nonSeamenJourneyList;
 
     private Long totalTravelTime;
