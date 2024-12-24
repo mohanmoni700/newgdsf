@@ -24,8 +24,8 @@ public class CancelPNRTMX {
     @Autowired
     public WSRequestHolder wsrholder;
 
-    public JsonNode CancelPNR(String pnr,String appRef,String bookingId,List<String> ticketList){
-        JsonNode jsonRequest = getJsonforCancelPNRRequest(pnr,appRef,bookingId,ticketList);
+    public JsonNode CancelPNR(String pnr,String appRef,String bookingId,List<String> ticketList,Boolean isFullPNR){
+        JsonNode jsonRequest = getJsonforCancelPNRRequest(pnr,appRef,bookingId,ticketList,isFullPNR);
         JsonNode response = null;
         try {
             int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
@@ -43,7 +43,7 @@ public class CancelPNRTMX {
 
     }
 
-    public JsonNode getJsonforCancelPNRRequest(String pnr,String appRef,String bookingId,List<String> ticketList){
+    public JsonNode getJsonforCancelPNRRequest(String pnr,String appRef,String bookingId,List<String> ticketList,Boolean isFullPNR){
         JsonNode jsonNode = null;
         CancellationRequest cancellationRequest = new CancellationRequest();
         cancellationRequest.setSequenceNumber(0);
@@ -51,12 +51,12 @@ public class CancelPNRTMX {
         cancellationRequest.setAppReference(appRef);
         cancellationRequest.setBookingId(bookingId);
         ArrayList<String> ticketIdList = new ArrayList<>();
-        if(ticketList != null && ticketList.size() >0){
+        if(ticketList != null && ticketList.size() >0 && !isFullPNR){
             cancellationRequest.setisFullBookingCancel(Boolean.FALSE);
             ticketIdList.addAll(ticketList);
         }else {
             cancellationRequest.setisFullBookingCancel(Boolean.TRUE);
-            ticketIdList.add(bookingId);
+            ticketIdList.addAll(ticketList);
         }
         cancellationRequest.setTicketId(ticketIdList);
         try{

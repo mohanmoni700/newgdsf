@@ -25,7 +25,7 @@ public class TraveloMatrixCancelService {
     public CancelPNRResponse cancelPNR(String pnr, String appRef, String bookingId, Boolean isFullPNR, List<String> ticketList){
        CancelPNRResponse cancelPNRResponse = null;
        travelomatrixLogger.debug("TMX cancel PNR called...........");
-        JsonNode jsonResponse = cancelPNRTMX.CancelPNR(pnr, appRef, bookingId,ticketList);
+        JsonNode jsonResponse = cancelPNRTMX.CancelPNR(pnr, appRef, bookingId,ticketList,isFullPNR);
         try {
             travelomatrixLogger.debug("Response for generatePNR: " + jsonResponse);
             CancellationResponse response = new ObjectMapper().treeToValue(jsonResponse, CancellationResponse.class);
