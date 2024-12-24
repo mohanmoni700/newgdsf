@@ -548,6 +548,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 if(firstName.trim().equalsIgnoreCase(passengerDetail.getFirstName()) &&
                         traveller.getPersonalDetails().getLastName().equalsIgnoreCase(passengerDetail.getLastName())
                 ) {
+                    if(traveller != null && traveller.getPersonalDetails()!= null)
                     contactMasterId = traveller.getPersonalDetails().getTravellerId();
                 }
             }
