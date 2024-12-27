@@ -144,6 +144,18 @@ public class Application {
         return ok(Json.toJson(splitPNRResponse));
     }
 
+    public Result splitPNRForBooking(){
+        logger.debug("-----------------splitPNRForBooking called: ");
+        JsonNode json = request().body().asJson();
+        logger.debug("ssplitPNRForBooking........ " + Json.toJson(json));
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        logger.debug("splitPNRForBooking called " + Json.toJson(issuanceRequest));
+        logger.debug("getProvider..."+issuanceRequest.getProvider());
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest,SPLIT_PNR);
+        logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
+        return ok(Json.toJson(splitPNRResponse));
+    }
+
     public Result ticketCancelDocuments() {
         logger.info("ticketCancelDocuments called ");
         JsonNode json = request().body().asJson();

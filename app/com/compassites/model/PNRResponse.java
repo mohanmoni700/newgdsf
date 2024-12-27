@@ -81,7 +81,27 @@ public class PNRResponse implements Serializable  {
 
     private List<BaggageDetails> tmxBaggageDetails;
 
+    private Boolean addBooking;
+    private String originalPNR;
+
+    public Boolean getAddBooking() {
+        return addBooking;
+    }
+
+    public void setAddBooking(Boolean addBooking) {
+        this.addBooking = addBooking;
+    }
+
+    public String getOriginalPNR() {
+        return originalPNR;
+    }
+
+    public void setOriginalPNR(String originalPNR) {
+        this.originalPNR = originalPNR;
+    }
+
     private List<AmadeusPaxInformation> amadeusPaxReference;
+
 
     public List<MealDetails> getTmxMealDetails() {
         return tmxMealDetails;

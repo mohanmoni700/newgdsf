@@ -16,4 +16,5 @@ public class StaticConstatnts {
     public static final String CANCEL_PNR = "cancelPNR";
 
     public static final String REFUND_TICKET = "ticketRefunded";
+    public static final String SPLIT_PNR = "splitPnr";
 }
