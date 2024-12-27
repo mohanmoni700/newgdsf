@@ -59,6 +59,24 @@ public class SearchParameters implements Serializable,Cloneable{
 
     private String transit;
     private String nationality;
+    private Boolean addBooking;
+    private String originalPNR;
+
+    public Boolean getAddBooking() {
+        return addBooking;
+    }
+
+    public void setAddBooking(Boolean addBooking) {
+        this.addBooking = addBooking;
+    }
+
+    public String getOriginalPNR() {
+        return originalPNR;
+    }
+
+    public void setOriginalPNR(String originalPNR) {
+        this.originalPNR = originalPNR;
+    }
 
     private Integer sequence;
 
