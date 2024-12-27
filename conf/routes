@@ -25,6 +25,7 @@ GET     /getQueueListInfo                          @controllers.Application.getQ
 GET     /displayTST/:pnr/:provider                 @controllers.Application.displayTST(pnr:String, provider:String)
 GET     /displayPNR/:pnr/:provider                 @controllers.Application.displayPNR(pnr:String, provider:String)
 POST    /splitPNR                                  @controllers.Application.splitPNR()
+POST    /splitPNRForBooking                        @controllers.Application.splitPNRForBooking()
 POST    /priceBookedPNR                            @controllers.Application.priceBookedPNR()
 GET     /getTicktedMessage                         @controllers.Application.getTicktedMessage()
 POST    /getTripDetails                            @controllers.Application.getTripDetails()
