@@ -7,16 +7,12 @@ import com.compassites.model.*;
 import com.compassites.model.travelomatrix.ResponseModels.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
+
 import models.Airline;
 import models.Airport;
 import models.FlightSearchOffice;
 import org.joda.time.DateTime;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +20,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.Play;
 import play.libs.Json;
-import scala.reflect.runtime.SymbolLoaders;
+
 import utils.DateUtility;
 import utils.ErrorMessageHelper;
 
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -442,13 +437,13 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         return pricingInformation;
     }
 
+
     public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, String journyeType,List<SearchJourney> reqJourneyList,DateType dateType) {
-        //calculate duration
-        Long durationTime = 0L;
-        Long layOver = 0L;
         List<Journey> journeyList = new ArrayList<>();
 
         for(List<Detail> detailsList :flightDetails.getDetails()) {
+            Long durationTime = 0L;
+            Long layOver = 0L;
             List<AirSegmentInformation> airSegmentInformationList = new ArrayList<>();
             StringBuilder groupingKey = new StringBuilder();
 
@@ -531,10 +526,23 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             }
             //Convert minutes to milliseconds
             if(layOver == 0 && airSegmentInformationList.size() > 1){
-                layOver = airSegmentInformationList.get(airSegmentInformationList.size()-1).getFdtv() -
-                        airSegmentInformationList.get(0).getFatv();
+               for(int index= airSegmentInformationList.size()-1; index > 0;index--) {
+                   String timestamp1 = airSegmentInformationList.get(index).getFromDate();
+                   String timestamp2 = airSegmentInformationList.get(index-1).getToDate();
+                   DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                   LocalDateTime dateTime1 = LocalDateTime.parse(timestamp1, formatter);
+                   LocalDateTime dateTime2 = LocalDateTime.parse(timestamp2, formatter);
+
+                   Duration duration = Duration.between(dateTime2, dateTime1);
+
+                   Long minutes = duration.toMinutes();
+                   layOver+= minutes;
+                   airSegmentInformationList.get(index-1).setConnectionTime(minutes.intValue());
+               }
+
             }
-            Long totalTravelTime = durationTime*60000 + layOver*60000;
+            Long totalTravelTime =  durationTime*60000 + layOver*60000;
+
             asJourney.setTravelTimeMillis(totalTravelTime);
             asJourney.setTravelTime(DateUtility.convertMillistoString(totalTravelTime));
             if(concurrentHashMap.containsKey(groupingKey.toString())) {
