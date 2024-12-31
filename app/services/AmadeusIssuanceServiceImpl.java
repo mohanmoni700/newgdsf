@@ -326,7 +326,7 @@ public class AmadeusIssuanceServiceImpl {
                 }
 
                 int numberOfTst = (issuanceRequest.isSeamen()) ? 1 : AmadeusBookingHelper.getNumberOfTST(issuanceRequest.getTravellerList());
-                if (!isOfficeIdError) {
+                if (!isOfficeIdError && !issuanceRequest.getAddBooking()) {
                     TicketCreateTSTFromPricingReply ticketCreateTSTFromPricingReply = serviceHandler.createTST(numberOfTst, amadeusSessionWrapper);
 
                     if (ticketCreateTSTFromPricingReply.getApplicationError() != null) {
