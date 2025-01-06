@@ -1,5 +1,9 @@
 package models;
 
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Query;
+import com.avaje.ebean.RawSql;
+import com.avaje.ebean.RawSqlBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -366,5 +370,28 @@ public class Airport extends Model implements Serializable {
 			return true;
 		}
 		return false;
+	}
+
+	public static List<Airport> findNearestAirport(String latitude,String longitude){
+		String queryString = "SELECT id, airport_name, city_name, iata_code, country, latitude, longitude, " +
+				"(ROUND((6371 * ACOS(COS(RADIANS("+latitude+")) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - " +
+				" RADIANS("+longitude+"))+ SIN(RADIANS("+latitude+")) * SIN(RADIANS(latitude))))/1.609344)) AS distance" +
+				" FROM airport am WHERE classification <=2 order by distance,classification limit 3";
+		System.out.println(queryString);
+		RawSql rawSql = RawSqlBuilder.parse(queryString)
+				.columnMapping("id", "id")
+				.columnMapping("airport_name", "airportName")
+				.columnMapping("city_name", "cityName")
+				.columnMapping("iata_code","iata_code")
+				.columnMapping("country", "country")
+				.columnMapping("latitude", "latitude")
+				.columnMapping("longitude", "longitude")
+				.create();
+
+		Query<Airport> query = Ebean.find(Airport.class);
+		query.setRawSql(rawSql);
+		List<Airport> airportList = query.findList();
+
+		return airportList;
 	}
 }

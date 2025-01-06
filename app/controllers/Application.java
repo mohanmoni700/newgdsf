@@ -101,17 +101,29 @@ public class Application {
         }
 //        SearchParameters  searchParameters = Json.fromJson(json, SearchParameters.class);
         logger.debug("SearchParamerters: " + json.toString());
-        /*if (searchParameters.isSplitTicket()) {
+        if (searchParameters.isSplitTicket()) {
             try {
                 splitTicketSearchWrapper.searchSplitTicket(searchParameters);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else {*/
+        } else {
         flightSearchWrapper.search(searchParameters);
-        //}
+        }
         //mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
+    }
+
+    public Result getRoutes() throws Exception {
+        logger.debug("Request recieved");
+        JsonNode json = request().body().asJson();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
+        SearchParameters searchParameters = null;
+        List<SearchParameters> searchParametersList = null;
+        searchParameters = Json.fromJson(json, SearchParameters.class);
+        searchParametersList = splitTicketSearchWrapper.createSearch(searchParameters);
+        return ok(Json.toJson(searchParametersList));
     }
 
     public Result generatePNR(){
