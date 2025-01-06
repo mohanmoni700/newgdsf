@@ -1499,8 +1499,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			res = comparePrice(changeMonInfo);
 		}
 		else {
-			if(cancelMonInfo.size()>0) {
-				res = cancelMonInfo.get(0);
+			if(changeMonInfo.size()>0) {
+				res = changeMonInfo.get(0);
 			}
 		}
 		returnList.add(hash.get(res));
