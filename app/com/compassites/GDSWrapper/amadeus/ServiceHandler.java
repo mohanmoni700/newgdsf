@@ -200,10 +200,10 @@ public class ServiceHandler {
         return  SearchReply;
     }
 
-    public FareMasterPricerTravelBoardSearchReply searchSplitAirlines(SearchParameters searchParameters, AmadeusSessionWrapper amadeusSessionWrapper) {
+    public FareMasterPricerTravelBoardSearchReply searchSplitAirlines(SearchParameters searchParameters, AmadeusSessionWrapper amadeusSessionWrapper,boolean isDestinationDomestic) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("AmadeusFlightSearch called at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
-        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SplitTicketSearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId());
+        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SplitTicketSearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId(),isDestinationDomestic);
         amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " Office Id: "+ amadeusSessionWrapper.getOfficeId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession());
         if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
