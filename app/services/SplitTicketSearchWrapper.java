@@ -100,7 +100,7 @@ public class SplitTicketSearchWrapper {
                         StringBuilder mapKey = new StringBuilder();
                         mapKey.append(journey.getAirSegmentList().get(0).getFromLocation());
                         mapKey.append(airSegmentInformation.getToLocation());
-                        System.out.println(mapKey.toString()+"  Date -  "+airSegmentInformation.getArrivalDate()+"  -  "+airSegmentInformation.getArrivalTime());
+                        logger.debug(mapKey.toString()+"  Date -  "+airSegmentInformation.getArrivalDate()+"  -  "+airSegmentInformation.getArrivalTime());
                         //System.out.println(mapKey.toString()+"  Time -  "+airSegmentInformation.getArrivalTime());
                         if(!nonSeamenHashMap.containsKey(mapKey.toString())) {
                             PossibleRoutes possibleRoutes = new PossibleRoutes();

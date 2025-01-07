@@ -179,13 +179,15 @@ public class SplitTicketMerger {
         if(flightItineraries!=null) {
             int k=0;
             for (FlightItinerary flightItinerary : flightItineraries) {
+                System.out.println("K "+k);
                 List<PricingInformation> spiltPrices = new ArrayList<>();
                 FlightItinerary flightItinerary1 = SerializationUtils.clone(flightItinerary);
                 flightItinerary1.setSplitTicket(true);
                 spiltPrices.add(flightItinerary.getPricingInformation());
-                creatingJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
+                creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
                 String toLoc = flightItinerary1.getJourneyList().get(flightItinerary1.getJourneyList().size()-1).getToLocation();
-                System.out.println("toLocation "+toLocation+" toLoc"+toLoc);
+                System.out.println("fromLocation "+flightItinerary.getToLocation()+" toLoc"+toLoc);
+                logger.debug("fromLocation "+flightItinerary.getToLocation()+" toLoc"+toLoc);
                 if(toLoc !=null && isAllSegmentMerged(toLocation, flightItinerary1) && toLoc.equalsIgnoreCase(toLocation)) {
                     createTotalPricing(spiltPrices, flightItinerary1);
                     flightItinerary1.setSplitPricingInformationList(spiltPrices);
@@ -232,6 +234,43 @@ public class SplitTicketMerger {
             }
             flightItinerary.setSeamanPricingInformation(pricingInformation);
             flightItinerary.setPricingInformation(new PricingInformation());
+        }
+    }
+
+    public void creatingNewJourney(String fromLocation, String toLocation, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, FlightItinerary flightItinerary, int count, List<PricingInformation> spiltPrices) {
+        if(fromLocation !=null && concurrentHashMap!=null && concurrentHashMap.size() !=0 && concurrentHashMap.containsKey(fromLocation)) {
+            System.out.println("toLocation "+toLocation);
+            System.out.println("fromLocation "+fromLocation);
+            List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+            if (flightItineraries != null && flightItineraries.size() > 0) {
+                for (FlightItinerary flightItinerary1: flightItineraries) {
+                    /*FlightItinerary flightItinerary1 = null;
+                    if (flightItineraries.size() - 1 > count) {
+                        flightItinerary1 = flightItineraries.get(count);
+                    } else {
+                        flightItinerary1 = flightItineraries.get(0);
+                    }*/
+                    if (!flightItinerary.getToLocation().equalsIgnoreCase(toLocation)) {
+                       /* System.out.println("Pre Loc " + flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().get(flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().size() - 1).getToLocation());
+                        System.out.println("Pre Time " + flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().get(flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().size() - 1).getArrivalTime());
+                        System.out.println("Pre Date " + flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().get(flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().size() - 1).getArrivalDate());
+
+                        System.out.println("Curr Loc " + flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getToLocation());
+                        System.out.println("Curr Time " + flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureTime());
+                        System.out.println("Curr Date " + flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureDate());
+                        */
+                        String arrivalTime = flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().get(flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().size() - 1).getArrivalTime();
+                        String departureTime = flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureTime();
+                        if (calculateArrivalDeparture(arrivalTime, departureTime) > connectionTime) {
+                            spiltPrices.add(flightItinerary1.getPricingInformation());
+                            flightItinerary.getJourneyList().addAll(flightItinerary1.getJourneyList());
+                            break;
+                        }
+                    } else {
+                        System.out.println("Merged");
+                    }
+                }
+            }
         }
     }
 
