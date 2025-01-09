@@ -214,7 +214,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 int index = 0;
                 for (List<JourneyList> journey : journeyList) {
                     for (JourneyList journeyDetails : journey) {
-                        if((journeyDetails.getFlightDetails().getDetails().size() >1 &&
+                        if((!journeyDetails.getFlightDetails().getDetails().isEmpty() &&
                                 ( journyeType.equalsIgnoreCase("MULTI_CITY")  ||
                                         journyeType.equalsIgnoreCase("ROUND_TRIP") ) ) ||
                                 journyeType.equalsIgnoreCase("ONE_WAY")   )
@@ -244,21 +244,24 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                                 }
                             }
                             consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails(),flightHash, groupingKeyMap,journyeType,reqJourneyList,dateType);
-                            flightItinerary.setJourneyList(consolidatedJourney);
-                            flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
-                            flightItinerary.setPassportMandatory(Boolean.FALSE);
-                            PricingInformation pricingInformation = getPricingInformation(journeyDetails);
-                            flightItinerary.setPricingInformation(pricingInformation);
-                            if(journeyDetails.getAttr() != null) {
-                                flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
-                                flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
-                            }
-                            flightItinerary.setResultToken(journeyDetails.getResultToken());
-                            if (journeyDetails.getAttr().getIsLCC() != null)
-                                flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
-                            else
-                                flightItinerary.setIsLCC(false);
-                            flightItineraryHashMap.put(flightHash, flightItinerary);
+                             logger.info("consolidatedJourney.."+consolidatedJourney.size());
+                           if(!consolidatedJourney.isEmpty()) {
+                               flightItinerary.setJourneyList(consolidatedJourney);
+                               flightItinerary.setNonSeamenJourneyList(consolidatedJourney);
+                               flightItinerary.setPassportMandatory(Boolean.FALSE);
+                               PricingInformation pricingInformation = getPricingInformation(journeyDetails);
+                               flightItinerary.setPricingInformation(pricingInformation);
+                               if (journeyDetails.getAttr() != null) {
+                                   flightItinerary.setFareType(journeyDetails.getAttr().getFareType());
+                                   flightItinerary.setRefundable(journeyDetails.getAttr().getIsRefundable());
+                               }
+                               flightItinerary.setResultToken(journeyDetails.getResultToken());
+                               if (journeyDetails.getAttr().getIsLCC() != null)
+                                   flightItinerary.setIsLCC(journeyDetails.getAttr().getIsLCC());
+                               else
+                                   flightItinerary.setIsLCC(false);
+                               flightItineraryHashMap.put(flightHash, flightItinerary);
+                           }
                         }
 
                     }
@@ -440,7 +443,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
 
     public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, String journyeType,List<SearchJourney> reqJourneyList,DateType dateType) {
         List<Journey> journeyList = new ArrayList<>();
-
+        Boolean arrivalFlag = false;
         for(List<Detail> detailsList :flightDetails.getDetails()) {
             Long durationTime = 0L;
             Long layOver = 0L;
@@ -465,9 +468,11 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 String date = arrival.toLocalDate().toString();  // Convert to LocalDate and then to String
 
                 int result = reqDate.compareTo(date);
-
+               if (result != 0 && dateType == DateType.ARRIVAL) {
+                    arrivalFlag = true;
+                }
                 if ((result == 0 && dateType == DateType.ARRIVAL) || (dateType == DateType.DEPARTURE)) {
-                    AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
+                   AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
                     airSegmentInformation.setFromLocation(journeyData.getOrigin().getAirportCode());
                     airSegmentInformation.setToLocation(journeyData.getDestination().getAirportCode());
                     airSegmentInformation.setFromDate(journeyData.getOrigin().getDateTime());
@@ -518,43 +523,45 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
             }
             Journey asJourney = new Journey();
-            asJourney.setProvider(TraveloMatrixConstants.provider);
+            if (!arrivalFlag){
+                asJourney.setProvider(TraveloMatrixConstants.provider);
             asJourney.setAirSegmentList(airSegmentInformationList);
-            asJourney.setNoOfStops(airSegmentInformationList.size()-1);
-            if(journyeType.equalsIgnoreCase(JourneyType.ONE_WAY.name())) {
+            asJourney.setNoOfStops(airSegmentInformationList.size() - 1);
+            if (journyeType.equalsIgnoreCase(JourneyType.ONE_WAY.name())) {
                 asJourney.setGroupingKey(groupingKey.toString());
             }
             //Convert minutes to milliseconds
-            if(layOver == 0 && airSegmentInformationList.size() > 1){
-               for(int index= airSegmentInformationList.size()-1; index > 0;index--) {
-                   String timestamp1 = airSegmentInformationList.get(index).getFromDate();
-                   String timestamp2 = airSegmentInformationList.get(index-1).getToDate();
-                   DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                   LocalDateTime dateTime1 = LocalDateTime.parse(timestamp1, formatter);
-                   LocalDateTime dateTime2 = LocalDateTime.parse(timestamp2, formatter);
+            if (layOver == 0 && airSegmentInformationList.size() > 1) {
+                for (int index = airSegmentInformationList.size() - 1; index > 0; index--) {
+                    String timestamp1 = airSegmentInformationList.get(index).getFromDate();
+                    String timestamp2 = airSegmentInformationList.get(index - 1).getToDate();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    LocalDateTime dateTime1 = LocalDateTime.parse(timestamp1, formatter);
+                    LocalDateTime dateTime2 = LocalDateTime.parse(timestamp2, formatter);
 
-                   Duration duration = Duration.between(dateTime2, dateTime1);
+                    Duration duration = Duration.between(dateTime2, dateTime1);
 
-                   Long minutes = duration.toMinutes();
-                   layOver+= minutes;
-                   airSegmentInformationList.get(index-1).setConnectionTime(minutes.intValue());
-               }
+                    Long minutes = duration.toMinutes();
+                    layOver += minutes;
+                    airSegmentInformationList.get(index - 1).setConnectionTime(minutes.intValue());
+                }
 
             }
-            Long totalTravelTime =  durationTime*60000 + layOver*60000;
+            Long totalTravelTime = durationTime * 60000 + layOver * 60000;
 
             asJourney.setTravelTimeMillis(totalTravelTime);
             asJourney.setTravelTime(DateUtility.convertMillistoString(totalTravelTime));
-            if(concurrentHashMap.containsKey(groupingKey.toString())) {
+            if (concurrentHashMap.containsKey(groupingKey.toString())) {
                 List<Integer> mapList = concurrentHashMap.get(groupingKey.toString());
                 mapList.add(flightHash);
-                concurrentHashMap.put(groupingKey.toString(),mapList);
+                concurrentHashMap.put(groupingKey.toString(), mapList);
             } else {
                 List<Integer> hashList = new ArrayList<>();
                 hashList.add(flightHash);
-                concurrentHashMap.put(groupingKey.toString(),hashList);
+                concurrentHashMap.put(groupingKey.toString(), hashList);
             }
             journeyList.add(asJourney);
+            }
         }
 
         return journeyList;
