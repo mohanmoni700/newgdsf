@@ -9,6 +9,7 @@ import com.compassites.model.*;
 import com.compassites.model.travelomatrix.ResponseModels.*;
 import com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.UpdateFareQuotesReply;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import models.MiniRule;
@@ -46,6 +47,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
            travelomatrixLogger.debug("Response for FareRules: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
            TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(jsonResponse, TraveloMatrixFaruleReply.class);
            TraveloMatrixFaruleReply returnResponse = null;
+
            if(returnJsonResponse != null ){
            returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
                //Roundtrip
@@ -77,15 +79,20 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        List<HashMap> miniRules = new LinkedList<>();
        BigDecimal zeroDecimal = new BigDecimal(0);
        String currency = "INR";
-       if(response.getFareRule().getFareRuleDetail() != null){
+       Map<String, FareRuleDetail> fareRuleDetail = response.getFareRule().getFareRuleDetail();
+       FareRuleDetail fareDetail = fareRuleDetail.get("16");  // Getting the FareDetail object for key "16"
+
+       if(fareDetail != null){
+
            List<Rule> cancellationChargeList = null;
            List<Rule> dateChangesList = null;
            List<Rule> noShowChargesList = null;
-           if(response.getFareRule().getFareRuleDetail().get(0) != null) {
+           if(response.getFareRule().getFareRuleDetail().get("16")!= null) {
                // Coding to be done
-               cancellationChargeList = response.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
-               dateChangesList = response.getFareRule().getFareRuleDetail().get(0).getDateChange();
-               noShowChargesList = response.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
+
+               cancellationChargeList = response.getFareRule().getFareRuleDetail().get("16").getCancellationCharge();
+               dateChangesList = response.getFareRule().getFareRuleDetail().get("16").getDateChange();
+               noShowChargesList = response.getFareRule().getFareRuleDetail().get("16").getNoShowCharge();
            }
            BigDecimal cancellationChargeBeforeDept = null;
            BigDecimal dateChangeBeforeDept = null;
@@ -156,8 +163,8 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
        miniRule.setChangeFeeNoShowFeeCurrency(currency);
 
-           AdultMap.put("ADT", miniRule);
-           miniRules.add(AdultMap);
+            AdultMap.put("ADT", miniRule);
+            miniRules.add(AdultMap);
        }else{
            logger.debug("minirules are null");
        }
@@ -325,6 +332,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
          miniRule.setChangeRefundableAfterDept(false);
          miniRule.setChangeNoShowBeforeDept(false);
          miniRule.setChangeNoShowAfterDept(false);
+
          miniRule.setChangeFeeBeforeDeptCurrency(currency);
          miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
          miniRule.setChangeFeeNoShowFeeCurrency(currency);
