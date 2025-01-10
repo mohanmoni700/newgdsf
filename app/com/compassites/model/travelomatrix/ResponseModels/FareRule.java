@@ -10,13 +10,13 @@ import java.util.*;
 public class FareRule {
 
     @JsonProperty("FareRuleDetail")
-    private Map<String, FareRuleDetail> fareRuleDetail;
+    private List<FareRuleDetail> fareRuleDetail;
 
-    public Map<String, FareRuleDetail> getFareRuleDetail() {
+    public List<FareRuleDetail> getFareRuleDetail() {
         return fareRuleDetail;
     }
 
-    public void setFareRuleDetail(Map<String, FareRuleDetail> fareRuleDetail) {
+    public void setFareRuleDetail(List<FareRuleDetail> fareRuleDetail) {
         this.fareRuleDetail = fareRuleDetail;
     }
 }
