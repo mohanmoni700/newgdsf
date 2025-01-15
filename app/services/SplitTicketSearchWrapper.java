@@ -36,6 +36,8 @@ public class SplitTicketSearchWrapper {
 
     static Logger logger = LoggerFactory.getLogger("splitticket");
 
+    public boolean isSourceAirportDomestic = false;
+
     public SearchResponse createRoutes(SearchParameters searchParameters) {
         SearchResponse searchResponse = possibleRoutesService.createRoutes(searchParameters);
         return searchResponse;
@@ -60,6 +62,7 @@ public class SplitTicketSearchWrapper {
             System.out.println("Domestic false");
             isSourceDomestic = true;
             searchParametersList = findNearestAirport(searchParameters,isDomestic, airport,isSourceDomestic);
+            isSourceAirportDomestic = true;
             /*isSourceDomestic = false;
             Airport destinationAirport = Airport.getAirportByIataCode(searchParameters.getJourneyList().get(0).getOrigin());
             searchParametersList = findNearestAirport(searchParameters,false, destinationAirport,isSourceDomestic);
@@ -72,6 +75,7 @@ public class SplitTicketSearchWrapper {
             searchParametersList.addAll(searchParameters1);*/
         } else {
             System.out.println("Domestic true");
+            isSourceAirportDomestic = false;
             isSourceDomestic = false;
             Airport destinationAirport = Airport.getAirportByIataCode(searchParameters.getJourneyList().get(0).getDestination());
             searchParametersList = findNearestAirport(searchParameters,isDomestic, destinationAirport,isSourceDomestic);
@@ -182,7 +186,7 @@ public class SplitTicketSearchWrapper {
 
             //ZonedDateTime zonedDateTime1 = ZonedDateTime.parse(searchParameters.getJourneyList().get(0).getTravelDateStr());
             ZonedDateTime zonedDateTime = searchParameters.getJourneyList().get(0).getTravelDate().toInstant().atZone(ZoneId.systemDefault());
-            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(24);
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(12);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedTime = midnightTime.format(formatter);
 
@@ -301,7 +305,7 @@ public class SplitTicketSearchWrapper {
     }
 
     public void createSplitSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest) throws Exception {
-        splitAmadeusSearch.splitTicketSearch(searchParameters, originalSearchRequest);
+        splitAmadeusSearch.splitTicketSearch(searchParameters, originalSearchRequest, isSourceAirportDomestic);
     }
 
 }
