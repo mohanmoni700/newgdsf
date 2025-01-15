@@ -16,7 +16,6 @@ import models.MiniRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import play.libs.Json;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -160,11 +159,11 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
 
             AdultMap.put("ADT", miniRule);
             miniRules.add(AdultMap);
-        }else{
-            logger.debug("minirules are null");
-        }
-        return miniRules;
-    }
+       }else{
+           logger.debug("minirules are null");
+       }
+       return miniRules;
+   }
    //this is retrieve flight info
    public FlightItinerary getFlightInfo(FlightItinerary flightItinerary){
        FlightItinerary flightItinerary1 = new FlightItinerary();
@@ -338,7 +337,6 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
         }
         return miniRules;
     }
-
 
 
 }
