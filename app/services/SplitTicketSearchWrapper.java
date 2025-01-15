@@ -186,7 +186,7 @@ public class SplitTicketSearchWrapper {
 
             //ZonedDateTime zonedDateTime1 = ZonedDateTime.parse(searchParameters.getJourneyList().get(0).getTravelDateStr());
             ZonedDateTime zonedDateTime = searchParameters.getJourneyList().get(0).getTravelDate().toInstant().atZone(ZoneId.systemDefault());
-            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(12);
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(24);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedTime = midnightTime.format(formatter);
 
