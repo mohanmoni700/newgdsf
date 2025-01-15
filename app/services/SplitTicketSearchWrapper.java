@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.SplitTicketHelper;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -183,11 +184,18 @@ public class SplitTicketSearchWrapper {
             searchJourney.setOrigin(airport.getIata_code());
             searchJourney.setDestination(searchParameters.getJourneyList().get(0).getDestination());
             searchJourney.setTravelDate(searchParameters.getJourneyList().get(0).getTravelDate());
-
-            //ZonedDateTime zonedDateTime1 = ZonedDateTime.parse(searchParameters.getJourneyList().get(0).getTravelDateStr());
-            ZonedDateTime zonedDateTime = searchParameters.getJourneyList().get(0).getTravelDate().toInstant().atZone(ZoneId.systemDefault());
-            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(12);
+            System.out.println(airport.getTime_zone());
+            /*ZonedDateTime zonedDateTime1 = ZonedDateTime.parse(searchParameters.getJourneyList().get(0).getTravelDateStr());
+            ZonedDateTime zonedDateTime2 = searchParameters.getJourneyList()
+                    .get(0)
+                    .getTravelDate()
+                    .toInstant()
+                    .atZone(ZoneId.of(airport.getTime_zone()));*/
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            LocalDateTime localDateTime = LocalDateTime.parse(searchParameters.getJourneyList().get(0).getTravelDateStr(), formatter);
+            ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of(airport.getTime_zone()));
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(12);
+            //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedTime = midnightTime.format(formatter);
 
             searchJourney.setTravelDateStr(formattedTime);
