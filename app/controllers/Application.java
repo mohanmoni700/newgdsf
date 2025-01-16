@@ -88,12 +88,12 @@ public class Application {
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
-    public Result flightSearch(){
+    public Result flightSearch() {
         logger.debug("Request recieved");
         String json = request().body().asText();
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JodaModule());
-        SearchParameters  searchParameters = null;
+        SearchParameters searchParameters = null;
         try {
             searchParameters = mapper.readValue(json, SearchParameters.class);
         } catch (IOException e) {
@@ -108,7 +108,7 @@ public class Application {
                 e.printStackTrace();
             }
         } else {
-        flightSearchWrapper.search(searchParameters);
+            flightSearchWrapper.search(searchParameters);
         }
         //mergeSearchResults.searchAndMerge(searchParameters);
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
@@ -126,7 +126,7 @@ public class Application {
         return ok(Json.toJson(searchParametersList));
     }
 
-    public Result generatePNR(){
+    public Result generatePNR() {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- generatePNR PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
@@ -144,26 +144,26 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
-    public Result splitPNR(){
+    public Result splitPNR() {
         logger.debug("-----------------splitPNR called: ");
         JsonNode json = request().body().asJson();
         logger.debug("split PNR........ " + Json.toJson(json));
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         logger.debug("split PNR called " + Json.toJson(issuanceRequest));
-        logger.debug("getProvider..."+issuanceRequest.getProvider());
-        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest,CANCEL_PNR);
+        logger.debug("getProvider..." + issuanceRequest.getProvider());
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest, CANCEL_PNR);
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
     }
 
-    public Result splitPNRForBooking(){
+    public Result splitPNRForBooking() {
         logger.debug("-----------------splitPNRForBooking called: ");
         JsonNode json = request().body().asJson();
         logger.debug("ssplitPNRForBooking........ " + Json.toJson(json));
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         logger.debug("splitPNRForBooking called " + Json.toJson(issuanceRequest));
-        logger.debug("getProvider..."+issuanceRequest.getProvider());
-        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest,SPLIT_PNR);
+        logger.debug("getProvider..." + issuanceRequest.getProvider());
+        SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest, SPLIT_PNR);
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
     }
@@ -176,7 +176,8 @@ public class Application {
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
     }
-    public Result checkFareChangeAndAvailability(){
+
+    public Result checkFareChangeAndAvailability() {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- checkFareChangeAndAvailability PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
@@ -186,7 +187,7 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result priceChangePNR(){
+    public Result priceChangePNR() {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- priceChangePNR PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
@@ -198,31 +199,31 @@ public class Application {
     @BodyParser.Of(BodyParser.Json.class)
     public Result getBaggageInfo() {
 
-    	JsonNode json = request().body().asJson();
-    	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
-    	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-    	String provider = json.get("provider").asText();
-    	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-    	FlightItinerary response = null;
-    	try {
-    		response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        JsonNode json = request().body().asJson();
+        SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
+        FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+        String provider = json.get("provider").asText();
+        Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+        FlightItinerary response = null;
+        try {
+            response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-    	return Controller.ok(Json.toJson(response));
+        return Controller.ok(Json.toJson(response));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getCancellationFee() {
-    	JsonNode json = request().body().asJson();
-    	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
-    	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-    	String provider = json.get("provider").asText();
-    	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+        JsonNode json = request().body().asJson();
+        SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
+        FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+        String provider = json.get("provider").asText();
+        Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
 
-    	String fareRules = flightInfoService.getCancellationFee(flightItinerary, searchParams, provider, seamen);
-    	return Controller.ok(Json.toJson(fareRules));
+        String fareRules = flightInfoService.getCancellationFee(flightItinerary, searchParams, provider, seamen);
+        return Controller.ok(Json.toJson(fareRules));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
@@ -234,10 +235,10 @@ public class Application {
         FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
         String provider = json.get("provider").asText();
         Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-        Boolean isBenzyFare = amadeusBookingService.isBenzyFare(flightItinerary,seamen);
-        if(isBenzyFare){
-            miniRules = flightInfoService.getGenericFareRuleFlightItenary(flightItinerary,searchParams,seamen,provider);
-        }else {
+        Boolean isBenzyFare = amadeusBookingService.isBenzyFare(flightItinerary, seamen);
+        if (isBenzyFare) {
+            miniRules = flightInfoService.getGenericFareRuleFlightItenary(flightItinerary, searchParams, seamen, provider);
+        } else {
             miniRules = flightInfoService.getMiniRuleFeeFromFlightItenary(flightItinerary, searchParams, provider, seamen);
         }
         return Controller.ok(Json.toJson(miniRules));
@@ -262,24 +263,24 @@ public class Application {
         String provider = json.get("provider").asText();
         String pnr = json.get("pnr").asText();
         String Eticket = json.get("eticket").asText();
-        if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
-            miniRule = amadeusBookingService.getMiniRuleFeeFromEticket(pnr,Eticket,miniRule);
+        if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)) {
+            miniRule = amadeusBookingService.getMiniRuleFeeFromEticket(pnr, Eticket, miniRule);
         }
         return Controller.ok(Json.toJson(miniRule));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getFlightDetails() {
-    	JsonNode json = request().body().asJson();
-    	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-    	String provider = json.get("provider").asText();
-    	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-    	FlightItinerary response = flightInfoService.getInFlightDetails(flightItinerary, provider, seamen);
-    	return Controller.ok(Json.toJson(response));
+        JsonNode json = request().body().asJson();
+        FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+        String provider = json.get("provider").asText();
+        Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+        FlightItinerary response = flightInfoService.getInFlightDetails(flightItinerary, provider, seamen);
+        return Controller.ok(Json.toJson(response));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result issueTicket(){
+    public Result issueTicket() {
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         logger.debug("issueTicket request : " + json);
@@ -289,60 +290,61 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result getPnrDetails(){
-    	JsonNode json = request().body().asJson();
-    	IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
-    	String gdsPNR = issuanceRequest.getGdsPNR();
-    	String provider = issuanceRequest.getProvider();
+    public Result getPnrDetails() {
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        String gdsPNR = issuanceRequest.getGdsPNR();
+        String provider = issuanceRequest.getProvider();
         logger.debug("==== in Application RQ ==== >>>>>>" + Json.toJson(issuanceRequest));
         TravellerMasterInfo masterInfo = bookingService.getPnrDetails(issuanceRequest, gdsPNR, provider);
-    	logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
-		return ok(Json.toJson(masterInfo));
+        logger.debug("==== in Application INFO ==== >>>>>>" + Json.toJson(masterInfo));
+        return ok(Json.toJson(masterInfo));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getBookingDetails() {
-    	JsonNode json = request().body().asJson();
-    	String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
+        JsonNode json = request().body().asJson();
+        String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
-        logger.debug("getBookingDetails request : "+ json);
+        logger.debug("getBookingDetails request : " + json);
         JsonNode res = bookingService.getBookingDetails(provider, pnr);
         logger.debug("getBookingDetails response =>>>>>>>>>>>> " + res);
-		return ok(res);
+        return ok(res);
     }
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getBookingDetailsByOfficeId() {
-    	JsonNode json = request().body().asJson();
-    	String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
+        JsonNode json = request().body().asJson();
+        String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         String officeId = Json.fromJson(json.findPath("officeId"), String.class);
-        logger.debug("getBookingDetails request : "+ json);
-        logger.debug("officeId : "+ officeId);
+        logger.debug("getBookingDetails request : " + json);
+        logger.debug("officeId : " + officeId);
         JsonNode res = bookingService.getBookingDetailsByOfficeId(provider, pnr, officeId);
         logger.debug("getBookingDetails response =>>>>>>>>>>>> " + res);
-		return ok(res);
+        return ok(res);
     }
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getLowestFare() {
-    	JsonNode json = request().body().asJson();
+        JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
         String provider = Json.fromJson(json.findPath("provider"), String.class);
         Boolean isSeamen = Json.fromJson(json.findPath("isSeamen"), Boolean.class);
         IssuanceRequest issuanceRequest = Json.fromJson(json.findPath("issuanceRequest"), IssuanceRequest.class);
-    	LowFareResponse lowestFare = bookingService.getLowestFare(issuanceRequest);
-    	logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
-    	return ok(Json.toJson(lowestFare));
+        LowFareResponse lowestFare = bookingService.getLowestFare(issuanceRequest);
+        logger.debug("-----------------LowestFare:\n" + Json.toJson(lowestFare));
+        return ok(Json.toJson(lowestFare));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result commitBooking(){
+    public Result commitBooking() {
         JsonNode json = request().body().asJson();
-        IssuanceRequest issuanceRequest = Json.fromJson(json,IssuanceRequest.class);
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         IssuanceResponse issuanceResponse = traveloMatrixBookingService.commitBooking(issuanceRequest);
         return ok(Json.toJson(issuanceResponse));
     }
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result getFareRuleFromTmx() {
         List<HashMap> miniRules = new ArrayList<>();
@@ -350,13 +352,13 @@ public class Application {
         //String resultToken = Json.fromJson(json,String.class);
         String resultToken = json.get("resultToken").asText();
         String returnResultToken = null;
-        if(json.get("returnResultToken") != null)
-        returnResultToken = json.get("returnResultToken").asText();
-        miniRules = flightInfoService.getFareRuleFromTmx(resultToken,returnResultToken);
+        if (json.get("returnResultToken") != null)
+            returnResultToken = json.get("returnResultToken").asText();
+        miniRules = flightInfoService.getFareRuleFromTmx(resultToken, returnResultToken);
         return Controller.ok(Json.toJson(miniRules));
     }
 
-    public Result cancelPNR(){
+    public Result cancelPNR() {
         logger.info("cancelPNR called ");
         JsonNode json = request().body().asJson();
         String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
@@ -364,7 +366,7 @@ public class Application {
         String appRef = Json.fromJson(json.findPath("appRef"), String.class);
         String bookingId = Json.fromJson(json.findPath("bookingId"), String.class);
         Boolean fullPNR = Json.fromJson(json.findPath("fullPNR"), Boolean.class);
-        Boolean isFullCancellation= Json.fromJson(json.findPath("isFullCancellation"), Boolean.class);
+        Boolean isFullCancellation = Json.fromJson(json.findPath("isFullCancellation"), Boolean.class);
         JsonNode ticketsNode = json.get("tickets");
         List<String> ticketList = new LinkedList<>();
         if (ticketsNode != null && ticketsNode.isArray()) {
@@ -374,54 +376,54 @@ public class Application {
         }
         logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
 
-        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider,appRef,bookingId,fullPNR,ticketList,isFullCancellation);
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider, appRef, bookingId, fullPNR, ticketList, isFullCancellation);
 
         logger.debug("cancel pnr response " + Json.toJson(cancelPNRResponse));
         return ok(Json.toJson(cancelPNRResponse));
     }
 
-    public Result getQueueListInfo(){
+    public Result getQueueListInfo() {
         return ok(Json.toJson(queueListServiceWrapper.getQueueListResponse()));
     }
 
-    public Result getBookingDetailsForPNR(){
+    public Result getBookingDetailsForPNR() {
         JsonNode json = request().body().asJson();
-        logger.debug("getBookingDetailsForPNR request : "+ json);
+        logger.debug("getBookingDetailsForPNR request : " + json);
         HashMap<String, Object> jsonMap = bookingService.getBookingDetailsForPNR(json);
-        logger.debug("getBookingDetailsForPNR response : "+ jsonMap);
+        logger.debug("getBookingDetailsForPNR response : " + jsonMap);
         return ok(Json.toJson(jsonMap));
     }
 
 
     //todo-- added for testing need to remove
-    public Result displayTST(String pnr,String provider){
+    public Result displayTST(String pnr, String provider) {
         JsonNode jsonNode = null;
-        if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
+        if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)) {
 //            AmadeusBookingServiceImpl amadeusBookingService = new AmadeusBookingServiceImpl();
 //        amadeusBookingService.getDisplayTicketDetails(pnr);
             jsonNode = amadeusBookingService.getBookingDetails(pnr);
 
         } else {
             TravelportBookingServiceImpl travelportBookingService = new TravelportBookingServiceImpl();
-            jsonNode =  travelportBookingService.getBookingDetails(pnr);
+            jsonNode = travelportBookingService.getBookingDetails(pnr);
         }
 
         return ok(jsonNode);
 
     }
 
-    public Result displayPNR(String pnr,String provider) throws RemoteException{
+    public Result displayPNR(String pnr, String provider) throws RemoteException {
         JsonNode jsonNode = null;
-        if (PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)){
+        if (PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)) {
             jsonNode = mystiflyBookingService.getBookingDetails(pnr);
-        } else if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)){
+        } else if (PROVIDERS.AMADEUS.toString().equalsIgnoreCase(provider)) {
             jsonNode = amadeusBookingService.getBookingDetails(pnr);
         }
         return ok(jsonNode);
 
     }
 
-    public Result priceBookedPNR(){
+    public Result priceBookedPNR() {
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         logger.debug("priceBookedPNR issuance Request : " + json);
@@ -438,10 +440,10 @@ public class Application {
         return ok(Json.toJson(messageItems));
     }
 
-    public MessageItems getMessagesIitem(AirMessageQueueRS airMessageQueueRS){
+    public MessageItems getMessagesIitem(AirMessageQueueRS airMessageQueueRS) {
         MessageItems messageItems = new MessageItems();
         List<MessageItem> messageItemList = new ArrayList<>();
-        for ( org.datacontract.schemas._2004._07.mystifly_onepoint.MessageItem items : airMessageQueueRS.getMessageItems().getMessageItemArray()) {
+        for (org.datacontract.schemas._2004._07.mystifly_onepoint.MessageItem items : airMessageQueueRS.getMessageItems().getMessageItemArray()) {
             MessageItem messageItem = new MessageItem();
             messageItem.setBookingMode(items.getBookingMode());
             messageItem.setUniqueId(items.getUniqueID());
@@ -453,7 +455,8 @@ public class Application {
         messageItems.setMessageItem(messageItemList);
         return messageItems;
     }
-    public Result getTripDetails() throws RemoteException{
+
+    public Result getTripDetails() throws RemoteException {
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         IssuanceResponse issuanceResponse = bookingService.readTripDetails(issuanceRequest);
@@ -461,7 +464,7 @@ public class Application {
         return ok(Json.toJson(issuanceResponse));
     }
 
-    public Result getMessagesFromQueue() throws RemoteException{
+    public Result getMessagesFromQueue() throws RemoteException {
         JsonNode json = request().body().asJson();
         String category = Json.fromJson(json.findPath("queueCategory"), String.class);
         AirMessageQueue airMessageQueue = new AirMessageQueue();
@@ -469,6 +472,7 @@ public class Application {
         MessageItems messageItems = getMessagesIitem(airMessageQueueRS);
         return ok(Json.toJson(messageItems));
     }
+
     public Result removeTicktedMessage() throws RemoteException {
         JsonNode json = request().body().asJson();
         Items items = Json.fromJson(json, Items.class);
@@ -480,18 +484,19 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result uploadTicket(){
+    public Result uploadTicket() {
         UpdatePNRResponse updatePNRResponse = null;
         JsonNode json = request().body().asJson();
         String provider = json.get("provider").asText();
         String appRef = json.get("appRef").asText();
-        if(PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)){
+        if (PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)) {
             updatePNRResponse = new TraveloMatrixBookingServiceImpl().getUpdatePnr(appRef);
 
         }
         return ok(Json.toJson(updatePNRResponse));
     }
-    public Result ticketCancelDocument(){
+
+    public Result ticketCancelDocument() {
         logger.info("ticketCancelDocument called ");
         JsonNode jsonBody = request().body().asJson();
         String pnr = Json.fromJson(jsonBody.findPath("gdsPNR"), String.class);
@@ -509,7 +514,7 @@ public class Application {
             ticketsList.add(ticketNode.asText());
         }
         logger.debug("Cancel ticket document called : " + pnr + " provider : " + provider);
-        TicketCancelDocumentResponse  ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr,ticketsList);
+        TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr, ticketsList);
 
         logger.debug("cancel ticket document response " + Json.toJson(ticketCancelDocumentResponse));
         return ok(Json.toJson(ticketCancelDocumentResponse));
@@ -546,29 +551,29 @@ public class Application {
 
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result checkRefundEligibiliy(){
+    public Result checkRefundEligibiliy() {
         TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
         JsonNode json = request().body().asJson();
         String provider = json.get("provider").asText();
         String gdspnr = json.get("gdsPnr").asText();
         String searchOfficeId = json.get("searchOffice").asText();
-        ticketCheckEligibilityRes = refundServiceWrapper.checkTicketEligibility(provider,gdspnr,searchOfficeId);
+        ticketCheckEligibilityRes = refundServiceWrapper.checkTicketEligibility(provider, gdspnr, searchOfficeId);
         return ok(Json.toJson(ticketCheckEligibilityRes));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result processFullRefund(){
+    public Result processFullRefund() {
         TicketProcessRefundRes ticketProcessRefundRes = null;
         JsonNode json = request().body().asJson();
         String provider = json.get("provider").asText();
         String gdspnr = json.get("gdsPnr").asText();
         String searchOfficeId = json.get("searchOffice").asText();
-        ticketProcessRefundRes = refundServiceWrapper.processFullRefund(provider,gdspnr,searchOfficeId);
+        ticketProcessRefundRes = refundServiceWrapper.processFullRefund(provider, gdspnr, searchOfficeId);
         return ok(Json.toJson(ticketProcessRefundRes));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result checkPartRefundEligibility(){
+    public Result checkPartRefundEligibility() {
         TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
         JsonNode json = request().body().asJson();
         String provider = json.get("provider").asText();
@@ -581,12 +586,12 @@ public class Application {
                 ticketList.add(ticketNode.asText());
             }
         }
-        ticketCheckEligibilityRes = refundServiceWrapper.checkPartRefundTicketEligibility(provider,gdspnr,ticketList,searchOfficeId);
+        ticketCheckEligibilityRes = refundServiceWrapper.checkPartRefundTicketEligibility(provider, gdspnr, ticketList, searchOfficeId);
         return ok(Json.toJson(ticketCheckEligibilityRes));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public Result processPartialRefund(){
+    public Result processPartialRefund() {
         TicketProcessRefundRes ticketProcessRefundRes = null;
         JsonNode json = request().body().asJson();
         String provider = json.get("provider").asText();
@@ -599,7 +604,7 @@ public class Application {
                 ticketList.add(ticketNode.asText());
             }
         }
-        ticketProcessRefundRes = refundServiceWrapper.processPartialRefund(provider,gdspnr,ticketList,searchOfficeId);
+        ticketProcessRefundRes = refundServiceWrapper.processPartialRefund(provider, gdspnr, ticketList, searchOfficeId);
         return ok(Json.toJson(ticketProcessRefundRes));
     }
 
@@ -611,38 +616,27 @@ public class Application {
         String journeyType = json.get("journeyType").asText();
         Boolean isLCC = json.get("isLCC").asBoolean();
 
-        AncillaryServicesResponse ancillaryServicesResponse =ancillaryService.getTmxExtraServices(resultToken,reResulttoken,journeyType,isLCC);
+        AncillaryServicesResponse ancillaryServicesResponse = ancillaryService.getTmxExtraServices(resultToken, reResulttoken, journeyType, isLCC);
         return ok(Json.toJson(ancillaryServicesResponse));
     }
 
-    @BodyParser.Of(BodyParser.Json.class)
-    public Result addAdditionalBaggageRequest() {
 
-        JsonNode json = request().body().asJson();
-        String gdsPnr = json.get("gdsPnr").asText();
-        String provider = json.get("provider").asText();
-
-        AncillaryServicesResponse baggageDetails = ancillaryService.getAdditionalBaggageInfo(gdsPnr, provider);
-        logger.debug("Ancillary - Baggage response {} ", Json.toJson(baggageDetails));
-
-        return ok(Json.toJson(baggageDetails));
-
-    }
-
+    ///Amadeus Ancillary - Baggage
     @BodyParser.Of(BodyParser.Json.class)
     public Result addAdditionalBaggageRequestStandalone() {
 
         JsonNode json = request().body().asJson();
-
-        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json,AncillaryServiceRequest.class);
+        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json, AncillaryServiceRequest.class);
+        logger.debug("Ancillary - Baggage Request {} ", Json.toJson(ancillaryServiceRequest));
 
         AncillaryServicesResponse baggageDetailsStandalone = ancillaryService.getAdditionalBaggageInfoStandalone(ancillaryServiceRequest);
-        logger.debug("Ancillary - Baggage response Standalone {} ", Json.toJson(baggageDetailsStandalone));
+        logger.debug("Ancillary - Baggage response {} ", Json.toJson(baggageDetailsStandalone));
 
         return ok(Json.toJson(baggageDetailsStandalone));
     }
 
-    public Result ticketRebookAndRepricePNR(){
+
+    public Result ticketRebookAndRepricePNR() {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- ticketRebookAndRepricePNR PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
@@ -660,7 +654,7 @@ public class Application {
         SplitPNRResponse splitPNRResponse = bookingService.splitPNR(issuanceRequest, REFUND_TICKET);
         logger.debug("-----------------splitPNR Response: " + Json.toJson(splitPNRResponse));
         return ok(Json.toJson(splitPNRResponse));
-      }
+    }
 
     public Result openTicketReport() throws IOException {
         JsonNode json = request().body().asJson();
@@ -672,7 +666,7 @@ public class Application {
         );
         List<OpenTicketResponse> openTicketResponses = new ArrayList<>();
         int chunkSize = 50;
-        if (openTicketDTOS.size()>chunkSize) {
+        if (openTicketDTOS.size() > chunkSize) {
             List<List<OpenTicketDTO>> chunks = splitList(openTicketDTOS, chunkSize);
             for (int i = 0; i < chunks.size(); i++) {
                 List<OpenTicketResponse> openTicketResponses1 = openTicketReportService.openTicketReport(chunks.get(i));
@@ -681,7 +675,7 @@ public class Application {
         } else {
             openTicketResponses = openTicketReportService.openTicketReport(openTicketDTOS);
         }
-        logger.debug(" open ticket response "+Json.toJson(openTicketResponses));
+        logger.debug(" open ticket response " + Json.toJson(openTicketResponses));
         return ok(Json.toJson(openTicketResponses));
     }
 
@@ -696,7 +690,7 @@ public class Application {
         return chunks;
     }
 
-    public Result home(){
+    public Result home() {
         return ok("GDS Service running.....");
     }
 

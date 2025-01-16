@@ -124,15 +124,15 @@ public class AncillaryServiceReq {
 
             String fareBasis = null;
 
+            int counter = 0;
             for (Journey journey : journeyList) {
 
                 List<AirSegmentInformation> airSegmentList = journey.getAirSegmentList();
-                int counter = 0;
 
                 fareBasis = airSegmentList.get(0).getFareBasis();
 
                 for (AirSegmentInformation airSegmentInformation : airSegmentList) {
-
+                    ++counter;
                     ServiceStandaloneCatalogue.FlightInfo flightInfo = new ServiceStandaloneCatalogue.FlightInfo();
                     TravelProductInformationType flightDetails = new TravelProductInformationType();
 
@@ -164,13 +164,11 @@ public class AncillaryServiceReq {
                     flightIdentification.setBookingClass(airSegmentInformation.getBookingClass());
                     flightDetails.setFlightIdentification(flightIdentification);
 
-                    // Flight Indicator X or V (Since Unknown or also takes in 1 or U)
-                    ProductTypeDetailsType219501C flightTypeDetails = new ProductTypeDetailsType219501C();
-                    flightTypeDetails.getFlightIndicator().add("1");
-                    flightDetails.setFlightTypeDetails(flightTypeDetails);
-
                     //Item / segment sequence number
-                    flightDetails.setItemNumber(BigInteger.valueOf(++counter));
+                    ProductTypeDetailsType219501C flightTypeDetails = new ProductTypeDetailsType219501C();
+                    flightTypeDetails.getFlightIndicator().add(String.valueOf(counter));
+                    flightDetails.setFlightTypeDetails(flightTypeDetails);
+                    flightDetails.setItemNumber(BigInteger.valueOf(counter));
 
                     flightInfo.setFlightDetails(flightDetails);
 

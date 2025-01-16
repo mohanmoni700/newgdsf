@@ -2,9 +2,12 @@ package com.compassites.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BaggageDetails {
+
     private Long contactMasterId;
+    private String segmentNumber;
     private String baggageId;
     private String code;
     private String destination;
@@ -20,8 +23,6 @@ public class BaggageDetails {
     private String bkm;
     private String serviceId;
     private String carrierCode;
-    private Long basePrice;
-    private Long tax;
     private boolean isFMT;
     private boolean isWVAL;
     private boolean isPVAL;
@@ -84,22 +85,6 @@ public class BaggageDetails {
 
     public void setCarrierCode(String carrierCode) {
         this.carrierCode = carrierCode;
-    }
-
-    public Long getBasePrice() {
-        return basePrice;
-    }
-
-    public void setBasePrice(Long basePrice) {
-        this.basePrice = basePrice;
-    }
-
-    public Long getTax() {
-        return tax;
-    }
-
-    public void setTax(Long tax) {
-        this.tax = tax;
     }
 
     public boolean isRefundable() {
@@ -241,6 +226,14 @@ public class BaggageDetails {
 
     public void setBaggageDescription(String baggageDescription) {
         this.baggageDescription = baggageDescription;
+    }
+
+    public String getSegmentNumber() {
+        return segmentNumber;
+    }
+
+    public void setSegmentNumber(String segmentNumber) {
+        this.segmentNumber = segmentNumber;
     }
 
 }
