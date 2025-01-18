@@ -473,19 +473,47 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
-					searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
-			MiniRuleGetFromRecReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
-			if(miniRuleGetFromPricingReply.getErrorWarningGroup() != null &&
-					miniRuleGetFromPricingReply.getResponseDetails() != null &&
-					"0".equalsIgnoreCase(miniRuleGetFromPricingReply.getResponseDetails().getStatusCode())){
-					amadeusLogger.debug("MiniRuleGetFromPricingReply Error"+miniRuleGetFromPricingReply.getErrorWarningGroup().get(0).getErrorWarningDescription());
-				return null;
+			if(flightItinerary.isSplitTicket()) {
+				int i = 0;
+				for (Journey journey : journeyList) {
+					List<Journey> journeyList1 = new ArrayList<>();
+					List<PAXFareDetails> paxFareDetails = new ArrayList<>();
+					PAXFareDetails paxFareDetails1 = new PAXFareDetails();
+					List<FareJourney> fareJourneyList = new ArrayList<>();
+					paxFareDetails1.setPassengerTypeCode(paxFareDetailsList.get(0).getPassengerTypeCode());
+					FareJourney fareJourney = SerializationUtils.clone(paxFareDetailsList.get(0).getFareJourneyList().get(i));
+					fareJourneyList.add(fareJourney);
+					journeyList1.add(journey);
+					paxFareDetails1.setFareJourneyList(fareJourneyList);
+					paxFareDetails.add(paxFareDetails1);
+					//FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
+					//FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+					FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList1, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
+							searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
+					MiniRuleGetFromRecReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
+					if (miniRuleGetFromPricingReply.getErrorWarningGroup() != null &&
+							miniRuleGetFromPricingReply.getResponseDetails() != null &&
+							"0".equalsIgnoreCase(miniRuleGetFromPricingReply.getResponseDetails().getStatusCode())) {
+						amadeusLogger.debug("MiniRuleGetFromPricingReply Error" + miniRuleGetFromPricingReply.getErrorWarningGroup().get(0).getErrorWarningDescription());
+						return null;
+					}
+					miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
+					i++;
+				}
+			} else {
+				FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
+						searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
+				MiniRuleGetFromRecReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
+				if (miniRuleGetFromPricingReply.getErrorWarningGroup() != null &&
+						miniRuleGetFromPricingReply.getResponseDetails() != null &&
+						"0".equalsIgnoreCase(miniRuleGetFromPricingReply.getResponseDetails().getStatusCode())) {
+					amadeusLogger.debug("MiniRuleGetFromPricingReply Error" + miniRuleGetFromPricingReply.getErrorWarningGroup().get(0).getErrorWarningDescription());
+					return null;
+				}
+
+
+				miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
 			}
-
-		
-
-			miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
 		} catch (Exception e) {
 			//System.out.println("getCancellationFee fare rule exception..........");
 			e.printStackTrace();
