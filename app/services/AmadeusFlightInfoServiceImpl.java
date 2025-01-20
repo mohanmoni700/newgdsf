@@ -16,6 +16,7 @@ import com.thoughtworks.xstream.XStream;
 import models.AmadeusSessionWrapper;
 import models.FlightSearchOffice;
 import models.MiniRule;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,6 +67,9 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 	@Override
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
+		if (flightItinerary.isSplitTicket()) {
+			return createSplitTicketBaggage(flightItinerary, searchParams, seamen);
+		}
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
 		try {
 			String officeId = null;
@@ -83,6 +87,54 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 			
+		} catch (ServerSOAPFaultException ssf) {
+			ssf.printStackTrace();
+			amadeusLogger.error("Error in getBaggageInfo SOAP ", ssf);
+		} catch (Exception e) {
+			amadeusLogger.error("Error in getBaggageInfo", e);
+			e.printStackTrace();
+		}finally {
+			if(amadeusSessionWrapper != null) {
+				amadeusSessionWrapper.setQueryInProgress(false);
+				amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+			}
+		}
+		return flightItinerary;
+	}
+
+	private FlightItinerary createSplitTicketBaggage(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
+		amadeusLogger.info("baggage called createSplitTicketBaggage");
+		AmadeusSessionWrapper amadeusSessionWrapper = null;
+		try {
+			String officeId = null;
+			if(seamen){
+				officeId = flightItinerary.getSeamanPricingInformation().getPricingOfficeId();
+			}else{
+				officeId = flightItinerary.getPricingInformation().getPricingOfficeId();
+			}
+
+			FlightSearchOffice flightSearchOffice = new FlightSearchOffice(officeId);
+			amadeusSessionWrapper = amadeusSessionManager.getSession(flightSearchOffice);
+			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
+			int i=0;
+			for (Journey journey: journeyList) {
+				List<Journey> journeyList1 = new ArrayList<>();
+				List<PAXFareDetails> paxFareDetails = new ArrayList<>();
+				PAXFareDetails paxFareDetails1 = new PAXFareDetails();
+				List<FareJourney> fareJourneyList = new ArrayList<>();
+				paxFareDetails1.setPassengerTypeCode(paxFareDetailsList.get(0).getPassengerTypeCode());
+				FareJourney fareJourney = SerializationUtils.clone(paxFareDetailsList.get(0).getFareJourneyList().get(i));
+				fareJourneyList.add(fareJourney);
+				journeyList1.add(journey);
+				paxFareDetails1.setFareJourneyList(fareJourneyList);
+				paxFareDetails.add(paxFareDetails1);
+				FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
+				FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+				addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
+				i++;
+			}
+
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
 			amadeusLogger.error("Error in getBaggageInfo SOAP ", ssf);
@@ -421,19 +473,47 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 //            serviceHandler.logIn();
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-			FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
-					searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
-			MiniRuleGetFromRecReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
-			if(miniRuleGetFromPricingReply.getErrorWarningGroup() != null &&
-					miniRuleGetFromPricingReply.getResponseDetails() != null &&
-					"0".equalsIgnoreCase(miniRuleGetFromPricingReply.getResponseDetails().getStatusCode())){
-					amadeusLogger.debug("MiniRuleGetFromPricingReply Error"+miniRuleGetFromPricingReply.getErrorWarningGroup().get(0).getErrorWarningDescription());
-				return null;
+			if(flightItinerary.isSplitTicket()) {
+				int i = 0;
+				for (Journey journey : journeyList) {
+					List<Journey> journeyList1 = new ArrayList<>();
+					List<PAXFareDetails> paxFareDetails = new ArrayList<>();
+					PAXFareDetails paxFareDetails1 = new PAXFareDetails();
+					List<FareJourney> fareJourneyList = new ArrayList<>();
+					paxFareDetails1.setPassengerTypeCode(paxFareDetailsList.get(0).getPassengerTypeCode());
+					FareJourney fareJourney = SerializationUtils.clone(paxFareDetailsList.get(0).getFareJourneyList().get(i));
+					fareJourneyList.add(fareJourney);
+					journeyList1.add(journey);
+					paxFareDetails1.setFareJourneyList(fareJourneyList);
+					paxFareDetails.add(paxFareDetails1);
+					//FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
+					//FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+					FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList1, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
+							searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
+					MiniRuleGetFromRecReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
+					if (miniRuleGetFromPricingReply.getErrorWarningGroup() != null &&
+							miniRuleGetFromPricingReply.getResponseDetails() != null &&
+							"0".equalsIgnoreCase(miniRuleGetFromPricingReply.getResponseDetails().getStatusCode())) {
+						amadeusLogger.debug("MiniRuleGetFromPricingReply Error" + miniRuleGetFromPricingReply.getErrorWarningGroup().get(0).getErrorWarningDescription());
+						return null;
+					}
+					miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
+					i++;
+				}
+			} else {
+				FareInformativePricingWithoutPNRReply pricingReply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(),
+						searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
+				MiniRuleGetFromRecReply miniRuleGetFromPricingReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
+				if (miniRuleGetFromPricingReply.getErrorWarningGroup() != null &&
+						miniRuleGetFromPricingReply.getResponseDetails() != null &&
+						"0".equalsIgnoreCase(miniRuleGetFromPricingReply.getResponseDetails().getStatusCode())) {
+					amadeusLogger.debug("MiniRuleGetFromPricingReply Error" + miniRuleGetFromPricingReply.getErrorWarningGroup().get(0).getErrorWarningDescription());
+					return null;
+				}
+
+
+				miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
 			}
-
-		
-
-			miniRule = addMiniFareRulesForFlightItenary(miniRuleGetFromPricingReply);
 		} catch (Exception e) {
 			//System.out.println("getCancellationFee fare rule exception..........");
 			e.printStackTrace();
