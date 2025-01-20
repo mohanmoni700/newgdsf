@@ -5,6 +5,7 @@ import com.amadeus.xml.tpscgr_17_1_1a.ServiceStandaloneCatalogueReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.AncillaryServicesResponse;
 import com.compassites.model.BaggageDetails;
+import com.compassites.model.MealDetails;
 import models.AmadeusSessionWrapper;
 import models.AncillaryServiceRequest;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 import static com.compassites.model.PROVIDERS.AMADEUS;
@@ -399,5 +401,196 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         return Arrays.asList(segmentName.split("-"));
     }
 
+
+    @Override
+    public AncillaryServicesResponse additionalMealsInformationStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
+
+        ServiceHandler serviceHandler = null;
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        AncillaryServicesResponse mealsInfoStandalone = new AncillaryServicesResponse();
+        mealsInfoStandalone.setProvider(AMADEUS.toString());
+
+        try {
+            serviceHandler = new ServiceHandler();
+            amadeusSessionWrapper = serviceHandler.logIn();
+
+            //1. Getting the Meals here
+            ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getMealsInfoStandalone(amadeusSessionWrapper, ancillaryServiceRequest);
+
+            getMealsInformationStandalone(serviceStandaloneCatalogueReply, mealsInfoStandalone);
+
+        } catch (Exception e) {
+            logger.debug("Error getting meals information Standalone{} ", e.getMessage(), e);
+        } finally {
+            serviceHandler.logOut(amadeusSessionWrapper);
+        }
+
+        return mealsInfoStandalone;
+    }
+
+    private static void getMealsInformationStandalone(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse mealsInfoStandalone) {
+
+        List<MealDetails> mealsList = new ArrayList<>();
+
+        try {
+
+            List<ServiceStandaloneCatalogueReply.SsrInformation> ssrInformation = serviceStandaloneCatalogueReply.getSsrInformation();
+            List<ServiceStandaloneCatalogueReply.ServiceGroup> serviceGroupList = serviceStandaloneCatalogueReply.getServiceGroup();
+            List<ServiceStandaloneCatalogueReply.Portions> portions = serviceStandaloneCatalogueReply.getPortions();
+
+
+            outerForLoop:
+            for (ServiceStandaloneCatalogueReply.ServiceGroup serviceGroup : serviceGroupList) {
+
+                com.amadeus.xml.tpscgr_17_1_1a.ItemNumberType serviceId = serviceGroup.getServiceId();
+
+                String serviceType = serviceId.getItemNumberDetails().get(0).getType();
+                String serviceNumber = serviceId.getItemNumberDetails().get(0).getNumber();
+
+                //Type F
+                if (serviceType.equalsIgnoreCase("SR")) {
+
+                    MealDetails mealDetails = new MealDetails();
+
+                    mealDetails.setServiceId(serviceNumber);
+
+                    boolean canIssue = true;
+
+                    //Checking if the baggage can be issued here
+
+                    List<ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup> quotaGroups = serviceGroup.getQuotaGroup();
+                    for (ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup quotaGroup : quotaGroups) {
+                        if (quotaGroup.getServiceQuota().getQuotaInfo().getQuotaReachedReplyStatus()!=null) {
+                            if (!"OK".equalsIgnoreCase(quotaGroup.getServiceQuota().getQuotaInfo().getQuotaReachedReplyStatus())) {
+                                canIssue = false;
+                                break;
+                            }
+                        } if (quotaGroup.getServiceQuota().getQuotaInfo().getAvailability()!=null) {
+                            int isGreaterThanZero = quotaGroup.getServiceQuota().getQuotaInfo().getAvailability().compareTo(BigInteger.valueOf(0));
+                            if(isGreaterThanZero > 0){
+                                mealDetails.setAvailability(quotaGroup.getServiceQuota().getQuotaInfo().getAvailability());
+                            } else if (isGreaterThanZero == 0) {
+                                canIssue = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (canIssue) {
+
+                        //Setting Service Codes here
+                        com.amadeus.xml.tpscgr_17_1_1a.PricingOrTicketingSubsequentType serviceCodes = serviceGroup.getServiceCodes();
+                        mealDetails.setRfic(serviceCodes.getSpecialCondition());
+                        mealDetails.setRfisc(serviceCodes.getOtherSpecialCondition());
+
+
+                        //Setting Booking Method, MIF and Refundable here
+                        List<com.amadeus.xml.tpscgr_17_1_1a.AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
+                        for (com.amadeus.xml.tpscgr_17_1_1a.AttributeType serviceAttribute : serviceAttributes) {
+                            List<com.amadeus.xml.tpscgr_17_1_1a.AttributeInformationType> criteriaDetails = serviceAttribute.getCriteriaDetails();
+
+                            for (com.amadeus.xml.tpscgr_17_1_1a.AttributeInformationType criteriaDetail : criteriaDetails) {
+                                String attributeType = criteriaDetail.getAttributeType();
+                                String attributeDescription = criteriaDetail.getAttributeDescription();
+
+                                switch (attributeType.toUpperCase()) {
+
+                                    case "BKM":
+                                        mealDetails.setBkm(attributeDescription);
+                                        break ;
+
+                                    case "MIF":
+                                        if (!attributeDescription.equalsIgnoreCase("N")) {
+                                            mealDetails.setMIF(true);
+                                        }
+                                        break ;
+
+                                    case "ROR":
+                                        if (attributeDescription.equalsIgnoreCase("Y")) {
+                                            mealDetails.setRefundable(true);
+                                        }
+                                        break ;
+
+                                    case "CNM":
+                                        mealDetails.setMealDesc(attributeDescription);
+                                        break ;
+
+                                }
+                            }
+                        }
+
+                        //Service Details here
+                        String ssrCode = null;
+                        List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup> serviceDetailsGroupList = serviceGroup.getServiceDetailsGroup();
+                        for (ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup serviceDetailsGroup : serviceDetailsGroupList) {
+
+                            //Setting Airline Code and SSR code here
+                            com.amadeus.xml.tpscgr_17_1_1a.SpecialRequirementsDetailsType serviceDetails = serviceDetailsGroup.getServiceDetails();
+                            com.amadeus.xml.tpscgr_17_1_1a.SpecialRequirementsTypeDetailsType245333C specialRequirementsInfo = serviceDetails.getSpecialRequirementsInfo();
+
+                            ssrCode = specialRequirementsInfo.getSsrCode();
+
+                            mealDetails.setMealCode(ssrCode);
+                            mealDetails.setCarrierCode(specialRequirementsInfo.getAirlineCode());
+
+                            //Setting excess baggage value here with respect to airline filing
+
+                            ServiceStandaloneCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup;
+                            switch (ssrCode) {
+
+
+                            }
+                        }
+
+                        //Setting mandatory manual inputs here for meals
+                        if (mealDetails.isMIF()) {
+
+                            for (ServiceStandaloneCatalogueReply.SsrInformation ssrInfo : ssrInformation) {
+
+                                com.amadeus.xml.tpscgr_17_1_1a.SpecialRequirementsDetailsType174527S serviceRequest = ssrInfo.getServiceRequest();
+                                List<ServiceStandaloneCatalogueReply.SsrInformation.SsrInformationDetails> ssrInformationDetails = ssrInfo.getSsrInformationDetails();
+
+                            }
+                        }
+
+                        //Setting price here
+                        ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup pricingGroup = serviceGroup.getPricingGroup().get(0);
+
+                        //Setting Total baggage price here
+                        com.amadeus.xml.tpscgr_17_1_1a.MonetaryInformationType monetaryInformation = pricingGroup.getComputedTaxSubDetails();
+                        mealDetails.setMealPrice(BigDecimal.valueOf(monetaryInformation.getMonetaryDetails().getAmount().longValue()));
+
+                        //Setting base fare and taxes here
+                        List<com.amadeus.xml.tpscgr_17_1_1a.MonetaryInformationDetailsType> otherMonetaryDetails = monetaryInformation.getOtherMonetaryDetails();
+                        for (com.amadeus.xml.tpscgr_17_1_1a.MonetaryInformationDetailsType monetaryInformationDetailsType : otherMonetaryDetails) {
+                            String type = monetaryInformationDetailsType.getTypeQualifier();
+                            Long amount = monetaryInformationDetailsType.getAmount().longValue();
+
+                            if (type.equalsIgnoreCase("B")) {
+                                mealDetails.setBasePrice(amount);
+                            }
+
+                            if (type.equalsIgnoreCase("TX")) {
+                                mealDetails.setTax(amount);
+                            }
+
+                        }
+
+                        //TODO: Create Journey wise cost here
+
+
+                        mealsList.add(mealDetails);
+                    }
+                }
+            }
+
+            mealsInfoStandalone.setSuccess(true);
+            mealsInfoStandalone.setMealDetailsList(mealsList);
+
+        } catch (Exception e) {
+            logger.debug("Error with add Meals information : {} ", e.getMessage(), e);
+            mealsInfoStandalone.setSuccess(false);
+        }
+    }
 
 }

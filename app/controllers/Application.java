@@ -635,6 +635,19 @@ public class Application {
         return ok(Json.toJson(baggageDetailsStandalone));
     }
 
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result addMealsRequestStandalone() {
+
+        JsonNode json = request().body().asJson();
+
+        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json,AncillaryServiceRequest.class);
+
+        AncillaryServicesResponse mealsDetailsStandalone = ancillaryService.getMealsInfoStandalone(ancillaryServiceRequest);
+        logger.debug("Ancillary - Meals response Standalone {} ", Json.toJson(mealsDetailsStandalone));
+
+        return ok(Json.toJson(mealsDetailsStandalone));
+    }
+
 
     public Result ticketRebookAndRepricePNR() {
         JsonNode json = request().body().asJson();

@@ -10,6 +10,8 @@ public class AncillaryServicesResponse {
     private ErrorMessage errorMessage;
     private String provider;
     private List<BaggageDetails> baggageList;
+    private List<MealDetails> mealDetailsList;
+
     private Map<String,List<BaggageDetails>> baggageMap;
     private HashMap<String,List<MealDetails>> mealDetailsMap;
 
@@ -62,5 +64,12 @@ public class AncillaryServicesResponse {
         this.baggageList = baggageList;
     }
 
+    public List<MealDetails> getMealDetailsList() {
+        return mealDetailsList;
+    }
+
+    public void setMealDetailsList(List<MealDetails> mealDetailsList) {
+        this.mealDetailsList = mealDetailsList;
+    }
 
 }

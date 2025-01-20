@@ -666,6 +666,18 @@ public class ServiceHandler {
 
     }
 
+    public ServiceStandaloneCatalogueReply getMealsInfoStandalone(AmadeusSessionWrapper amadeusSessionWrapper, AncillaryServiceRequest ancillaryServiceRequest){
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        ServiceStandaloneCatalogue serviceStandaloneCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowMealsInformationRequestStandalone(ancillaryServiceRequest);
+        amadeusLogger.debug("ServiceStandaloneCatalogue Meals Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogue));
+        ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = mPortType.serviceStandaloneCatalogue(serviceStandaloneCatalogue, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("ServiceStandaloneCatalogue Meals Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogueReply));
+        return serviceStandaloneCatalogueReply;
+
+    }
+
+
     public PNRReply partialCancelPNR(String pnr, PNRReply gdsPNRReply,Map<BigInteger, String> segmentMap, AmadeusSessionWrapper amadeusSessionWrapper){
         logger.debug("partialCancelPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
 
