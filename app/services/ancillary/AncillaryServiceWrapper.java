@@ -27,13 +27,6 @@ public class AncillaryServiceWrapper implements AncillaryService {
         return ancillaryServicesResponse;
     }
 
-    @Override
-    public AncillaryServicesResponse getTmxExtraServices(String resultToken, String reResulttoken, String journeyType, Boolean isLCC) {
-        AncillaryServicesResponse ancillaryServicesResponse = null;
-        ancillaryServicesResponse = travelomatixExtraService.getExtraServicesfromTmx(resultToken, reResulttoken, journeyType, isLCC);
-        return ancillaryServicesResponse;
-    }
-
     public AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest) {
 
         AncillaryServicesResponse ancillaryServicesResponse = null;
@@ -45,6 +38,12 @@ public class AncillaryServiceWrapper implements AncillaryService {
         return ancillaryServicesResponse;
     }
 
+    @Override
+    public AncillaryServicesResponse getTmxExtraServices(String resultToken, String reResulttoken, String journeyType, Boolean isLCC) {
+        AncillaryServicesResponse ancillaryServicesResponse = null;
+        ancillaryServicesResponse = travelomatixExtraService.getExtraServicesfromTmx(resultToken, reResulttoken, journeyType, isLCC);
+        return ancillaryServicesResponse;
+    }
 
 }
 

@@ -11,18 +11,15 @@ public class AncillaryServicesResponse {
     private String provider;
     private List<BaggageDetails> baggageList;
     private List<MealDetails> mealDetailsList;
-
     private Map<String,List<BaggageDetails>> baggageMap;
     private HashMap<String,List<MealDetails>> mealDetailsMap;
 
     public Map<String, List<BaggageDetails>> getBaggageMap() {
         return baggageMap;
     }
-
     public void setBaggageMap(Map<String, List<BaggageDetails>> baggageMap) {
         this.baggageMap = baggageMap;
     }
-
 
     public HashMap<String, List<MealDetails>> getMealDetailsMap() {
         return mealDetailsMap;

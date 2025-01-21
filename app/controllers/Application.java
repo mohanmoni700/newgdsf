@@ -620,7 +620,6 @@ public class Application {
         return ok(Json.toJson(ancillaryServicesResponse));
     }
 
-
     ///Amadeus Ancillary - Baggage
     @BodyParser.Of(BodyParser.Json.class)
     public Result addAdditionalBaggageRequestStandalone() {
@@ -647,7 +646,6 @@ public class Application {
 
         return ok(Json.toJson(mealsDetailsStandalone));
     }
-
 
     public Result ticketRebookAndRepricePNR() {
         JsonNode json = request().body().asJson();
