@@ -132,7 +132,11 @@ public class AncillaryServiceReq {
                     ProductDateTimeType flightDate = new ProductDateTimeType();
 
                     // Departure date
-                    flightDate.setDepartureDate(airSegmentInformation.getToDate());
+                    String departureDate = airSegmentInformation.getToDate();
+                    if(departureDate.length() > 6){
+                        departureDate = departureDate.substring(0,6);
+                    }
+                    flightDate.setDepartureDate(departureDate);
                     flightDetails.setFlightDate(flightDate);
 
                     //Origin
