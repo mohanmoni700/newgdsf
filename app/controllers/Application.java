@@ -636,6 +636,20 @@ public class Application {
     }
 
 
+    ///Amadeus Ancillary - Meals
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result addMealsRequestStandalone() {
+
+        JsonNode json = request().body().asJson();
+        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json, AncillaryServiceRequest.class);
+        logger.debug("Ancillary - Baggage Request {} ", Json.toJson(ancillaryServiceRequest));
+
+        AncillaryServicesResponse mealsDetailsStandalone = ancillaryService.getMealsInfoStandalone(ancillaryServiceRequest);
+        logger.debug("Ancillary - Meals response Standalone {} ", Json.toJson(mealsDetailsStandalone));
+
+        return ok(Json.toJson(mealsDetailsStandalone));
+    }
+
     public Result ticketRebookAndRepricePNR() {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- ticketRebookAndRepricePNR PNR Request: " + json);

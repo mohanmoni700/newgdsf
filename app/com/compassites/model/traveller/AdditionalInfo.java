@@ -1,8 +1,11 @@
 package com.compassites.model.traveller;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Created by user on 07-08-2014.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AdditionalInfo {
 
     private String vesselId;

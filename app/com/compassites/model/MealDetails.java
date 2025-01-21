@@ -3,24 +3,132 @@ package com.compassites.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 
 public class MealDetails {
     private Long contactMasterId;
     private String segment;
-    private BigDecimal mealPrice;
+    private Long ticketId;
+    private String tmxTicketNumber;
+    private Boolean returnDetails;
+
     private String mealId;
     private String mealType;
-    private String mealDesc;
-    private Long ticketId;
     private String origin;
-
-    private String tmxTicketNumber;
-
+    private String destination;
     private String mealCode;
+    private String mealDesc;
+    private BigDecimal mealPrice;
+    private BigInteger availability;
+    private String rfic;
+    private String rfisc;
+    private boolean isRefundable;
+    private boolean isMIF;
+    private String bkm;
+    private String serviceId;
+    private String carrierCode;
+    private Long basePrice;
+    private Long tax;
+    private boolean isFMT;
+    private boolean isFTXT;
 
-    private Boolean returnDetails;
+    public BigInteger getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(BigInteger availability) {
+        this.availability = availability;
+    }
+
+    public String getRfic() {
+        return rfic;
+    }
+
+    public void setRfic(String rfic) {
+        this.rfic = rfic;
+    }
+
+    public String getRfisc() {
+        return rfisc;
+    }
+
+    public void setRfisc(String rfisc) {
+        this.rfisc = rfisc;
+    }
+
+    public boolean isRefundable() {
+        return isRefundable;
+    }
+
+    public void setRefundable(boolean refundable) {
+        isRefundable = refundable;
+    }
+
+    public boolean isMIF() {
+        return isMIF;
+    }
+
+    public void setMIF(boolean MIF) {
+        isMIF = MIF;
+    }
+
+    public String getBkm() {
+        return bkm;
+    }
+
+    public void setBkm(String bkm) {
+        this.bkm = bkm;
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getCarrierCode() {
+        return carrierCode;
+    }
+
+    public void setCarrierCode(String carrierCode) {
+        this.carrierCode = carrierCode;
+    }
+
+    public Long getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(Long basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public Long getTax() {
+        return tax;
+    }
+
+    public void setTax(Long tax) {
+        this.tax = tax;
+    }
+
+    public boolean isFMT() {
+        return isFMT;
+    }
+
+    public void setFMT(boolean FMT) {
+        isFMT = FMT;
+    }
+
+    public boolean isFTXT() {
+        return isFTXT;
+    }
+
+    public void setFTXT(boolean FTXT) {
+        isFTXT = FTXT;
+    }
 
     public Boolean getReturnDetails() {
         return returnDetails;
@@ -29,8 +137,6 @@ public class MealDetails {
     public void setReturnDetails(Boolean returnDetails) {
         this.returnDetails = returnDetails;
     }
-
-
 
     public String getMealCode() {
         return mealCode;
@@ -64,7 +170,6 @@ public class MealDetails {
         this.destination = destination;
     }
 
-    private String destination;
     public Long getTicketId() {
         return ticketId;
     }
@@ -72,6 +177,7 @@ public class MealDetails {
     public void setTicketId(Long ticketId) {
         this.ticketId = ticketId;
     }
+
     public String getMealDesc() {
         return mealDesc;
     }

@@ -104,7 +104,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                         } else if (cancellationChargeBeforeDept.compareTo(charge) == -1) {
                             cancellationChargeBeforeDept = charge;
                         }
-                    } else if (cancellationCharge.getAmount() == null || cancellationCharge.getAmount() == 0) {
+                    } else if (cancellationCharge.getAmount() == null || cancellationCharge.getAmount() == 0 && cancellationChargeBeforeDept == null) {
                         cancellationChargeBeforeDept = new BigDecimal(0);
                     }
                 }
@@ -118,7 +118,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                         } else if (dateChangeBeforeDept.compareTo(charge) == -1) {
                             dateChangeBeforeDept = charge;
                         }
-                    } else if (dateCharge.getAmount() == null || dateCharge.getAmount() == 0) {
+                    } else if (dateCharge.getAmount() == null || dateCharge.getAmount() == 0  && dateChangeBeforeDept == null) {
                         dateChangeBeforeDept = new BigDecimal(0);
                     }
                 }
@@ -245,7 +245,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                         } else if (cancellationChargeBeforeDept.compareTo(charge) < 0) {
                             cancellationChargeBeforeDept = charge;
                         }
-                    }else if(cancellationCharge.getAmount()  == null || cancellationCharge.getAmount() == 0){
+                    }else if(cancellationCharge.getAmount()  == null || cancellationCharge.getAmount() == 0 && cancellationChargeBeforeDept == null){
                         cancellationChargeBeforeDept = new BigDecimal(0);
                     }
                 }
@@ -263,7 +263,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                         } else if (cancellationChargeBeforeDept != null) {
                             cancellationChargeBeforeDept = cancellationChargeBeforeDept.add(charge);
                         }
-                    } else if (cancellationCharge.getAmount() == null || cancellationCharge.getAmount() == 0) {
+                    } else if (cancellationCharge.getAmount() == null || cancellationCharge.getAmount() == 0 && cancellationChargeBeforeDept == null) {
                         cancellationChargeBeforeDept = new BigDecimal(0);
                     }
                 }
@@ -278,7 +278,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                         } else if (dateChangeBeforeDept.compareTo(charge) < 0) {
                             dateChangeBeforeDept = charge;
                         }
-                    } else if (dateCharge.getAmount() == null || dateCharge.getAmount() == 0) {
+                    } else if (dateCharge.getAmount() == null || dateCharge.getAmount() == 0 && dateChangeBeforeDept == null) {
                         dateChangeBeforeDept = new BigDecimal(0);
                     }
                 }
@@ -292,7 +292,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                         } else if (dateChangeBeforeDept != null) {
                             dateChangeBeforeDept = dateChangeBeforeDept.add(charge);
                         }
-                    } else if (dateCharge.getAmount()  == null || dateCharge.getAmount() == 0) {
+                    } else if (dateCharge.getAmount()  == null || dateCharge.getAmount() == 0 && dateChangeBeforeDept == null) {
                         dateChangeBeforeDept = new BigDecimal(0);
                     }
                 }
