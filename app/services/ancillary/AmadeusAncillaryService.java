@@ -9,4 +9,5 @@ public interface AmadeusAncillaryService {
 
     AncillaryServicesResponse additionalBaggageInformationStandalone(AncillaryServiceRequest ancillaryServiceRequest);
     AncillaryServicesResponse additionalMealsInformationStandalone ( AncillaryServiceRequest ancillaryServiceRequest);
+
 }

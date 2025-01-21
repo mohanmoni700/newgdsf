@@ -37,6 +37,7 @@ public class AncillaryServiceWrapper implements AncillaryService {
 
         return ancillaryServicesResponse;
     }
+  
 
     @Override
     public AncillaryServicesResponse getTmxExtraServices(String resultToken, String reResulttoken, String journeyType, Boolean isLCC) {

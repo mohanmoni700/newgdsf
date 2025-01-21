@@ -620,6 +620,7 @@ public class Application {
         return ok(Json.toJson(ancillaryServicesResponse));
     }
 
+
     ///Amadeus Ancillary - Baggage
     @BodyParser.Of(BodyParser.Json.class)
     public Result addAdditionalBaggageRequestStandalone() {
@@ -634,12 +635,14 @@ public class Application {
         return ok(Json.toJson(baggageDetailsStandalone));
     }
 
+
+    ///Amadeus Ancillary - Meals
     @BodyParser.Of(BodyParser.Json.class)
     public Result addMealsRequestStandalone() {
 
         JsonNode json = request().body().asJson();
-
-        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json,AncillaryServiceRequest.class);
+        AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json, AncillaryServiceRequest.class);
+        logger.debug("Ancillary - Baggage Request {} ", Json.toJson(ancillaryServiceRequest));
 
         AncillaryServicesResponse mealsDetailsStandalone = ancillaryService.getMealsInfoStandalone(ancillaryServiceRequest);
         logger.debug("Ancillary - Meals response Standalone {} ", Json.toJson(mealsDetailsStandalone));
