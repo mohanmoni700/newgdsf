@@ -111,25 +111,25 @@ public class AmadeusFlightSearch implements FlightSearch {
             logger.debug("Execution time in getting session:: " + duration / 1000 + " seconds");//to be removed
 //            serviceHandler.logIn();
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-                seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
+                seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper, "Marine");
 //                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
 
-                amadeusLogger.debug("AmadeusSearchRes seamenReply " + new Date() + " Office ID : " + amadeusSessionWrapper.getOfficeId() + " ------->>" + new XStream().toXML(seamenReply));
+                amadeusLogger.debug("AmadeusSearchRes Marine{} Office ID : {} ------->>{}", new Date(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(seamenReply));
 
                 searchParameters.setBookingType(BookingType.NON_MARINE);
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper, "Corporate");
 //                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
                 searchParameters.setBookingType(BookingType.SEAMEN);
 //                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
 
 //                amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
-                amadeusLogger.debug("AmadeusSearchRes " + new Date() + " Office ID : " + amadeusSessionWrapper.getOfficeId() + " ------->>" + new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+                amadeusLogger.debug("AmadeusSearchRes Corporate {} Office ID : {} Corporate  ------->>{}", new Date(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
-                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper);
+                fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper, "Corporate");
 
 //                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
-                amadeusLogger.debug("AmadeusSearchRes " + new Date() + " Office ID : " + amadeusSessionWrapper.getOfficeId() + " ------->>" + new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
+                amadeusLogger.debug("AmadeusSearchRes Corp{} Office ID : {} ------->>{}", new Date(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
 
 //            serviceHandler.logOut();
