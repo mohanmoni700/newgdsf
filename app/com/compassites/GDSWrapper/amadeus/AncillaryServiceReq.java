@@ -8,7 +8,6 @@ import com.amadeus.xml.tpscgq_17_1_1a.*;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
-import com.compassites.model.Passenger;
 import models.AncillaryServiceRequest;
 
 import java.math.BigInteger;
@@ -97,8 +96,6 @@ public class AncillaryServiceReq {
             FareInformationType fareInfo = new FareInformationType();
             fareInfo.setValueQualifier("ADT");
             passengerInfoType.setFareInfo(fareInfo);
-
-//            passengerInfoGroup.add(passengerInfoType);
 
             serviceStandaloneCatalogue.getPassengerInfoGroup().add(passengerInfoType);
 
@@ -266,31 +263,20 @@ public class AncillaryServiceReq {
 
             ServiceStandaloneCatalogue serviceStandaloneCatalogue = new ServiceStandaloneCatalogue();
 
-            List<Passenger> passengerList = ancillaryServiceRequest.getPassengers();
-
-            List<PassengerInfoType> passengerInfoGroup = new ArrayList<>();
-
             //Passenger Info Being Set here
-            int passengerCounter=0;
-            for (Passenger passenger : passengerList) {
+            PassengerInfoType passengerInfoType = new PassengerInfoType();
+            SpecificTravellerTypeI specificTravellerDetails = new SpecificTravellerTypeI();
+            SpecificTravellerDetailsTypeI travellerDetails = new SpecificTravellerDetailsTypeI();
 
-                PassengerInfoType passengerInfoType = new PassengerInfoType();
-                SpecificTravellerTypeI specificTravellerDetails = new SpecificTravellerTypeI();
-                SpecificTravellerDetailsTypeI travellerDetails = new SpecificTravellerDetailsTypeI();
+            travellerDetails.setReferenceNumber("1");
+            specificTravellerDetails.setTravellerDetails(travellerDetails);
+            passengerInfoType.setSpecificTravellerDetails(specificTravellerDetails);
 
-                travellerDetails.setReferenceNumber(String.valueOf(++passengerCounter));
-                specificTravellerDetails.setTravellerDetails(travellerDetails);
-                passengerInfoType.setSpecificTravellerDetails(specificTravellerDetails);
+            FareInformationType fareInfo = new FareInformationType();
+            fareInfo.setValueQualifier("ADT");
+            passengerInfoType.setFareInfo(fareInfo);
 
-                FareInformationType fareInfo = new FareInformationType();
-                fareInfo.setValueQualifier(passenger.getPassengerType().name());
-                passengerInfoType.setFareInfo(fareInfo);
-
-
-                passengerInfoGroup.add(passengerInfoType);
-            }
-
-            serviceStandaloneCatalogue.getPassengerInfoGroup().addAll(passengerInfoGroup);
+            serviceStandaloneCatalogue.getPassengerInfoGroup().add(passengerInfoType);
 
 
             //Flight Info Being set here
@@ -307,22 +293,27 @@ public class AncillaryServiceReq {
 
             String fareBasis = null;
 
+            int counter = 0;
             for (Journey journey : journeyList) {
 
                 List<AirSegmentInformation> airSegmentList = journey.getAirSegmentList();
-                int counter = 0;
+
 
                 fareBasis = airSegmentList.get(0).getFareBasis();
 
                 for (AirSegmentInformation airSegmentInformation : airSegmentList) {
-
+                    ++counter;
                     ServiceStandaloneCatalogue.FlightInfo flightInfo = new ServiceStandaloneCatalogue.FlightInfo();
                     TravelProductInformationType flightDetails = new TravelProductInformationType();
 
                     ProductDateTimeType flightDate = new ProductDateTimeType();
 
                     // Departure date
-                    flightDate.setDepartureDate(airSegmentInformation.getToDate());
+                    String departureDate = airSegmentInformation.getToDate();
+                    if(departureDate.length() > 6){
+                        departureDate = departureDate.substring(0,6);
+                    }
+                    flightDate.setDepartureDate(departureDate);
                     flightDetails.setFlightDate(flightDate);
 
                     //Origin
@@ -347,13 +338,11 @@ public class AncillaryServiceReq {
                     flightIdentification.setBookingClass(airSegmentInformation.getBookingClass());
                     flightDetails.setFlightIdentification(flightIdentification);
 
-                    // Flight Indicator X or V (Since Unknown or also takes in 1 or U)
-                    ProductTypeDetailsType219501C flightTypeDetails = new ProductTypeDetailsType219501C();
-                    flightTypeDetails.getFlightIndicator().add("1");
-                    flightDetails.setFlightTypeDetails(flightTypeDetails);
-
                     //Item / segment sequence number
-                    flightDetails.setItemNumber(BigInteger.valueOf(++counter));
+                    ProductTypeDetailsType219501C flightTypeDetails = new ProductTypeDetailsType219501C();
+                    flightTypeDetails.getFlightIndicator().add(String.valueOf(counter));
+                    flightDetails.setFlightTypeDetails(flightTypeDetails);
+                    flightDetails.setItemNumber(BigInteger.valueOf(counter));
 
                     flightInfo.setFlightDetails(flightDetails);
 
@@ -362,6 +351,11 @@ public class AncillaryServiceReq {
                     travelItineraryInfo.setCabinDesignator(airSegmentInformation.getCabinClass());
                     flightInfo.setTravelItineraryInfo(travelItineraryInfo);
 
+                    //Leg Details
+//                    AdditionalProductDetailsTypeI additionalFlightInfo = new AdditionalProductDetailsTypeI();
+//                    AdditionalProductTypeI legDetails = new AdditionalProductTypeI();
+//                    legDetails.setEquipment(airSegmentInformation.getEquipment());
+//                    flightInfo.setAdditionalFlightInfo(additionalFlightInfo);
 
                     flightInfoList.add(flightInfo);
                 }
