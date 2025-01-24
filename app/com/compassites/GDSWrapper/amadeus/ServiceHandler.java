@@ -270,6 +270,18 @@ public class ServiceHandler {
         return createTSTFromPricingReply;
     }
 
+    public TicketCreateTSTFromPricingReply createSplitTST(int numberOfTST, AmadeusSessionWrapper amadeusSessionWrapper) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        logger.debug("amadeus createSplitTST called at " + new Date() + "...................Session Id:. " + amadeusSessionWrapper.getSessionId());
+        TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createSplitTSTReq(numberOfTST);
+        amadeusLogger.debug("createSplitTSTFromPricingReplyReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketCreateTSTFromPricing));
+
+        TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("createSplitTSTFromPricingReplyRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(createTSTFromPricingReply));
+        return createTSTFromPricingReply;
+    }
+
     public PNRReply savePNR(AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus savePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());

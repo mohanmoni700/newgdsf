@@ -135,6 +135,18 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
+    public Result generateSplitTicketPNR() throws IOException {
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- generateSplitTicketPNR Request: " + json);
+        ObjectMapper mapper = new ObjectMapper();
+        List<TravellerMasterInfo> travellerMasterInfos = mapper.readValue(
+                json.toString(),
+                mapper.getTypeFactory().constructCollectionType(List.class, TravellerMasterInfo.class)
+        );
+        List<PNRResponse> pnrResponses = bookingService.generateSplitTicketPNR(travellerMasterInfos);
+        return ok(Json.toJson(pnrResponses));
+    }
+
     public Result generateTempPNR() {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- generateTempPNR PNR Request: " + json);
@@ -186,6 +198,41 @@ public class Application {
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
+    public Result checkSplitTicketFareAvailability() throws IOException {
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- checkSplitTicketFareAvailability Request: " + json);
+        ObjectMapper mapper = new ObjectMapper();
+        List<TravellerMasterInfo> travellerMasterInfos = mapper.readValue(
+                json.toString(),
+                mapper.getTypeFactory().constructCollectionType(List.class, TravellerMasterInfo.class)
+        );
+        List<PNRResponse> pnrResponses = bookingService.checkSplitFareAvailability(travellerMasterInfos);
+        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponses));
+        return Controller.ok(Json.toJson(pnrResponses));
+    }
+
+    public Result checkFareChangeAndAvailabilityForSplitTicket() throws IOException {
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- checkSplitTicketFareAvailability Request: " + json);
+        ObjectMapper mapper = new ObjectMapper();
+        List<TravellerMasterInfo> travellerMasterInfos = mapper.readValue(
+                json.toString(),
+                mapper.getTypeFactory().constructCollectionType(List.class, TravellerMasterInfo.class)
+        );
+        PNRResponse pnrResponses = bookingService.checkFareChangeAndAvailabilityForSplitTicket(travellerMasterInfos);
+        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponses));
+        return Controller.ok(Json.toJson(pnrResponses));
+    }
+
+    public Result generateSplitTicketWithSinglePNR() {
+        JsonNode json = request().body().asJson();
+        logger.debug("----------------- generatePNR PNR Request: " + json);
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        PNRResponse pnrResponse = bookingService.generateSplitTicketWithSinglePNR(travellerMasterInfo);
+        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        return Controller.ok(Json.toJson(pnrResponse));
+    }
+
     @BodyParser.Of(BodyParser.Json.class)
     public Result priceChangePNR() {
         JsonNode json = request().body().asJson();
@@ -198,19 +245,18 @@ public class Application {
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getBaggageInfo() {
-
-        JsonNode json = request().body().asJson();
-        SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
-        FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
-        String provider = json.get("provider").asText();
-        Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
-        FlightItinerary response = null;
-        try {
-            response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+    	JsonNode json = request().body().asJson();
+    	SearchParameters searchParams = Json.fromJson(json.findPath("searchParams"), SearchParameters.class);
+    	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
+    	String provider = json.get("provider").asText();
+    	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+    	FlightItinerary response = null;
+    	try {
+            logger.info("Baggage info "+Json.toJson(flightItinerary));
+    		response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         return Controller.ok(Json.toJson(response));
     }
 

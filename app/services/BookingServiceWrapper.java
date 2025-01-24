@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import utils.PNRRequest;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by user on 07-08-2014.
@@ -37,6 +39,9 @@ public class BookingServiceWrapper {
 
 	@Autowired
 	private TraveloMatrixBookingServiceImpl traveloMatrixBookingService;
+
+	@Autowired
+	private SplitTicketBookingService splitTicketBookingService;
 
 	private LowestFareService amadeusLowestFareService;
 
@@ -164,6 +169,22 @@ public class BookingServiceWrapper {
 		}
 
 		return pnrResponse;
+	}
+
+	public List<PNRResponse> checkSplitFareAvailability(List<TravellerMasterInfo> travellerMasterInfos) {
+		return splitTicketBookingService.checkFareChangeAndAvailability(travellerMasterInfos);
+	}
+
+	public List<PNRResponse> generateSplitTicketPNR(List<TravellerMasterInfo> travellerMasterInfos) {
+		return splitTicketBookingService.generateSplitTicketPNR(travellerMasterInfos);
+	}
+
+	public PNRResponse generateSplitTicketWithSinglePNR(TravellerMasterInfo travellerMasterInfo) {
+		return splitTicketBookingService.generateSplitTicketWithSinglePNR(travellerMasterInfo);
+	}
+
+	public PNRResponse checkFareChangeAndAvailabilityForSplitTicket(List<TravellerMasterInfo> travellerMasterInfos) {
+		return splitTicketBookingService.checkFareChangeAndAvailabilityForSplitTicket(travellerMasterInfos);
 	}
 
 	public TravellerMasterInfo getPnrDetails(IssuanceRequest issuanceRequest, String gdsPNR, String provider){

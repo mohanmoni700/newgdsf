@@ -84,6 +84,16 @@ public class PNRResponse implements Serializable  {
     private Boolean addBooking;
     private String originalPNR;
 
+    private Map<String, String> pnrMap;
+
+    public Map<String, String> getPnrMap() {
+        return pnrMap;
+    }
+
+    public void setPnrMap(Map<String, String> pnrMap) {
+        this.pnrMap = pnrMap;
+    }
+
     public Boolean getAddBooking() {
         return addBooking;
     }
