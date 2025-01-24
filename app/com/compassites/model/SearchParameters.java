@@ -3,6 +3,7 @@ package com.compassites.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
@@ -18,7 +19,6 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public class SearchParameters implements Serializable,Cloneable{
     @Property
     private List<SearchJourney> journeyList;
@@ -61,7 +61,7 @@ public class SearchParameters implements Serializable,Cloneable{
     private String nationality;
     private Boolean addBooking;
     private String originalPNR;
-
+    private boolean isDomestic;
     public Boolean getAddBooking() {
         return addBooking;
     }
@@ -117,6 +117,7 @@ public class SearchParameters implements Serializable,Cloneable{
         bookingType = BookingType.SEAMEN;
         journeyList=new ArrayList<>();
     }
+
 
     public String getStopOver() {
         return stopOver;
@@ -254,6 +255,14 @@ public class SearchParameters implements Serializable,Cloneable{
         this.preferredFood = preferredFood;
     }
 
+    @JsonProperty("isDomestic")
+    public boolean isDomestic() {
+        return isDomestic;
+    }
+
+    public void setDomestic(boolean domestic) {
+        isDomestic = domestic;
+    }
 
     public String getTransit() {
         return transit;

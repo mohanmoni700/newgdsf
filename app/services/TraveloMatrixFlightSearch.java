@@ -61,12 +61,24 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
     @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         SearchResponse sr = null;
+
+        //TODO: Remove this when trying to handle TMX MultiCity response for domestic routes
+        if (searchParameters.isDomestic() && searchParameters.getJourneyType().equals(JourneyType.MULTI_CITY)) {
+            sr = new SearchResponse();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Disabled Multi City", ErrorMessage.ErrorType.WARNING, "TraveloMatrix");
+            sr.getErrorMessageList().add(errorMessage);
+            return sr;
+        }
+
+
 //        if(!searchParameters.getJourneyType().equals(JourneyType.ROUND_TRIP)) {
         isRefundable = searchParameters.getRefundableFlights();
         nonStop = searchParameters.getDirectFlights();
         travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch started  : ");
         travelomatrixLogger.debug("#####################TraveloMatrixFlightSearch : SearchParameters: \n" + Json.toJson(searchParameters));
+
         JsonNode jsonResponse = searchFlights.getFlights(searchParameters);
+
         try {
             TravelomatrixSearchReply response = new ObjectMapper().treeToValue(jsonResponse, TravelomatrixSearchReply.class);
             if (!response.getStatus()) {
