@@ -498,7 +498,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
     private static void getMealsInformationStandalone(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse mealsInfoStandalone) {
 
-
         Map<String, List<MealDetails>> mealsMap = new LinkedHashMap<>();
         try {
 
@@ -521,6 +520,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
                 String serviceType = serviceId.getItemNumberDetails().get(0).getType();
                 String serviceNumber = serviceId.getItemNumberDetails().get(0).getNumber();
+
 
                 //Type F Meals handled here
                 if (serviceType.equalsIgnoreCase("SR")) {
@@ -606,7 +606,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
             mealsInfoStandalone.setMealDetailsMap(mealsMap);
             mealsInfoStandalone.setSuccess(true);
-
 
         } catch (Exception e) {
             logger.debug("Error with add Meals information : {} ", e.getMessage(), e);

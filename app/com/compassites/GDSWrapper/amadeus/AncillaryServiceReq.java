@@ -298,11 +298,12 @@ public class AncillaryServiceReq {
 
                 List<AirSegmentInformation> airSegmentList = journey.getAirSegmentList();
 
-
                 fareBasis = airSegmentList.get(0).getFareBasis();
 
                 for (AirSegmentInformation airSegmentInformation : airSegmentList) {
+                  
                     ++counter;
+
                     ServiceStandaloneCatalogue.FlightInfo flightInfo = new ServiceStandaloneCatalogue.FlightInfo();
                     TravelProductInformationType flightDetails = new TravelProductInformationType();
 
@@ -314,6 +315,7 @@ public class AncillaryServiceReq {
                         departureDate = departureDate.substring(0,6);
                     }
                     flightDate.setDepartureDate(departureDate);
+
                     flightDetails.setFlightDate(flightDate);
 
                     //Origin
@@ -356,6 +358,7 @@ public class AncillaryServiceReq {
 //                    AdditionalProductTypeI legDetails = new AdditionalProductTypeI();
 //                    legDetails.setEquipment(airSegmentInformation.getEquipment());
 //                    flightInfo.setAdditionalFlightInfo(additionalFlightInfo);
+
 
                     flightInfoList.add(flightInfo);
                 }

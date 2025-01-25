@@ -14,7 +14,6 @@ public class MealDetails {
     private String tmxTicketNumber;
     private Boolean returnDetails;
     private String segmentNumber;
-
     private String mealId;
     private String mealType;
     private String origin;
