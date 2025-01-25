@@ -12,7 +12,7 @@ public class AncillaryServicesResponse {
     private List<BaggageDetails> baggageList;
     private List<MealDetails> mealDetailsList;
     private Map<String,List<BaggageDetails>> baggageMap;
-    private HashMap<String,List<MealDetails>> mealDetailsMap;
+    private Map<String,List<MealDetails>> mealDetailsMap;
 
     public Map<String, List<BaggageDetails>> getBaggageMap() {
         return baggageMap;
@@ -21,11 +21,11 @@ public class AncillaryServicesResponse {
         this.baggageMap = baggageMap;
     }
 
-    public HashMap<String, List<MealDetails>> getMealDetailsMap() {
+    public Map<String, List<MealDetails>> getMealDetailsMap() {
         return mealDetailsMap;
     }
 
-    public void setMealDetailsMap(HashMap<String, List<MealDetails>> mealDetailsMap) {
+    public void setMealDetailsMap(Map<String, List<MealDetails>> mealDetailsMap) {
         this.mealDetailsMap = mealDetailsMap;
     }
 

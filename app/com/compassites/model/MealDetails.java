@@ -13,7 +13,7 @@ public class MealDetails {
     private Long ticketId;
     private String tmxTicketNumber;
     private Boolean returnDetails;
-
+    private String segmentNumber;
     private String mealId;
     private String mealType;
     private String origin;
@@ -29,8 +29,6 @@ public class MealDetails {
     private String bkm;
     private String serviceId;
     private String carrierCode;
-    private Long basePrice;
-    private Long tax;
     private boolean isFMT;
     private boolean isFTXT;
 
@@ -96,22 +94,6 @@ public class MealDetails {
 
     public void setCarrierCode(String carrierCode) {
         this.carrierCode = carrierCode;
-    }
-
-    public Long getBasePrice() {
-        return basePrice;
-    }
-
-    public void setBasePrice(Long basePrice) {
-        this.basePrice = basePrice;
-    }
-
-    public Long getTax() {
-        return tax;
-    }
-
-    public void setTax(Long tax) {
-        this.tax = tax;
     }
 
     public boolean isFMT() {
@@ -224,5 +206,13 @@ public class MealDetails {
 
     public void setMealType(String mealType) {
         this.mealType = mealType;
+    }
+
+    public String getSegmentNumber() {
+        return segmentNumber;
+    }
+
+    public void setSegmentNumber(String segmentNumber) {
+        this.segmentNumber = segmentNumber;
     }
 }

@@ -36,6 +36,9 @@ POST 	/ticketCancelDocuments                     @controllers.Application.ticket
 POST 	/refundSplitTicket                         @controllers.Application.refundSplitTicket()
 POST    /splitTicket                               @controllers.SplitTicketController.findPossibleRoutes
 POST	/findroute                              @controllers.Application.getRoutes
+POST    /checkSplitTicketFareAvailability                         @controllers.Application.checkSplitTicketFareAvailability
+POST    /generateSplitTicketPNR                                   @controllers.Application.generateSplitTicketWithSinglePNR
+POST    /checkFareChangeAndAvailabilityForSplitTicket             @controllers.Application.checkFareChangeAndAvailabilityForSplitTicket
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                              controllers.Assets.at(path="/public", file)

@@ -1,7 +1,6 @@
 package services.ancillary;
 
-import com.amadeus.xml.tpscgr_17_1_1a.ReferencingDetailsType;
-import com.amadeus.xml.tpscgr_17_1_1a.ServiceStandaloneCatalogueReply;
+import com.amadeus.xml.tpscgr_17_1_1a.*;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.AncillaryServicesResponse;
 import com.compassites.model.BaggageDetails;
@@ -96,7 +95,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                     //Setting Booking Method, MIF and Refundable here
                     List<com.amadeus.xml.tpscgr_17_1_1a.AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
                     try {
-                        getBaggageServiceAttributes(serviceAttributes, baggageDetails);
+                        getServiceAttributes(serviceAttributes, baggageDetails, null);
                     } catch (Exception e) {
                         logger.debug("Error With Standalone baggage - Get Service Attributes - : {}", e.getMessage(), e);
                     }
@@ -133,7 +132,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
                             //Pricing info per segment is set here
                             try {
-                                getPricingInfo(pricingGroup, segmentBaggage, flightRef);
+                                getPricingInfo(pricingGroup, segmentBaggage, flightRef, null);
                             } catch (Exception e) {
                                 logger.debug("Error With Standalone baggage - Get Baggage Pricing - : {}", e.getMessage(), e);
                             }
@@ -201,37 +200,86 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         }
     }
 
-    private static void getBaggageServiceAttributes(List<com.amadeus.xml.tpscgr_17_1_1a.AttributeType> serviceAttributes, BaggageDetails baggageDetails) {
+    private static void getFightStatusMapMeals(ServiceStandaloneCatalogueReply.ServiceGroup serviceGroup, Map<String, String> segmentStatusMap) {
 
-        for (com.amadeus.xml.tpscgr_17_1_1a.AttributeType serviceAttribute : serviceAttributes) {
-            List<com.amadeus.xml.tpscgr_17_1_1a.AttributeInformationType> criteriaDetails = serviceAttribute.getCriteriaDetails();
+        List<ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup> quotaGroups = serviceGroup.getQuotaGroup();
 
-            for (com.amadeus.xml.tpscgr_17_1_1a.AttributeInformationType criteriaDetail : criteriaDetails) {
+        for (ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup quotaGroup : quotaGroups) {
+
+            List<ReferencingDetailsType> referenceDetails = quotaGroup.getSegmentReference().getReferenceDetails();
+
+            if (quotaGroup.getServiceQuota().getQuotaInfo().getQuotaReachedReplyStatus() != null) {
+                segmentStatusMap.put(referenceDetails.get(0).getValue(), quotaGroup.getServiceQuota().getQuotaInfo().getQuotaReachedReplyStatus());
+            }
+            if (quotaGroup.getServiceQuota().getQuotaInfo().getAvailability() != null) {
+                int isGreaterThanZero = quotaGroup.getServiceQuota().getQuotaInfo().getAvailability().compareTo(BigInteger.valueOf(0));
+                if (isGreaterThanZero > 0) {
+                    segmentStatusMap.put(referenceDetails.get(0).getValue(), "OK");
+                } else if (isGreaterThanZero == 0) {
+                    segmentStatusMap.put(referenceDetails.get(0).getValue(), "NO");
+                }
+            }
+        }
+    }
+
+    private static void getServiceAttributes(List<AttributeType> serviceAttributes, BaggageDetails baggageDetails, MealDetails mealDetails) {
+
+        for (AttributeType serviceAttribute : serviceAttributes) {
+            List<AttributeInformationType> criteriaDetails = serviceAttribute.getCriteriaDetails();
+
+            for (AttributeInformationType criteriaDetail : criteriaDetails) {
                 String attributeType = criteriaDetail.getAttributeType();
                 String attributeDescription = criteriaDetail.getAttributeDescription();
 
-                switch (attributeType.toUpperCase()) {
+                if (baggageDetails != null) {
 
-                    case "BKM":
-                        baggageDetails.setBkm(attributeDescription);
-                        break;
+                    switch (attributeType.toUpperCase()) {
 
-                    case "MIF":
-                        if (!attributeDescription.equalsIgnoreCase("N")) {
-                            baggageDetails.setMIF(true);
-                        }
-                        break;
+                        case "BKM":
+                            baggageDetails.setBkm(attributeDescription);
+                            break;
 
-                    case "ROR":
-                        if (attributeDescription.equalsIgnoreCase("Y")) {
-                            baggageDetails.setRefundable(true);
-                        }
-                        break;
+                        case "MIF":
+                            if (!attributeDescription.equalsIgnoreCase("N")) {
+                                baggageDetails.setMIF(true);
+                            }
+                            break;
 
-                    case "CNM":
-                        baggageDetails.setBaggageDescription(attributeDescription);
-                        break;
+                        case "ROR":
+                            if (attributeDescription.equalsIgnoreCase("Y")) {
+                                baggageDetails.setRefundable(true);
+                            }
+                            break;
 
+                        case "CNM":
+                            baggageDetails.setBaggageDescription(attributeDescription);
+                            break;
+                    }
+
+                } else if (mealDetails != null) {
+
+                    switch (attributeType.toUpperCase()) {
+
+                        case "BKM":
+                            mealDetails.setBkm(attributeDescription);
+                            break;
+
+                        case "MIF":
+                            if (!attributeDescription.equalsIgnoreCase("N")) {
+                                mealDetails.setMIF(true);
+                            }
+                            break;
+
+                        case "ROR":
+                            if (attributeDescription.equalsIgnoreCase("Y")) {
+                                mealDetails.setRefundable(true);
+                            }
+                            break;
+
+                        case "CNM":
+                            mealDetails.setMealDesc(attributeDescription);
+                            break;
+                    }
                 }
             }
         }
@@ -351,6 +399,22 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         }
     }
 
+    private static void getMealValues(ServiceStandaloneCatalogueReply.ServiceGroup serviceGroup, List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup> serviceDetailsGroupList, MealDetails mealDetails) {
+
+        String ssrCode;
+        for (ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup serviceDetailsGroup : serviceDetailsGroupList) {
+
+            //Setting Airline Code and SSR code here
+            SpecialRequirementsDetailsType serviceDetails = serviceDetailsGroup.getServiceDetails();
+            SpecialRequirementsTypeDetailsType245333C specialRequirementsInfo = serviceDetails.getSpecialRequirementsInfo();
+
+            ssrCode = specialRequirementsInfo.getSsrCode();
+
+            mealDetails.setMealCode(ssrCode);
+            mealDetails.setCarrierCode(specialRequirementsInfo.getAirlineCode());
+        }
+    }
+
     private static void getMandatoryInputs(List<ServiceStandaloneCatalogueReply.SsrInformation> ssrInformation, BaggageDetails baggageDetails) {
 
         for (ServiceStandaloneCatalogueReply.SsrInformation ssrInfo : ssrInformation) {
@@ -381,7 +445,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         }
     }
 
-    private static void getPricingInfo(ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup pricingGroup, BaggageDetails segmentBaggage, String flightRef) {
+    private static void getPricingInfo(ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup pricingGroup, BaggageDetails segmentBaggage, String flightRef, MealDetails segmentMeals) {
 
         List<ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup.CouponInfoGroup> couponInfoGroupList = pricingGroup.getCouponInfoGroup();
         for (ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup.CouponInfoGroup couponInfoGroup : couponInfoGroupList) {
@@ -390,7 +454,11 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             for (ReferencingDetailsType referencingDetailsType : referenceDetails) {
                 if (flightRef.equalsIgnoreCase(referencingDetailsType.getValue())) {
                     BigDecimal segmentWisePrice = couponInfoGroup.getMonetaryInfo().getMonetaryDetails().getAmount();
-                    segmentBaggage.setPrice(segmentWisePrice.longValue());
+                    if (segmentBaggage != null) {
+                        segmentBaggage.setPrice(segmentWisePrice.longValue());
+                    } else if (segmentMeals != null) {
+                        segmentMeals.setMealPrice(BigDecimal.valueOf(segmentWisePrice.longValue()));
+                    }
                     break;
                 }
             }
@@ -430,162 +498,114 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
     private static void getMealsInformationStandalone(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse mealsInfoStandalone) {
 
-        List<MealDetails> mealsList = new ArrayList<>();
-
+        Map<String, List<MealDetails>> mealsMap = new LinkedHashMap<>();
         try {
 
-            List<ServiceStandaloneCatalogueReply.SsrInformation> ssrInformation = serviceStandaloneCatalogueReply.getSsrInformation();
+//            List<ServiceStandaloneCatalogueReply.SsrInformation> ssrInformation = serviceStandaloneCatalogueReply.getSsrInformation();
             List<ServiceStandaloneCatalogueReply.ServiceGroup> serviceGroupList = serviceStandaloneCatalogueReply.getServiceGroup();
-            List<ServiceStandaloneCatalogueReply.Portions> portions = serviceStandaloneCatalogueReply.getPortions();
+            List<ServiceStandaloneCatalogueReply.FlightInfo> flightInfos = serviceStandaloneCatalogueReply.getFlightInfo();
 
+            List<MealDetails> mealList = new ArrayList<>();
+            Map<String, String> segmentMap = new HashMap<>();
 
-            outerForLoop:
+            try {
+                getSegmentWiseFlightMap(flightInfos, segmentMap);
+            } catch (Exception e) {
+                logger.debug("Error Getting segment wise flight map for meals : {} ", e.getMessage(), e);
+            }
+
             for (ServiceStandaloneCatalogueReply.ServiceGroup serviceGroup : serviceGroupList) {
 
-                com.amadeus.xml.tpscgr_17_1_1a.ItemNumberType serviceId = serviceGroup.getServiceId();
+                ItemNumberType serviceId = serviceGroup.getServiceId();
 
                 String serviceType = serviceId.getItemNumberDetails().get(0).getType();
                 String serviceNumber = serviceId.getItemNumberDetails().get(0).getNumber();
 
-                //Type F
+
+                //Type F Meals handled here
                 if (serviceType.equalsIgnoreCase("SR")) {
 
                     MealDetails mealDetails = new MealDetails();
+                    Map<String, String> segmentStatusMap = new HashMap<>();
 
+                    try {
+                        getFightStatusMapMeals(serviceGroup, segmentStatusMap);
+                    } catch (Exception e) {
+                        logger.debug("Error With Standalone Meals - Is can Issue - : {}", e.getMessage(), e);
+                    }
                     mealDetails.setServiceId(serviceNumber);
 
-                    boolean canIssue = true;
+                    //Setting Service Codes here
+                    PricingOrTicketingSubsequentType serviceCodes = serviceGroup.getServiceCodes();
+                    mealDetails.setRfic(serviceCodes.getSpecialCondition());
+                    mealDetails.setRfisc(serviceCodes.getOtherSpecialCondition());
 
-                    //Checking if the baggage can be issued here
+                    //Setting Booking Method, MIF and Refundable here
+                    List<AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
 
-                    List<ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup> quotaGroups = serviceGroup.getQuotaGroup();
-                    for (ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup quotaGroup : quotaGroups) {
-                        if (quotaGroup.getServiceQuota().getQuotaInfo().getQuotaReachedReplyStatus()!=null) {
-                            if (!"OK".equalsIgnoreCase(quotaGroup.getServiceQuota().getQuotaInfo().getQuotaReachedReplyStatus())) {
-                                canIssue = false;
-                                break;
-                            }
-                        } if (quotaGroup.getServiceQuota().getQuotaInfo().getAvailability()!=null) {
-                            int isGreaterThanZero = quotaGroup.getServiceQuota().getQuotaInfo().getAvailability().compareTo(BigInteger.valueOf(0));
-                            if(isGreaterThanZero > 0){
-                                mealDetails.setAvailability(quotaGroup.getServiceQuota().getQuotaInfo().getAvailability());
-                            } else if (isGreaterThanZero == 0) {
-                                canIssue = false;
-                                break;
-                            }
-                        }
+                    try {
+                        getServiceAttributes(serviceAttributes, null, mealDetails);
+                    } catch (Exception e) {
+                        logger.debug("Error With Standalone meals - Get Service Attributes - : {}", e.getMessage(), e);
                     }
 
-                    if (canIssue) {
+                    //Service Details here
+                    List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup> serviceDetailsGroupList = serviceGroup.getServiceDetailsGroup();
+                    try {
+                        getMealValues(serviceGroup, serviceDetailsGroupList, mealDetails);
+                    } catch (Exception e) {
+                        logger.debug("Error With Standalone meals - Get meals Values - : {}", e.getMessage(), e);
+                    }
 
-                        //Setting Service Codes here
-                        com.amadeus.xml.tpscgr_17_1_1a.PricingOrTicketingSubsequentType serviceCodes = serviceGroup.getServiceCodes();
-                        mealDetails.setRfic(serviceCodes.getSpecialCondition());
-                        mealDetails.setRfisc(serviceCodes.getOtherSpecialCondition());
+                    //Setting price here
+                    ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup pricingGroup = serviceGroup.getPricingGroup().get(0);
 
+                    for (Map.Entry<String, String> entry : segmentStatusMap.entrySet()) {
 
-                        //Setting Booking Method, MIF and Refundable here
-                        List<com.amadeus.xml.tpscgr_17_1_1a.AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
-                        for (com.amadeus.xml.tpscgr_17_1_1a.AttributeType serviceAttribute : serviceAttributes) {
-                            List<com.amadeus.xml.tpscgr_17_1_1a.AttributeInformationType> criteriaDetails = serviceAttribute.getCriteriaDetails();
+                        String flightRef = entry.getKey();
+                        String flightStatus = entry.getValue();
 
-                            for (com.amadeus.xml.tpscgr_17_1_1a.AttributeInformationType criteriaDetail : criteriaDetails) {
-                                String attributeType = criteriaDetail.getAttributeType();
-                                String attributeDescription = criteriaDetail.getAttributeDescription();
+                        if (flightStatus != null && (flightStatus.equalsIgnoreCase("OK")))  {
 
-                                switch (attributeType.toUpperCase()) {
+                            MealDetails segmentMeals = new MealDetails();
+                            BeanUtils.copyProperties(mealDetails, segmentMeals);
 
-                                    case "BKM":
-                                        mealDetails.setBkm(attributeDescription);
-                                        break ;
-
-                                    case "MIF":
-                                        if (!attributeDescription.equalsIgnoreCase("N")) {
-                                            mealDetails.setMIF(true);
-                                        }
-                                        break ;
-
-                                    case "ROR":
-                                        if (attributeDescription.equalsIgnoreCase("Y")) {
-                                            mealDetails.setRefundable(true);
-                                        }
-                                        break ;
-
-                                    case "CNM":
-                                        mealDetails.setMealDesc(attributeDescription);
-                                        break ;
-
-                                }
+                            //Pricing info per segment is set here
+                            try {
+                                getPricingInfo(pricingGroup, null, flightRef, segmentMeals);
+                            } catch (Exception e) {
+                                logger.debug("Error With Standalone Meals - Get Meals Pricing - : {}", e.getMessage(), e);
                             }
+
+                            String segmentName = segmentMap.get(flightRef);
+                            segmentMeals.setSegmentNumber(flightRef);
+
+                            //Converting the origin-destination string
+                            List<String> origin0Destination1 = getOrigin0Destination1(segmentName);
+                            segmentMeals.setOrigin(origin0Destination1.get(0));
+                            segmentMeals.setDestination(origin0Destination1.get(1));
+
+                            mealList.add(segmentMeals);
                         }
-
-                        //Service Details here
-                        String ssrCode = null;
-                        List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup> serviceDetailsGroupList = serviceGroup.getServiceDetailsGroup();
-                        for (ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup serviceDetailsGroup : serviceDetailsGroupList) {
-
-                            //Setting Airline Code and SSR code here
-                            com.amadeus.xml.tpscgr_17_1_1a.SpecialRequirementsDetailsType serviceDetails = serviceDetailsGroup.getServiceDetails();
-                            com.amadeus.xml.tpscgr_17_1_1a.SpecialRequirementsTypeDetailsType245333C specialRequirementsInfo = serviceDetails.getSpecialRequirementsInfo();
-
-                            ssrCode = specialRequirementsInfo.getSsrCode();
-
-                            mealDetails.setMealCode(ssrCode);
-                            mealDetails.setCarrierCode(specialRequirementsInfo.getAirlineCode());
-
-                            //Setting excess baggage value here with respect to airline filing
-
-                            ServiceStandaloneCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup;
-                            switch (ssrCode) {
-
-
-                            }
-                        }
-
-                        //Setting mandatory manual inputs here for meals
-                        if (mealDetails.isMIF()) {
-
-                            for (ServiceStandaloneCatalogueReply.SsrInformation ssrInfo : ssrInformation) {
-
-                                com.amadeus.xml.tpscgr_17_1_1a.SpecialRequirementsDetailsType174527S serviceRequest = ssrInfo.getServiceRequest();
-                                List<ServiceStandaloneCatalogueReply.SsrInformation.SsrInformationDetails> ssrInformationDetails = ssrInfo.getSsrInformationDetails();
-
-                            }
-                        }
-
-                        //Setting price here
-                        ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup pricingGroup = serviceGroup.getPricingGroup().get(0);
-
-                        //Setting Total baggage price here
-                        com.amadeus.xml.tpscgr_17_1_1a.MonetaryInformationType monetaryInformation = pricingGroup.getComputedTaxSubDetails();
-                        mealDetails.setMealPrice(BigDecimal.valueOf(monetaryInformation.getMonetaryDetails().getAmount().longValue()));
-
-                        //Setting base fare and taxes here
-                        List<com.amadeus.xml.tpscgr_17_1_1a.MonetaryInformationDetailsType> otherMonetaryDetails = monetaryInformation.getOtherMonetaryDetails();
-                        for (com.amadeus.xml.tpscgr_17_1_1a.MonetaryInformationDetailsType monetaryInformationDetailsType : otherMonetaryDetails) {
-                            String type = monetaryInformationDetailsType.getTypeQualifier();
-                            Long amount = monetaryInformationDetailsType.getAmount().longValue();
-
-                            if (type.equalsIgnoreCase("B")) {
-                                mealDetails.setBasePrice(amount);
-                            }
-
-                            if (type.equalsIgnoreCase("TX")) {
-                                mealDetails.setTax(amount);
-                            }
-
-                        }
-
-                        //TODO: Create Journey wise cost here
-
-
-                        mealsList.add(mealDetails);
                     }
                 }
             }
 
+            for (Map.Entry<String, String> entry : segmentMap.entrySet()) {
+                String segmentKey = entry.getValue();
+                String refNo = entry.getKey();
+
+                List<MealDetails> segmentWiseMealList = new ArrayList<>();
+                for (MealDetails mealDetails : mealList) {
+                    if (refNo.equalsIgnoreCase(mealDetails.getSegmentNumber())) {
+                        segmentWiseMealList.add(mealDetails);
+                    }
+                }
+                mealsMap.put(segmentKey, segmentWiseMealList);
+            }
+
+            mealsInfoStandalone.setMealDetailsMap(mealsMap);
             mealsInfoStandalone.setSuccess(true);
-            mealsInfoStandalone.setMealDetailsList(mealsList);
 
         } catch (Exception e) {
             logger.debug("Error with add Meals information : {} ", e.getMessage(), e);
