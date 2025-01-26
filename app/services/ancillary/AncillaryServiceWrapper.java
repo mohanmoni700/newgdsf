@@ -39,17 +39,17 @@ public class AncillaryServiceWrapper implements AncillaryService {
     }
   
 
-    @Override
-    public AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest) {
-
-        AncillaryServicesResponse ancillaryServicesResponse = null;
-
-        if (ancillaryServiceRequest.getProvider().equalsIgnoreCase("Amadeus")) {
-            ancillaryServicesResponse = amadeusAncillaryService.additionalMealsInformationStandalone(ancillaryServiceRequest);
-        }
-
-        return ancillaryServicesResponse;
-    }
+//    @Override
+//    public AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest) {
+//
+//        AncillaryServicesResponse ancillaryServicesResponse = null;
+//
+//        if (ancillaryServiceRequest.getProvider().equalsIgnoreCase("Amadeus")) {
+//            ancillaryServicesResponse = amadeusAncillaryService.additionalMealsInformationStandalone(ancillaryServiceRequest);
+//        }
+//
+//        return ancillaryServicesResponse;
+//    }
   
 
     @Override

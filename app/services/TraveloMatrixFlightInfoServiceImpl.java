@@ -34,43 +34,90 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
 
     public BookingFlights bookingFlights = new BookingFlights();
 
-   @Override
-   @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
-    public List<HashMap> flightFareRules(String resultToken,String returnResultToken) {
-       List<HashMap> minirule = null;
-       JsonNode returnJsonResponse = null;
-       JsonNode jsonResponse = fareRulesTMX.getFareRules(resultToken);
-       if(returnResultToken != null && !returnResultToken.equalsIgnoreCase("null"))
-       returnJsonResponse = fareRulesTMX.getFareRules(returnResultToken);
-       try {
-           travelomatrixLogger.debug("Response for FareRules: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
-           TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(jsonResponse, TraveloMatrixFaruleReply.class);
-           TraveloMatrixFaruleReply returnResponse = null;
+    @Override
+    @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
+    public List<TraveloMatrixFaruleReply> flightFareRules(String resultToken , String returnResultToken) {
+        List<TraveloMatrixFaruleReply> traveloMatrixFaruleReplyList = new ArrayList<>();
 
-           if(returnJsonResponse != null ){
-           returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
-               //Roundtrip
-               if (response.getStatus() == 0 && returnResponse.getStatus() == 0) {
-                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
-               } else if (response != null && returnResponse != null) {
-                   minirule = getMergedMiniRuleFromFareRule(response,returnResponse);
-               } else if (response != null) {
-                   minirule = getMiniRuleFromFareRule(response);
-               } else if (returnResponse != null) {
-                   minirule = getMiniRuleFromFareRule(returnResponse);
-               }
-           }else{
-               if (response.getStatus() == 0) {
-                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
-               } else{
-                   minirule = getMiniRuleFromFareRule(response);
-               }
-           }
-       } catch (JsonProcessingException e) {
-           throw new RuntimeException(e);
-       }
-       return minirule;
-   }
+        JsonNode returnJsonResponse = null;
+        JsonNode fareRules = fareRulesTMX.getFareRules(resultToken);
+        if (returnResultToken != null && !returnResultToken.equalsIgnoreCase("null"))
+            returnJsonResponse = fareRulesTMX.getFareRules(returnResultToken);
+
+        try {
+            travelomatrixLogger.debug("Response for FareRules: ResultToken:" + resultToken + " ----  Response: \n" + fareRules);
+
+            TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(fareRules, TraveloMatrixFaruleReply.class);
+            traveloMatrixFaruleReplyList.add(response);
+            TraveloMatrixFaruleReply returnResponse = null;
+
+            // RoundTrip
+            if (returnJsonResponse != null) {
+                travelomatrixLogger.debug("Response for FareRules: ReturnResultToken:" + returnResultToken + " ----  Response: \n" + returnJsonResponse);
+                returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
+
+                List<FareRuleDetail> departureFareRules = response.getFareRule().getFareRuleDetail();
+                List<FareRuleDetail> arriveFareRules = returnResponse.getFareRule().getFareRuleDetail();
+
+                departureFareRules.addAll(arriveFareRules);
+
+                TraveloMatrixFaruleReply traveloMatrixFaruleReply = new TraveloMatrixFaruleReply();
+                FareRule fareRule = traveloMatrixFaruleReply.getFareRule();
+                fareRule.setFareRuleDetail(departureFareRules);
+                traveloMatrixFaruleReply.setFareRule(fareRule);
+
+                traveloMatrixFaruleReplyList.add(traveloMatrixFaruleReply);
+            }
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return traveloMatrixFaruleReplyList;
+    }
+
+//        @Override
+//   @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
+//    public List<HashMap> flightFareRules(String resultToken,String returnResultToken) {
+//       TmxFareRules tmxFareRules =  new TmxFareRules();
+//       List<TraveloMatrixFaruleReply> traveloMatrixFaruleReplyList = new ArrayList<>();
+//
+//       List<HashMap> minirule = null;
+//       JsonNode returnJsonResponse = null;
+//       JsonNode jsonResponse = fareRulesTMX.getFareRules(resultToken);
+//       if(returnResultToken != null && !returnResultToken.equalsIgnoreCase("null"))
+//       returnJsonResponse = fareRulesTMX.getFareRules(returnResultToken);
+//       try {
+//           travelomatrixLogger.debug("Response for FareRules: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
+//           TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(jsonResponse, TraveloMatrixFaruleReply.class);
+//           traveloMatrixFaruleReplyList.add(response);
+//           TraveloMatrixFaruleReply returnResponse = null;
+//
+//           if(returnJsonResponse != null ){
+//           returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
+//               traveloMatrixFaruleReplyList.add(returnResponse);
+//
+//               //Roundtrip
+//               if (response.getStatus() == 0 && returnResponse.getStatus() == 0) {
+//                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
+//               } else if (response != null && returnResponse != null) {
+//                   minirule = getMergedMiniRuleFromFareRule(response,returnResponse);
+//               } else if (response != null) {
+//                   minirule = getMiniRuleFromFareRule(response);
+//               } else if (returnResponse != null) {
+//                   minirule = getMiniRuleFromFareRule(returnResponse);
+//               }
+//           }else{
+//               if (response.getStatus() == 0) {
+//                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
+//               } else{
+//                   minirule = getMiniRuleFromFareRule(response);
+//               }
+//           }
+//       } catch (JsonProcessingException e) {
+//           throw new RuntimeException(e);
+//       }
+//       return minirule;
+//   }
 
     public List<HashMap> getMiniRuleFromFareRule(TraveloMatrixFaruleReply response){
         MiniRule miniRule = new MiniRule();

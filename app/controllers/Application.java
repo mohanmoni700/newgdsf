@@ -3,6 +3,7 @@ package controllers;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.travelomatrix.ResponseModels.TraveloMatrixFaruleReply;
 import com.compassites.model.travelomatrix.ResponseModels.UpdatePNR.UpdatePNRResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -393,15 +394,15 @@ public class Application {
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result getFareRuleFromTmx() {
-        List<HashMap> miniRules = new ArrayList<>();
+        List<TraveloMatrixFaruleReply> tmxFareRules = null;
         JsonNode json = request().body().asJson();
         //String resultToken = Json.fromJson(json,String.class);
         String resultToken = json.get("resultToken").asText();
         String returnResultToken = null;
         if (json.get("returnResultToken") != null)
             returnResultToken = json.get("returnResultToken").asText();
-        miniRules = flightInfoService.getFareRuleFromTmx(resultToken, returnResultToken);
-        return Controller.ok(Json.toJson(miniRules));
+        tmxFareRules = flightInfoService.getFareRuleFromTmx(resultToken, returnResultToken);
+        return Controller.ok(Json.toJson(tmxFareRules));
     }
 
     public Result cancelPNR() {

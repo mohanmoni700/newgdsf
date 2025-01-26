@@ -1,6 +1,7 @@
 package services;
 
 import com.compassites.model.*;
+import com.compassites.model.travelomatrix.ResponseModels.TraveloMatrixFaruleReply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -100,12 +101,10 @@ public class FlightInfoServiceWrapper {
    /*
       This function Fetches Fare rules based from TraveloMatrix API
     */
-	public List<HashMap> getFareRuleFromTmx(String resultToken,String returnResultToken){
-
-		List<HashMap> miniRule = new ArrayList<>();
-		miniRule=traveloMatrixFlightInfoServiceImpl.flightFareRules(resultToken,returnResultToken);
-
-		return miniRule;
+	public List<TraveloMatrixFaruleReply> getFareRuleFromTmx(String resultToken, String returnResultToken){
+		List<TraveloMatrixFaruleReply> traveloMatrixFaruleReplyList = null;
+		 traveloMatrixFaruleReplyList = traveloMatrixFlightInfoServiceImpl.flightFareRules(resultToken,returnResultToken);
+		return traveloMatrixFaruleReplyList;
 	}
 
 }
