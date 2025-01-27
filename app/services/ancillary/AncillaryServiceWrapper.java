@@ -27,6 +27,7 @@ public class AncillaryServiceWrapper implements AncillaryService {
         return ancillaryServicesResponse;
     }
 
+    @Override
     public AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest) {
 
         AncillaryServicesResponse ancillaryServicesResponse = null;

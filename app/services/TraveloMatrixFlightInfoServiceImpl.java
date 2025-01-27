@@ -61,6 +61,12 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
 
                 departureFareRules.addAll(arriveFareRules);
 
+                TraveloMatrixFaruleReply traveloMatrixFaruleReply = new TraveloMatrixFaruleReply();
+                FareRule fareRule = traveloMatrixFaruleReply.getFareRule();
+                fareRule.setFareRuleDetail(departureFareRules);
+                traveloMatrixFaruleReply.setFareRule(fareRule);
+
+                traveloMatrixFaruleReplyList.add(traveloMatrixFaruleReply);
             }
 
         } catch (JsonProcessingException e) {
