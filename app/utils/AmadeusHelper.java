@@ -56,61 +56,63 @@ public class AmadeusHelper {
     }
 
     public static Map<String, Map> getFareCheckRules(FareCheckRulesReply fareCheckRulesReply) {
+
         List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList = fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText();
         Map<String, String> changeMap = new ConcurrentHashMap<>();
         Map<String, String> cancelMap = new ConcurrentHashMap<>();
         int index = 0;
+
         for (; index < fareRuleTextList.size(); index++) {
+
             String trimmedValue = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
             if (trimmedValue.equals("CHANGES")) {
+
                 int counter = index;
                 for (; counter < fareRuleTextList.size(); counter++) {
+
                     String text = fareRuleTextList.get(counter).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+
                     if (text.equals("CANCELLATIONS")) {
                         break;
                     }
+
                     if (text.equals("ANY TIME")) {
-                        changeMap.put(text,
-                                fareRuleTextList.get(++counter).getFreeText().toString());
+                        changeMap.put(text, fareRuleTextList.get(++counter).getFreeText().toString());
                     } else if (text.equals("BEFORE DEPARTURE")) {
-                        changeMap.put(text,
-                                fareRuleTextList.get(++counter).getFreeText().toString());
+                        changeMap.put(text, fareRuleTextList.get(++counter).getFreeText().toString());
                     } else if (text.equals("AFTER DEPARTURE")) {
-                        changeMap.put(text,
-                                fareRuleTextList.get(++counter).getFreeText().toString());
-                    } else if ((text.endsWith("NO-SHOW.") &&
-                            text.startsWith("CHARGE")) ||
-                            text.equals("CHANGES PERMITTED FOR NO-SHOW.") ||
-                            text.equals("CHANGES AGAINST NO SHOW - FREE")) {
+                        changeMap.put(text, fareRuleTextList.get(++counter).getFreeText().toString());
+                    } else if ((text.endsWith("NO-SHOW.") && text.startsWith("CHARGE")) || text.equals("CHANGES PERMITTED FOR NO-SHOW.") || text.equals("CHANGES AGAINST NO SHOW - FREE")) {
                         changeMap.put("NO-SHOW", fareRuleTextList.get(counter).getFreeText().toString());
                     }
+
                 }
                 index = counter - 1;
             } else if (trimmedValue.equals("CANCELLATIONS")) {
+
                 int counter = index;
                 for (; counter < fareRuleTextList.size(); counter++) {
-                    String canceltext = fareRuleTextList.get(counter).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
-                    if (canceltext.equals("CHANGES")) {
+                    String cancelText = fareRuleTextList.get(counter).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+
+                    if (cancelText.equals("CHANGES")) {
                         break;
                     }
-                    if (canceltext.equals("ANY TIME")) {
-                        cancelMap.put(canceltext,
-                                fareRuleTextList.get(++counter).getFreeText().toString());
-                    } else if (canceltext.equals("BEFORE DEPARTURE")) {
-                        cancelMap.put(canceltext,
-                                fareRuleTextList.get(++counter).getFreeText().toString());
-                    } else if (canceltext.equals("AFTER DEPARTURE")) {
-                        cancelMap.put(canceltext,
-                                fareRuleTextList.get(++counter).getFreeText().toString());
-                    } else if ((canceltext.endsWith("NO-SHOW.") &&
-                            canceltext.startsWith("CHARGE")) ||
-                            canceltext.equals("CANCELLATIONS PERMITTED FOR NO-SHOW.")) {
+
+                    if (cancelText.equals("ANY TIME")) {
+                        cancelMap.put(cancelText, fareRuleTextList.get(++counter).getFreeText().toString());
+                    } else if (cancelText.equals("BEFORE DEPARTURE")) {
+                        cancelMap.put(cancelText, fareRuleTextList.get(++counter).getFreeText().toString());
+                    } else if (cancelText.equals("AFTER DEPARTURE")) {
+                        cancelMap.put(cancelText, fareRuleTextList.get(++counter).getFreeText().toString());
+                    } else if ((cancelText.endsWith("NO-SHOW.") && cancelText.startsWith("CHARGE")) || cancelText.equals("CANCELLATIONS PERMITTED FOR NO-SHOW.")) {
                         cancelMap.put("NO-SHOW", fareRuleTextList.get(counter).getFreeText().toString());
                     }
+
                 }
                 index = counter - 1;
             }
         }
+
         Map<String, Map> finalMap = new ConcurrentHashMap<>();
         finalMap.put("ChangeRules", changeMap);
         finalMap.put("CancellationRules", cancelMap);
@@ -119,6 +121,7 @@ public class AmadeusHelper {
     }
 
     public static List<HashMap> getMiniRulesFromGenericRules(Map<String, Map> benzyFareRules,BigDecimal totalFare,String currency){
+
         Map<String,String> changeRulesMap = benzyFareRules.get("ChangeRules");
         MiniRule miniRule = new MiniRule();
         HashMap adultMap = new HashMap();
@@ -355,7 +358,20 @@ public class AmadeusHelper {
 
         adultMap.put("ADT", miniRule);
         miniRules.add(adultMap);
+
+
         return  miniRules;
+    }
+
+    public static List<String> getDetailedFareDetailsList(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList){
+
+        List<String> detailedFareRulesList = new ArrayList<>();
+
+        for (FareCheckRulesReply.TariffInfo.FareRuleText fareRuleText : fareRuleTextList){
+            detailedFareRulesList.addAll(fareRuleText.getFreeText());
+        }
+
+        return  detailedFareRulesList;
     }
 
     public static BigDecimal getCharges(String data){
