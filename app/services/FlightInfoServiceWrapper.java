@@ -2,6 +2,8 @@ package services;
 
 import com.compassites.model.*;
 import com.compassites.model.travelomatrix.ResponseModels.TraveloMatrixFaruleReply;
+import com.fasterxml.jackson.databind.JsonNode;
+import dto.FareCheckRulesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -89,14 +91,26 @@ public class FlightInfoServiceWrapper {
 		return miniRule;
 	}
 
-	public List<HashMap> getGenericFareRuleFlightItenary(FlightItinerary flightItinerary,SearchParameters searchParameters,
-														 boolean seamen,String provider){
-		List<HashMap> miniRule = new ArrayList<>();
+
+	public FareCheckRulesResponse getGenericFareRuleFlightItinerary(FlightItinerary flightItinerary, SearchParameters searchParameters, boolean seamen, String provider) {
+		FareCheckRulesResponse fareCheckRulesResponse = null;
 		if ("Amadeus".equalsIgnoreCase(provider)) {
-			miniRule = amadeusFlightInfoService.getGenericFareRuleFlightItenary(flightItinerary,searchParameters,seamen);
+			fareCheckRulesResponse = amadeusFlightInfoService.getFareCheckRules(flightItinerary, searchParameters, seamen);
 		}
-		return miniRule;
+		return fareCheckRulesResponse;
 	}
+
+
+///  Commenting due to new requirement of having fare check response as complete json
+//	public JsonNode getGenericFareRuleFlightItenary(FlightItinerary flightItinerary, SearchParameters searchParameters,
+//													boolean seamen, String provider){
+//		List<HashMap> miniRule = new ArrayList<>();
+//		if ("Amadeus".equalsIgnoreCase(provider)) {
+//			miniRule = amadeusFlightInfoService.getGenericFareRuleFlightItenary(flightItinerary,searchParameters,seamen);
+//		}
+//		return miniRule;
+//	}
+
 
    /*
       This function Fetches Fare rules based from TraveloMatrix API

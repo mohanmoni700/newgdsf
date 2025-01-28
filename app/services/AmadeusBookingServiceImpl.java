@@ -779,7 +779,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				.checkFlightAvailability(travellerMasterInfo, amadeusSessionWrapper);
 		System.out.println("5");
 		if (sellFromRecommendation.getErrorAtMessageLevel() != null
-				&& sellFromRecommendation.getErrorAtMessageLevel().size() > 0
+				&& !sellFromRecommendation.getErrorAtMessageLevel().isEmpty()
 				&& (sellFromRecommendation.getItineraryDetails() == null)) {
 			ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
 					"error", ErrorMessage.ErrorType.ERROR, "Amadeus");
@@ -814,6 +814,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			journeys = travellerMasterInfo.getItinerary().getNonSeamenJourneyList();
 		}
 
+		//TODO: can be optimised
 		for(Journey journey : journeys){
 			for(AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()){
 				airSegmentList.add(airSegmentInformation);
@@ -1003,8 +1004,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		}
 		return pnrResponse;
 	}
-	public PNRResponse checkFareChangeAndAvailability(
-			TravellerMasterInfo travellerMasterInfo) {
+	public PNRResponse checkFareChangeAndAvailability(TravellerMasterInfo travellerMasterInfo) {
+
         logger.debug("checkFareChangeAndAvailability called...........");
 		PNRResponse pnrResponse = new PNRResponse();
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
@@ -1070,27 +1071,27 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					//pnrResponse.setPnrNumber(tstRefNo);
 					Boolean error = Boolean.FALSE;
 					gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-					if(gdsPNRReply.getGeneralErrorInfo().size() > 0){
+					if(!gdsPNRReply.getGeneralErrorInfo().isEmpty()){
 						Thread.sleep(20000);
 						error = Boolean.TRUE;
 					}
-					if(!error){
-					benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-					PNRReply pnrReply = serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
-					pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
-					createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
-					setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
-					gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
+					if (!error) {
+						benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+						PNRReply pnrReply = serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
+						pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
+						createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
+						setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
+						gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
 
-					if(gdsPNRReplyBenzy.getGeneralErrorInfo().size() > 0) {
-						List<PNRReply.GeneralErrorInfo> generalErrorInfos = gdsPNRReplyBenzy.getGeneralErrorInfo();
-						for (PNRReply.GeneralErrorInfo generalErrorInfo : generalErrorInfos) {
-							String textMsg = generalErrorInfo.getMessageErrorText().getText().get(0).trim();
-							if (textMsg.equals("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")) {
-								error = Boolean.TRUE;
+						if (!gdsPNRReplyBenzy.getGeneralErrorInfo().isEmpty()) {
+							List<PNRReply.GeneralErrorInfo> generalErrorInfos = gdsPNRReplyBenzy.getGeneralErrorInfo();
+							for (PNRReply.GeneralErrorInfo generalErrorInfo : generalErrorInfos) {
+								String textMsg = generalErrorInfo.getMessageErrorText().getText().get(0).trim();
+								if (textMsg.equals("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")) {
+									error = Boolean.TRUE;
+								}
 							}
 						}
-					}
 					}
 					if(error){
 						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);

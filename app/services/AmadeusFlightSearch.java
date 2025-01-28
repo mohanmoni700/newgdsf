@@ -227,7 +227,7 @@ public class AmadeusFlightSearch implements FlightSearch {
     }
 
     //todo to be removed
-    public static void printHashmap(ConcurrentHashMap<Integer, FlightItinerary> hashMap, boolean iSeaman){
+    public static void printHashmap(ConcurrentHashMap<Integer, FlightItinerary> hashMap, boolean iSeaman) {
         try {
             System.out.println("Is Seaman :" + iSeaman + "  count:" + hashMap.values().size());
             logger.debug("Is Seaman :" + iSeaman + "  count:" + hashMap.values().size());
@@ -292,7 +292,15 @@ public class AmadeusFlightSearch implements FlightSearch {
                 for (ReferenceInfoType segmentRef : recommendation.getSegmentFlightRef()) {
                     FlightItinerary flightItinerary = new FlightItinerary();
                     flightItinerary.setPassportMandatory(false);
-                    flightItinerary.setPricingInformation(getPricingInformation(recommendation, office.getOfficeId(), segmentRef, mnrGrp, baggageList));
+
+                    PricingInformation pricingInformation = null;
+                    try {
+                        pricingInformation = getPricingInformation(recommendation, office.getOfficeId(), segmentRef, mnrGrp, baggageList);
+                    } catch (Exception e) {
+                        logger.debug("Error at setting pricing information while flight search {} ", e.getMessage(), e);
+                    }
+                    flightItinerary.setPricingInformation(pricingInformation);
+
                     flightItinerary.getPricingInformation().setGdsCurrency(currency);
                     flightItinerary.getPricingInformation().setPricingOfficeId(office.getOfficeId());
 
@@ -305,7 +313,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                     flightItinerary = createJourneyInformation(segmentRef, flightItinerary, flightIndexList, recommendation, contextList, groupingKeyMap, flightHash, isSeamen, mnrGrp, baggageList, officeId);
 
                     if (!isSeamen) {
-                        if (recommendation.getFareFamilyRef() != null && recommendation.getFareFamilyRef().getReferencingDetail().size() > 0) {
+                        if (recommendation.getFareFamilyRef() != null && !recommendation.getFareFamilyRef().getReferencingDetail().isEmpty()) {
                             BigInteger ref = recommendation.getFareFamilyRef().getReferencingDetail().get(0).getRefNumber();
                             getFareType(flightItinerary, fareMasterPricerTravelBoardSearchReply, ref);
                         }
@@ -637,21 +645,18 @@ public class AmadeusFlightSearch implements FlightSearch {
             BigDecimal tax = fareDetails.getTotalTaxAmount();
             BigDecimal baseFare = amount.subtract(tax);
             if (paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA")) {
-//        		pricingInformation.setAdtBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
                 pricingInformation.setAdtBasePrice(baseFare);
                 pricingInformation.setAdtTotalPrice(amount);
                 passengerTax.setPassengerType("ADT");
                 passengerTax.setTotalTax(tax);
                 passengerTax.setPassengerCount(paxCount);
             } else if (paxType.equalsIgnoreCase("CHD")) {
-//				pricingInformation.setChdBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
                 pricingInformation.setChdBasePrice(baseFare);
                 pricingInformation.setChdTotalPrice(amount);
                 passengerTax.setPassengerType("CHD");
                 passengerTax.setTotalTax(tax);
                 passengerTax.setPassengerCount(paxCount);
             } else if (paxType.equalsIgnoreCase("INF")) {
-//				pricingInformation.setInfBasePrice(baseFare.multiply(new BigDecimal(paxCount)));
                 pricingInformation.setInfBasePrice(baseFare);
                 pricingInformation.setInfTotalPrice(amount);
                 passengerTax.setPassengerType("INF");
