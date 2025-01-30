@@ -617,7 +617,7 @@ public class Application {
         PNRResponse reIssuePNRResponse = reIssueService.confirmReissue(reIssueConfirmationRequest);
         logger.debug("Reissue Confirmation Response Body{}", Json.toJson(reIssuePNRResponse));
 
-        return ok(Json.toJson(reIssueConfirmationRequest));
+        return ok(Json.toJson(reIssuePNRResponse));
     }
 
 

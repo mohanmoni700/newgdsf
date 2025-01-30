@@ -17,6 +17,8 @@ import models.NationalityDao;
 import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import utils.DateUtility;
@@ -28,6 +30,8 @@ import java.util.*;
 
 
 public class PNRAddMultiElementsh {
+
+    private static final Logger logger = LoggerFactory.getLogger("gds");
 
     public PNRAddMultiElements getMultiElements(TravellerMasterInfo travellerMasterInfo) {
         PNRAddMultiElements element = new PNRAddMultiElements();
@@ -134,19 +138,26 @@ public class PNRAddMultiElementsh {
     }
 
 
-    public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo, List<String> segmentNumbers, Map<String,String> travellerMap) {
-        PNRAddMultiElements element = new PNRAddMultiElements();
-        OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
-        pnrActions.getOptionCode().add(new BigInteger("0"));
-        element.setPnrActions(pnrActions);
+    public PNRAddMultiElements addSSRDetails(TravellerMasterInfo travellerMasterInfo, List<String> segmentNumbers, Map<String, String> travellerMap) {
 
-//        element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
-        DataElementsMaster dem = new DataElementsMaster();
-        dem.setMarker1(new DummySegmentTypeI());
-        int qualifierNumber = 0;
-        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber, segmentNumbers, travellerMap));
-        element.setDataElementsMaster(dem);
-        return element;
+        try {
+
+            PNRAddMultiElements element = new PNRAddMultiElements();
+            OptionalPNRActionsType pnrActions = new OptionalPNRActionsType();
+            pnrActions.getOptionCode().add(new BigInteger("0"));
+            element.setPnrActions(pnrActions);
+
+            DataElementsMaster dem = new DataElementsMaster();
+            dem.setMarker1(new DummySegmentTypeI());
+            int qualifierNumber = 0;
+            dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber, segmentNumbers, travellerMap));
+            element.setDataElementsMaster(dem);
+
+            return element;
+        } catch (Exception e) {
+            logger.debug("Error Adding SSR Details to PNR {}", e.getMessage(), e);
+            return null;
+        }
     }
 
     private List<TravellerInfo> getPassengersList(TravellerMasterInfo travellerMasterInfo){
@@ -800,84 +811,75 @@ public DataElementsIndiv addTravelAgentInfo(int qualifierNumber){
 
     //Adding SSR details here
     public List<DataElementsIndiv> addAdditionalPassengerDetails(TravellerMasterInfo travellerMasterInfo, int qualifierNumber, List<String> segmentNumbers, Map<String, String> travellerMap) {
-        int passengerReference = 1;
-        String contactName = "";
-        List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
-        for (com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()) {
+        try {
 
-            if (traveller.getPersonalDetails().getMiddleName() != null) {
-                contactName = traveller.getPersonalDetails().getFirstName() + traveller.getPersonalDetails().getMiddleName();
-            } else {
-                contactName = traveller.getPersonalDetails().getFirstName();
+            int passengerReference = 1;
+            String contactName = "";
+            List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
+            for (com.compassites.model.traveller.Traveller traveller : travellerMasterInfo.getTravellersList()) {
+
+                if (traveller.getPersonalDetails().getMiddleName() != null) {
+                    contactName = traveller.getPersonalDetails().getFirstName() + traveller.getPersonalDetails().getMiddleName();
+                } else {
+                    contactName = traveller.getPersonalDetails().getFirstName();
+                }
+                contactName = contactName + traveller.getPersonalDetails().getSalutation();
+                contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
+                String contactLastName = traveller.getPersonalDetails().getLastName();
+                contactLastName = contactLastName.replaceAll("\\s+", "");
+                String contactFullName = contactName + contactLastName;
+                contactFullName = contactFullName.toLowerCase();
+                passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
+
+                if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF.equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
+
+                    //Adding Is Seaman entry here
+                    if(travellerMasterInfo.isSeamen()) {
+                        dataElementsDivList.add(addIsSeaman(passengerReference));
+                    }
+                    //Adding Mobile number here
+                    dataElementsDivList.add(addCTCM(passengerReference));
+
+                    //Adding Email Address here
+                    dataElementsDivList.add(addCTCE(passengerReference));
+
+                    //Adding Vessel Name here if it exists
+                    if(travellerMasterInfo.getAdditionalInfo()!=null && StringUtils.hasText(travellerMasterInfo.getAdditionalInfo().getVesselId())) {
+                        dataElementsDivList.add(addVesselName(passengerReference,travellerMasterInfo.getVesselName()));
+                    }
+
+                    //Adding passport number here if it exists
+                    if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
+                        dataElementsDivList.add(addPassportNumber(traveller, passengerReference));
+                    }
+
+                    //Adding SQ data
+                    if(isSQ(travellerMasterInfo)){
+                        dataElementsDivList.add(addSQSSR(passengerReference));
+                    }
+
+                    if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
+                        dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference, travellerMasterInfo.getUserTimezone()));
+                    }
+
+                    Preferences preferences = traveller.getPreferences();
+                    if (StringUtils.hasText(preferences.getMeal())) {
+                        dataElementsDivList.add(addMealPreference(traveller, qualifierNumber, passengerReference, segmentNumbers));
+                    }
+                    if (StringUtils.hasText(preferences.getFrequentFlyerAirlines()) && StringUtils.hasText(preferences.getFrequentFlyerNumber())) {
+                        dataElementsDivList.add(addFrequentFlyerNumber(traveller, qualifierNumber, passengerReference));
+                    }
+                    if (StringUtils.hasText(preferences.getSeatPreference()) && !"any".equalsIgnoreCase(preferences.getSeatPreference())) {
+                        dataElementsDivList.add(addSeatPreference(traveller, passengerReference));
+                    }
+                }
             }
-            contactName = contactName + traveller.getPersonalDetails().getSalutation();
-            contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
-            String contactLastName = traveller.getPersonalDetails().getLastName();
-            contactLastName = contactLastName.replaceAll("\\s+", "");
-            String contactFullName = contactName + contactLastName;
-            contactFullName = contactFullName.toLowerCase();
-            passengerReference = Integer.parseInt(travellerMap.get(contactFullName));
 
-            if (travellerMasterInfo.isSeamen() || (!travellerMasterInfo.isSeamen() && !PassengerTypeCode.INF.equals(DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth())))) {
-
-                //Adding Is Seaman entry here
-                if(travellerMasterInfo.isSeamen()) {
-                    dataElementsDivList.add(addIsSeaman(passengerReference));
-                }
-                //Adding Mobile number here
-                dataElementsDivList.add(addCTCM(passengerReference));
-
-                //Adding Email Address here
-                dataElementsDivList.add(addCTCE(passengerReference));
-
-                //Adding Vessel Name here if it exists
-                if(StringUtils.hasText(travellerMasterInfo.getAdditionalInfo().getVesselId())) {
-                    dataElementsDivList.add(addVesselName(passengerReference,travellerMasterInfo.getVesselName()));
-                }
-
-                //Adding passport number here if it exists
-                if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
-                    dataElementsDivList.add(addPassportNumber(traveller, passengerReference));
-                }
-
-                //Adding SQ data
-                if(isSQ(travellerMasterInfo)){
-                    dataElementsDivList.add(addSQSSR(passengerReference));
-                }
-
-                if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
-                    dataElementsDivList.add(addPassportDetails(traveller, qualifierNumber, passengerReference, travellerMasterInfo.getUserTimezone()));
-                }
-
-                Preferences preferences = traveller.getPreferences();
-                if (StringUtils.hasText(preferences.getMeal())) {
-                    dataElementsDivList.add(addMealPreference(traveller, qualifierNumber, passengerReference, segmentNumbers));
-                }
-                if (StringUtils.hasText(preferences.getFrequentFlyerAirlines()) && StringUtils.hasText(preferences.getFrequentFlyerNumber())) {
-                    dataElementsDivList.add(addFrequentFlyerNumber(traveller, qualifierNumber, passengerReference));
-                }
-                if (StringUtils.hasText(preferences.getSeatPreference()) && !"any".equalsIgnoreCase(preferences.getSeatPreference())) {
-                    dataElementsDivList.add(addSeatPreference(traveller, passengerReference));
-                }
-            }
-
-//            else {
-//
-//                //Adding passport number here
-//                if (StringUtils.hasText(traveller.getPassportDetails().getPassportNumber())) {
-//                    dataElementsDivList.add(addPassportNumber(traveller, passengerReference));
-//                }
-//
-//                //Adding Mobile number here
-//                dataElementsDivList.add(addCTCM(passengerReference));
-//
-//                //Adding Email Address here
-//                dataElementsDivList.add(addCTCE(passengerReference));
-//
-//            }
-
+            return dataElementsDivList;
+        } catch (Exception e) {
+            logger.debug("Error While adding additional passenger details in SSR {} ",e.getMessage(),e);
+            return null;
         }
-        return dataElementsDivList;
     }
 
     public DataElementsIndiv addMealPreference(com.compassites.model.traveller.Traveller traveller, int qualifierNumber,

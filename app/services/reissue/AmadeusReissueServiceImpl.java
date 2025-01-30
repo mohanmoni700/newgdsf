@@ -74,7 +74,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
             //2. Checking the status of the ticket here
             TicketProcessEDocReply reIssueCheckTicketStatus = serviceHandler.reIssueCheckTicketStatus(reIssueSearchRequest, amadeusSessionWrapper);
-            reissueSearchResponse = checkIfTicketStatusIsOpen(reIssueCheckTicketStatus, reIssueSearchRequest.getGdsPNR());
+            reissueSearchResponse = checkIfTicketStatusIsOpen(reIssueCheckTicketStatus, reIssueSearchRequest.getGdsPNR(), reIssueSearchRequest.getTicketNumberList());
 
             //3. Checking the Eligibility if ticket status is open, else sending error message;
             TicketCheckEligibilityReply checkEligibilityReply;
@@ -116,52 +116,56 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
 
     //TODO: Below logic for all pax and all ticket reissue hence checking the coupon eligibility for all pax and each segment (for date change), will make the necessary changes for new requirements
-    private static SearchResponse checkIfTicketStatusIsOpen(TicketProcessEDocReply reIssueCheckTicketStatus, String gdsPnr) {
+    private static SearchResponse checkIfTicketStatusIsOpen(TicketProcessEDocReply reIssueCheckTicketStatus, String gdsPnr, List<String> ticketNumbers) {
 
         SearchResponse reissueSearchResponse = new SearchResponse();
 
         List<TicketProcessEDocReply.DocGroup> docGroupList = reIssueCheckTicketStatus.getDocGroup();
+
 
         for (TicketProcessEDocReply.DocGroup docGroup : docGroupList) {
             List<TicketProcessEDocReply.DocGroup.DocDetailsGroup> docDetailsGroupList = docGroup.getDocDetailsGroup();
 
             for (TicketProcessEDocReply.DocGroup.DocDetailsGroup docDetailsGroup : docDetailsGroupList) {
                 String ticketNumber = docDetailsGroup.getDocInfo().getDocumentDetails().getNumber();
-                List<TicketProcessEDocReply.DocGroup.DocDetailsGroup.CouponGroup> couponGroupList = docDetailsGroup.getCouponGroup();
 
-                for (TicketProcessEDocReply.DocGroup.DocDetailsGroup.CouponGroup couponGroup : couponGroupList) {
-                    List<CouponInformationDetailsTypeI> couponDetailsList = couponGroup.getCouponInfo().getCouponDetails();
+                if (ticketNumbers.contains(ticketNumber)) {
+                    List<TicketProcessEDocReply.DocGroup.DocDetailsGroup.CouponGroup> couponGroupList = docDetailsGroup.getCouponGroup();
 
-                    for (CouponInformationDetailsTypeI couponDetails : couponDetailsList) {
+                    for (TicketProcessEDocReply.DocGroup.DocDetailsGroup.CouponGroup couponGroup : couponGroupList) {
+                        List<CouponInformationDetailsTypeI> couponDetailsList = couponGroup.getCouponInfo().getCouponDetails();
 
-                        String couponStatus = couponDetails.getCpnStatus();
+                        for (CouponInformationDetailsTypeI couponDetails : couponDetailsList) {
 
-                        //TODO: To handle Airport Control 24hrs status here as per new requirement.
-                        //If the coupon status is not "I", the ticket is not open for reissue (I = Open Ticket)
-                        if (!"I".equalsIgnoreCase(couponStatus)) {
-                            ErrorMessage errorMessage = new ErrorMessage();
-                            errorMessage.setProvider("Amadeus");
-                            errorMessage.setType(ErrorMessage.ErrorType.ERROR);
-                            errorMessage.setGdsPNR(gdsPnr);
-                            errorMessage.setTicketNumber(ticketNumber);
+                            String couponStatus = couponDetails.getCpnStatus();
 
-                            switch (couponStatus) {
-                                case "AL":
-                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "AirPort Controlled");
-                                    break;
-                                case "RF":
-                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "Refunded");
-                                    break;
-                                case "V":
-                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "Voided");
-                                    break;
-                                default:
-                                    errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + couponStatus);
-                                    break;
-                            }
+                            //TODO: To handle Airport Control 24hrs status here as per new requirement.
+                            //If the coupon status is not "I", the ticket is not open for reissue (I = Open Ticket)
+                            if (!"I".equalsIgnoreCase(couponStatus)) {
+                                ErrorMessage errorMessage = new ErrorMessage();
+                                errorMessage.setProvider("Amadeus");
+                                errorMessage.setType(ErrorMessage.ErrorType.ERROR);
+                                errorMessage.setGdsPNR(gdsPnr);
+                                errorMessage.setTicketNumber(ticketNumber);
 
-                            if (!reissueSearchResponse.getErrorMessageList().contains(errorMessage)) {
-                                reissueSearchResponse.getErrorMessageList().add(errorMessage);
+                                switch (couponStatus) {
+                                    case "AL":
+                                        errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "AirPort Controlled");
+                                        break;
+                                    case "RF":
+                                        errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "Refunded");
+                                        break;
+                                    case "V":
+                                        errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + "Voided");
+                                        break;
+                                    default:
+                                        errorMessage.setMessage("Status of Ticket Number  " + ticketNumber + " is  " + couponStatus);
+                                        break;
+                                }
+
+                                if (!reissueSearchResponse.getErrorMessageList().contains(errorMessage)) {
+                                    reissueSearchResponse.getErrorMessageList().add(errorMessage);
+                                }
                             }
                         }
                     }
@@ -222,17 +226,22 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
             FlightSearchOffice officeId = null;
 
             //Dynamic Office ID here
-            if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("BOMVS34C3")) {
-                officeId = amadeusSourceOfficeService.getPrioritySourceOffice();
-            } else if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("DELVS38LF")) {
-                officeId = amadeusSourceOfficeService.getPrioritySourceOffice();
-            }
-
-            //Splitting and generating a new PNR to be reissued here (Login And LogOut as the Ticket_RebookAndRepricePNR is stateful and needs a fresh PNR retrieve)
-            String newPnrToBeReIssued = splitAndGetNewPnrToReissue(reIssueConfirmationRequest, officeId, serviceHandler);
+//            if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("BOMVS34C3")) {
+//                officeId = amadeusSourceOfficeService.getPrioritySourceOffice();
+//            } else if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("DELVS38LF")) {
+            officeId = amadeusSourceOfficeService.getDelhiSourceOffice();
+//            }
+//            String pnrToBeReIssued;
+//
+//            pnrToBeReIssued = reIssueConfirmationRequest.getOriginalGdsPnr();
+//
+//            //Splitting and generating a new PNR to be reissued here (Login And LogOut as the Ticket_RebookAndRepricePNR is stateful and needs a fresh session)
+//            if (reIssueConfirmationRequest.isToSplit()) {
+//                pnrToBeReIssued = splitAndGetNewPnrToReissue(reIssueConfirmationRequest, officeId, serviceHandler);
+//            }
 
             //Cancel, Rebook and reprice here and generate a new PNR Response
-            reIssuePNRResponse = reIssueBookingService.confirmReissue(newPnrToBeReIssued, reIssueConfirmationRequest, officeId);
+            reIssuePNRResponse = reIssueBookingService.confirmReissue("P6M2KO", reIssueConfirmationRequest, officeId);
 
 
             return reIssuePNRResponse;
@@ -270,9 +279,6 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
                     }
                 }
             }
-
-            //Final save of the PNR (Ending Transaction)
-            serviceHandler.saveChildPNR("10", amadeusSessionWrapper);
 
             return childPnr;
         } catch (Exception e) {
