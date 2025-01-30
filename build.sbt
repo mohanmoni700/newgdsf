@@ -37,7 +37,10 @@ libraryDependencies ++= Seq(
   "org.apache.axis2" % "axis2-transport-http" % "1.6.2",
   "org.apache.axis2" % "axis2-transport-local" % "1.6.2",
   "org.apache.axis2" % "axis2-xmlbeans" % "1.6.2",
-  "com.thoughtworks.xstream" % "xstream" % "1.4.7"
+  "com.thoughtworks.xstream" % "xstream" % "1.4.7",
+  "io.prometheus" % "simpleclient" % "0.16.0",
+  "io.prometheus" % "simpleclient_hotspot" % "0.16.0",
+  "io.prometheus" % "simpleclient_httpserver" % "0.16.0"
 )
 
 TaskKey[Unit]("stop") := {
