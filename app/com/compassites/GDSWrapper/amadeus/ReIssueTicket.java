@@ -49,10 +49,7 @@ import java.math.BigInteger;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 //All request Bodies for Reissue flows are created here
@@ -304,17 +301,17 @@ public class ReIssueTicket {
 
 
             //Setting corporate code here
-            pricingTicketing.getPriceType().add("RW");
-            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType corporate = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType();
-            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType corporateId = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType();
-            corporateId.setCorporateQualifier("RW");
-            corporateId.getIdentity().add("061724");
-            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
-            corporate.getCorporateId().add(corporateId);
+//            pricingTicketing.getPriceType().add("RW");
+//            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType corporate = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType();
+//            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType corporateId = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType();
+//            corporateId.setCorporateQualifier("RW");
+//            corporateId.getIdentity().add("061724");
+//            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
+//            corporate.getCorporateId().add(corporateId);
 
             pricingTickInfo.setPricingTicketing(pricingTicketing);
             fareOptions.setPricingTickInfo(pricingTickInfo);
-            fareOptions.setCorporate(corporate);
+//            fareOptions.setCorporate(corporate);
 
             ticketCheckEligibility.setFareOptions(fareOptions);
 
@@ -495,14 +492,14 @@ public class ReIssueTicket {
             pricingTicketing.getPriceType().add("ET");
 
             //Setting corporate code here
-            pricingTicketing.getPriceType().add("RW");
-            CorporateIdentificationType corporate = new CorporateIdentificationType();
-            CorporateIdentityType corporateId = new CorporateIdentityType();
-            corporateId.setCorporateQualifier("RW");
-            corporateId.getIdentity().add("061724");
-            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
-            corporate.getCorporateId().add(corporateId);
-            fareOptions.setCorporate(corporate);
+//            pricingTicketing.getPriceType().add("RW");
+//            CorporateIdentificationType corporate = new CorporateIdentificationType();
+//            CorporateIdentityType corporateId = new CorporateIdentityType();
+//            corporateId.setCorporateQualifier("RW");
+//            corporateId.getIdentity().add("061724");
+//            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
+//            corporate.getCorporateId().add(corporateId);
+//            fareOptions.setCorporate(corporate);
 
             pricingTickInfo.setPricingTicketing(pricingTicketing);
             fareOptions.setPricingTickInfo(pricingTickInfo);
@@ -790,7 +787,7 @@ public class ReIssueTicket {
 
             //Setting Test/Prod environment and ignore warnings here
             CommitType commit = new CommitType();
-            commit.setIgnoreWarningsOption(false);
+            commit.setIgnoreWarningsOption(true);
             commit.setReceivedFrom(amadeusReIssueEnvironment);
             amaTicketRebookAndRepricePNRRQ.setCommit(commit);
 
@@ -883,6 +880,7 @@ public class ReIssueTicket {
             for (AmadeusPaxRefAndTicket amadeusPaxRefAndTicket : amadeusPaxRefAndTicketList) {
                 PricingOptionType paxInfo = new PricingOptionType();
 
+
                 //Setting Ticket Number here
                 PricingOptionBaseType.TicketingInfo ticketingInfo = new PricingOptionBaseType.TicketingInfo();
                 ticketingInfo.setNumber(amadeusPaxRefAndTicket.getTicketNumber());
@@ -922,37 +920,29 @@ public class ReIssueTicket {
                 itineraryPricingOptionList.add(pricingPTC);
             }
 
-            PricingOptionType pricingET = new PricingOptionType();
-            PricingOptionBaseType.NegotiatedFare negotiatedFareET = new PricingOptionBaseType.NegotiatedFare();
-            negotiatedFareET.setType("ET");
-            pricingET.getNegotiatedFare().add(negotiatedFareET);
-            itineraryPricingOptionList.add(pricingET);
-
-            PricingOptionType pricingRW = new PricingOptionType();
-            PricingOptionBaseType.NegotiatedFare negotiatedFareRW = new PricingOptionBaseType.NegotiatedFare();
-            negotiatedFareRW.setType("RW");
-            pricingRW.getNegotiatedFare().add(negotiatedFareRW);
-            negotiatedFareRW.getCorporate().add("061724");
-            negotiatedFareRW.getCorporate().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueConfirmationRequest.getBookingType() + "." + vistaraAirlineStr));
-            itineraryPricingOptionList.add(pricingRW);
+//            PricingOptionType pricingRW = new PricingOptionType();
+//            PricingOptionBaseType.NegotiatedFare negotiatedFareRW = new PricingOptionBaseType.NegotiatedFare();
+//            negotiatedFareRW.setType("RW");
+//            pricingRW.getNegotiatedFare().add(negotiatedFareRW);
+//            negotiatedFareRW.getCorporate().add("061724");
+//            itineraryPricingOptionList.add(pricingRW);
 
             //Validating carriers set here
             PricingOptionType pricingVC = new PricingOptionType();
-            List<PricingOptionBaseType.ServiceProvider> serviceProviderVCList = new ArrayList<>();
+            Map<String, PricingOptionBaseType.ServiceProvider> serviceProviderVCMap = new LinkedHashMap<>();
             for (Journey journey : segmentsToBeAdded) {
                 List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
-
                 for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
                     String validatingCarrierCode = airSegmentInformation.getValidatingCarrierCode();
-                    PricingOptionBaseType.ServiceProvider serviceProviderVC = new PricingOptionBaseType.ServiceProvider();
-                    if (validatingCarrierCode != null && !serviceProviderVCList.contains(serviceProviderVC)) {
+                    if (validatingCarrierCode != null) {
+                        PricingOptionBaseType.ServiceProvider serviceProviderVC = new PricingOptionBaseType.ServiceProvider();
                         serviceProviderVC.setType("VC");
                         serviceProviderVC.setValue(validatingCarrierCode);
-                        serviceProviderVCList.add(serviceProviderVC);
+                        serviceProviderVCMap.putIfAbsent(validatingCarrierCode, serviceProviderVC);
                     }
                 }
             }
-            pricingVC.getServiceProvider().addAll(serviceProviderVCList);
+            pricingVC.getServiceProvider().addAll(serviceProviderVCMap.values());
             itineraryPricingOptionList.add(pricingVC);
 
 
@@ -975,7 +965,7 @@ public class ReIssueTicket {
 
             //Airline Code set here
             AirSegmentType.ServiceProvider serviceProvider = new AirSegmentType.ServiceProvider();
-            serviceProvider.setCode(airSegmentInformation.getOperatingCarrierCode());
+            serviceProvider.setCode(airSegmentInformation.getValidatingCarrierCode());
             airSegmentType.setServiceProvider(serviceProvider);
 
             //Flight Number set here

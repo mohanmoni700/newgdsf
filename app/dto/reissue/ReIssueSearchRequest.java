@@ -4,7 +4,9 @@ import com.compassites.model.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.beans.Transient;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -167,6 +169,15 @@ public class ReIssueSearchRequest implements Serializable {
         } else {
             return BookingType.NON_MARINE;
         }
+    }
+
+    @Transient
+    public List<String> getTicketNumberList(){
+        List<String> ticketNumbers = new ArrayList<>();
+        for(Passenger passenger : this.passengers){
+            ticketNumbers.add(passenger.getTicketNumber());
+        }
+        return ticketNumbers;
     }
 
 }

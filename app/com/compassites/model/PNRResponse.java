@@ -82,7 +82,10 @@ public class PNRResponse implements Serializable  {
     private List<BaggageDetails> tmxBaggageDetails;
 
     private Boolean addBooking;
+
     private String originalPNR;
+
+    private boolean isPnrSplit;
 
     private Map<String, String> pnrMap;
 
@@ -403,6 +406,14 @@ public class PNRResponse implements Serializable  {
 
     public void setReIssueSuccess(boolean reIssueSuccess) {
         isReIssueSuccess = reIssueSuccess;
+    }
+
+    public boolean isPnrSplit() {
+        return isPnrSplit;
+    }
+
+    public void setPnrSplit(boolean pnrSplit) {
+        isPnrSplit = pnrSplit;
     }
 }
 

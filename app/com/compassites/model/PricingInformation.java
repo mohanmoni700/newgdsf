@@ -1,5 +1,8 @@
 package com.compassites.model;
 
+import com.compassites.model.amadeus.reissue.ReIssuePerPaxPricingInfo;
+
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -138,6 +141,17 @@ public class PricingInformation implements Serializable {
 	private MnrSearchFareRules mnrSearchFareRules;
 
 	private MnrSearchBaggage mnrSearchBaggage;
+
+	@Transient
+	private List<ReIssuePerPaxPricingInfo> paxWisePricing;
+
+	public List<ReIssuePerPaxPricingInfo> getPaxWisePricing() {
+		return paxWisePricing;
+	}
+
+	public void setPaxWisePricing(List<ReIssuePerPaxPricingInfo> paxWisePricing) {
+		this.paxWisePricing = paxWisePricing;
+	}
 
 	public PricingInformation() {
 		paxFareDetailsList = new ArrayList<>();

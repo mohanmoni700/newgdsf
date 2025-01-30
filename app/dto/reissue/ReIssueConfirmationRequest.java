@@ -25,6 +25,8 @@ public class ReIssueConfirmationRequest {
 
     private TravellerMasterInfo originalTravellerMasterInfo;
 
+    private boolean toSplit;
+
     public Long getBookingId() {
         return bookingId;
     }
@@ -87,6 +89,14 @@ public class ReIssueConfirmationRequest {
 
     public void setOriginalTravellerMasterInfo(TravellerMasterInfo originalTravellerMasterInfo) {
         this.originalTravellerMasterInfo = originalTravellerMasterInfo;
+    }
+
+    public boolean isToSplit() {
+        return toSplit;
+    }
+
+    public void setToSplit(boolean toSplit) {
+        this.toSplit = toSplit;
     }
 
     public BookingType getBookingType() {
