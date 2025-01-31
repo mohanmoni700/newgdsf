@@ -43,14 +43,18 @@ public class PNRAddMultiElementsh {
         //element.getTravellerInfo().add(addPassenger());
         //element.getTravellerInfo().add(addChildPassenger());
         //element.getTravellerInfo().add(addInfantPassenger());
-        element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo))  ;
+        if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()==null) {
+            element.getTravellerInfo().addAll(getPassengersList(travellerMasterInfo));
+        }
         PNRAddMultiElements.DataElementsMaster dem = new PNRAddMultiElements.DataElementsMaster();
         dem.setMarker1(new DummySegmentTypeI());
         int qualifierNumber = 0;
-        dem.getDataElementsIndiv().add(addCreditCardData(qualifierNumber));
-        dem.getDataElementsIndiv().add(addReceivedFrom(qualifierNumber));
-        dem.getDataElementsIndiv().add(addTckArr(qualifierNumber));
-        dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo, qualifierNumber));
+        if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()==null) {
+            dem.getDataElementsIndiv().add(addCreditCardData(qualifierNumber));
+            dem.getDataElementsIndiv().add(addReceivedFrom(qualifierNumber));
+            dem.getDataElementsIndiv().add(addTckArr(qualifierNumber));
+            dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo, qualifierNumber));
+        }
 
 
 //        dem.getDataElementsIndiv().addAll(addAdditionalPassengerDetails(travellerMasterInfo, qualifierNumber));

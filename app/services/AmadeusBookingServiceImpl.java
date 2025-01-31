@@ -1042,7 +1042,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			checkFlightAvailibility(travellerMasterInfo, pnrResponse, amadeusSessionWrapper);
 
 			if (pnrResponse.isFlightAvailable()) {
-				gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
+				//if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()==null) {
+					gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
+				//}
 				/* Benzy changes */
 				PNRReply gdsPNRReplyBenzy = null;
 				FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
