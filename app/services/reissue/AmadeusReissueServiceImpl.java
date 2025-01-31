@@ -231,17 +231,17 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 //            } else if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("DELVS38LF")) {
             officeId = amadeusSourceOfficeService.getDelhiSourceOffice();
 //            }
-//            String pnrToBeReIssued;
-//
-//            pnrToBeReIssued = reIssueConfirmationRequest.getOriginalGdsPnr();
-//
-//            //Splitting and generating a new PNR to be reissued here (Login And LogOut as the Ticket_RebookAndRepricePNR is stateful and needs a fresh session)
-//            if (reIssueConfirmationRequest.isToSplit()) {
-//                pnrToBeReIssued = splitAndGetNewPnrToReissue(reIssueConfirmationRequest, officeId, serviceHandler);
-//            }
+            String pnrToBeReIssued;
+
+            pnrToBeReIssued = reIssueConfirmationRequest.getOriginalGdsPnr();
+
+            //Splitting and generating a new PNR to be reissued here (Login And LogOut as the Ticket_RebookAndRepricePNR is stateful and needs a fresh session)
+            if (reIssueConfirmationRequest.isToSplit()) {
+                pnrToBeReIssued = splitAndGetNewPnrToReissue(reIssueConfirmationRequest, officeId, serviceHandler);
+            }
 
             //Cancel, Rebook and reprice here and generate a new PNR Response
-            reIssuePNRResponse = reIssueBookingService.confirmReissue("P6M2KO", reIssueConfirmationRequest, officeId);
+            reIssuePNRResponse = reIssueBookingService.confirmReissue(pnrToBeReIssued, reIssueConfirmationRequest, officeId);
 
 
             return reIssuePNRResponse;
