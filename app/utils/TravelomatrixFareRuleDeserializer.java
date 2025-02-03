@@ -36,7 +36,7 @@ public class TravelomatrixFareRuleDeserializer extends JsonDeserializer<List<Rul
                 if(element.get("amount") != null) {
                     String amountStr = element.get("amount").asText();
                     Matcher matcher = pattern.matcher(amountStr);
-                    int amount = 0;
+                    Integer amount = null;
                     if (matcher.matches()) {
                         String currency = matcher.group(1); // This should be "INR"
                         String numberString = matcher.group(2); // This should be "2799"
@@ -46,12 +46,18 @@ public class TravelomatrixFareRuleDeserializer extends JsonDeserializer<List<Rul
                             System.out.println("Invalid number format");
                         }
                     } else {
-                        amount = element.get("amount").asInt();
+                        if(!element.get("amount").isNull()){
+                            amount = element.get("amount").asInt();
+                        }
+
                     }
 
                     rule.setAmount(amount);
                 }
-                rule.setTax(element.has("tax") ? element.get("tax").asInt() : 0);
+//                rule.setTax(element.has("tax") ? element.get("tax").asInt() : 0);
+                if (element.has("tax") && !element.get("tax").isNull()) {
+                    rule.setTax(element.get("tax").asInt());
+                }
                 rule.setPolicyInfo(element.has("policyInfo") ? element.get("policyInfo").asText() : "");
                 rules.add(rule);
             } else if (element.isTextual()) {
