@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.traveller.Traveller;
+import dto.FareCheckRulesResponse;
 import org.hibernate.mapping.Bag;
 
 import java.io.Serializable;
@@ -49,6 +50,8 @@ public class IssuanceResponse implements Serializable{
     private BigDecimal newLowerPrice;
 
     private boolean isIssued;
+
+    private FareCheckRulesResponse fareCheckRulesResponse;
 
     private Map<String, String> airlinePNRMap;
 
@@ -263,5 +266,13 @@ public class IssuanceResponse implements Serializable{
 
     public void setAirlinePNRMap(Map<String, String> airlinePNRMap) {
         this.airlinePNRMap = airlinePNRMap;
+    }
+
+    public FareCheckRulesResponse getFareCheckRulesResponse() {
+        return fareCheckRulesResponse;
+    }
+
+    public void setFareCheckRulesResponse(FareCheckRulesResponse fareCheckRulesResponse) {
+        this.fareCheckRulesResponse = fareCheckRulesResponse;
     }
 }
