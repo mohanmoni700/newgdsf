@@ -713,7 +713,7 @@ public class Application {
 
         JsonNode json = request().body().asJson();
         AncillaryServiceRequest ancillaryServiceRequest = Json.fromJson(json, AncillaryServiceRequest.class);
-        logger.debug("Ancillary - Baggage Request {} ", Json.toJson(ancillaryServiceRequest));
+        logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryServiceRequest));
 
         AncillaryServicesResponse mealsDetailsStandalone = ancillaryService.getMealsInfoStandalone(ancillaryServiceRequest);
         logger.debug("Ancillary - Meals response Standalone {} ", Json.toJson(mealsDetailsStandalone));
