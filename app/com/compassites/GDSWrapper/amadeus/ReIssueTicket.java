@@ -841,6 +841,7 @@ public class ReIssueTicket {
             AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds bounds = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds();
             List<AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound> boundList = new ArrayList<>();
 
+            int segIdRefNum = segmentsToBeCancelled.get(0);
             for (Journey journey : segmentsToBeAdded) {
                 AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound bound = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound();
                 bound.setActionCode("NN");
@@ -848,7 +849,6 @@ public class ReIssueTicket {
 
                 List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
                 List<AirSegmentType> segment = new ArrayList<>();
-                int segIdRefNum = segmentsToBeCancelled.get(0);
                 int segmentCounter = 0;
                 for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
                     String bookingClass = segmentWiseBookingClassList.get(segmentCounter++);

@@ -97,8 +97,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                         break;
                     }
                 }
-                serviceHandler.savePNR(amadeusSessionWrapper);
-                serviceHandler.logOut(amadeusSessionWrapper);
                 return finalPnrResponse;
             }
 
@@ -116,14 +114,19 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                     for (ErrorType errorType : warning) {
                         String warningOrError = errorType.getType();
                         String errorDescription = errorType.getValue();
+                        String code = errorType.getCode();
 
-                        if (warningOrError.equalsIgnoreCase("E")) {
+                        if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F")) {
 
                             ErrorMessage errorMessage = new ErrorMessage();
                             errorMessage.setErrorCode("ReIssue Confirmation Error");
                             errorMessage.setType(ErrorMessage.ErrorType.ERROR);
                             errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
-                            errorMessage.setMessage(errorDescription);
+                            if (errorDescription != null) {
+                                errorMessage.setMessage(errorDescription);
+                            } else {
+                                errorMessage.setMessage(code);
+                            }
                             errorMessage.setGdsPNR(reIssuedPnr);
 
                             finalPnrResponse.setReIssueSuccess(false);
@@ -131,14 +134,11 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                             break;
                         }
                     }
-                    serviceHandler.savePNR(amadeusSessionWrapper);
-                    serviceHandler.logOut(amadeusSessionWrapper);
                     return finalPnrResponse;
                 }
-//                serviceHandler.savePNR(amadeusSessionWrapper);
+                serviceHandler.savePNR(amadeusSessionWrapper);
             }
 
-            serviceHandler.savePNR(amadeusSessionWrapper);
             serviceHandler.logOut(amadeusSessionWrapper);
 
             createPNRResponseForReIssuedBooking(reIssuedPnr, officeId, serviceHandler, finalPnrResponse, reIssueConfirmationRequest.getNewTravellerMasterInfo(), amadeusSessionManager, success);
@@ -220,9 +220,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             createPNRResponse(gdsPNRReply, pnrResponse, travellerMasterInfo, success);
 
 
-            //TODO
-
-//            pnrResponse.setValidTillDate(new DateFormat().parse(getValidTillDate(success)));
         } catch (Exception e) {
             if (BaseCompassitesException.ExceptionCode.NO_SEAT.toString().equalsIgnoreCase(e.getMessage())) {
                 ErrorMessage errorMessage = new ErrorMessage();
