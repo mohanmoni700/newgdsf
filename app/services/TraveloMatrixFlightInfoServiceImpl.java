@@ -61,12 +61,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
 
                 departureFareRules.addAll(arriveFareRules);
 
-                TraveloMatrixFaruleReply traveloMatrixFaruleReply = new TraveloMatrixFaruleReply();
-                FareRule fareRule = traveloMatrixFaruleReply.getFareRule();
-                fareRule.setFareRuleDetail(departureFareRules);
-                traveloMatrixFaruleReply.setFareRule(fareRule);
 
-                traveloMatrixFaruleReplyList.add(traveloMatrixFaruleReply);
             }
 
         } catch (JsonProcessingException e) {
@@ -226,8 +221,11 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                String baggage = airSegmentInformation.getBaggage();
                String numericPart = baggage.replaceAll("[^0-9]", "");
                String nonNumericPart = baggage.replaceAll("[0-9]", "").trim();
-               BigInteger baga = new BigInteger(numericPart);
-               flightInfo.setBaggageAllowance(baga);
+               if(!numericPart.equalsIgnoreCase("")) {
+                   BigInteger baga = new BigInteger(numericPart);
+                   flightInfo.setBaggageAllowance(baga);
+               }
+
                flightInfo.setBaggageUnit(nonNumericPart);
                flightInfo.setAmenities(null);
                airSegmentInformation.setFlightInfo(flightInfo);
