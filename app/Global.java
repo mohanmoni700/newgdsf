@@ -5,7 +5,6 @@ import org.springframework.context.ApplicationContext;
 import play.Configuration;
 import play.GlobalSettings;
 import play.Application;
-import configs.PrometheusConfig;
 
 import configs.AppConfig;
 import configs.DataConfig;
@@ -20,7 +19,6 @@ public class Global extends GlobalSettings {
 
     @Override
     public void onStart(Application app) {
-        PrometheusConfig.init();
         ctx = new AnnotationConfigApplicationContext(AppConfig.class, DataConfig.class);
     }
 
