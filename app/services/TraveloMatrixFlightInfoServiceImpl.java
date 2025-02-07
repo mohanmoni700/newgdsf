@@ -9,6 +9,7 @@ import com.compassites.model.*;
 import com.compassites.model.travelomatrix.ResponseModels.*;
 import com.compassites.model.travelomatrix.ResponseModels.UpdateFareQuotes.UpdateFareQuotesReply;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import models.MiniRule;
@@ -33,128 +34,173 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
 
     public BookingFlights bookingFlights = new BookingFlights();
 
-   @Override
-   @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
-    public List<HashMap> flightFareRules(String resultToken,String returnResultToken) {
-       List<HashMap> minirule = null;
-       JsonNode returnJsonResponse = null;
-       JsonNode jsonResponse = fareRulesTMX.getFareRules(resultToken);
-       if(returnResultToken != null && !returnResultToken.equalsIgnoreCase("null"))
-       returnJsonResponse = fareRulesTMX.getFareRules(returnResultToken);
-       try {
-           travelomatrixLogger.debug("Response for FareRules: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
-           TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(jsonResponse, TraveloMatrixFaruleReply.class);
-           TraveloMatrixFaruleReply returnResponse = null;
-           if(returnJsonResponse != null ){
-           returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
-               //Roundtrip
-               if (response.getStatus() == 0 && returnResponse.getStatus() == 0) {
-                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
-               } else if (response != null && returnResponse != null) {
-                   minirule = getMergedMiniRuleFromFareRule(response,returnResponse);
-               } else if (response != null) {
-                   minirule = getMiniRuleFromFareRule(response);
-               } else if (returnResponse != null) {
-                   minirule = getMiniRuleFromFareRule(returnResponse);
-               }
-           }else{
-               if (response.getStatus() == 0) {
-                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
-               } else{
-                   minirule = getMiniRuleFromFareRule(response);
-               }
-           }
-       } catch (JsonProcessingException e) {
-           throw new RuntimeException(e);
-       }
-       return minirule;
-   }
+    @Override
+    @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
+    public List<TraveloMatrixFaruleReply> flightFareRules(String resultToken , String returnResultToken) {
+        List<TraveloMatrixFaruleReply> traveloMatrixFaruleReplyList = new ArrayList<>();
 
-   public List<HashMap> getMiniRuleFromFareRule(TraveloMatrixFaruleReply response){
-       MiniRule miniRule = new MiniRule();
-       HashMap AdultMap = new HashMap();
-       List<HashMap> miniRules = new LinkedList<>();
-       BigDecimal zeroDecimal = new BigDecimal(0);
-       String currency = "INR";
-       if(response.getFareRule().getFareRuleDetail() != null){
-           List<Rule> cancellationChargeList = null;
-           List<Rule> dateChangesList = null;
-           List<Rule> noShowChargesList = null;
-           if(response.getFareRule().getFareRuleDetail().get(0) != null) {
-               // Coding to be done
-               cancellationChargeList = response.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
-               dateChangesList = response.getFareRule().getFareRuleDetail().get(0).getDateChange();
-               noShowChargesList = response.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
-           }
-           BigDecimal cancellationChargeBeforeDept = null;
-           BigDecimal dateChangeBeforeDept = null;
-           BigDecimal cancellationChargeAfterDept = null;
-           BigDecimal dateChangeAfterDept = null;
-           BigDecimal noShowBeforeDept = null;
-           BigDecimal noShowAfterDept = null;
+        JsonNode returnJsonResponse = null;
+        JsonNode fareRules = fareRulesTMX.getFareRules(resultToken);
+        if (returnResultToken != null && !returnResultToken.equalsIgnoreCase("null"))
+            returnJsonResponse = fareRulesTMX.getFareRules(returnResultToken);
 
-           for(Rule cancellationCharge : cancellationChargeList){
-               if(cancellationCharge.getAmount() != 0) {
-                   BigDecimal charge = new BigDecimal(cancellationCharge.getAmount());
-                   if (cancellationChargeBeforeDept == null) {
-                       cancellationChargeBeforeDept = charge;
-                   } else if (cancellationChargeBeforeDept.compareTo(charge) == -1) {
-                       cancellationChargeBeforeDept = charge;
-                   }
-               }else if(cancellationCharge.getAmount() == 0){
-                   cancellationChargeBeforeDept = new BigDecimal(0);
-               }
-           }
+        try {
+            travelomatrixLogger.debug("Response for FareRules: ResultToken:" + resultToken + " ----  Response: \n" + fareRules);
 
-           for(Rule dateCharge : dateChangesList){
-               if(dateCharge.getAmount() != 0) {
-                   BigDecimal charge = new BigDecimal(dateCharge.getAmount());
-                   if (dateChangeBeforeDept == null) {
-                       dateChangeBeforeDept = charge;
-                   } else if (dateChangeBeforeDept.compareTo(charge) == -1) {
-                       dateChangeBeforeDept = charge;
-                   }
-               }else  if(dateCharge.getAmount() == 0) {
-                   dateChangeBeforeDept = new BigDecimal(0);
-               }
-           }
+            TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(fareRules, TraveloMatrixFaruleReply.class);
+            traveloMatrixFaruleReplyList.add(response);
+            TraveloMatrixFaruleReply returnResponse = null;
 
-           BigDecimal markUp =new BigDecimal(play.Play.application().configuration().getDouble("markup"));
-           if(cancellationChargeBeforeDept != null)
-               cancellationChargeBeforeDept= cancellationChargeBeforeDept.add(cancellationChargeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
-           if(dateChangeBeforeDept != null)
-               dateChangeBeforeDept= dateChangeBeforeDept.add(dateChangeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+            // RoundTrip
+            if (returnJsonResponse != null) {
+                travelomatrixLogger.debug("Response for FareRules: ReturnResultToken:" + returnResultToken + " ----  Response: \n" + returnJsonResponse);
+                returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
 
-           miniRule.setCancellationFeeBeforeDept(cancellationChargeBeforeDept);
-           miniRule.setChangeFeeBeforeDept(dateChangeBeforeDept);
-           if(cancellationChargeBeforeDept!= null && cancellationChargeBeforeDept.compareTo(zeroDecimal) == 1) {
-               miniRule.setCancellationRefundableBeforeDept(true);
-           }
+                List<FareRuleDetail> departureFareRules = response.getFareRule().getFareRuleDetail();
+                List<FareRuleDetail> arriveFareRules = returnResponse.getFareRule().getFareRuleDetail();
 
-           miniRule.setCancellationFeeAfterDept(zeroDecimal);
-           miniRule.setChangeFeeNoShow(zeroDecimal);
-           miniRule.setCancellationFeeNoShow(zeroDecimal);
-           miniRule.setCancellationRefundableAfterDept(false);
-           miniRule.setCancellationNoShowBeforeDept(false);
-           miniRule.setCancellationNoShowAfterDept(false);
-           miniRule.setChangeFeeAfterDept(zeroDecimal);
-           miniRule.setChangeFeeNoShow(zeroDecimal);
-           miniRule.setCancellationFeeAfterDeptCurrency(currency);
-           miniRule.setCancellationNoShowCurrency(currency);
-           miniRule.setCancellationFeeBeforeDeptCurrency(currency);
-           miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
-           if(dateChangeBeforeDept != null && dateChangeBeforeDept.compareTo(zeroDecimal) == 1) {
-               miniRule.setChangeRefundableBeforeDept(true);
-           }
-       miniRule.setChangeRefundableAfterDept(false);
-       miniRule.setChangeNoShowBeforeDept(false);
-       miniRule.setChangeNoShowAfterDept(false);
-       miniRule.setChangeFeeBeforeDeptCurrency(currency);
-       miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
-       miniRule.setChangeFeeNoShowFeeCurrency(currency);
+                departureFareRules.addAll(arriveFareRules);
 
-           AdultMap.put("ADT", miniRule);
-           miniRules.add(AdultMap);
+
+            }
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return traveloMatrixFaruleReplyList;
+    }
+
+//        @Override
+//   @RetryOnFailure(attempts = 2, delay =30000, exception = RetryException.class)
+//    public List<HashMap> flightFareRules(String resultToken,String returnResultToken) {
+//       TmxFareRules tmxFareRules =  new TmxFareRules();
+//       List<TraveloMatrixFaruleReply> traveloMatrixFaruleReplyList = new ArrayList<>();
+//
+//       List<HashMap> minirule = null;
+//       JsonNode returnJsonResponse = null;
+//       JsonNode jsonResponse = fareRulesTMX.getFareRules(resultToken);
+//       if(returnResultToken != null && !returnResultToken.equalsIgnoreCase("null"))
+//       returnJsonResponse = fareRulesTMX.getFareRules(returnResultToken);
+//       try {
+//           travelomatrixLogger.debug("Response for FareRules: ResultToken:"+ resultToken +" ----  Response: \n"+ jsonResponse);
+//           TraveloMatrixFaruleReply response = new ObjectMapper().treeToValue(jsonResponse, TraveloMatrixFaruleReply.class);
+//           traveloMatrixFaruleReplyList.add(response);
+//           TraveloMatrixFaruleReply returnResponse = null;
+//
+//           if(returnJsonResponse != null ){
+//           returnResponse = new ObjectMapper().treeToValue(returnJsonResponse, TraveloMatrixFaruleReply.class);
+//               traveloMatrixFaruleReplyList.add(returnResponse);
+//
+//               //Roundtrip
+//               if (response.getStatus() == 0 && returnResponse.getStatus() == 0) {
+//                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
+//               } else if (response != null && returnResponse != null) {
+//                   minirule = getMergedMiniRuleFromFareRule(response,returnResponse);
+//               } else if (response != null) {
+//                   minirule = getMiniRuleFromFareRule(response);
+//               } else if (returnResponse != null) {
+//                   minirule = getMiniRuleFromFareRule(returnResponse);
+//               }
+//           }else{
+//               if (response.getStatus() == 0) {
+//                   travelomatrixLogger.debug("FareRule Respose is not Reeceived for ResultToken :" + resultToken);
+//               } else{
+//                   minirule = getMiniRuleFromFareRule(response);
+//               }
+//           }
+//       } catch (JsonProcessingException e) {
+//           throw new RuntimeException(e);
+//       }
+//       return minirule;
+//   }
+
+    public List<HashMap> getMiniRuleFromFareRule(TraveloMatrixFaruleReply response){
+        MiniRule miniRule = new MiniRule();
+        HashMap AdultMap = new HashMap();
+        List<HashMap> miniRules = new LinkedList<>();
+        BigDecimal zeroDecimal = new BigDecimal(0);
+        String currency = "INR";
+        if(response.getFareRule().getFareRuleDetail() != null){
+            List<Rule> cancellationChargeList = null;
+            List<Rule> dateChangesList = null;
+            List<Rule> noShowChargesList = null;
+            if(response.getFareRule().getFareRuleDetail().get(0) != null) {
+                // Coding to be done
+                cancellationChargeList = response.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
+                dateChangesList = response.getFareRule().getFareRuleDetail().get(0).getDateChange();
+                noShowChargesList = response.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
+            }
+            BigDecimal cancellationChargeBeforeDept = null;
+            BigDecimal dateChangeBeforeDept = null;
+            BigDecimal cancellationChargeAfterDept = null;
+            BigDecimal dateChangeAfterDept = null;
+            BigDecimal noShowBeforeDept = null;
+            BigDecimal noShowAfterDept = null;
+
+            if(cancellationChargeList != null && !cancellationChargeList.isEmpty()) {
+                for (Rule cancellationCharge : cancellationChargeList) {
+                    if (cancellationCharge.getAmount() != null && cancellationCharge.getAmount() != 0) {
+                        BigDecimal charge = new BigDecimal(cancellationCharge.getAmount());
+                        if (cancellationChargeBeforeDept == null) {
+                            cancellationChargeBeforeDept = charge;
+                        } else if (cancellationChargeBeforeDept.compareTo(charge) == -1) {
+                            cancellationChargeBeforeDept = charge;
+                        }
+                    } else if (cancellationCharge.getAmount() == null || cancellationCharge.getAmount() == 0 && cancellationChargeBeforeDept == null) {
+                        cancellationChargeBeforeDept = new BigDecimal(0);
+                    }
+                }
+            }
+            if(dateChangesList != null && !dateChangesList.isEmpty()) {
+                for (Rule dateCharge : dateChangesList) {
+                    if (dateCharge.getAmount() != null && dateCharge.getAmount() != 0) {
+                        BigDecimal charge = new BigDecimal(dateCharge.getAmount());
+                        if (dateChangeBeforeDept == null) {
+                            dateChangeBeforeDept = charge;
+                        } else if (dateChangeBeforeDept.compareTo(charge) == -1) {
+                            dateChangeBeforeDept = charge;
+                        }
+                    } else if (dateCharge.getAmount() == null || dateCharge.getAmount() == 0  && dateChangeBeforeDept == null) {
+                        dateChangeBeforeDept = new BigDecimal(0);
+                    }
+                }
+            }
+            BigDecimal markUp =new BigDecimal(play.Play.application().configuration().getDouble("markup"));
+            if(cancellationChargeBeforeDept != null)
+                cancellationChargeBeforeDept= cancellationChargeBeforeDept.add(cancellationChargeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+            if(dateChangeBeforeDept != null)
+                dateChangeBeforeDept= dateChangeBeforeDept.add(dateChangeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+            miniRule.setCancellationFeeBeforeDept(cancellationChargeBeforeDept);
+            miniRule.setChangeFeeBeforeDept(dateChangeBeforeDept);
+            if(cancellationChargeBeforeDept!= null && cancellationChargeBeforeDept.compareTo(zeroDecimal) == 1) {
+                miniRule.setCancellationRefundableBeforeDept(true);
+            }
+
+            miniRule.setCancellationFeeAfterDept(zeroDecimal);
+            miniRule.setChangeFeeNoShow(zeroDecimal);
+            miniRule.setCancellationFeeNoShow(zeroDecimal);
+            miniRule.setCancellationRefundableAfterDept(false);
+            miniRule.setCancellationNoShowBeforeDept(false);
+            miniRule.setCancellationNoShowAfterDept(false);
+            miniRule.setChangeFeeAfterDept(zeroDecimal);
+            miniRule.setChangeFeeNoShow(zeroDecimal);
+            miniRule.setCancellationFeeAfterDeptCurrency(currency);
+            miniRule.setCancellationNoShowCurrency(currency);
+            miniRule.setCancellationFeeBeforeDeptCurrency(currency);
+            miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
+            if(dateChangeBeforeDept != null && dateChangeBeforeDept.compareTo(zeroDecimal) == 1) {
+                miniRule.setChangeRefundableBeforeDept(true);
+            }
+            miniRule.setChangeRefundableAfterDept(false);
+            miniRule.setChangeNoShowBeforeDept(false);
+            miniRule.setChangeNoShowAfterDept(false);
+            miniRule.setChangeFeeBeforeDeptCurrency(currency);
+            miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
+            miniRule.setChangeFeeNoShowFeeCurrency(currency);
+
+            AdultMap.put("ADT", miniRule);
+            miniRules.add(AdultMap);
        }else{
            logger.debug("minirules are null");
        }
@@ -175,8 +221,11 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
                String baggage = airSegmentInformation.getBaggage();
                String numericPart = baggage.replaceAll("[^0-9]", "");
                String nonNumericPart = baggage.replaceAll("[0-9]", "").trim();
-               BigInteger baga = new BigInteger(numericPart);
-               flightInfo.setBaggageAllowance(baga);
+               if(!numericPart.equalsIgnoreCase("")) {
+                   BigInteger baga = new BigInteger(numericPart);
+                   flightInfo.setBaggageAllowance(baga);
+               }
+
                flightInfo.setBaggageUnit(nonNumericPart);
                flightInfo.setAmenities(null);
                airSegmentInformation.setFlightInfo(flightInfo);
@@ -195,133 +244,144 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        return flightItinerary1;
    }
 
- public List<HashMap>  getMergedMiniRuleFromFareRule(TraveloMatrixFaruleReply response,TraveloMatrixFaruleReply returnResponse){
-     MiniRule miniRule = new MiniRule();
-     HashMap AdultMap = new HashMap();
-     List<HashMap> miniRules = new LinkedList<>();
-     BigDecimal zeroDecimal = new BigDecimal(0);
-     String currency = "INR";
-     if(response.getFareRule().getFareRuleDetail() != null){
-         List<Rule> cancellationChargeList = null;
-         List<Rule> dateChangesList = null;
-         List<Rule> noShowChargesList = null;
+    public List<HashMap>  getMergedMiniRuleFromFareRule(TraveloMatrixFaruleReply response,TraveloMatrixFaruleReply returnResponse){
+        MiniRule miniRule = new MiniRule();
+        HashMap AdultMap = new HashMap();
+        List<HashMap> miniRules = new LinkedList<>();
+        BigDecimal zeroDecimal = new BigDecimal(0);
+        String currency = "INR";
+        if(response.getFareRule().getFareRuleDetail() != null){
+            List<Rule> cancellationChargeList = null;
+            List<Rule> dateChangesList = null;
+            List<Rule> noShowChargesList = null;
 
-         List<Rule> recancellationChargeList = null;
-         List<Rule> redateChangesList = null;
-         List<Rule> renoShowChargesList = null;
+            List<Rule> recancellationChargeList = null;
+            List<Rule> redateChangesList = null;
+            List<Rule> renoShowChargesList = null;
 
-         if(response.getFareRule().getFareRuleDetail().get(0) != null) {
-             // Coding to be done
-             cancellationChargeList = response.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
-             dateChangesList = response.getFareRule().getFareRuleDetail().get(0).getDateChange();
-             noShowChargesList = response.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
-         }
-         if(returnResponse.getFareRule().getFareRuleDetail().get(0) != null) {
-             // Coding to be done
-             recancellationChargeList = returnResponse.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
-             redateChangesList = returnResponse.getFareRule().getFareRuleDetail().get(0).getDateChange();
-             renoShowChargesList = returnResponse.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
-         }
-         BigDecimal cancellationChargeBeforeDept = null;
-         BigDecimal dateChangeBeforeDept = null;
-         BigDecimal cancellationChargeAfterDept = null;
-         BigDecimal dateChangeAfterDept = null;
-         BigDecimal noShowBeforeDept = null;
-         BigDecimal noShowAfterDept = null;
+            if(response.getFareRule().getFareRuleDetail().get(0) != null) {
+                // Coding to be done
+                cancellationChargeList = response.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
+                dateChangesList = response.getFareRule().getFareRuleDetail().get(0).getDateChange();
+                noShowChargesList = response.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
+            }
 
-         for(Rule cancellationCharge : cancellationChargeList){
-             if(cancellationCharge.getAmount() != 0) {
-                 BigDecimal charge = new BigDecimal(cancellationCharge.getAmount());
-                 if (cancellationChargeBeforeDept == null) {
-                     cancellationChargeBeforeDept = charge;
-                 } else if (cancellationChargeBeforeDept.compareTo(charge) == -1) {
-                     cancellationChargeBeforeDept = charge;
-                 }
-             }else if(cancellationCharge.getAmount() == 0){
-                 cancellationChargeBeforeDept = new BigDecimal(0);
-             }
-         }
+            if(returnResponse.getFareRule().getFareRuleDetail().get(0) != null) {
+                // Coding to be done
+                recancellationChargeList = returnResponse.getFareRule().getFareRuleDetail().get(0).getCancellationCharge();
+                redateChangesList = returnResponse.getFareRule().getFareRuleDetail().get(0).getDateChange();
+                renoShowChargesList = returnResponse.getFareRule().getFareRuleDetail().get(0).getNoShowCharge();
+            }
+            BigDecimal cancellationChargeBeforeDept = null;
+            BigDecimal dateChangeBeforeDept = null;
+            BigDecimal cancellationChargeAfterDept = null;
+            BigDecimal dateChangeAfterDept = null;
+            BigDecimal noShowBeforeDept = null;
+            BigDecimal noShowAfterDept = null;
 
-         for(Rule cancellationCharge : recancellationChargeList){
-             if(cancellationCharge.getAmount() != 0) {
-                 BigDecimal charge = new BigDecimal(cancellationCharge.getAmount());
-                 if (cancellationChargeBeforeDept == null) {
-                     cancellationChargeBeforeDept = charge;
-                 } else if(cancellationChargeBeforeDept != null) {
-                     cancellationChargeBeforeDept = cancellationChargeBeforeDept.add(charge);
-                 }
-             }else if(cancellationCharge.getAmount() == 0){
-                 cancellationChargeBeforeDept = new BigDecimal(0);
-             }
-         }
+            if(cancellationChargeList != null && !cancellationChargeList.isEmpty()){
+                for(Rule cancellationCharge : cancellationChargeList){
 
-         for(Rule dateCharge : dateChangesList){
-             if(dateCharge.getAmount() != 0) {
-                 BigDecimal charge = new BigDecimal(dateCharge.getAmount());
-                 if (dateChangeBeforeDept == null) {
-                     dateChangeBeforeDept = charge;
-                 } else if (dateChangeBeforeDept.compareTo(charge) == -1) {
-                     dateChangeBeforeDept = charge;
-                 }
-             }else  if(dateCharge.getAmount() == 0) {
-                 dateChangeBeforeDept = new BigDecimal(0);
-             }
-         }
+                    if(cancellationCharge.getAmount() != null && cancellationCharge.getAmount() != 0) {
+                        BigDecimal charge = new BigDecimal(cancellationCharge.getAmount());
+                        if (cancellationChargeBeforeDept == null) {
 
-         for(Rule dateCharge : redateChangesList){
-             if(dateCharge.getAmount() != 0) {
-                 BigDecimal charge = new BigDecimal(dateCharge.getAmount());
-                 if (dateChangeBeforeDept == null) {
-                     dateChangeBeforeDept = charge;
-                 } else if (dateChangeBeforeDept != null) {
-                     dateChangeBeforeDept =  dateChangeBeforeDept.add(charge);
-                 }
-             }else  if(dateCharge.getAmount() == 0) {
-                 dateChangeBeforeDept = new BigDecimal(0);
-             }
-         }
+                            cancellationChargeBeforeDept = charge;
+                        } else if (cancellationChargeBeforeDept.compareTo(charge) < 0) {
+                            cancellationChargeBeforeDept = charge;
+                        }
+                    }else if(cancellationCharge.getAmount()  == null || cancellationCharge.getAmount() == 0 && cancellationChargeBeforeDept == null){
+                        cancellationChargeBeforeDept = new BigDecimal(0);
+                    }
+                }
+            }
 
-         BigDecimal markUp =new BigDecimal(play.Play.application().configuration().getDouble("markup"));
-         if(cancellationChargeBeforeDept != null)
-             cancellationChargeBeforeDept= cancellationChargeBeforeDept.add(cancellationChargeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
-         if(dateChangeBeforeDept != null)
-             dateChangeBeforeDept= dateChangeBeforeDept.add(dateChangeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+            if(recancellationChargeList != null && !recancellationChargeList.isEmpty()) {
+                for (Rule cancellationCharge : recancellationChargeList) {
 
-         miniRule.setCancellationFeeBeforeDept(cancellationChargeBeforeDept);
-         miniRule.setChangeFeeBeforeDept(dateChangeBeforeDept);
-         if(cancellationChargeBeforeDept!= null && cancellationChargeBeforeDept.compareTo(zeroDecimal) == 1) {
-             miniRule.setCancellationRefundableBeforeDept(true);
-         }
+                    if (cancellationCharge.getAmount() != null && cancellationCharge.getAmount() != 0) {
 
-         miniRule.setCancellationFeeAfterDept(zeroDecimal);
-         miniRule.setChangeFeeNoShow(zeroDecimal);
-         miniRule.setCancellationFeeNoShow(zeroDecimal);
-         miniRule.setCancellationRefundableAfterDept(false);
-         miniRule.setCancellationNoShowBeforeDept(false);
-         miniRule.setCancellationNoShowAfterDept(false);
-         miniRule.setChangeFeeAfterDept(zeroDecimal);
-         miniRule.setChangeFeeNoShow(zeroDecimal);
-         miniRule.setCancellationFeeAfterDeptCurrency(currency);
-         miniRule.setCancellationNoShowCurrency(currency);
-         miniRule.setCancellationFeeBeforeDeptCurrency(currency);
-         miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
-         if(dateChangeBeforeDept != null && dateChangeBeforeDept.compareTo(zeroDecimal) == 1) {
-             miniRule.setChangeRefundableBeforeDept(true);
-         }
-         miniRule.setChangeRefundableAfterDept(false);
-         miniRule.setChangeNoShowBeforeDept(false);
-         miniRule.setChangeNoShowAfterDept(false);
-         miniRule.setChangeFeeBeforeDeptCurrency(currency);
-         miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
-         miniRule.setChangeFeeNoShowFeeCurrency(currency);
+                        BigDecimal charge = new BigDecimal(cancellationCharge.getAmount());
 
-         AdultMap.put("ADT", miniRule);
-         miniRules.add(AdultMap);
-     }else{
-         logger.debug("minirules are null");
-     }
-     return miniRules;
- }
+                        if (cancellationChargeBeforeDept == null) {
+                            cancellationChargeBeforeDept = charge;
+                        } else if (cancellationChargeBeforeDept != null) {
+                            cancellationChargeBeforeDept = cancellationChargeBeforeDept.add(charge);
+                        }
+                    } else if (cancellationCharge.getAmount() == null || cancellationCharge.getAmount() == 0 && cancellationChargeBeforeDept == null) {
+                        cancellationChargeBeforeDept = new BigDecimal(0);
+                    }
+                }
+            }
+
+            if(dateChangesList != null && !dateChangesList.isEmpty()) {
+                for (Rule dateCharge : dateChangesList) {
+                    if (dateCharge.getAmount() != null && dateCharge.getAmount() != 0) {
+                        BigDecimal charge = new BigDecimal(dateCharge.getAmount());
+                        if (dateChangeBeforeDept == null) {
+                            dateChangeBeforeDept = charge;
+                        } else if (dateChangeBeforeDept.compareTo(charge) < 0) {
+                            dateChangeBeforeDept = charge;
+                        }
+                    } else if (dateCharge.getAmount() == null || dateCharge.getAmount() == 0 && dateChangeBeforeDept == null) {
+                        dateChangeBeforeDept = new BigDecimal(0);
+                    }
+                }
+            }
+            if(redateChangesList != null && !redateChangesList.isEmpty()) {
+                for (Rule dateCharge : redateChangesList) {
+                    if (dateCharge.getAmount() != 0) {
+                        BigDecimal charge = new BigDecimal(dateCharge.getAmount());
+                        if (dateChangeBeforeDept == null) {
+                            dateChangeBeforeDept = charge;
+                        } else if (dateChangeBeforeDept != null) {
+                            dateChangeBeforeDept = dateChangeBeforeDept.add(charge);
+                        }
+                    } else if (dateCharge.getAmount()  == null || dateCharge.getAmount() == 0 && dateChangeBeforeDept == null) {
+                        dateChangeBeforeDept = new BigDecimal(0);
+                    }
+                }
+            }
+            BigDecimal markUp =new BigDecimal(play.Play.application().configuration().getDouble("markup"));
+            if(cancellationChargeBeforeDept != null)
+                cancellationChargeBeforeDept= cancellationChargeBeforeDept.add(cancellationChargeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+            if(dateChangeBeforeDept != null)
+                dateChangeBeforeDept= dateChangeBeforeDept.add(dateChangeBeforeDept.multiply(markUp)).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+            miniRule.setCancellationFeeBeforeDept(cancellationChargeBeforeDept);
+            miniRule.setChangeFeeBeforeDept(dateChangeBeforeDept);
+            if(cancellationChargeBeforeDept!= null && cancellationChargeBeforeDept.compareTo(zeroDecimal) == 1) {
+                miniRule.setCancellationRefundableBeforeDept(true);
+            }
+            miniRule.setCancellationFeeAfterDept(zeroDecimal);
+            miniRule.setChangeFeeNoShow(zeroDecimal);
+            miniRule.setCancellationFeeNoShow(zeroDecimal);
+            miniRule.setCancellationRefundableAfterDept(false);
+            miniRule.setCancellationNoShowBeforeDept(false);
+            miniRule.setCancellationNoShowAfterDept(false);
+            miniRule.setChangeFeeAfterDept(zeroDecimal);
+            miniRule.setChangeFeeNoShow(zeroDecimal);
+            miniRule.setCancellationFeeAfterDeptCurrency(currency);
+            miniRule.setCancellationNoShowCurrency(currency);
+            miniRule.setCancellationFeeBeforeDeptCurrency(currency);
+            miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
+            if(dateChangeBeforeDept != null && dateChangeBeforeDept.compareTo(zeroDecimal) == 1) {
+                miniRule.setChangeRefundableBeforeDept(true);
+            }
+            miniRule.setChangeRefundableAfterDept(false);
+            miniRule.setChangeNoShowBeforeDept(false);
+            miniRule.setChangeNoShowAfterDept(false);
+            miniRule.setChangeFeeBeforeDeptCurrency(currency);
+            miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
+            miniRule.setChangeFeeNoShowFeeCurrency(currency);
+
+            AdultMap.put("ADT", miniRule);
+            miniRules.add(AdultMap);
+        }else{
+            logger.debug("minirules are null");
+        }
+        return miniRules;
+    }
 
 
 }

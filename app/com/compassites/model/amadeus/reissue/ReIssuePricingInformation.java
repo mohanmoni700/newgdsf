@@ -11,19 +11,13 @@ public class ReIssuePricingInformation implements Serializable {
 
     private boolean isLCC;
 
+    private int adtCount;
+
+    private int chdCount;
+
+    private int infCount;
+
     private BigDecimal basePrice;
-
-    private BigDecimal adtBasePrice;
-
-    private BigDecimal chdBasePrice;
-
-    private BigDecimal infBasePrice;
-
-    private BigDecimal adtTotalPrice;
-
-    private BigDecimal chdTotalPrice;
-
-    private BigDecimal infTotalPrice;
 
     private BigDecimal tax;
 
@@ -49,23 +43,11 @@ public class ReIssuePricingInformation implements Serializable {
 
     private BigDecimal totalPriceValue;
 
-    private List<PassengerTax> passengerTaxes;
-
-    private List<PAXFareDetails> paxFareDetailsList;
-
     private Map<String, BigDecimal> taxMap;
-
-    private BigDecimal totalBasePrice;
-
-    private BigDecimal totalTax;
 
     private BigDecimal discount;
 
     private BigDecimal totalCalculatedValue;
-
-    private BigDecimal cancelFee;
-
-    private String fareRules;
 
     private String provider;
 
@@ -83,6 +65,30 @@ public class ReIssuePricingInformation implements Serializable {
 
     private MnrSearchBaggage mnrSearchBaggage;
 
+    private List<ReIssuePerPaxPricingInfo> paxWisePricing;
+
+
+
+    private BigDecimal adtBasePrice;
+
+    private BigDecimal chdBasePrice;
+
+    private BigDecimal infBasePrice;
+
+    private BigDecimal adtTotalPrice;
+
+    private BigDecimal chdTotalPrice;
+
+    private BigDecimal infTotalPrice;
+
+    private List<PassengerTax> passengerTaxes;
+
+    private List<PAXFareDetails> paxFareDetailsList;
+
+    private BigDecimal totalBasePrice;
+
+    private BigDecimal totalTax;
+
     public boolean isLCC() {
         return isLCC;
     }
@@ -91,60 +97,36 @@ public class ReIssuePricingInformation implements Serializable {
         isLCC = LCC;
     }
 
+    public int getAdtCount() {
+        return adtCount;
+    }
+
+    public void setAdtCount(int adtCount) {
+        this.adtCount = adtCount;
+    }
+
+    public int getChdCount() {
+        return chdCount;
+    }
+
+    public void setChdCount(int chdCount) {
+        this.chdCount = chdCount;
+    }
+
+    public int getInfCount() {
+        return infCount;
+    }
+
+    public void setInfCount(int infCount) {
+        this.infCount = infCount;
+    }
+
     public BigDecimal getBasePrice() {
         return basePrice;
     }
 
     public void setBasePrice(BigDecimal basePrice) {
         this.basePrice = basePrice;
-    }
-
-    public BigDecimal getAdtBasePrice() {
-        return adtBasePrice;
-    }
-
-    public void setAdtBasePrice(BigDecimal adtBasePrice) {
-        this.adtBasePrice = adtBasePrice;
-    }
-
-    public BigDecimal getChdBasePrice() {
-        return chdBasePrice;
-    }
-
-    public void setChdBasePrice(BigDecimal chdBasePrice) {
-        this.chdBasePrice = chdBasePrice;
-    }
-
-    public BigDecimal getInfBasePrice() {
-        return infBasePrice;
-    }
-
-    public void setInfBasePrice(BigDecimal infBasePrice) {
-        this.infBasePrice = infBasePrice;
-    }
-
-    public BigDecimal getAdtTotalPrice() {
-        return adtTotalPrice;
-    }
-
-    public void setAdtTotalPrice(BigDecimal adtTotalPrice) {
-        this.adtTotalPrice = adtTotalPrice;
-    }
-
-    public BigDecimal getChdTotalPrice() {
-        return chdTotalPrice;
-    }
-
-    public void setChdTotalPrice(BigDecimal chdTotalPrice) {
-        this.chdTotalPrice = chdTotalPrice;
-    }
-
-    public BigDecimal getInfTotalPrice() {
-        return infTotalPrice;
-    }
-
-    public void setInfTotalPrice(BigDecimal infTotalPrice) {
-        this.infTotalPrice = infTotalPrice;
     }
 
     public BigDecimal getTax() {
@@ -243,44 +225,12 @@ public class ReIssuePricingInformation implements Serializable {
         this.totalPriceValue = totalPriceValue;
     }
 
-    public List<PassengerTax> getPassengerTaxes() {
-        return passengerTaxes;
-    }
-
-    public void setPassengerTaxes(List<PassengerTax> passengerTaxes) {
-        this.passengerTaxes = passengerTaxes;
-    }
-
-    public List<PAXFareDetails> getPaxFareDetailsList() {
-        return paxFareDetailsList;
-    }
-
-    public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
-        this.paxFareDetailsList = paxFareDetailsList;
-    }
-
     public Map<String, BigDecimal> getTaxMap() {
         return taxMap;
     }
 
     public void setTaxMap(Map<String, BigDecimal> taxMap) {
         this.taxMap = taxMap;
-    }
-
-    public BigDecimal getTotalBasePrice() {
-        return totalBasePrice;
-    }
-
-    public void setTotalBasePrice(BigDecimal totalBasePrice) {
-        this.totalBasePrice = totalBasePrice;
-    }
-
-    public BigDecimal getTotalTax() {
-        return totalTax;
-    }
-
-    public void setTotalTax(BigDecimal totalTax) {
-        this.totalTax = totalTax;
     }
 
     public BigDecimal getDiscount() {
@@ -297,22 +247,6 @@ public class ReIssuePricingInformation implements Serializable {
 
     public void setTotalCalculatedValue(BigDecimal totalCalculatedValue) {
         this.totalCalculatedValue = totalCalculatedValue;
-    }
-
-    public BigDecimal getCancelFee() {
-        return cancelFee;
-    }
-
-    public void setCancelFee(BigDecimal cancelFee) {
-        this.cancelFee = cancelFee;
-    }
-
-    public String getFareRules() {
-        return fareRules;
-    }
-
-    public void setFareRules(String fareRules) {
-        this.fareRules = fareRules;
     }
 
     public String getProvider() {
@@ -377,6 +311,95 @@ public class ReIssuePricingInformation implements Serializable {
 
     public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
         this.mnrSearchBaggage = mnrSearchBaggage;
+    }
+
+    public List<ReIssuePerPaxPricingInfo> getPaxWisePricing() {
+        return paxWisePricing;
+    }
+
+    public void setPaxWisePricing(List<ReIssuePerPaxPricingInfo> paxWisePricing) {
+        this.paxWisePricing = paxWisePricing;
+    }
+
+
+    public BigDecimal getAdtBasePrice() {
+        return adtBasePrice;
+    }
+
+    public void setAdtBasePrice(BigDecimal adtBasePrice) {
+        this.adtBasePrice = adtBasePrice;
+    }
+
+    public BigDecimal getChdBasePrice() {
+        return chdBasePrice;
+    }
+
+    public void setChdBasePrice(BigDecimal chdBasePrice) {
+        this.chdBasePrice = chdBasePrice;
+    }
+
+    public BigDecimal getInfBasePrice() {
+        return infBasePrice;
+    }
+
+    public void setInfBasePrice(BigDecimal infBasePrice) {
+        this.infBasePrice = infBasePrice;
+    }
+
+    public BigDecimal getAdtTotalPrice() {
+        return adtTotalPrice;
+    }
+
+    public void setAdtTotalPrice(BigDecimal adtTotalPrice) {
+        this.adtTotalPrice = adtTotalPrice;
+    }
+
+    public BigDecimal getChdTotalPrice() {
+        return chdTotalPrice;
+    }
+
+    public void setChdTotalPrice(BigDecimal chdTotalPrice) {
+        this.chdTotalPrice = chdTotalPrice;
+    }
+
+    public BigDecimal getInfTotalPrice() {
+        return infTotalPrice;
+    }
+
+    public void setInfTotalPrice(BigDecimal infTotalPrice) {
+        this.infTotalPrice = infTotalPrice;
+    }
+
+    public List<PassengerTax> getPassengerTaxes() {
+        return passengerTaxes;
+    }
+
+    public void setPassengerTaxes(List<PassengerTax> passengerTaxes) {
+        this.passengerTaxes = passengerTaxes;
+    }
+
+    public List<PAXFareDetails> getPaxFareDetailsList() {
+        return paxFareDetailsList;
+    }
+
+    public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
+        this.paxFareDetailsList = paxFareDetailsList;
+    }
+
+    public BigDecimal getTotalBasePrice() {
+        return totalBasePrice;
+    }
+
+    public void setTotalBasePrice(BigDecimal totalBasePrice) {
+        this.totalBasePrice = totalBasePrice;
+    }
+
+    public BigDecimal getTotalTax() {
+        return totalTax;
+    }
+
+    public void setTotalTax(BigDecimal totalTax) {
+        this.totalTax = totalTax;
     }
 
 }

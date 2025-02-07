@@ -55,6 +55,15 @@ public class IssuanceRequest implements Serializable{
 
     private List<String> ticketsList;
 
+    private boolean addBooking;
+
+    public boolean getAddBooking() {
+        return addBooking;
+    }
+
+    public void setAddBooking(boolean addBooking) {
+        this.addBooking = addBooking;
+    }
     public String getReGdsPNR() {
         return reGdsPNR;
     }

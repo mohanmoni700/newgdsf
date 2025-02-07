@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public interface AmadeusAncillaryService {
 
-    AncillaryServicesResponse additionalBaggageInformation(String gdsPnr);
-    AncillaryServicesResponse additionalBaggageInformationStandalone ( AncillaryServiceRequest ancillaryServiceRequest);
+    AncillaryServicesResponse additionalBaggageInformationStandalone(AncillaryServiceRequest ancillaryServiceRequest);
+    AncillaryServicesResponse additionalMealsInformationStandalone ( AncillaryServiceRequest ancillaryServiceRequest);
+
 }

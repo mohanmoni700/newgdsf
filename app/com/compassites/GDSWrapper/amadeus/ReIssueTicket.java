@@ -1,5 +1,13 @@
 package com.compassites.GDSWrapper.amadeus;
 
+import com.amadeus.xml._2010._06.etr_types_v4.FlightIdentifierType;
+import com.amadeus.xml._2010._06.fareinternaltypes_v2.PricingOptionType;
+import com.amadeus.xml._2010._06.pricingtypes_v4.PricingOptionBaseType;
+import com.amadeus.xml._2010._06.retailing_types_v2.AirSegmentType;
+import com.amadeus.xml._2010._06.retailing_types_v2.AssociationsType;
+import com.amadeus.xml._2010._06.retailing_types_v2.CommitType;
+import com.amadeus.xml._2010._06.retailing_types_v2.ReservationType;
+import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRQ;
 import com.amadeus.xml.fatceq_13_1_1a.*;
 import com.amadeus.xml.fatceq_13_1_1a.NumberOfUnitDetailsTypeI;
 import com.amadeus.xml.fatceq_13_1_1a.NumberOfUnitsType;
@@ -13,6 +21,8 @@ import com.amadeus.xml.fmtctq_18_2_1a.*;
 import com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C;
 import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentificationType;
 import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentityType;
+import com.amadeus.xml.pnrspl_11_3_1a.*;
+import com.amadeus.xml.pnrspl_11_3_1a.PNRSplit;
 import com.amadeus.xml.tarcpq_13_2_1a.TicketReissueConfirmedPricing;
 import com.amadeus.xml.taripq_19_1_1a.*;
 import com.amadeus.xml.taripq_19_1_1a.CompanyIdentificationTypeI;
@@ -26,6 +36,8 @@ import com.amadeus.xml.tatreq_20_1_1a.MessageFunctionBusinessDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import dto.reissue.AmadeusPaxRefAndTicket;
+import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchParameters;
 import dto.reissue.ReIssueSearchRequest;
 import org.joda.time.DateTime;
@@ -34,10 +46,10 @@ import org.slf4j.LoggerFactory;
 import utils.CorporateCodeHelper;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 
 //All request Bodies for Reissue flows are created here
@@ -45,8 +57,9 @@ public class ReIssueTicket {
 
     private static final Logger logger = LoggerFactory.getLogger("gds");
 
-    static String vistaraAirlineStr = play.Play.application().configuration().getString("vistara.airline.code");
+    private static final String vistaraAirlineStr = play.Play.application().configuration().getString("vistara.airline.code");
 
+    private static final String amadeusReIssueEnvironment = play.Play.application().configuration().getString("amadeus.reIssue.environment");
 
     /**
      * This inner class is responsible for creating a ReIssueCheckStatus request.
@@ -288,17 +301,17 @@ public class ReIssueTicket {
 
 
             //Setting corporate code here
-            pricingTicketing.getPriceType().add("RW");
-            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType corporate = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType();
-            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType corporateId = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType();
-            corporateId.setCorporateQualifier("RW");
-            corporateId.getIdentity().add("061724");
-            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
-            corporate.getCorporateId().add(corporateId);
+//            pricingTicketing.getPriceType().add("RW");
+//            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType corporate = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentificationType();
+//            com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType corporateId = new com.amadeus.xml.fatceq_13_1_1a.CorporateIdentityType();
+//            corporateId.setCorporateQualifier("RW");
+//            corporateId.getIdentity().add("061724");
+//            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
+//            corporate.getCorporateId().add(corporateId);
 
             pricingTickInfo.setPricingTicketing(pricingTicketing);
             fareOptions.setPricingTickInfo(pricingTickInfo);
-            fareOptions.setCorporate(corporate);
+//            fareOptions.setCorporate(corporate);
 
             ticketCheckEligibility.setFareOptions(fareOptions);
 
@@ -479,14 +492,14 @@ public class ReIssueTicket {
             pricingTicketing.getPriceType().add("ET");
 
             //Setting corporate code here
-            pricingTicketing.getPriceType().add("RW");
-            CorporateIdentificationType corporate = new CorporateIdentificationType();
-            CorporateIdentityType corporateId = new CorporateIdentityType();
-            corporateId.setCorporateQualifier("RW");
-            corporateId.getIdentity().add("061724");
-            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
-            corporate.getCorporateId().add(corporateId);
-            fareOptions.setCorporate(corporate);
+//            pricingTicketing.getPriceType().add("RW");
+//            CorporateIdentificationType corporate = new CorporateIdentificationType();
+//            CorporateIdentityType corporateId = new CorporateIdentityType();
+//            corporateId.setCorporateQualifier("RW");
+//            corporateId.getIdentity().add("061724");
+//            corporateId.getIdentity().add(CorporateCodeHelper.getAirlineCorporateCode(reIssueSearchRequest.getBookingType() + "." + vistaraAirlineStr));
+//            corporate.getCorporateId().add(corporateId);
+//            fareOptions.setCorporate(corporate);
 
             pricingTickInfo.setPricingTicketing(pricingTicketing);
             fareOptions.setPricingTickInfo(pricingTickInfo);
@@ -735,6 +748,258 @@ public class ReIssueTicket {
         }
     }
 
+    public static class ReIssueConfirmation {
+
+        public static PNRSplit splitPNRForReIssuedPax(ReIssueConfirmationRequest reIssueConfirmationRequest) {
+
+            PNRSplit pnrSplit = new PNRSplit();
+
+            //Setting PNR here
+            ReservationControlInformationType reservationInfo = new ReservationControlInformationType();
+            ReservationControlInformationDetailsTypeI reservation = new ReservationControlInformationDetailsTypeI();
+            reservation.setControlNumber(reIssueConfirmationRequest.getOriginalGdsPnr());
+            reservationInfo.setReservation(reservation);
+            pnrSplit.setReservationInfo(reservationInfo);
+
+            //Setting Passenger Tattoos here
+            SplitPNRType splitDetails = new SplitPNRType();
+            SplitPNRDetailsType passenger = new SplitPNRDetailsType();
+            passenger.setType("PT"); //PT -> Passenger Tattoo
+            List<AmadeusPaxRefAndTicket> amadeusPaxRefAndTicketList = reIssueConfirmationRequest.getPaxAndTicketList();
+            for (AmadeusPaxRefAndTicket amadeusPaxRefAndTicket : amadeusPaxRefAndTicketList) {
+                passenger.getTattoo().add(amadeusPaxRefAndTicket.getPaxRef());
+            }
+            splitDetails.setPassenger(passenger);
+            pnrSplit.setSplitDetails(splitDetails);
+
+            return pnrSplit;
+        }
+
+
+        public static AMATicketRebookAndRepricePNRRQ createReIssueRebookAndRepriceReq(ReIssueConfirmationRequest reIssueConfirmationRequest, String newSplitPnr, List<String> cabinClassList) {
+
+            AMATicketRebookAndRepricePNRRQ amaTicketRebookAndRepricePNRRQ = new AMATicketRebookAndRepricePNRRQ();
+
+            //Setting PNR here
+            ReservationType reservation = new ReservationType();
+            reservation.setBookingIdentifier(newSplitPnr);
+            amaTicketRebookAndRepricePNRRQ.setReservation(reservation);
+
+            //Setting Test/Prod environment and ignore warnings here
+            CommitType commit = new CommitType();
+            commit.setIgnoreWarningsOption(true);
+            commit.setReceivedFrom(amadeusReIssueEnvironment);
+            amaTicketRebookAndRepricePNRRQ.setCommit(commit);
+
+
+            boolean isSeaman = reIssueConfirmationRequest.isSeaman();
+
+            List<Journey> segmentsToBeAdded;
+            if (isSeaman) {
+                segmentsToBeAdded = reIssueConfirmationRequest.getNewTravellerMasterInfo().getItinerary().getJourneyList();
+            } else {
+                segmentsToBeAdded = reIssueConfirmationRequest.getNewTravellerMasterInfo().getItinerary().getNonSeamenJourneyList();
+            }
+
+            //Setting Segments to be old cancelled and new segments to be set here
+            try {
+                createReBookingRequest(reIssueConfirmationRequest, segmentsToBeAdded, amaTicketRebookAndRepricePNRRQ, cabinClassList);
+            } catch (Exception e) {
+                logger.debug("Error Creating Rebooking Request for ReIssue {}", e.getMessage(), e);
+            }
+
+            //Pricing codes set here
+            try {
+                createRePricingRequest(reIssueConfirmationRequest, segmentsToBeAdded, amaTicketRebookAndRepricePNRRQ);
+            } catch (Exception e) {
+                logger.debug("Error Creating Rebooking Request for ReIssue {}", e.getMessage(), e);
+            }
+
+            return amaTicketRebookAndRepricePNRRQ;
+        }
+
+        private static void createReBookingRequest(ReIssueConfirmationRequest reIssueConfirmationRequest, List<Journey> segmentsToBeAdded, AMATicketRebookAndRepricePNRRQ amaTicketRebookAndRepricePNRRQ, List<String> segmentWiseBookingClassList) {
+
+            AMATicketRebookAndRepricePNRRQ.Rebooking rebooking = new AMATicketRebookAndRepricePNRRQ.Rebooking();
+
+            //Segments to be cancelled set here
+            AssociationsType cancellation = new AssociationsType();
+            List<AssociationsType.Ref> refList = new ArrayList<>();
+            List<Integer> segmentsToBeCancelled = reIssueConfirmationRequest.getSelectedSegmentList();
+            for (Integer segment : segmentsToBeCancelled) {
+                AssociationsType.Ref ref = new AssociationsType.Ref();
+                ref.setTattooType("ST");
+                ref.setTattooValue(segment.toString());
+                refList.add(ref);
+            }
+            cancellation.getRef().addAll(refList);
+            rebooking.setCancellation(cancellation);
+
+            //New segments here
+            int paxCount = reIssueConfirmationRequest.getPaxAndTicketList().size();
+
+            AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds bounds = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds();
+            List<AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound> boundList = new ArrayList<>();
+
+            int segIdRefNum = segmentsToBeCancelled.get(0);
+            for (Journey journey : segmentsToBeAdded) {
+                AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound bound = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound();
+                bound.setActionCode("NN");
+                bound.setNIP(String.valueOf(paxCount));  //Number of seats to Book/ pax Count
+
+                List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
+                List<AirSegmentType> segment = new ArrayList<>();
+                int segmentCounter = 0;
+                for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
+                    String bookingClass = segmentWiseBookingClassList.get(segmentCounter++);
+                    String segIdRefString = "SEG" + (segIdRefNum++);
+                    AirSegmentType airSegmentType = getNewSegmentWiseInfo(airSegmentInformation, bookingClass, segIdRefString);
+                    segment.add(airSegmentType);
+                }
+
+                bound.getSegment().addAll(segment);
+                boundList.add(bound);
+            }
+
+            bounds.getBound().addAll(boundList);
+            rebooking.setBounds(bounds);
+
+            amaTicketRebookAndRepricePNRRQ.setRebooking(rebooking);
+
+        }
+
+        private static void createRePricingRequest(ReIssueConfirmationRequest reIssueConfirmationRequest, List<Journey> segmentsToBeAdded, AMATicketRebookAndRepricePNRRQ amaTicketRebookAndRepricePNRRQ) {
+
+            AMATicketRebookAndRepricePNRRQ.Repricing repricing = new AMATicketRebookAndRepricePNRRQ.Repricing();
+            AMATicketRebookAndRepricePNRRQ.Repricing.ItineraryPricingOptions itineraryPricingOptions = new AMATicketRebookAndRepricePNRRQ.Repricing.ItineraryPricingOptions();
+
+            List<PricingOptionType> itineraryPricingOptionList = new ArrayList<>();
+
+            //Setting pax and tickets here
+            List<AmadeusPaxRefAndTicket> amadeusPaxRefAndTicketList = reIssueConfirmationRequest.getPaxAndTicketList();
+            for (AmadeusPaxRefAndTicket amadeusPaxRefAndTicket : amadeusPaxRefAndTicketList) {
+                PricingOptionType paxInfo = new PricingOptionType();
+
+
+                //Setting Ticket Number here
+                PricingOptionBaseType.TicketingInfo ticketingInfo = new PricingOptionBaseType.TicketingInfo();
+                ticketingInfo.setNumber(amadeusPaxRefAndTicket.getTicketNumber());
+                paxInfo.getTicketingInfo().add(ticketingInfo);
+
+                //Setting Operation here
+                PricingOptionBaseType.Booking booking = new PricingOptionBaseType.Booking();
+                booking.setOperation("SEL");
+                paxInfo.getBooking().add(booking);
+
+                //Setting pax reference here
+                PricingOptionType.AssociatedPNRElement associatedPNRElement = new PricingOptionType.AssociatedPNRElement();
+                associatedPNRElement.setType("PT");
+                associatedPNRElement.setTattoo(amadeusPaxRefAndTicket.getPaxRef());
+                paxInfo.getAssociatedPNRElement().add(associatedPNRElement);
+
+                itineraryPricingOptionList.add(paxInfo);
+            }
+
+            PricingOptionType pricingRU = new PricingOptionType();
+            PricingOptionBaseType.NegotiatedFare negotiatedFareRU = new PricingOptionBaseType.NegotiatedFare();
+            negotiatedFareRU.setType("RU");
+            pricingRU.getNegotiatedFare().add(negotiatedFareRU);
+            itineraryPricingOptionList.add(pricingRU);
+
+            PricingOptionType pricingRP = new PricingOptionType();
+            PricingOptionBaseType.NegotiatedFare negotiatedFareRP = new PricingOptionBaseType.NegotiatedFare();
+            negotiatedFareRP.setType("RP");
+            pricingRP.getNegotiatedFare().add(negotiatedFareRP);
+            itineraryPricingOptionList.add(pricingRP);
+
+            if (reIssueConfirmationRequest.isSeaman()) {
+                PricingOptionType pricingPTC = new PricingOptionType();
+                PricingOptionBaseType.NegotiatedFare negotiatedFarePTC = new PricingOptionBaseType.NegotiatedFare();
+                negotiatedFarePTC.setType("PTC");
+                pricingPTC.getNegotiatedFare().add(negotiatedFarePTC);
+                itineraryPricingOptionList.add(pricingPTC);
+            }
+
+//            PricingOptionType pricingRW = new PricingOptionType();
+//            PricingOptionBaseType.NegotiatedFare negotiatedFareRW = new PricingOptionBaseType.NegotiatedFare();
+//            negotiatedFareRW.setType("RW");
+//            pricingRW.getNegotiatedFare().add(negotiatedFareRW);
+//            negotiatedFareRW.getCorporate().add("061724");
+//            itineraryPricingOptionList.add(pricingRW);
+
+            //Validating carriers set here
+            PricingOptionType pricingVC = new PricingOptionType();
+            Map<String, PricingOptionBaseType.ServiceProvider> serviceProviderVCMap = new LinkedHashMap<>();
+            for (Journey journey : segmentsToBeAdded) {
+                List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
+                for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
+                    String validatingCarrierCode = airSegmentInformation.getValidatingCarrierCode();
+                    if (validatingCarrierCode != null) {
+                        PricingOptionBaseType.ServiceProvider serviceProviderVC = new PricingOptionBaseType.ServiceProvider();
+                        serviceProviderVC.setType("VC");
+                        serviceProviderVC.setValue(validatingCarrierCode);
+                        serviceProviderVCMap.putIfAbsent(validatingCarrierCode, serviceProviderVC);
+                    }
+                }
+            }
+            pricingVC.getServiceProvider().addAll(serviceProviderVCMap.values());
+            itineraryPricingOptionList.add(pricingVC);
+
+
+            itineraryPricingOptions.getItineraryPricingOption().addAll(itineraryPricingOptionList);
+
+            repricing.setItineraryPricingOptions(itineraryPricingOptions);
+            amaTicketRebookAndRepricePNRRQ.setRepricing(repricing);
+
+        }
+
+        private static AirSegmentType getNewSegmentWiseInfo(AirSegmentInformation airSegmentInformation, String bookingClass, String requestId) {
+
+            AirSegmentType airSegmentType = new AirSegmentType();
+
+            //Request ID is being set here
+            airSegmentType.setRequestID(requestId);
+
+            //Booking Class for the segment is being set here
+            airSegmentType.setBkgClass(bookingClass);
+
+            //Airline Code set here
+            AirSegmentType.ServiceProvider serviceProvider = new AirSegmentType.ServiceProvider();
+            serviceProvider.setCode(airSegmentInformation.getValidatingCarrierCode());
+            airSegmentType.setServiceProvider(serviceProvider);
+
+            //Flight Number set here
+            FlightIdentifierType identifier = new FlightIdentifierType();
+            identifier.setValue(airSegmentInformation.getFlightNumber());
+            airSegmentType.setIdentifier(identifier);
+
+            //Origin Details here
+            AirSegmentType.Start start = new AirSegmentType.Start();
+            start.setLocationCode(airSegmentInformation.getFromLocation());
+            start.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getDepartureTime()));
+            airSegmentType.setStart(start);
+
+            //Destination Details here
+            AirSegmentType.End end = new AirSegmentType.End();
+            end.setLocationCode(airSegmentInformation.getToLocation());
+            end.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getArrivalTime()));
+            airSegmentType.setEnd(end);
+
+            return airSegmentType;
+        }
+
+        //Converting date time to their respective zone Dates
+        private static String mapDateTimeToUTCDate(String dateTimeString) {
+
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateTimeString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            ZonedDateTime utcDateTime = zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
+
+            return utcDateTime.toLocalDate().toString();
+        }
+
+    }
+
+
     public static TicketReissueConfirmedPricing getTicketReissueConfirmedPricing(List<String> tickets) {
         TicketReissueConfirmedPricing reissueConfirmedPricing = new TicketReissueConfirmedPricing();
         List<TicketReissueConfirmedPricing.TicketInfo> ticketInfos = new ArrayList<>();
@@ -751,6 +1016,7 @@ public class ReIssueTicket {
         reissueConfirmedPricing.getTicketInfo().addAll(ticketInfos);
         return reissueConfirmedPricing;
     }
+
     public static TicketRepricePNRWithBookingClass getTicketRepricePNRWithBookingClass(TravellerMasterInfo travellerMasterInfo, List<String> tickets) {
         TicketRepricePNRWithBookingClass ticketRepricePNRWithBookingClass = new TicketRepricePNRWithBookingClass();
 
@@ -793,7 +1059,8 @@ public class ReIssueTicket {
                 companyIdentificationTypeI.setOtherCompany("AI");
                 transportIdentifierType.setCompanyIdentification(companyIdentificationTypeI);
                 pricingOpt.setCarrierInformation(transportIdentifierType);
-            }if (option.equals("SEL")) {
+            }
+            if (option.equals("SEL")) {
                 List<ReferencingDetailsType> referencingDetailsTypes = new ArrayList<>();
                 ReferencingDetailsType referencingDetailsTypeP = new ReferencingDetailsType();
                 referencingDetailsTypeP.setType("P");
@@ -812,4 +1079,6 @@ public class ReIssueTicket {
         ticketRepricePNRWithBookingClass.getPricingOption().addAll(pricingOptions);
         return ticketRepricePNRWithBookingClass;
     }
+
+
 }

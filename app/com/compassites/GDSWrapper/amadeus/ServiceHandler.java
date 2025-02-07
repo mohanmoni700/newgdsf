@@ -57,6 +57,7 @@ import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import dto.OpenTicketDTO;
+import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AmadeusSessionWrapper;
 import models.AncillaryServiceRequest;
@@ -186,29 +187,33 @@ public class ServiceHandler {
     }
 
     //search flights with 2 cities- faremastertravelboard service
-    public FareMasterPricerTravelBoardSearchReply searchAirlines(SearchParameters searchParameters, AmadeusSessionWrapper amadeusSessionWrapper) {
+    public FareMasterPricerTravelBoardSearchReply searchAirlines(SearchParameters searchParameters, AmadeusSessionWrapper amadeusSessionWrapper, String searchType) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
-        logger.debug("AmadeusFlightSearch called at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
+
+        logger.debug("AmadeusFlightSearch called at : {} {}", new Date(), amadeusSessionWrapper.getSessionId());
         FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId());
-        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " Office Id: "+ amadeusSessionWrapper.getOfficeId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
+        amadeusLogger.debug("Amadeus Search request {} SessionId: {} Office Id: {} {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), searchType, new XStream().toXML(fareMasterPricerTravelBoardSearch));
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession());
+
         if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
-            loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
-        logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
-        amadeusLogger.debug(" SessionId: " + amadeusSessionWrapper.getSessionId());
+            loggerTemp.debug("\nAmadeusSearchReq {} :AmadeusFlightSearch response returned  at : {}session: {} ---->\n{}", amadeusSessionWrapper.getOfficeId(), new Date(), amadeusSessionWrapper.printSession(), new XStream().toXML(SearchReply));//todo
+        logger.debug("AmadeusFlightSearch response returned  at : {}", new Date());
+        amadeusLogger.debug(" SessionId: {}", amadeusSessionWrapper.getSessionId());
         return  SearchReply;
     }
 
-    public FareMasterPricerTravelBoardSearchReply searchSplitAirlines(SearchParameters searchParameters, AmadeusSessionWrapper amadeusSessionWrapper) {
+    public FareMasterPricerTravelBoardSearchReply searchSplitAirlines(SearchParameters searchParameters, AmadeusSessionWrapper amadeusSessionWrapper,boolean isDestinationDomestic) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
-        logger.debug("AmadeusFlightSearch called at : " + new Date() + " " + amadeusSessionWrapper.getSessionId());
-        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SplitTicketSearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId());
-        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId() + " Office Id: "+ amadeusSessionWrapper.getOfficeId() + " ---->" + new XStream().toXML(fareMasterPricerTravelBoardSearch));
+
+        logger.debug("AmadeusFlightSearch Split called at : {} {}", new Date(), amadeusSessionWrapper.getSessionId());
+        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SplitTicketSearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId(),isDestinationDomestic);
+        amadeusLogger.debug("AmadeusSearchReq Split {} SessionId: {} Office Id: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(fareMasterPricerTravelBoardSearch));
         FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession());
+
         if(Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
-            loggerTemp.debug("\nAmadeusSearchReq "+amadeusSessionWrapper.getOfficeId() +" :AmadeusFlightSearch response returned  at : " + new Date() + "session: "+ amadeusSessionWrapper.printSession() +" ---->\n" + new XStream().toXML(SearchReply) );//todo
-        logger.debug("AmadeusFlightSearch response returned  at : " + new Date());
-        amadeusLogger.debug(" SessionId: " + amadeusSessionWrapper.getSessionId());
+            loggerTemp.debug("\nAmadeusSearchReq split {} :AmadeusFlightSearch response returned  at : {}session: {} ---->\n{}", amadeusSessionWrapper.getOfficeId(), new Date(), amadeusSessionWrapper.printSession(), new XStream().toXML(SearchReply));//todo
+        logger.debug("AmadeusFlightSearch split response returned  at : {}", new Date());
+        amadeusLogger.debug("SessionId: {}", amadeusSessionWrapper.getSessionId());
         return  SearchReply;
     }
 
@@ -262,6 +267,18 @@ public class ServiceHandler {
         TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, amadeusSessionWrapper.getmSession());
 
         amadeusLogger.debug("createTSTFromPricingReplyRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(createTSTFromPricingReply));
+        return createTSTFromPricingReply;
+    }
+
+    public TicketCreateTSTFromPricingReply createSplitTST(int numberOfTST, AmadeusSessionWrapper amadeusSessionWrapper) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        logger.debug("amadeus createSplitTST called at " + new Date() + "...................Session Id:. " + amadeusSessionWrapper.getSessionId());
+        TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createSplitTSTReq(numberOfTST);
+        amadeusLogger.debug("createSplitTSTFromPricingReplyReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(ticketCreateTSTFromPricing));
+
+        TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("createSplitTSTFromPricingReplyRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(createTSTFromPricingReply));
         return createTSTFromPricingReply;
     }
 
@@ -665,6 +682,18 @@ public class ServiceHandler {
 
     }
 
+    public ServiceStandaloneCatalogueReply getMealsInfoStandalone(AmadeusSessionWrapper amadeusSessionWrapper, AncillaryServiceRequest ancillaryServiceRequest){
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        ServiceStandaloneCatalogue serviceStandaloneCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowMealsInformationRequestStandalone(ancillaryServiceRequest);
+        amadeusLogger.debug("ServiceStandaloneCatalogue Meals Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogue));
+        ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = mPortType.serviceStandaloneCatalogue(serviceStandaloneCatalogue, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("ServiceStandaloneCatalogue Meals Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogueReply));
+        return serviceStandaloneCatalogueReply;
+
+    }
+
+
     public PNRReply partialCancelPNR(String pnr, PNRReply gdsPNRReply,Map<BigInteger, String> segmentMap, AmadeusSessionWrapper amadeusSessionWrapper){
         logger.debug("partialCancelPNR called  at " + new Date() + "................Session Id: "+ amadeusSessionWrapper.getSessionId());
 
@@ -735,7 +764,19 @@ public class ServiceHandler {
         TicketProcessEDoc ticketProcessEDoc = OpenTicketReport.OpenTicketReportRequest.createOpenTicketRequest(openTicketDTOS);
         amadeusLogger.debug("Open Ticket Request Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDoc));
         TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDoc, amadeusSessionWrapper.getmSession());
-        amadeusLogger.debug("Open Ticket Response Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
+        amadeusLogger.debug("Open Ticket Response body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
         return ticketProcessEDocReply;
     }
+
+    public PNRReply splitPNRForReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, AmadeusSessionWrapper amadeusSessionWrapper){
+
+        amadeusSessionWrapper.incrementSequenceNumber();
+        com.amadeus.xml.pnrspl_11_3_1a.PNRSplit pnrSplit = ReIssueTicket.ReIssueConfirmation.splitPNRForReIssuedPax(reIssueConfirmationRequest);
+        amadeusLogger.debug("Splitting PNR for ReIssue Request Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrSplit));
+        PNRReply pnrReply = mPortType.pnrSplit(pnrSplit,amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("Splitting PNR for ReIssue Response Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+
+        return pnrReply;
+    }
+
 }

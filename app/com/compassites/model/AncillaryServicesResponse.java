@@ -10,38 +10,24 @@ public class AncillaryServicesResponse {
     private ErrorMessage errorMessage;
     private String provider;
     private List<BaggageDetails> baggageList;
+    private List<MealDetails> mealDetailsList;
+    private Map<String,List<BaggageDetails>> baggageMap;
+    private Map<String,List<MealDetails>> mealDetailsMap;
 
-
-//    public List<Map<String, String>> getPassengerMap() {
-//        return passengerMap;
-//    }
-//
-//    public void setPassengerMap(List<Map<String, String>> passengerMap) {
-//        this.passengerMap = passengerMap;
-//    }
-//
-//    private List<Map<String, String>> passengerMap;
-
-    public HashMap<String, List<BaggageDetails>> getBaggageMap() {
+    public Map<String, List<BaggageDetails>> getBaggageMap() {
         return baggageMap;
     }
-
-    public void setBaggageMap(HashMap<String, List<BaggageDetails>> baggageMap) {
+    public void setBaggageMap(Map<String, List<BaggageDetails>> baggageMap) {
         this.baggageMap = baggageMap;
     }
 
-    private HashMap<String,List<BaggageDetails>> baggageMap;
-
-    private HashMap<String,List<MealDetails>> mealDetailsMap;
-
-    public HashMap<String, List<MealDetails>> getMealDetailsMap() {
+    public Map<String, List<MealDetails>> getMealDetailsMap() {
         return mealDetailsMap;
     }
 
-    public void setMealDetailsMap(HashMap<String, List<MealDetails>> mealDetailsMap) {
+    public void setMealDetailsMap(Map<String, List<MealDetails>> mealDetailsMap) {
         this.mealDetailsMap = mealDetailsMap;
     }
-
 
     public boolean isSuccess() {
         return success;
@@ -73,6 +59,14 @@ public class AncillaryServicesResponse {
 
     public void setBaggageList(List<BaggageDetails> baggageList) {
         this.baggageList = baggageList;
+    }
+
+    public List<MealDetails> getMealDetailsList() {
+        return mealDetailsList;
+    }
+
+    public void setMealDetailsList(List<MealDetails> mealDetailsList) {
+        this.mealDetailsList = mealDetailsList;
     }
 
 }

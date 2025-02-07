@@ -4,6 +4,7 @@ import com.compassites.model.FlightItinerary;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.SearchResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
+import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,14 @@ public class ReIssueServiceWrapper implements ReIssueService {
         }
 
         return  reIssueTicketResponse;
+    }
+
+    @Override
+    public PNRResponse confirmReissue(ReIssueConfirmationRequest reIssueConfirmationRequest){
+
+        PNRResponse reissuePNRResponse = amadeusReissueService.confirmReIssue(reIssueConfirmationRequest);
+
+        return reissuePNRResponse;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.compassites.model;
 
-import com.compassites.model.travelomatrix.AmadeusPaxInformation;
+import com.compassites.model.amadeus.AmadeusPaxInformation;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -81,11 +81,46 @@ public class PNRResponse implements Serializable  {
 
     private List<BaggageDetails> tmxBaggageDetails;
 
+    private Boolean addBooking;
+
+    private String originalPNR;
+
+    private boolean isPnrSplit;
+
+    private Map<String, String> pnrMap;
+
+    public Map<String, String> getPnrMap() {
+        return pnrMap;
+    }
+
+    public void setPnrMap(Map<String, String> pnrMap) {
+        this.pnrMap = pnrMap;
+    }
+
+    public Boolean getAddBooking() {
+        return addBooking;
+    }
+
+    public void setAddBooking(Boolean addBooking) {
+        this.addBooking = addBooking;
+    }
+
+    public String getOriginalPNR() {
+        return originalPNR;
+    }
+
+    public void setOriginalPNR(String originalPNR) {
+        this.originalPNR = originalPNR;
+    }
+
     private List<AmadeusPaxInformation> amadeusPaxReference;
+
 
     public List<MealDetails> getTmxMealDetails() {
         return tmxMealDetails;
     }
+
+    private boolean isReIssueSuccess;
 
     public void setTmxMealDetails(List<MealDetails> tmxMealDetails) {
         this.tmxMealDetails = tmxMealDetails;
@@ -363,6 +398,22 @@ public class PNRResponse implements Serializable  {
 
     public void setChangedPriceLow(boolean changedPriceLow) {
         isChangedPriceLow = changedPriceLow;
+    }
+
+    public boolean isReIssueSuccess() {
+        return isReIssueSuccess;
+    }
+
+    public void setReIssueSuccess(boolean reIssueSuccess) {
+        isReIssueSuccess = reIssueSuccess;
+    }
+
+    public boolean isPnrSplit() {
+        return isPnrSplit;
+    }
+
+    public void setPnrSplit(boolean pnrSplit) {
+        isPnrSplit = pnrSplit;
     }
 }
 

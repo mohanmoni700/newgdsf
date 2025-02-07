@@ -59,12 +59,12 @@ public class SplitTicketSearchFlights {
     }
 
     //search flights with 2 cities- faremasterpricertravelboardsearch service
-    public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters, String officeId) {
+    public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters, String officeId, boolean isDestinationDomestic) {
         FareMasterPricerTravelBoardSearch se = new FareMasterPricerTravelBoardSearch();
         if(searchParameters.getBookingType() == BookingType.SEAMEN){
-            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount() + searchParameters.getInfantCount()));
+            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount() + searchParameters.getInfantCount(),isDestinationDomestic));
         }else {
-            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
+            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount(),isDestinationDomestic));
         }
 
         //se.getPaxReference().addAll(createPassengers(searchParameters));
@@ -337,15 +337,20 @@ public class SplitTicketSearchFlights {
         //return fe;
     }
 
-    private NumberOfUnitsType createNumberOfUnits(int noOfPassengers) {
+    private NumberOfUnitsType createNumberOfUnits(int noOfPassengers, boolean isDestinationDomestic) {
         NumberOfUnitsType nu = new NumberOfUnitsType();
         NumberOfUnitDetailsType191580C nudt = new NumberOfUnitDetailsType191580C();
         nudt.setNumberOfUnits(new BigInteger(Integer.toString(noOfPassengers)));
         nudt.setTypeOfUnit("PX");
 
         NumberOfUnitDetailsType191580C nudt1 = new NumberOfUnitDetailsType191580C();
-        String noOfSearchResults =  play.Play.application().configuration().getString("amadeus.noOfSearchResults");
-        nudt1.setNumberOfUnits(new BigInteger(noOfSearchResults));
+        if (isDestinationDomestic) {
+            String noOfSearchResults = play.Play.application().configuration().getString("split.amadeus.destination.domestic");
+            nudt1.setNumberOfUnits(new BigInteger(noOfSearchResults));
+        } else {
+            String noOfSearchResults = play.Play.application().configuration().getString("split.amadeus.noOfSearchResults");
+            nudt1.setNumberOfUnits(new BigInteger(noOfSearchResults));
+        }
         nudt1.setTypeOfUnit("RC");
         nu.getUnitNumberDetail().add(nudt);
         nu.getUnitNumberDetail().add(nudt1);

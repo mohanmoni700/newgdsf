@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 import services.RetryOnFailure;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,7 +47,7 @@ public class TravelomatixExtraServiceImpl implements TravelomatixExtraService {
             ExtraServicesReply extraServicesReply1 = null;
             if(returnextraServicesResponse != null)
                 extraServicesReply1  = new ObjectMapper().treeToValue(returnextraServicesResponse,ExtraServicesReply.class);
-            HashMap<String,List<BaggageDetails>> baggageMap = new HashMap<>();
+            Map<String,List<BaggageDetails>> baggageMap = new HashMap<>();
             if( (extraServicesReply != null && extraServicesReply.getStatus() != 0) ||
                     (extraServicesReply1 != null && extraServicesReply1.getStatus() != 0) ) {
                 logger.debug("Get Baggage Details");
@@ -67,7 +64,7 @@ public class TravelomatixExtraServiceImpl implements TravelomatixExtraService {
                     //Segment based mapping for round_trip and multicity
                    baggageMap = getBaggageDetailsMap(extraServicesReply,Boolean.FALSE);
                     if(extraServicesReply1 != null && extraServicesReply1.getStatus() != 0) {
-                        HashMap<String,List<BaggageDetails>> returnBaggageMap =   getBaggageDetailsMap(extraServicesReply1,Boolean.TRUE);
+                        Map<String,List<BaggageDetails>> returnBaggageMap =   getBaggageDetailsMap(extraServicesReply1,Boolean.TRUE);
                         for(Map.Entry<String,List<BaggageDetails>> entry: returnBaggageMap.entrySet()){
                             baggageMap.put(entry.getKey(),entry.getValue());
                         }
@@ -187,8 +184,8 @@ public class TravelomatixExtraServiceImpl implements TravelomatixExtraService {
     }
 
 
-    public HashMap<String,List<BaggageDetails>>  getBaggageDetailsMap(ExtraServicesReply extraServicesReply, Boolean returnDetails){
-        HashMap<String,List<BaggageDetails>> baggageMap = new HashMap<>();
+    public Map<String,List<BaggageDetails>>  getBaggageDetailsMap(ExtraServicesReply extraServicesReply, Boolean returnDetails){
+        Map<String,List<BaggageDetails>> baggageMap = new LinkedHashMap<>();
         List<BaggageDetails> baggageDetailsList = new ArrayList<>();
         try {
 

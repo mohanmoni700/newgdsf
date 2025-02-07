@@ -1,16 +1,18 @@
 package com.compassites.GDSWrapper.travelomatrix;
 
-import com.compassites.model.BaggageDetails;
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.MealDetails;
-import com.compassites.model.MealDetailsMap;
+import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.CommitBookingRequest;
 import com.compassites.model.travelomatrix.FareRuleRequest;
 import com.compassites.model.travelomatrix.Passenger;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import configs.WsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -77,11 +80,11 @@ public class BookingFlights {
         try {
             int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/CommitBooking");
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Request to TM : "+ jsonRequest.toString());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
             response = wsrholder.post(jsonRequest).get(timeout).asJson();
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
-            travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking Response:"+response.toString());
         }catch(Exception e){
             travelomatrixLogger.error(e.getMessage());
             e.printStackTrace();
@@ -166,6 +169,7 @@ public class BookingFlights {
                         }
                     }
                 }
+                if(baggageIds.size() > 0)
                 passenger.setBaggageId(baggageIds);
             }
 
@@ -182,7 +186,7 @@ public class BookingFlights {
                        }
                    }
                 }
-
+                 if(mealIds.size() > 0)
                 passenger.setMealId(mealIds);
             }
             passengerList.add(passenger);

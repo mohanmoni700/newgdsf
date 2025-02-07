@@ -67,13 +67,13 @@ public class SearchFlights {
             se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
         }
 
-       //se.getPaxReference().addAll(createPassengers(searchParameters));
-
         createSeamenPassengers(se, searchParameters);
 
         se.getItinerary().addAll(createItinerary(searchParameters));
 
         TravelFlightInformationType165052S travelFlightInfo = new TravelFlightInformationType165052S();
+
+        setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
         if (searchParameters.getPreferredAirlinesList() != null &&searchParameters.getPreferredAirlinesList().size()>0) {
             setPreferredAirlines(travelFlightInfo,searchParameters.getPreferredAirlinesList());
@@ -83,11 +83,13 @@ public class SearchFlights {
             setDirectFlights(travelFlightInfo);
         }
 
-        if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-            se.setTravelFlightInfo(travelFlightInfo);
-        } else {
-            se.setTravelFlightInfo(new TravelFlightInformationType165052S());
-        }
+        se.setTravelFlightInfo(travelFlightInfo);
+
+//        if (searchParameters.getBookingType() == BookingType.SEAMEN) {
+//            se.setTravelFlightInfo(travelFlightInfo);
+//        } else {
+//            se.setTravelFlightInfo(travelFlightInfo);
+//        }
 
         FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
         PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
@@ -114,8 +116,6 @@ public class SearchFlights {
             setRefundableFlights(pit);
         }
 
-        setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
-
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
             createSeamenFareOptions(pit,officeId);
@@ -128,40 +128,16 @@ public class SearchFlights {
             fe.setCorporate(corporateIdentificationType);
         }
 
-        //se.setFareOptions(fareOptions);
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
             CorporateIdentificationType corporateIdentificationType = createCorporateCode(pit, searchParameters);
             fe.setCorporate(corporateIdentificationType);
-//            FareMasterPricerTravelBoardSearch.FareOptions fe1 = new FareMasterPricerTravelBoardSearch.FareOptions();
-//            PricingTicketingDetailsType pdt1 = new PricingTicketingDetailsType();
-//            PricingTicketingInformationType pit1 = new PricingTicketingInformationType();
             pit.getPriceType().add("PTC");
-
-            /*pit.getPriceType().add("RW");
-            CorporateIdentificationType corporateIdentificationType = new CorporateIdentificationType();
-            CorporateIdentityType corporateIdentityType = new CorporateIdentityType();
-            corporateIdentityType.setCorporateQualifier("RW");
-            corporateIdentityType.getIdentity().add("061724");
-            corporateIdentityType.getIdentity().add("752375");
-            corporateIdentificationType.getCorporateId().add(corporateIdentityType);
-            fe.setCorporate(corporateIdentificationType);*/
-
-//            pdt1.setPricingTicketing(pit1);
-//            fe1.setPricingTickInfo(pdt1);
-//            se.setFareOptions(fe1);
         }
-        se.setFareOptions(fe);
-        /*FareMasterPricerTravelBoardSearch.FareOptions fareOptions = new FareMasterPricerTravelBoardSearch.FareOptions();
-        PricingTicketingDetailsType pricingTicketingDetailsType = new PricingTicketingDetailsType();
-        PricingTicketingInformationType pricingTicketingInformationType = new PricingTicketingInformationType();
-        pricingTicketingInformationType.getPriceType().add("IAV");
-        pricingTicketingDetailsType.setPricingTicketing(pricingTicketingInformationType);
-        fareOptions.setPricingTickInfo(pricingTicketingDetailsType);
-        se.setFareOptions(fareOptions);*/
-//        XMLFileUtility.createXMLFile(se, "AmadeusSearchReq.xml");
 
-//        amadeusLogger.debug("AmadeusSearchReq " + new Date() + " ---->" + new XStream().toXML(se));
+        se.setFareOptions(fe);
+
+
         return se;
     }
 
@@ -298,10 +274,7 @@ public class SearchFlights {
 
     private void createFareOptions(PricingTicketingInformationType pit, String officeId) {
 
-        //FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
-        //PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
-        //PricingTicketingInformationType pit = new PricingTicketingInformationType();
-        //pit.getPriceType().add("TAC");
+
         if(officeId.equalsIgnoreCase("BOMVS34C3")) {
             pit.getPriceType().add("RU");
             pit.getPriceType().add("RP");
@@ -320,21 +293,6 @@ public class SearchFlights {
             pit.getPriceType().add("MNR");
         }
 
-
-       /* pit.getPriceType().add("PTC");
-        pit.getPriceType().add("ET");
-        pit.getPriceType().add("NSD");*/
-
-        //pdt.setPricingTicketing(pit);
-
-       /* CodedAttributeType fid = new CodedAttributeType();
-        CodedAttributeInformationType247829C cid = new CodedAttributeInformationType247829C();
-        cid.setFeeType("NPS");
-        cid.setFeeIdNumber("0");
-        fid.getFeeId().add(cid);
-        fe.setFeeIdDescription(fid);*/
-        //fe.setPricingTickInfo(pdt);
-        //return fe;
     }
 
     private NumberOfUnitsType createNumberOfUnits(int noOfPassengers) {

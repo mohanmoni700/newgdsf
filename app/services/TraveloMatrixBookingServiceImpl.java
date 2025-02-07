@@ -156,7 +156,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                         travelomatrixLogger.debug("No Response receieved for CommitBooking from Travelomatrix : " + recommitBookingReply);
                         issuanceResponse = getCommitBookingResponse(commitBookingReply,issuanceRequest.getTravellerList());
                     } else {
-                        issuanceResponse = getMergedCommitBookingResponse(commitBookingReply,recommitBookingReply);
+                        issuanceResponse = getMergedCommitBookingResponse(commitBookingReply,recommitBookingReply,issuanceRequest.getTravellerList());
                     }
                 }else{
                     issuanceResponse = getCommitBookingResponse(commitBookingReply,issuanceRequest.getTravellerList());
@@ -371,6 +371,8 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         List<PassengerDetail> passengerDetailList =  commitBookingReply.getCommitBooking().getBookingDetails().getPassengerDetails();
         List<BaggageDetails> excessBaggageList = new ArrayList<>();
         List<MealDetails> excessMealList = new ArrayList<>();
+        String destination = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getDestination().getAirportCode();
+
         for(PassengerDetail passengerDetail:passengerDetailList){
             String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
@@ -403,7 +405,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                     MealDetails mealDetails = new MealDetails();
                     mealDetails.setMealDesc(meal.getDescription());
                     mealDetails.setMealPrice(new BigDecimal(meal.getPrice()));
-                    mealDetails.setDestination(meal.getDestination());
+                    mealDetails.setDestination(destination);
                     mealDetails.setOrigin(meal.getOrigin());
                     mealDetails.setMealCode(meal.getCode());
                     mealDetails.setTmxTicketNumber(ticketNumber);
@@ -420,6 +422,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);
         issuanceResponse.setBookingId(commitBookingReply.getCommitBooking().getBookingDetails().getBookingId());
         String baggage = commitBookingReply.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAttr().getBaggage().toString();
+
         String updatedBagunits = updateBaggeUnits(baggage);
         issuanceResponse.setBaggage(updatedBagunits);
         //excessBaggage
@@ -548,6 +551,7 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
                 if(firstName.trim().equalsIgnoreCase(passengerDetail.getFirstName()) &&
                         traveller.getPersonalDetails().getLastName().equalsIgnoreCase(passengerDetail.getLastName())
                 ) {
+                    if(traveller != null && traveller.getPersonalDetails()!= null)
                     contactMasterId = traveller.getPersonalDetails().getTravellerId();
                 }
             }
@@ -792,8 +796,9 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         return pnrResponse;
     }
 
-    public IssuanceResponse getMergedCommitBookingResponse(CommitBookingReply onwardJourney,CommitBookingReply returnJourney){
+    public IssuanceResponse getMergedCommitBookingResponse(CommitBookingReply onwardJourney,CommitBookingReply returnJourney,List<Traveller> travellerList){
         IssuanceResponse issuanceResponse = new IssuanceResponse();
+        logger.info("onwardJourney..."+onwardJourney);
         String airlinePNR=onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
         issuanceResponse.setAirlinePnr(airlinePNR);
         String reairlinePNR=returnJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getAirlinePNR();
@@ -820,16 +825,105 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         issuanceResponse.setIssued(true);
         Map<String,String> tickenetNumberMap = new HashMap<>();
         Map<String,String> reTickenetNumberMap = new HashMap<>();
+        List<BaggageDetails> excessBaggageList = new ArrayList<>();
+        List<MealDetails> excessMealList = new ArrayList<>();
+        String onwarddestination = onwardJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getDestination().getAirportCode();
+
         List<PassengerDetail> passengerDetailList =  onwardJourney.getCommitBooking().getBookingDetails().getPassengerDetails();
         for(PassengerDetail passengerDetail:passengerDetailList){
-            String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
+            long contactMasterId = 0;
+            for(Traveller traveller:travellerList) {
+                String firstName = traveller.getPersonalDetails().getFirstName();
+                if(traveller.getPersonalDetails().getMiddleName() != null)
+                    firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+                if(firstName.trim().equalsIgnoreCase(passengerDetail.getFirstName()) &&
+                        traveller.getPersonalDetails().getLastName().equalsIgnoreCase(passengerDetail.getLastName())
+                )
+                    contactMasterId = traveller.getContactId();
+            }
+            List<Baggage> baggage =  passengerDetail.getBaggageList();
+            if(baggage!= null && baggage.size() > 0) {
+                for (Baggage baggage1 : baggage) {
+                    BaggageDetails baggageDetails = new BaggageDetails();
+                    baggageDetails.setPrice(baggage1.getPrice());
+                    baggageDetails.setWeight(baggage1.getWeight());
+                    baggageDetails.setTmxTicketNumber(ticketNumber);
+                    baggageDetails.setCode(baggage1.getCode());
+                    baggageDetails.setContactMasterId(contactMasterId);
+                    if(!excessBaggageList.contains(baggageDetails)) {
+                        excessBaggageList.add(baggageDetails);
+                    }
+                }
+            }
+            List<Meal> meals =  passengerDetail.getMealList();
+            if(meals!= null && meals.size() > 0) {
+                for (Meal meal : meals) {
+                    MealDetails mealDetails = new MealDetails();
+                    mealDetails.setMealDesc(meal.getDescription());
+                    mealDetails.setMealPrice(new BigDecimal(meal.getPrice()));
+                    mealDetails.setDestination(onwarddestination);
+                    logger.info("onwarddestination..."+onwarddestination);
+                    mealDetails.setOrigin(meal.getOrigin());
+                    mealDetails.setMealCode(meal.getCode());
+                    mealDetails.setTmxTicketNumber(ticketNumber);
+                    mealDetails.setContactMasterId(contactMasterId);
+                    if(!excessMealList.contains(mealDetails)) {
+                        excessMealList.add(mealDetails);
+                    }
+                }
+            }
+            String passengerType = passengerDetail.getPassengerType();
             tickenetNumberMap.put(passengerType,ticketNumber);
         }
         List<PassengerDetail> repassengerDetailList =  returnJourney.getCommitBooking().getBookingDetails().getPassengerDetails();
+        String returndestination = returnJourney.getCommitBooking().getBookingDetails().getJourneyList().getFlightDetails().getDetails().get(0).get(0).getDestination().getAirportCode();
+
         for(PassengerDetail passengerDetail:repassengerDetailList){
-            String passengerType = passengerDetail.getPassengerType();
             String ticketNumber  = passengerDetail.getTicketNumber();
+
+            long contactMasterId = 0;
+            for(Traveller traveller:travellerList) {
+                String firstName = traveller.getPersonalDetails().getFirstName();
+                if(traveller.getPersonalDetails().getMiddleName() != null)
+                    firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+                if(firstName.trim().equalsIgnoreCase(passengerDetail.getFirstName()) &&
+                        traveller.getPersonalDetails().getLastName().equalsIgnoreCase(passengerDetail.getLastName())
+                )
+                    contactMasterId = traveller.getContactId();
+            }
+            List<Baggage> baggage =  passengerDetail.getBaggageList();
+            if(baggage!= null && baggage.size() > 0) {
+                for (Baggage baggage1 : baggage) {
+                    BaggageDetails baggageDetails = new BaggageDetails();
+                    baggageDetails.setPrice(baggage1.getPrice());
+                    baggageDetails.setWeight(baggage1.getWeight());
+                    baggageDetails.setTmxTicketNumber(ticketNumber);
+                    baggageDetails.setCode(baggage1.getCode());
+                    baggageDetails.setContactMasterId(contactMasterId);
+                    if(!excessBaggageList.contains(baggageDetails)) {
+                        excessBaggageList.add(baggageDetails);
+                    }
+                }
+            }
+            List<Meal> meals =  passengerDetail.getMealList();
+            if(meals!= null && !meals.isEmpty()) {
+                for (Meal meal : meals) {
+                    MealDetails mealDetails = new MealDetails();
+                    mealDetails.setMealDesc(meal.getDescription());
+                    mealDetails.setMealPrice(new BigDecimal(meal.getPrice()));
+                    logger.info("returndestination..."+returndestination);
+                    mealDetails.setDestination(returndestination);
+                    mealDetails.setOrigin(meal.getOrigin());
+                    mealDetails.setMealCode(meal.getCode());
+                    mealDetails.setTmxTicketNumber(ticketNumber);
+                    mealDetails.setContactMasterId(contactMasterId);
+                    if(!excessMealList.contains(mealDetails)) {
+                        excessMealList.add(mealDetails);
+                    }
+                }
+            }
+            String passengerType = passengerDetail.getPassengerType();
             reTickenetNumberMap.put(passengerType,ticketNumber);
         }
         issuanceResponse.setTicketNumberMap(tickenetNumberMap);

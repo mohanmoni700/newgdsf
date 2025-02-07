@@ -4,13 +4,21 @@ import com.compassites.model.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.beans.Transient;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReIssueSearchRequest implements Serializable {
 
     private boolean isSeaman;
+
+    private int actualAdultCount;
+
+    private int actualChildCount;
+
+    private int actualInfantCount;
 
     private int adultCount;
 
@@ -40,6 +48,30 @@ public class ReIssueSearchRequest implements Serializable {
 
     public void setSeaman(boolean seaman) {
         isSeaman = seaman;
+    }
+
+    public int getActualAdultCount() {
+        return actualAdultCount;
+    }
+
+    public void setActualAdultCount(int actualAdultCount) {
+        this.actualAdultCount = actualAdultCount;
+    }
+
+    public int getActualChildCount() {
+        return actualChildCount;
+    }
+
+    public void setActualChildCount(int actualChildCount) {
+        this.actualChildCount = actualChildCount;
+    }
+
+    public int getActualInfantCount() {
+        return actualInfantCount;
+    }
+
+    public void setActualInfantCount(int actualInfantCount) {
+        this.actualInfantCount = actualInfantCount;
     }
 
     public int getAdultCount() {
@@ -137,6 +169,15 @@ public class ReIssueSearchRequest implements Serializable {
         } else {
             return BookingType.NON_MARINE;
         }
+    }
+
+    @Transient
+    public List<String> getTicketNumberList(){
+        List<String> ticketNumbers = new ArrayList<>();
+        for(Passenger passenger : this.passengers){
+            ticketNumbers.add(passenger.getTicketNumber());
+        }
+        return ticketNumbers;
     }
 
 }

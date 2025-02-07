@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface SplitAmadeusSearch {
-    public List<SearchResponse> splitSearch(List<SearchParameters> searchParameters, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap) throws Exception;
-    public void splitTicketSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest) throws Exception;
+    public List<SearchResponse> splitSearch(List<SearchParameters> searchParameters, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, boolean isDomestic) throws Exception;
+    public void splitTicketSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic) throws Exception;
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception;
     public String provider();
     public List<FlightSearchOffice> getOfficeList();

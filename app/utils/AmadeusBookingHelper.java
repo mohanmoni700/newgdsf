@@ -19,7 +19,7 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import com.compassites.model.travelomatrix.AmadeusPaxInformation;
+import com.compassites.model.amadeus.AmadeusPaxInformation;
 import models.Airline;
 import models.Airport;
 import org.apache.commons.lang3.StringUtils;
@@ -138,24 +138,38 @@ public class AmadeusBookingHelper {
         String salutation = null;
         String firstName = null;
         String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
+        String fullName = null;
 
         String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
         String[] names = firstNameResponse.split("\\s");
+        firstName = names[0];
 
         if (names.length > 1) {
-            //personalDetails.setSalutation(names[names.length-1]);
             for (String name : names) {
                 if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms") || name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")) {
                     salutation = WordUtils.capitalizeFully(name);
-                } else {
-                    firstName = name;
                 }
             }
         }
 
+        if (salutation != null) {
+            fullName = salutation + firstName;
+        } else {
+            fullName = firstName;
+        }
+
+        for (String name : names) {
+            if (!name.equalsIgnoreCase(salutation) && !name.equalsIgnoreCase(firstName)){
+                fullName += name;
+            }
+        }
+
+        fullName+=lastName;
+
         amadeusPaxInformation.setSalutation(salutation);
         amadeusPaxInformation.setFirstName(firstName);
         amadeusPaxInformation.setLastName(lastName);
+        amadeusPaxInformation.setFullName(fullName.replace(" ",""));
         amadeusPaxInformation.setPaxRef(referenceNumber);
         amadeusPaxInformation.setLineNumber(lineNumber);
 
