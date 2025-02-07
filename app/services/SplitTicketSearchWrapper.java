@@ -246,6 +246,7 @@ public class SplitTicketSearchWrapper {
                 //Map<String, PossibleRoutes> possibleRoutesMap = splitTicketHelper.createPossibleRoutes(searchResponse);
                 searchParameters1 = createSearch(searchParameters);//splitTicketHelper.createSearchParameters(possibleRoutesMap, searchParameters, null);
             //}
+            System.out.println(Json.toJson(searchParameters1));
             logger.debug("Possible search routes "+Json.toJson(searchParameters1));
             createSplitSearch(searchParameters1, searchParameters);
         } catch (Exception e) {

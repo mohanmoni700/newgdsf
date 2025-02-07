@@ -64,11 +64,13 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         this.redisTemplate = redisTemplate;
     }
 
+    private static final String searchOfficeID = play.Play.application().configuration().getString("split.ticket.officeId");
+
     public List<SearchResponse> splitSearch(List<SearchParameters> searchParameters, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, boolean isDomestic) throws Exception {
         List<SearchResponse> responses = new ArrayList<>();
         for (SearchParameters searchParameters1: searchParameters)  {
             FlightSearchOffice searchOffice = new FlightSearchOffice();
-            searchOffice.setOfficeId("BOMVS34C3");
+            searchOffice.setOfficeId(searchOfficeID);
             searchOffice.setName("");
             SearchResponse searchResponse = null;
             if (isDomestic) {
@@ -153,7 +155,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
                             SplitTicketMerger splitTicketMerger = new SplitTicketMerger();
                             SearchResponse searchResponseCache = new SearchResponse();
                             FlightSearchOffice searchOffice = new FlightSearchOffice();
-                            searchOffice.setOfficeId("BOMVS34C3");
+                            searchOffice.setOfficeId(searchOfficeID);
                             searchOffice.setName("");
                             searchResponseCache.setFlightSearchOffice(searchOffice);
                             searchResponseCache.setProvider("Amadeus");
