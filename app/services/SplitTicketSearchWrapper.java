@@ -194,7 +194,7 @@ public class SplitTicketSearchWrapper {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             LocalDateTime localDateTime = LocalDateTime.parse(searchParameters.getJourneyList().get(0).getTravelDateStr(), formatter);
             ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of(airport.getTime_zone()));
-            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(24);
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(12);
             //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedTime = midnightTime.format(formatter);
 
@@ -246,6 +246,7 @@ public class SplitTicketSearchWrapper {
                 //Map<String, PossibleRoutes> possibleRoutesMap = splitTicketHelper.createPossibleRoutes(searchResponse);
                 searchParameters1 = createSearch(searchParameters);//splitTicketHelper.createSearchParameters(possibleRoutesMap, searchParameters, null);
             //}
+            System.out.println(Json.toJson(searchParameters1));
             logger.debug("Possible search routes "+Json.toJson(searchParameters1));
             createSplitSearch(searchParameters1, searchParameters);
         } catch (Exception e) {
