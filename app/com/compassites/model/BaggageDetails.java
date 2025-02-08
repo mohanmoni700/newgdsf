@@ -14,6 +14,8 @@ public class BaggageDetails {
     private String baggageDescription;
     private String origin;
     private Long price;
+    private Long basePrice;
+    private Long tax;
     private String weight;
     private String piece;
     private String rfic;
@@ -234,6 +236,22 @@ public class BaggageDetails {
 
     public void setSegmentNumber(String segmentNumber) {
         this.segmentNumber = segmentNumber;
+    }
+
+    public Long getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(Long basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public Long getTax() {
+        return tax;
+    }
+
+    public void setTax(Long tax) {
+        this.tax = tax;
     }
 
 }
