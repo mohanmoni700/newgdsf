@@ -55,7 +55,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
         boolean isReissueSuccess = true;
         PNRResponse finalPnrResponse = new PNRResponse();
 
-
         try {
 
             amadeusSessionWrapper = serviceHandler.logIn(officeId);
@@ -137,9 +136,8 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                     return finalPnrResponse;
                 }
                 serviceHandler.savePNR(amadeusSessionWrapper);
+                serviceHandler.logOut(amadeusSessionWrapper);
             }
-
-            serviceHandler.logOut(amadeusSessionWrapper);
 
             createPNRResponseForReIssuedBooking(reIssuedPnr, officeId, serviceHandler, finalPnrResponse, reIssueConfirmationRequest.getNewTravellerMasterInfo(), amadeusSessionManager, success);
 
@@ -150,6 +148,8 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
         } catch (Exception e) {
             logger.debug("Error when trying to book the flight for reissue {}", e.getMessage(), e);
+        } finally {
+            serviceHandler.logOut(amadeusSessionWrapper);
         }
 
         return null;
