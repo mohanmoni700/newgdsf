@@ -50,6 +50,10 @@ public class AirSegmentInformation implements Serializable{
 
     private String departureTime;
 
+    private String onlyArrivalDate;
+
+    private String onlyDepartureDate;
+
     private String distanceTravelled;
     
     private String distanceUnit;
@@ -418,6 +422,21 @@ public class AirSegmentInformation implements Serializable{
         this.airSegmentKey = airSegmentKey;
     }
 
+    public String getOnlyArrivalDate() {
+        return onlyArrivalDate;
+    }
+
+    public void setOnlyArrivalDate(String onlyArrivalDate) {
+        this.onlyArrivalDate = onlyArrivalDate;
+    }
+
+    public String getOnlyDepartureDate() {
+        return onlyDepartureDate;
+    }
+
+    public void setOnlyDepartureDate(String onlyDepartureDate) {
+        this.onlyDepartureDate = onlyDepartureDate;
+    }
 	public FlightInfo getFlightInfo() {
 		return flightInfo;
 	}

@@ -545,8 +545,10 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
         airSegmentInformation.setDepartureDate(departureDate.toDate());
         airSegmentInformation.setDepartureTime(departureDate.toString());
+        airSegmentInformation.setOnlyDepartureDate(onlyDateFormat(departureDate.toString()));
         airSegmentInformation.setArrivalTime(arrivalDate.toString());
         airSegmentInformation.setArrivalDate(arrivalDate.toDate());
+        airSegmentInformation.setOnlyArrivalDate(onlyDateFormat(arrivalDate.toString()));
 
         airSegmentInformation.setFromAirport(fromAirport);
         airSegmentInformation.setToAirport(toAirport);
@@ -899,6 +901,10 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             return null;
         }
 
+    }
+
+    public static String onlyDateFormat(String localTimeWithOffset) {
+        return localTimeWithOffset.substring(0,10);
     }
 
 //    public SearchResponse reIssueFlightSearch(ReIssueTicketRequest reIssueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
