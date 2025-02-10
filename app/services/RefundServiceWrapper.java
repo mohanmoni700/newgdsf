@@ -1,13 +1,11 @@
 package services;
 
-import com.compassites.constants.StaticConstatnts;
 import com.compassites.model.TicketCheckEligibilityRes;
 import com.compassites.model.TicketProcessRefundRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
+
 import java.util.List;
 
 @Service
@@ -48,7 +46,6 @@ public class RefundServiceWrapper {
         }
         return ticketProcessRefundRes;
     }
-
 
 
 }

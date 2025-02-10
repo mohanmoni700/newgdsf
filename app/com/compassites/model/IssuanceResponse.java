@@ -1,6 +1,8 @@
 package com.compassites.model;
 
 import com.compassites.model.traveller.Traveller;
+import dto.FareCheckRulesResponse;
+import org.hibernate.mapping.Bag;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -49,6 +51,8 @@ public class IssuanceResponse implements Serializable{
 
     private boolean isIssued;
 
+    private FareCheckRulesResponse fareCheckRulesResponse;
+
     private Map<String, String> airlinePNRMap;
 
     public void setErrorCode(String errorCode){
@@ -67,6 +71,26 @@ public class IssuanceResponse implements Serializable{
     }
     private String baggage ;
     private String bookingId;
+
+    private List<BaggageDetails> tmxBaggageDetails;
+
+    public List<MealDetails> getTmxMealDetails() {
+        return tmxMealDetails;
+    }
+
+    public void setTmxMealDetails(List<MealDetails> tmxMealDetails) {
+        this.tmxMealDetails = tmxMealDetails;
+    }
+
+    private List<MealDetails> tmxMealDetails;
+
+    public List<BaggageDetails> getTmxBaggageDetails() {
+        return tmxBaggageDetails;
+    }
+
+    public void setTmxBaggageDetails(List<BaggageDetails> tmxBaggageDetails) {
+        this.tmxBaggageDetails = tmxBaggageDetails;
+    }
 
     private String returnAirlinePnr;
 
@@ -242,5 +266,13 @@ public class IssuanceResponse implements Serializable{
 
     public void setAirlinePNRMap(Map<String, String> airlinePNRMap) {
         this.airlinePNRMap = airlinePNRMap;
+    }
+
+    public FareCheckRulesResponse getFareCheckRulesResponse() {
+        return fareCheckRulesResponse;
+    }
+
+    public void setFareCheckRulesResponse(FareCheckRulesResponse fareCheckRulesResponse) {
+        this.fareCheckRulesResponse = fareCheckRulesResponse;
     }
 }

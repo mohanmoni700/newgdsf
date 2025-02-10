@@ -1,15 +1,20 @@
 package com.compassites.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Map;
 
-public class PassengerTax {
+public class PassengerTax implements Serializable {
 
 	private int passengerCount;
 
 	private String passengerType;
 	
 	private BigDecimal totalTax;
+
+	private BigDecimal onwardTax;
+
+	private BigDecimal returnTax;
 
 //	private BigDecimal baseFare;
 
@@ -35,6 +40,22 @@ public class PassengerTax {
 //		return baseFare;
 //	}
 //
+
+	public BigDecimal getOnwardTax() {
+		return onwardTax;
+	}
+
+	public void setOnwardTax(BigDecimal onwardTax) {
+		this.onwardTax = onwardTax;
+	}
+
+	public BigDecimal getReturnTax() {
+		return returnTax;
+	}
+
+	public void setReturnTax(BigDecimal returnTax) {
+		this.returnTax = returnTax;
+	}
 //	public void setBaseFare(BigDecimal baseFare) {
 //		this.baseFare = baseFare;
 //	}

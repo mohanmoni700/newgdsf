@@ -21,6 +21,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
 import utils.MystiflyHelper;
+import utils.XMLFileUtility;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -83,7 +84,7 @@ public class MystiflyFlightSearch implements FlightSearch {
 					"partialResults", ErrorMessage.ErrorType.ERROR, provider());
 			searchResponse.getErrorMessageList().add(errorMsg);
 		}
-		//XMLFileUtility.createXMLFile(searchResponse, "MystifySearchRes.xml");
+		XMLFileUtility.createXMLFile(searchResponse, "MystifySearchRes.xml");
 		return searchResponse;
 	}
 

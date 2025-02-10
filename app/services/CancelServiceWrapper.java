@@ -5,6 +5,8 @@ import com.compassites.model.PROVIDERS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by Yaseen on 08-05-2015.
  */
@@ -26,7 +28,7 @@ public class CancelServiceWrapper {
     @Autowired
     private TraveloMatrixCancelService traveloMatrixCancelService;
 
-    public CancelPNRResponse cancelPNR(String pnr, String provider,String appRef,String bookingId, Boolean isFullPNR) {
+    public CancelPNRResponse cancelPNR(String pnr, String provider, String appRef, String bookingId, Boolean isFullPNR, List<String> ticketList,Boolean isFullCancellation) {
         CancelPNRResponse result = null;
         if ("Amadeus".equalsIgnoreCase(provider)) {
            result =  amadeusCancelService.cancelPNR(pnr,isFullPNR);
@@ -35,7 +37,8 @@ public class CancelServiceWrapper {
         }else if(PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)){
             result = mystiflyCancelService.cancelPNR(pnr,isFullPNR);
         }else if(PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)){
-            result = traveloMatrixCancelService.cancelPNR(pnr,appRef,bookingId,isFullPNR);
+            isFullPNR = isFullCancellation;
+            result = traveloMatrixCancelService.cancelPNR(pnr,appRef,bookingId,isFullPNR,ticketList);
         }
 
         return result;

@@ -87,14 +87,17 @@ public class DateUtility {
     }
 
     public static Duration convertMillistoString(long timeinmillisec){
+        long days = TimeUnit.MILLISECONDS.toDays(timeinmillisec);
+        long remainingMillis = timeinmillisec - TimeUnit.DAYS.toMillis(days); // remove days' millis
+        long hours = TimeUnit.MILLISECONDS.toHours(remainingMillis);
+        long remainingMinutesMillis = remainingMillis - TimeUnit.HOURS.toMillis(hours); // remove hours' millis
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMinutesMillis);
+        long remainingSecondsMillis = remainingMinutesMillis - TimeUnit.MINUTES.toMillis(minutes); // remove minutes' millis
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(remainingSecondsMillis);
         Duration duration = null;
-        Long days = TimeUnit.MILLISECONDS.toDays(timeinmillisec);
-        Long dayHours = TimeUnit.MILLISECONDS.toHours(timeinmillisec);
-        Long minutes = TimeUnit.MILLISECONDS.toMinutes(timeinmillisec) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(timeinmillisec));
-        Long seconds = TimeUnit.MILLISECONDS.toSeconds(timeinmillisec) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(timeinmillisec));
-       try {
-            duration = DatatypeFactory.newInstance().newDuration(true, 0, 0, days.intValue(), dayHours.intValue(),minutes.intValue(), seconds.intValue());
-        } catch (DatatypeConfigurationException e) {
+        try {
+             duration = DatatypeFactory.newInstance().newDuration(true, 0, 0, (int) days, (int) hours, (int) minutes, (int) seconds);
+        } catch (DatatypeConfigurationException | IllegalArgumentException e) {
             e.printStackTrace();
         }
         return duration;

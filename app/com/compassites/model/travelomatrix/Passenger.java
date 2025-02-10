@@ -3,10 +3,13 @@ package com.compassites.model.travelomatrix;
 
 import javax.annotation.Generated;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Passenger {
 
     @JsonProperty("AddressLine1")
@@ -41,6 +44,36 @@ public class Passenger {
     private String pinCode;
     @JsonProperty("Title")
     private String title;
+    @JsonProperty("BaggageId")
+    public List<String> baggageId;
+    @JsonProperty("MealId")
+    public List<String> mealId;
+    @JsonProperty("SeatId")
+    public List<String> seatId;
+
+    public List<String> getBaggageId() {
+        return baggageId;
+    }
+
+    public void setBaggageId(List<String> baggageId) {
+        this.baggageId = baggageId;
+    }
+
+    public List<String> getMealId() {
+        return mealId;
+    }
+
+    public void setMealId(List<String> mealId) {
+        this.mealId = mealId;
+    }
+
+    public List<String> getSeatId() {
+        return seatId;
+    }
+
+    public void setSeatId(List<String> seatId) {
+        this.seatId = seatId;
+    }
 
     public String getPassportExpiry() {
         return passportExpiry;

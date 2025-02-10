@@ -3,9 +3,14 @@ package com.compassites.model.travelomatrix.ResponseModels.CommitBookingReply;
 
 import javax.annotation.Generated;
 
+import com.compassites.model.travelomatrix.ResponseModels.Baggage;
+import com.compassites.model.travelomatrix.ResponseModels.Meal;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PassengerDetail {
 
@@ -23,6 +28,27 @@ public class PassengerDetail {
     private String ticketNumber;
     @JsonProperty("Title")
     private String title;
+    @JsonProperty("Baggage")
+    private List<Baggage> baggageList;
+    @JsonProperty("Meal")
+    private List<Meal> mealList;
+
+    public List<Meal> getMealList() {
+        return mealList;
+    }
+
+    public void setMealList(List<Meal> mealList) {
+        this.mealList = mealList;
+    }
+
+
+    public List<Baggage> getBaggageList() {
+        return baggageList;
+    }
+
+    public void setBaggageList(List<Baggage> baggageList) {
+        this.baggageList = baggageList;
+    }
 
     public String getFirstName() {
         return firstName;

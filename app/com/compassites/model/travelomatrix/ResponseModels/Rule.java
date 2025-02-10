@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Rule {
     private String startTime;
     private String endTime;
-    private int amount;
-    private int tax;
+    private Integer amount;
+    private Integer tax;
     private String policyInfo;
 
     public String getStartTime() {
@@ -26,19 +26,19 @@ public class Rule {
         this.endTime = endTime;
     }
 
-    public int getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public void setAmount(Integer amount) {
         this.amount = amount;
     }
 
-    public int getTax() {
+    public Integer getTax() {
         return tax;
     }
 
-    public void setTax(int tax) {
+    public void setTax(Integer tax) {
         this.tax = tax;
     }
 

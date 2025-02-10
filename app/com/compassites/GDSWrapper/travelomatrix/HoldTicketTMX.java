@@ -1,5 +1,7 @@
 package com.compassites.GDSWrapper.travelomatrix;
 
+import com.compassites.model.BaggageDetails;
+import com.compassites.model.MealDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.HoldTicketRequest;
@@ -10,6 +12,7 @@ import configs.WsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import play.Play;
 import play.libs.ws.WSRequestHolder;
 
 import java.text.ParseException;
@@ -36,12 +39,13 @@ public class HoldTicketTMX {
         JsonNode jsonRequest = getJsonforHoldBookingRequest(travellerMasterInfo,seqno);
         JsonNode response = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/HoldTicket");
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(40000).asJson();
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
-            travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking : Request to TM : "+ jsonRequest.toString());
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix GDS Flight Hold Booking Response:"+response.toString());
         }catch(Exception e){
             travelomatrixLogger.error(e.getMessage());
             e.printStackTrace();
@@ -90,7 +94,10 @@ public class HoldTicketTMX {
                     formattedDate = outputFormat.format(date);
                     passenger.setDateOfBirth(formattedDate);
                 }
-                passenger.setFirstName(traveller.getPersonalDetails().getFirstName());
+                String firstName = traveller.getPersonalDetails().getFirstName();
+                if(traveller.getPersonalDetails().getMiddleName() != null && traveller.getPersonalDetails().getMiddleName() !="")
+                    firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+                passenger.setFirstName(firstName);
                 passenger.setLastName(traveller.getPersonalDetails().getLastName());
                 passenger.setTitle(traveller.getPersonalDetails().getSalutation());
                 passenger.setAddressLine1(traveller.getPersonalDetails().getAddressLine());
@@ -111,9 +118,39 @@ public class HoldTicketTMX {
                     passenger.setIsLeadPax("1");
                 else
                     passenger.setIsLeadPax("");
+
+                List<String> baggage = new ArrayList<>();
+                if(traveller.getBaggageDetails() != null) {
+                    for(BaggageDetails baggageDetails:traveller.getBaggageDetails()) {
+                        if (seqno == 1) {
+                            if (baggageDetails.getReturnDetails() != null && baggageDetails.getReturnDetails().equals(Boolean.TRUE) && !baggageDetails.getBaggageId().equalsIgnoreCase("")) {
+                                baggage.add(baggageDetails.getBaggageId());
+                            }
+                        } else {
+                            if (baggageDetails.getReturnDetails() != null && baggageDetails.getReturnDetails().equals(Boolean.FALSE) && !baggageDetails.getBaggageId().equalsIgnoreCase("")) {
+                                baggage.add(baggageDetails.getBaggageId());
+                            }
+                        }
+                    }
+                    passenger.setBaggageId(baggage);
+                }
+                if(traveller.getMealDetails() != null) {
+                    List<String> mealsId = new ArrayList<>();
+                    for (MealDetails mealDetails : traveller.getMealDetails()) {
+                        if(seqno == 1){
+                            if(mealDetails.getReturnDetails() != null && mealDetails.getReturnDetails().equals(Boolean.TRUE) && !mealDetails.getMealId().equalsIgnoreCase("")){
+                                mealsId.add(mealDetails.getMealId());
+                            }
+                        }else{
+                            if(mealDetails.getReturnDetails() != null && mealDetails.getReturnDetails().equals(Boolean.FALSE) && !mealDetails.getMealId().equalsIgnoreCase("")) {
+                                mealsId.add(mealDetails.getMealId());
+                            }
+                        }
+                    }
+                    passenger.setMealId(mealsId);
+                }
                 passengerList.add(passenger);
             }
-
             holdTicketRequest.setPassengers(passengerList);
             ObjectMapper mapper = new ObjectMapper();
             jsonNode= mapper.valueToTree(holdTicketRequest);

@@ -40,10 +40,11 @@ public class SearchFlights {
         JsonNode jsonRequest = getJsonFromSearchParams(searchParameters);
         JsonNode response = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/Search");
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
         }catch(Exception e){

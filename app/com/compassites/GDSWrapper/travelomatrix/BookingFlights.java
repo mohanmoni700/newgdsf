@@ -1,17 +1,23 @@
 package com.compassites.GDSWrapper.travelomatrix;
 
-import com.compassites.model.IssuanceRequest;
+import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.CommitBookingRequest;
 import com.compassites.model.travelomatrix.FareRuleRequest;
 import com.compassites.model.travelomatrix.Passenger;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import configs.WsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import play.Play;
 import play.libs.ws.WSRequestHolder;
 
 import java.text.ParseException;
@@ -20,6 +26,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -39,10 +46,11 @@ public class BookingFlights {
         JsonNode jsonRequest = getJsonFromResultToken(resultToken);
         JsonNode response = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/UpdateFareQuote");
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
             travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
             travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
         }catch(Exception e){
@@ -70,12 +78,13 @@ public class BookingFlights {
         JsonNode jsonRequest = getJsonFromCommitBookingRequest(issuanceRequest,roundtrip);
         JsonNode response = null;
         try {
+            int timeout = Play.application().configuration().getInt("travelomatrix.timeout");
             wsrholder= wsconf.getRequestHolder("/CommitBooking");
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Request to TM : "+ jsonRequest.toString());
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
-            response = wsrholder.post(jsonRequest).get(30000).asJson();
-            travelomatrixLogger.debug("TraveloMatrixFlightSearch : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
-            travelomatrixLogger.debug("TraveloMatrix Response:"+response.toString());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Request to TM : "+ jsonRequest.toString());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Call to Travelomatrix Backend : "+ System.currentTimeMillis());
+            response = wsrholder.post(jsonRequest).get(timeout).asJson();
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking : Recieved Response from Travelomatrix Backend : "+ System.currentTimeMillis());
+            travelomatrixLogger.debug("TraveloMatrix LCC FlightCommitBooking Response:"+response.toString());
         }catch(Exception e){
             travelomatrixLogger.error(e.getMessage());
             e.printStackTrace();
@@ -87,6 +96,7 @@ public class BookingFlights {
     public JsonNode getJsonFromCommitBookingRequest(IssuanceRequest issuanceRequest,Boolean returnJourney){
         JsonNode node = null;
         CommitBookingRequest commitBookingRequest = new CommitBookingRequest();
+       List<BaggageDetails> baggageDetailsList = issuanceRequest.getBaggageDetails();
         if(returnJourney){
             commitBookingRequest.setAppReference(issuanceRequest.getReAppRef());
             commitBookingRequest.setSequenceNumber("1");
@@ -119,7 +129,10 @@ public class BookingFlights {
                 }
                 String formattedDate = outputFormat.format(date);
             passenger.setDateOfBirth(formattedDate);
-            passenger.setFirstName(traveller.getPersonalDetails().getFirstName());
+            String firstName = traveller.getPersonalDetails().getFirstName();
+            if(traveller.getPersonalDetails().getMiddleName() != null)
+                firstName = firstName+" "+traveller.getPersonalDetails().getMiddleName();
+            passenger.setFirstName(firstName.trim());
             passenger.setLastName(traveller.getPersonalDetails().getLastName());
             passenger.setTitle(traveller.getPersonalDetails().getSalutation());
             passenger.setAddressLine1(traveller.getPersonalDetails().getAddressLine());
@@ -139,6 +152,43 @@ public class BookingFlights {
                 passenger.setIsLeadPax("1");
             else
                 passenger.setIsLeadPax("");
+
+            List<BaggageDetails> baggageDetailsList1 =  traveller.getBaggageDetails();
+            List<MealDetails> mealDetailsList = traveller.getMealDetails();
+
+            if(baggageDetailsList1 != null){
+                List<String> baggageIds = new ArrayList<>();
+                for (BaggageDetails baggageDetails : baggageDetailsList1) {
+                    if (returnJourney) {
+                        if (baggageDetails.getReturnDetails().equals(Boolean.TRUE)) {
+                            baggageIds.add(baggageDetails.getBaggageId());
+                        }
+                    } else {
+                        if (baggageDetails.getReturnDetails() == null || baggageDetails.getReturnDetails().equals(Boolean.FALSE)) {
+                            baggageIds.add(baggageDetails.getBaggageId());
+                        }
+                    }
+                }
+                if(baggageIds.size() > 0)
+                passenger.setBaggageId(baggageIds);
+            }
+
+            if(mealDetailsList != null &&  mealDetailsList.size() > 0) {
+                List<String> mealIds = new ArrayList<>();
+                for (MealDetails mealDetails : mealDetailsList) {
+                   if(returnJourney){
+                       if(mealDetails.getReturnDetails().equals(Boolean.TRUE)){
+                           mealIds.add(mealDetails.getMealId());
+                       }
+                   }else{
+                       if(mealDetails.getReturnDetails() == null || mealDetails.getReturnDetails().equals(Boolean.FALSE)) {
+                           mealIds.add(mealDetails.getMealId());
+                       }
+                   }
+                }
+                 if(mealIds.size() > 0)
+                passenger.setMealId(mealIds);
+            }
             passengerList.add(passenger);
         }
 
@@ -147,7 +197,7 @@ public class BookingFlights {
       try{
           ObjectMapper mapper = new ObjectMapper();
           node= mapper.valueToTree(commitBookingRequest);
-
+          travelomatrixLogger.debug("commitBooking request: "+ node);
       }catch(Exception e){
           travelomatrixLogger.error("Exception Occured:"+ e.getMessage());
           e.printStackTrace();

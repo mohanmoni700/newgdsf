@@ -2,14 +2,20 @@ package com.compassites.model;
 
 
 import com.compassites.model.amadeus.reissue.ReIssuePricingInformation;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,8 +39,58 @@ public class FlightItinerary implements Serializable{
     private long id;
     
     private boolean priceOnlyPTC;
-    
-//    private String provider; //travelport or amadeus
+
+    private String fromLocation;
+
+    private String toLocation;
+
+    public String getFromLocation() {
+        return fromLocation;
+    }
+
+    public void setFromLocation(String fromLocation) {
+        this.fromLocation = fromLocation;
+    }
+
+    public String getToLocation() {
+        return toLocation;
+    }
+
+    public void setToLocation(String toLocation) {
+        this.toLocation = toLocation;
+    }
+
+    public List<PricingInformation> splitPricingInformationList;
+
+    public List<PricingInformation> getSplitPricingInformationList() {
+        return splitPricingInformationList;
+    }
+
+    public void setSplitPricingInformationList(List<PricingInformation> splitPricingInformationList) {
+        this.splitPricingInformationList = splitPricingInformationList;
+    }
+
+    private boolean isSplitTicket;
+
+    public boolean isSplitTicket() {
+        return isSplitTicket;
+    }
+
+    public void setSplitTicket(boolean splitTicket) {
+        isSplitTicket = splitTicket;
+    }
+
+    private ConcurrentHashMap<String, List<FlightItinerary>> groupingMap;
+
+    public ConcurrentHashMap<String, List<FlightItinerary>> getGroupingMap() {
+        return groupingMap;
+    }
+
+    public void setGroupingMap(ConcurrentHashMap<String, List<FlightItinerary>> groupingMap) {
+        this.groupingMap = groupingMap;
+    }
+
+    //    private String provider; //travelport or amadeus
 
     //private String amadeusOfficeId;
 
@@ -49,10 +105,11 @@ public class FlightItinerary implements Serializable{
     private PricingInformation seamanPricingInformation;
 
     private ReIssuePricingInformation reIssuePricingInformation;
-    
+
     @Property
     private List<Journey> journeyList;
 
+    @Property
     private List<Journey> nonSeamenJourneyList;
 
     private Long totalTravelTime;
@@ -205,7 +262,7 @@ public class FlightItinerary implements Serializable{
     public void setReIssuePricingInformation(ReIssuePricingInformation reIssuePricingInformation) {
         this.reIssuePricingInformation = reIssuePricingInformation;
     }
-    
+
     /* @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof FlightItinerary)){

@@ -34,6 +34,17 @@ public class CreateTST {
         return tst;
     }
 
+    public TicketCreateTSTFromPricing createSplitTSTReq(int numberOfTST) {
+        TicketCreateTSTFromPricing tst = new TicketCreateTSTFromPricing();
+        tst.getPsaList().add(getpsa(""+numberOfTST));
+
+//        tst.getPsaList().add(getpsa("2"));
+        //tst.getPsaList().add(getpsa("3"));
+        //tst.getPsaList().add(getpsa("4"));
+
+        return tst;
+    }
+
     public PsaList getpsa(String ref) {
         PsaList psa = new PsaList();
         ItemReference ir = new ItemReference();

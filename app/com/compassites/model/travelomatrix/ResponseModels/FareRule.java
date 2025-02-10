@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FareRule {
 
@@ -19,5 +19,4 @@ public class FareRule {
     public void setFareRuleDetail(List<FareRuleDetail> fareRuleDetail) {
         this.fareRuleDetail = fareRuleDetail;
     }
-
 }

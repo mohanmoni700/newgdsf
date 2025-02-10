@@ -1,13 +1,17 @@
 package com.compassites.model;
 
+import com.compassites.model.amadeus.AmadeusPaxInformation;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by user on 18-08-2014.
  */
-public class PNRResponse {
+public class PNRResponse implements Serializable  {
 
     private  String pnrNumber;
 
@@ -70,6 +74,84 @@ public class PNRResponse {
     private Map<String,Map> benzyFareRuleMap;
 
     private String returnGdsPNR;
+
+    private String searchResultToken;
+
+    private String returnSearchResultToken;
+
+    private List<BaggageDetails> tmxBaggageDetails;
+
+    private Boolean addBooking;
+
+    private String originalPNR;
+
+    private boolean isPnrSplit;
+
+    private Map<String, String> pnrMap;
+
+    public Map<String, String> getPnrMap() {
+        return pnrMap;
+    }
+
+    public void setPnrMap(Map<String, String> pnrMap) {
+        this.pnrMap = pnrMap;
+    }
+
+    public Boolean getAddBooking() {
+        return addBooking;
+    }
+
+    public void setAddBooking(Boolean addBooking) {
+        this.addBooking = addBooking;
+    }
+
+    public String getOriginalPNR() {
+        return originalPNR;
+    }
+
+    public void setOriginalPNR(String originalPNR) {
+        this.originalPNR = originalPNR;
+    }
+
+    private List<AmadeusPaxInformation> amadeusPaxReference;
+
+
+    public List<MealDetails> getTmxMealDetails() {
+        return tmxMealDetails;
+    }
+
+    private boolean isReIssueSuccess;
+
+    public void setTmxMealDetails(List<MealDetails> tmxMealDetails) {
+        this.tmxMealDetails = tmxMealDetails;
+    }
+
+    private List<MealDetails> tmxMealDetails;
+
+    public List<BaggageDetails> getTmxBaggageDetails() {
+        return tmxBaggageDetails;
+    }
+
+    public void setTmxBaggageDetails(List<BaggageDetails> tmxBaggageDetails) {
+        this.tmxBaggageDetails = tmxBaggageDetails;
+    }
+
+
+    public String getSearchResultToken() {
+        return searchResultToken;
+    }
+
+    public void setSearchResultToken(String searchResultToken) {
+        this.searchResultToken = searchResultToken;
+    }
+
+    public String getReturnSearchResultToken() {
+        return returnSearchResultToken;
+    }
+
+    public void setReturnSearchResultToken(String returnSearchResultToken) {
+        this.returnSearchResultToken = returnSearchResultToken;
+    }
 
     public String getReturnGdsPNR() {
         return returnGdsPNR;
@@ -171,6 +253,13 @@ public class PNRResponse {
         return validTillDate;
     }
 
+    public List<AmadeusPaxInformation> getAmadeusPaxReference() {
+        return amadeusPaxReference;
+    }
+
+    public void setAmadeusPaxReference(List<AmadeusPaxInformation> amadeusPaxReference) {
+        this.amadeusPaxReference = amadeusPaxReference;
+    }
     public void setValidTillDate(Date validTillDate) {
         this.validTillDate = validTillDate;
     }
@@ -309,6 +398,22 @@ public class PNRResponse {
 
     public void setChangedPriceLow(boolean changedPriceLow) {
         isChangedPriceLow = changedPriceLow;
+    }
+
+    public boolean isReIssueSuccess() {
+        return isReIssueSuccess;
+    }
+
+    public void setReIssueSuccess(boolean reIssueSuccess) {
+        isReIssueSuccess = reIssueSuccess;
+    }
+
+    public boolean isPnrSplit() {
+        return isPnrSplit;
+    }
+
+    public void setPnrSplit(boolean pnrSplit) {
+        isPnrSplit = pnrSplit;
     }
 }
 

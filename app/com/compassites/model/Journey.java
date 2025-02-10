@@ -6,15 +6,17 @@ import org.pojomatic.Pojomatic;
 import org.pojomatic.annotations.Property;
 
 import javax.xml.datatype.Duration;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Renu on 7/18/14.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Journey
+public class Journey implements Serializable
 {
 
     private Duration travelTime;
@@ -22,10 +24,80 @@ public class Journey
     private Long travelTimeMillis;
     private String airlinesStrForFilter;
     private Integer noOfStops;
+    private String segmentKey;
+
+    private String fromLocation;
+
+    private String toLocation;
+
+    private String fullSegmentKey;
+
+    public String getFullSegmentKey() {
+        return fullSegmentKey;
+    }
+
+    public void setFullSegmentKey(String fullSegmentKey) {
+        this.fullSegmentKey = fullSegmentKey;
+    }
+
+    public String getFromLocation() {
+        return fromLocation;
+    }
+
+    public void setFromLocation(String fromLocation) {
+        this.fromLocation = fromLocation;
+    }
+
+    public String getToLocation() {
+        return toLocation;
+    }
+
+    public void setToLocation(String toLocation) {
+        this.toLocation = toLocation;
+    }
+
+    public String getSegmentKey() {
+        return segmentKey;
+    }
+
+    public void setSegmentKey(String segmentKey) {
+        this.segmentKey = segmentKey;
+    }
+
     @JsonIgnore
     private Integer hashCode;
 
     private String provider;
+
+    private String groupingKey;
+
+    private String fareDescription;
+
+    private List<String> lastTktDate;
+
+    public List<String> getLastTktDate() {
+        return lastTktDate;
+    }
+
+    public void setLastTktDate(List<String> lastTktDate) {
+        this.lastTktDate = lastTktDate;
+    }
+
+    public String getFareDescription() {
+        return fareDescription;
+    }
+
+    public void setFareDescription(String fareDescription) {
+        this.fareDescription = fareDescription;
+    }
+
+    public String getGroupingKey() {
+        return groupingKey;
+    }
+
+    public void setGroupingKey(String groupingKey) {
+        this.groupingKey = groupingKey;
+    }
 
     public Integer getHashCode() {
         return hashCode;
@@ -136,4 +208,5 @@ public class Journey
     public void setProvider(String provider) {
         this.provider = provider;
     }
+
 }

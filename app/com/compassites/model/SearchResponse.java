@@ -5,6 +5,7 @@ import models.FlightSearchOffice;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,9 +22,21 @@ public class SearchResponse {
 
     private FlightSearchOffice flightSearchOffice;
 
+    private String airSegmentKey;
+
     private List<ErrorMessage> errorMessageList;
 
     private boolean isReIssueSearch;
+
+    ConcurrentHashMap<Integer, List<FlightItinerary>> groupingItinerary;
+
+    public ConcurrentHashMap<Integer, List<FlightItinerary>> getGroupingItinerary() {
+        return groupingItinerary;
+    }
+
+    public void setGroupingItinerary(ConcurrentHashMap<Integer, List<FlightItinerary>> groupingItinerary) {
+        this.groupingItinerary = groupingItinerary;
+    }
 
     public SearchResponse() {
         airSolution = new AirSolution();
@@ -72,6 +85,12 @@ public class SearchResponse {
 		return "SearchResponse [airSolution=" + airSolution + ", provider=" + provider + ", errorMessageList="
 				+ errorMessageList + "]";
 	}
-    
-    
+
+    public String getAirSegmentKey() {
+        return airSegmentKey;
+    }
+
+    public void setAirSegmentKey(String airSegmentKey) {
+        this.airSegmentKey = airSegmentKey;
+    }
 }

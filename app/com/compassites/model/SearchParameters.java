@@ -3,6 +3,7 @@ package com.compassites.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.pojomatic.annotations.Property;
 
 import java.io.Serializable;
@@ -18,7 +19,6 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public class SearchParameters implements Serializable,Cloneable{
     @Property
     private List<SearchJourney> journeyList;
@@ -51,7 +51,6 @@ public class SearchParameters implements Serializable,Cloneable{
     private String searchBookingType;
     @Property
     private BookingType bookingType;
-
     @Property
     private CabinClass cabinClass;
     @JsonIgnore
@@ -60,6 +59,34 @@ public class SearchParameters implements Serializable,Cloneable{
 
     private String transit;
     private String nationality;
+    private Boolean addBooking;
+    private String originalPNR;
+    private boolean isDomestic;
+    public Boolean getAddBooking() {
+        return addBooking;
+    }
+
+    public void setAddBooking(Boolean addBooking) {
+        this.addBooking = addBooking;
+    }
+
+    public String getOriginalPNR() {
+        return originalPNR;
+    }
+
+    public void setOriginalPNR(String originalPNR) {
+        this.originalPNR = originalPNR;
+    }
+
+    private Integer sequence;
+
+    public Integer getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
+    }
 
     private List<String> preferredAirlinesList = new ArrayList<>();
     public String getNationality() {
@@ -68,6 +95,16 @@ public class SearchParameters implements Serializable,Cloneable{
 
     public void setNationality(String nationality) {
         this.nationality = nationality;
+    }
+
+    private boolean splitTicket;
+
+    public boolean isSplitTicket() {
+        return splitTicket;
+    }
+
+    public void setSplitTicket(boolean splitTicket) {
+        this.splitTicket = splitTicket;
     }
 
     public SearchParameters(){
@@ -80,6 +117,7 @@ public class SearchParameters implements Serializable,Cloneable{
         bookingType = BookingType.SEAMEN;
         journeyList=new ArrayList<>();
     }
+
 
     public String getStopOver() {
         return stopOver;
@@ -217,6 +255,14 @@ public class SearchParameters implements Serializable,Cloneable{
         this.preferredFood = preferredFood;
     }
 
+    @JsonProperty("isDomestic")
+    public boolean isDomestic() {
+        return isDomestic;
+    }
+
+    public void setDomestic(boolean domestic) {
+        isDomestic = domestic;
+    }
 
     public String getTransit() {
         return transit;
@@ -250,6 +296,9 @@ public class SearchParameters implements Serializable,Cloneable{
         key += "ADT:"+ this.adultCount +"CHD:"+ this.childCount +"INF:"+ this.infantCount+ this.cabinClass;
         key = key + "RF:"+this.refundableFlights + "DR:" + this.directFlights + "PA:" + preferredAirline;
         key = key + "TR:"+this.transit+"DT:" + this.dateType + "BK" + this.bookingType+"JT"+this.journeyType;
+        if(this.splitTicket) {
+            key = key + "SPLIT:" + this.splitTicket;
+        }
         return key;
     }
 
