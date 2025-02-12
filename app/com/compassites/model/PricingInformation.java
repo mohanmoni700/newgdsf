@@ -36,6 +36,27 @@ public class PricingInformation implements Serializable {
 
 	private BigDecimal infReturnBasePrice;
 
+	@Transient
+	private BigDecimal grandTotalDifferenceAmountD;
+
+	@Transient
+	private BigDecimal totalTaxDifferenceB;
+
+	@Transient
+	private BigDecimal totalPenaltyAmountP;
+
+	@Transient
+	private BigDecimal totalAdditionalCollectionA;
+
+	@Transient
+	private BigDecimal mcoResidualValueC;
+
+	@Transient
+	private BigDecimal grandTotalValueM;
+
+	@Transient
+	private List<ReIssuePerPaxPricingInfo> paxWisePricing;
+
 	public BigDecimal getAdtOnwardBasePrice() {
 		return adtOnwardBasePrice;
 	}
@@ -141,9 +162,6 @@ public class PricingInformation implements Serializable {
 	private MnrSearchFareRules mnrSearchFareRules;
 
 	private MnrSearchBaggage mnrSearchBaggage;
-
-	@Transient
-	private List<ReIssuePerPaxPricingInfo> paxWisePricing;
 
 	public List<ReIssuePerPaxPricingInfo> getPaxWisePricing() {
 		return paxWisePricing;
@@ -372,6 +390,54 @@ public class PricingInformation implements Serializable {
 
 	public BigDecimal getInfTotalPrice() {
 		return infTotalPrice;
+	}
+
+	public BigDecimal getGrandTotalDifferenceAmountD() {
+		return grandTotalDifferenceAmountD;
+	}
+
+	public void setGrandTotalDifferenceAmountD(BigDecimal grandTotalDifferenceAmountD) {
+		this.grandTotalDifferenceAmountD = grandTotalDifferenceAmountD;
+	}
+
+	public BigDecimal getTotalTaxDifferenceB() {
+		return totalTaxDifferenceB;
+	}
+
+	public void setTotalTaxDifferenceB(BigDecimal totalTaxDifferenceB) {
+		this.totalTaxDifferenceB = totalTaxDifferenceB;
+	}
+
+	public BigDecimal getTotalPenaltyAmountP() {
+		return totalPenaltyAmountP;
+	}
+
+	public void setTotalPenaltyAmountP(BigDecimal totalPenaltyAmountP) {
+		this.totalPenaltyAmountP = totalPenaltyAmountP;
+	}
+
+	public BigDecimal getTotalAdditionalCollectionA() {
+		return totalAdditionalCollectionA;
+	}
+
+	public void setTotalAdditionalCollectionA(BigDecimal totalAdditionalCollectionA) {
+		this.totalAdditionalCollectionA = totalAdditionalCollectionA;
+	}
+
+	public BigDecimal getMcoResidualValueC() {
+		return mcoResidualValueC;
+	}
+
+	public void setMcoResidualValueC(BigDecimal mcoResidualValueC) {
+		this.mcoResidualValueC = mcoResidualValueC;
+	}
+
+	public BigDecimal getGrandTotalValueM() {
+		return grandTotalValueM;
+	}
+
+	public void setGrandTotalValueM(BigDecimal grandTotalValueM) {
+		this.grandTotalValueM = grandTotalValueM;
 	}
 
 	public void setInfTotalPrice(BigDecimal infTotalPrice) {
