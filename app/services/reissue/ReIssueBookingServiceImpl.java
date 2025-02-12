@@ -71,6 +71,8 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             AMATicketRebookAndRepricePNRRS.Failure failure = ticketRebookAndRepricePNRRS.getFailure();
 
             if (failure != null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+
                 ErrorsType errors = failure.getErrors();
                 List<ErrorType> error = errors.getError();
                 for (ErrorType errorType : error) {
@@ -80,7 +82,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
                     if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F")) {
 
-                        ErrorMessage errorMessage = new ErrorMessage();
                         errorMessage.setErrorCode("ReIssue Confirmation Error");
                         errorMessage.setType(ErrorMessage.ErrorType.ERROR);
                         errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
@@ -90,11 +91,11 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                             errorMessage.setMessage(code);
                         }
                         errorMessage.setGdsPNR(newPnrToBeReIssued);
-
                         finalPnrResponse.setReIssueSuccess(false);
-                        finalPnrResponse.setErrorMessage(errorMessage);
-                        break;
+
                     }
+                    finalPnrResponse.setErrorMessage(errorMessage);
+                    break;
                 }
                 return finalPnrResponse;
             }
@@ -108,6 +109,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                 WarningsType warnings = success.getWarnings();
 
                 if (warnings != null) {
+                    ErrorMessage errorMessage = new ErrorMessage();
 
                     List<ErrorType> warning = warnings.getWarning();
                     for (ErrorType errorType : warning) {
@@ -117,7 +119,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
                         if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F")) {
 
-                            ErrorMessage errorMessage = new ErrorMessage();
                             errorMessage.setErrorCode("ReIssue Confirmation Error");
                             errorMessage.setType(ErrorMessage.ErrorType.ERROR);
                             errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
@@ -127,11 +128,11 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                                 errorMessage.setMessage(code);
                             }
                             errorMessage.setGdsPNR(reIssuedPnr);
-
                             finalPnrResponse.setReIssueSuccess(false);
-                            finalPnrResponse.setErrorMessage(errorMessage);
-                            break;
+
                         }
+                        finalPnrResponse.setErrorMessage(errorMessage);
+                        break;
                     }
                     return finalPnrResponse;
                 }
@@ -148,9 +149,10 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
         } catch (Exception e) {
             logger.debug("Error when trying to book the flight for reissue {}", e.getMessage(), e);
-        } finally {
-            serviceHandler.logOut(amadeusSessionWrapper);
         }
+//        finally {
+//            serviceHandler.logOut(amadeusSessionWrapper);
+//        }
 
         return null;
     }
@@ -212,11 +214,11 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             }
 
             //TODO: Null Pointer here (Or when split is not done(New PNR not created, do we need to add SSR again?)) Discuss
-            if (!pnrResponse.isPnrSplit()) {
-                addSSRDetailsToPNR(travellerMasterInfo, 1, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
-            }
-            Thread.sleep(5000);
-            gdsPNRReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
+//            if (!pnrResponse.isPnrSplit()) {
+//                addSSRDetailsToPNR(travellerMasterInfo, 1, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
+//            }
+//            Thread.sleep(5000);
+//            gdsPNRReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
             createPNRResponse(gdsPNRReply, pnrResponse, travellerMasterInfo, success);
 
 
@@ -289,37 +291,36 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
         }
     }
 
-    private void addSSRDetailsToPNR(TravellerMasterInfo travellerMasterInfo, int iteration, Date lastPNRAddMultiElements, List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws BaseCompassitesException, InterruptedException {
-
-        if (iteration <= 3) {
-            PNRReply addSSRResponse = serviceHandler.addSSRDetailsToPNR(travellerMasterInfo, segmentNumbers, travellerMap, amadeusSessionWrapper);
-            simultaneousChangeAction(addSSRResponse, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap, amadeusSessionWrapper);
-            PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-            simultaneousChangeAction(savePNRReply, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap, amadeusSessionWrapper);
-        } else {
-            serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
-            throw new BaseCompassitesException("Simultaneous changes Error");
-        }
-    }
-
-    private void simultaneousChangeAction(PNRReply addSSRResponse, Date lastPNRAddMultiElements, TravellerMasterInfo travellerMasterInfo, int iteration, List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws InterruptedException, BaseCompassitesException {
-
-        boolean simultaneousChangeToPNR = AmadeusBookingHelper.checkForSimultaneousChange(addSSRResponse);
-        if (simultaneousChangeToPNR) {
-            Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
-            if (p.getSeconds() >= 12) {
-                serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
-                throw new BaseCompassitesException("Simultaneous changes Error");
-            } else {
-                Thread.sleep(3000);
-                PNRReply pnrReply = serviceHandler.ignoreAndRetrievePNR(amadeusSessionWrapper);
-                lastPNRAddMultiElements = new Date();
-                iteration = iteration + 1;
-                addSSRDetailsToPNR(travellerMasterInfo, iteration, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
-            }
-        }
-
-    }
+//    private void simultaneousChangeAction(PNRReply addSSRResponse, Date lastPNRAddMultiElements, TravellerMasterInfo travellerMasterInfo, int iteration, List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws InterruptedException, BaseCompassitesException {
+//
+//        boolean simultaneousChangeToPNR = AmadeusBookingHelper.checkForSimultaneousChange(addSSRResponse);
+//        if (simultaneousChangeToPNR) {
+//            Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
+//            if (p.getSeconds() >= 12) {
+//                serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
+//                throw new BaseCompassitesException("Simultaneous changes Error");
+//            } else {
+//                Thread.sleep(3000);
+//                PNRReply pnrReply = serviceHandler.ignoreAndRetrievePNR(amadeusSessionWrapper);
+//                lastPNRAddMultiElements = new Date();
+//                iteration = iteration + 1;
+//                addSSRDetailsToPNR(travellerMasterInfo, iteration, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
+//            }
+//        }
+//    }
+//
+//    private void addSSRDetailsToPNR(TravellerMasterInfo travellerMasterInfo, int iteration, Date lastPNRAddMultiElements, List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws BaseCompassitesException, InterruptedException {
+//
+//        if (iteration <= 3) {
+//            PNRReply addSSRResponse = serviceHandler.addSSRDetailsToPNR(travellerMasterInfo, segmentNumbers, travellerMap, amadeusSessionWrapper);
+//            simultaneousChangeAction(addSSRResponse, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap, amadeusSessionWrapper);
+//            PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+//            simultaneousChangeAction(savePNRReply, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap, amadeusSessionWrapper);
+//        } else {
+//            serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
+//            throw new BaseCompassitesException("Simultaneous changes Error");
+//        }
+//    }
 
     public PNRResponse createPNRResponse(PNRReply gdsPNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, AMATicketRebookAndRepricePNRRS.Success success) {
 
