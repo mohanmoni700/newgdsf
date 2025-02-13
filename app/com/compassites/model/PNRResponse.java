@@ -55,6 +55,16 @@ public class PNRResponse implements Serializable  {
 
     private boolean isChangedPriceLow;
 
+    private boolean isChangedPriceHigh;
+
+    public boolean isChangedPriceHigh() {
+        return isChangedPriceHigh;
+    }
+
+    public void setChangedPriceHigh(boolean changedPriceHigh) {
+        isChangedPriceHigh = changedPriceHigh;
+    }
+
     private String creationOfficeId;
 
     private boolean isOfficeIdPricingError = false;

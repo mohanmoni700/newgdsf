@@ -133,7 +133,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
 //			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo,amadeusSessionWrapper);
 //			tstRefNo = getPNRNoFromResponse(gdsPNRReply);
-			if( travellerMasterInfo.getGdsPNR()== null) {
+			if( travellerMasterInfo.getGdsPNR()== null && !travellerMasterInfo.isChangedPriceHigh()) {
 				createTST(pnrResponse, amadeusSessionWrapper, numberOfTst);
 				gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 				tstRefNo = getPNRNoFromResponse(gdsPNRReply);
@@ -1042,9 +1042,21 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			checkFlightAvailibility(travellerMasterInfo, pnrResponse, amadeusSessionWrapper);
 
 			if (pnrResponse.isFlightAvailable()) {
+
 				//if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()==null) {
 					gdsPNRReply = serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
 				//}
+				if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+					List<Journey> journeyList = travellerMasterInfo.isSeamen() ? travellerMasterInfo.getItinerary().getJourneyList() : travellerMasterInfo.getItinerary().getNonSeamenJourneyList();
+					List<PAXFareDetails> paxFareDetailsList = travellerMasterInfo.getItinerary().getPricingInformation(travellerMasterInfo.isSeamen()).getPaxFareDetailsList();
+					FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, travellerMasterInfo.isSeamen(), 1, 0, 0, paxFareDetailsList, amadeusSessionWrapper);
+					if (reply.getErrorGroup() != null) {
+						amadeusLogger.debug("Not able to fetch FareInformativePricingWithoutPNRReply: " + reply.getErrorGroup().getErrorWarningDescription().getFreeText());
+						pnrResponse.setFlightAvailable(false);
+						pnrResponse.setPriceChanged(false);
+						return pnrResponse;
+					}
+				}
 				/* Benzy changes */
 				PNRReply gdsPNRReplyBenzy = null;
 				FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
@@ -1064,7 +1076,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					pnrResponse.setOriginalPNR(tstRefNo);
 				}
 				logger.debug(" gdsPNRReply "+Json.toJson(gdsPNRReply));
-				if(pnrResponse.isOfficeIdPricingError() || isDelIdSeamen) {
+				if(pnrResponse.isOfficeIdPricingError() || isDelIdSeamen || pnrResponse.isChangedPriceHigh()) {
+					if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+						if(pricePNRReply.getApplicationError()!=null) {
+							pnrResponse.setFlightAvailable(false);
+							pnrResponse.setPriceChanged(false);
+							return pnrResponse;
+						}
+					}
 					gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 					String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 					System.out.println(tstRefNo);
@@ -1163,6 +1182,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 						} catch (Exception e) {
 							amadeusLogger.debug("An exception while fetching the genericfareRule:"+ e.getMessage());
+						}
+					}
+					if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+						if(pricePNRReply.getApplicationError()!=null) {
+							pnrResponse.setFlightAvailable(false);
+							pnrResponse.setPriceChanged(false);
+							return pnrResponse;
 						}
 					}
 
