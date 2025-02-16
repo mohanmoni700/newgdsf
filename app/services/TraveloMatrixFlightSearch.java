@@ -178,7 +178,11 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     }
                     if (index < onWardjourneyList.size() && index < returnJourneyList.size() && !onWardjourneyList.get(index).getAttr().getIsLCC() && !returnJourneyList.get(index).getAttr().getIsLCC()) {
                         onWardJourney = getOnwardJounery(onWardjourneyList.get(index).getFlightDetails());
+                         onWardJourney.setRefundable(onWardjourneyList.get(index).getAttr().getIsRefundable());
                         returnJourney = getReturnJounery(returnJourneyList.get(index).getFlightDetails());
+
+                        returnJourney.setRefundable(returnJourneyList.get(index).getAttr().getIsRefundable());
+
                         consolidatedJourney.add(onWardJourney);
                         consolidatedJourney.add(returnJourney);
                         flightItinerary.setJourneyList(consolidatedJourney);
@@ -203,7 +207,12 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                         if (lcconWardjourneyList.size() > 0 && lccreturnJourneyList.size() > 0) {
                             for (int lccindex = 0; lccindex < lcconWardjourneyList.size() && lccindex < lccreturnJourneyList.size(); lccindex++) {
                                 onWardJourney = getOnwardJounery(lcconWardjourneyList.get(lccindex).getFlightDetails());
+                                onWardJourney.setRefundable(lcconWardjourneyList.get(index).getAttr().getIsRefundable());
+
                                 returnJourney = getReturnJounery(lccreturnJourneyList.get(lccindex).getFlightDetails());
+                                returnJourney.setRefundable(lccreturnJourneyList.get(index).getAttr().getIsRefundable());
+
+
                                 consolidatedJourney.add(onWardJourney);
                                 consolidatedJourney.add(returnJourney);
                                 flightItinerary.setJourneyList(consolidatedJourney);
@@ -254,7 +263,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                                     }
                                 }
                             }
-                            consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails(), flightHash, groupingKeyMap, journyeType, reqJourneyList, dateType);
+                            consolidatedJourney = getJourneyList(journeyDetails.getFlightDetails(), flightHash, groupingKeyMap, journyeType, reqJourneyList, dateType,journeyDetails.getAttr().getIsRefundable());
                             logger.info("consolidatedJourney.." + consolidatedJourney.size());
                             if (!consolidatedJourney.isEmpty()) {
                                 flightItinerary.setJourneyList(consolidatedJourney);
@@ -452,7 +461,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
     }
 
 
-    public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, String journyeType, List<SearchJourney> reqJourneyList, DateType dateType) {
+    public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, String journyeType, List<SearchJourney> reqJourneyList, DateType dateType,Boolean isRefundable) {
         List<Journey> journeyList = new ArrayList<>();
         Boolean arrivalFlag = false;
         for (List<Detail> detailsList : flightDetails.getDetails()) {
@@ -536,6 +545,8 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 }
             }
             Journey asJourney = new Journey();
+            logger.info("isRefundable..."+isRefundable);
+            asJourney.setRefundable(isRefundable);
             if (!arrivalFlag) {
                 asJourney.setProvider(TraveloMatrixConstants.provider);
                 asJourney.setAirSegmentList(airSegmentInformationList);
@@ -608,6 +619,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                     durationTime += journeyData.getDuration();
                     airSegmentInformation.setTravelTime(journeyData.getDuration().toString());
                 }
+                logger.info("journeyData.getFlightNumber().."+journeyData.getFlightNumber());
                 airSegmentInformation.setFlightNumber(journeyData.getFlightNumber());
                 airSegmentInformation.setCarrierCode(journeyData.getOperatorCode());
                 airSegmentInformation.setOperatingCarrierCode(journeyData.getOperatorCode());
