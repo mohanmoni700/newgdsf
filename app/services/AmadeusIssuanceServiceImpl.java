@@ -621,24 +621,28 @@ public class AmadeusIssuanceServiceImpl {
         FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
 
         String fare = null;
-        List<MonetaryInformationDetailsType223826C> fareDataSupInformation = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
-        if(fareDataSupInformation != null){
-            for(MonetaryInformationDetailsType223826C fareData : fareDataSupInformation){
-                if(fareData.getFareDataQualifier().equalsIgnoreCase("712"))
-                    fare =  fareData.getFareAmount();
+        if(reply.getFareList()!=null && reply.getFareList().size() !=0) {
+            List<MonetaryInformationDetailsType223826C> fareDataSupInformation = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
+            if (fareDataSupInformation != null) {
+                for (MonetaryInformationDetailsType223826C fareData : fareDataSupInformation) {
+                    if (fareData.getFareDataQualifier().equalsIgnoreCase("712"))
+                        fare = fareData.getFareAmount();
+                }
             }
-        }
-        BigDecimal totalFare = new BigDecimal(fare);
-        String currency = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
+            BigDecimal totalFare = new BigDecimal(fare);
+            String currency = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
 
-        Map<String, Map> fareRules = new ConcurrentHashMap<>();
-        if (reply.getApplicationError() != null) {
-            logger.debug("FareInformativePricing failed while running fare check rules {} ", reply.getApplicationError().getErrorWarningDescription().getFreeText());
-        } else {
-            fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-            fareRules = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
-            detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
-            miniRule = AmadeusHelper.getMiniRulesFromGenericRules(fareRules, totalFare, currency);
+            Map<String, Map> fareRules = new ConcurrentHashMap<>();
+            if (reply.getApplicationError() != null) {
+                logger.debug("FareInformativePricing failed while running fare check rules {} ", reply.getApplicationError().getErrorWarningDescription().getFreeText());
+            } else {
+                fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+                if(fareCheckRulesReply.getErrorInfo()==null) {
+                    fareRules = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+                    detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+                    miniRule = AmadeusHelper.getMiniRulesFromGenericRules(fareRules, totalFare, currency);
+                }
+            }
         }
 
         fareCheckRulesResponse.setMiniRule(miniRule);
