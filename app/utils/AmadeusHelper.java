@@ -75,6 +75,11 @@ public class AmadeusHelper {
                     if (text.equals("CANCELLATIONS")) {
                         break;
                     }
+                    if(counter == fareRuleTextList.size()-1){
+                        if(text.equalsIgnoreCase("ANY TIME") || text.equalsIgnoreCase("BEFORE DEPARTURE") || text.equalsIgnoreCase("AFTER DEPARTURE")){
+                            break;
+                        }
+                    }
 
                     if (text.equals("ANY TIME")) {
                         changeMap.put(text, fareRuleTextList.get(++counter).getFreeText().toString());
@@ -97,6 +102,12 @@ public class AmadeusHelper {
                     if (cancelText.equals("CHANGES")) {
                         break;
                     }
+                    if(counter == fareRuleTextList.size()-1){
+                        if(cancelText.equalsIgnoreCase("ANY TIME") || cancelText.equalsIgnoreCase("BEFORE DEPARTURE") || cancelText.equalsIgnoreCase("AFTER DEPARTURE")){
+                            break;
+                        }
+                    }
+
 
                     if (cancelText.equals("ANY TIME")) {
                         cancelMap.put(cancelText, fareRuleTextList.get(++counter).getFreeText().toString());
