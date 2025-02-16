@@ -1,5 +1,6 @@
 package controllers;
 
+import com.compassites.GDSWrapper.indigo.SessionHandler;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.navitaire.schemas.webservices.LogonResponse;
 import dto.FareCheckRulesResponse;
 import dto.OpenTicketDTO;
 import dto.OpenTicketResponse;
@@ -113,6 +115,11 @@ public class Application {
         return Controller.ok(Json.toJson(searchParameters.redisKey()));
     }
 
+    public Result indigo() {
+        SessionHandler sessionHandler = new SessionHandler();
+        LogonResponse logonResponse = sessionHandler.login();
+        return ok("Success");
+    }
     public Result getRoutes() throws Exception {
         logger.debug("Request recieved");
         JsonNode json = request().body().asJson();
