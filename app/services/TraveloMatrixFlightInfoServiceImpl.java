@@ -215,6 +215,7 @@ public class TraveloMatrixFlightInfoServiceImpl implements TraveloMatrixFlightIn
        flightItinerary1.setPricingInformation(flightItinerary.getPricingInformation());
        List<Journey> journeyList = flightItinerary.getNonSeamenJourneyList();
        for(Journey journey:journeyList){
+           journey.setRefundable(journey.getRefundable());
            List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
            for(AirSegmentInformation airSegmentInformation:airSegmentInformationList){
                FlightInfo flightInfo = new FlightInfo();

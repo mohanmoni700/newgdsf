@@ -32,6 +32,8 @@ public class Journey implements Serializable
 
     private String fullSegmentKey;
 
+    private Boolean isRefundable;
+
     public String getFullSegmentKey() {
         return fullSegmentKey;
     }
@@ -209,4 +211,11 @@ public class Journey implements Serializable
         this.provider = provider;
     }
 
+    public Boolean getRefundable() {
+        return isRefundable;
+    }
+
+    public void setRefundable(Boolean refundable) {
+        isRefundable = refundable;
+    }
 }
