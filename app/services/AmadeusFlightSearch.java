@@ -566,6 +566,8 @@ public class AmadeusFlightSearch implements FlightSearch {
         airSegmentInformation.setDepartureDate(departureDate.toDate());
         airSegmentInformation.setDepartureTime(departureDate.toString());
         airSegmentInformation.setArrivalTime(arrivalDate.toString());
+        airSegmentInformation.setOnlyArrivalDate(onlyDateFormat(arrivalDate.toString()));
+        airSegmentInformation.setOnlyDepartureDate(onlyDateFormat(departureDate.toString()));
         airSegmentInformation.setArrivalDate(arrivalDate.toDate());
         airSegmentInformation.setFromAirport(fromAirport);
         airSegmentInformation.setToAirport(toAirport);
@@ -621,6 +623,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         }
         return airSegmentInformation;
     }
+
 
     private PricingInformation getPricingInformation(Recommendation recommendation, String officeId, ReferenceInfoType segmentRef,
                                                      FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp,
@@ -732,6 +735,11 @@ public class AmadeusFlightSearch implements FlightSearch {
         }
 
         return airSegmentInformation;
+    }
+
+
+    public static String onlyDateFormat(String localTimeWithOffset) {
+        return localTimeWithOffset.substring(0,10);
     }
 
     private SearchResponse addSeamenFareToSolution(AirSolution allSolution, AirSolution seamenSolution) {
@@ -1000,5 +1008,25 @@ public class AmadeusFlightSearch implements FlightSearch {
         }
 
     }
+
+    public static String offsetAdjustedDate(String localTimeWithOffset) {
+
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+        DateTime dateTime = formatter.parseDateTime(localTimeWithOffset);
+
+        DateTimeZone timeZone = dateTime.getZone();
+        int offsetMillis = timeZone.getOffset(dateTime);
+        int offsetHours = offsetMillis / (60 * 60 * 1000);
+        int offsetMinutes = (offsetMillis % (60 * 60 * 1000)) / (60 * 1000);
+
+        DateTime adjustedDateTime = dateTime.plusHours(offsetHours).plusMinutes(offsetMinutes);
+
+        DateTimeFormatter outputFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+        return outputFormatter.print(adjustedDateTime);
+
+    }
+
 
 }
