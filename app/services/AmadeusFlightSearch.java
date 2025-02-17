@@ -3,6 +3,8 @@ package services;
 import com.amadeus.xml.fmptbr_14_2_1a.*;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct;
 import com.amadeus.xml.fmptbr_14_2_1a.FareMasterPricerTravelBoardSearchReply.Recommendation.SpecificRecDetails;
+import com.amadeus.xml.fmtctr_18_2_1a.ReferencingDetailsType195563C;
+import com.amadeus.xml.fmtctr_18_2_1a.TicketATCShopperMasterPricerTravelBoardSearchReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;

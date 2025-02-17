@@ -1057,6 +1057,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						return pnrResponse;
 					}
 				}
+
 				/* Benzy changes */
 				PNRReply gdsPNRReplyBenzy = null;
 				FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
