@@ -163,9 +163,6 @@ public class PricingInformation implements Serializable {
 
 	private MnrSearchBaggage mnrSearchBaggage;
 
-	@Transient
-	private List<ReIssuePerPaxPricingInfo> paxWisePricing;
-
 	public List<ReIssuePerPaxPricingInfo> getPaxWisePricing() {
 		return paxWisePricing;
 	}
