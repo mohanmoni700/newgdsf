@@ -193,10 +193,13 @@ public class AmadeusIssuanceServiceImpl {
                         }
                     }
 
-
+                    boolean isAddBooking = false;
+                    if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                        isAddBooking = true;
+                    }
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
-                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, amadeusSessionWrapper);
+                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, amadeusSessionWrapper, isAddBooking);
                      fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                     issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
 
@@ -228,7 +231,10 @@ public class AmadeusIssuanceServiceImpl {
                         AmadeusSessionWrapper benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                         System.out.println(tstRefNo);
                         serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
-                        pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, benzyAmadeusSessionWrapper);
+                        if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                            isAddBooking = true;
+                        }
+                        pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, benzyAmadeusSessionWrapper, isAddBooking);
                         fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                         issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
 
@@ -287,8 +293,11 @@ public class AmadeusIssuanceServiceImpl {
                         officeId = amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId();
                     }
                 }
-
-                pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper);
+                boolean isAddBooking = false;
+                if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                    isAddBooking = true;
+                }
+                pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper, isAddBooking);
                 fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                 issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
 
@@ -319,7 +328,10 @@ public class AmadeusIssuanceServiceImpl {
                     AmadeusSessionWrapper benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 
                     serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
-                    pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, benzyAmadeusSessionWrapper);
+                    if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                        isAddBooking = true;
+                    }
+                    pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, benzyAmadeusSessionWrapper, isAddBooking);
                     fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                     issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
                     gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);

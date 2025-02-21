@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.amadeus.AmadeusPaxInformation;
+import dto.FareCheckRulesResponse;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -98,6 +99,8 @@ public class PNRResponse implements Serializable  {
     private boolean isPnrSplit;
 
     private Map<String, String> pnrMap;
+
+    private FareCheckRulesResponse fareCheckRulesResponse;
 
     public Map<String, String> getPnrMap() {
         return pnrMap;
@@ -424,6 +427,14 @@ public class PNRResponse implements Serializable  {
 
     public void setPnrSplit(boolean pnrSplit) {
         isPnrSplit = pnrSplit;
+    }
+
+    public FareCheckRulesResponse getFareCheckRulesResponse() {
+        return fareCheckRulesResponse;
+    }
+
+    public void setFareCheckRulesResponse(FareCheckRulesResponse fareCheckRulesResponse) {
+        this.fareCheckRulesResponse = fareCheckRulesResponse;
     }
 }
 
