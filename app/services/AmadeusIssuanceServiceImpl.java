@@ -13,6 +13,7 @@ import com.compassites.GDSWrapper.amadeus.PNRAddMultiElementsh;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
+import com.compassites.model.traveller.AdditionalInfo;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import dto.FareCheckRulesResponse;
@@ -86,6 +87,18 @@ public class AmadeusIssuanceServiceImpl {
         FareCheckRulesResponse fareInformativePricing = null;
 
         TravellerMasterInfo travellerMasterInfo = amadeusBookingService.allPNRDetails(issuanceRequest, issuanceRequest.getGdsPNR());
+        boolean isAddedNewSegment = false;
+        if(issuanceRequest.getAddBooking()) {
+            if(travellerMasterInfo.getAdditionalInfo()==null) {
+                AdditionalInfo additionalInfo = new AdditionalInfo();
+                additionalInfo.setAddBooking(true);
+                travellerMasterInfo.setAdditionalInfo(additionalInfo);
+                isAddedNewSegment = true;
+            } else {
+                travellerMasterInfo.getAdditionalInfo().setAddBooking(true);
+                isAddedNewSegment = true;
+            }
+        }
         /*if(travellerMasterInfo.getTravellersList() != null) {
             int ticketSize = travellerMasterInfo.getTravellersList().get(0).getTicketNumberMap().size();
             if (ticketSize > 0) {
@@ -157,7 +170,7 @@ public class AmadeusIssuanceServiceImpl {
             List<FareList> pricePNRReplyFareList = new ArrayList<>();
             boolean isSegmentWisePricing = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).isSegmentWisePricing();
 
-            if (isSegmentWisePricing) {
+            if (isSegmentWisePricing || isAddedNewSegment) {
                 List<SegmentPricing> segmentPricingList = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getSegmentPricingList();
 
                 Map<String, AirSegmentInformation> segmentsInfo = new HashMap<>();
