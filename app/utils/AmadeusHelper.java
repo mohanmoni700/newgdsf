@@ -131,6 +131,142 @@ public class AmadeusHelper {
         return finalMap;
     }
 
+
+
+    public static Map<String, Map<String, List<String>>> getFareCheckRulesBenzy(FareCheckRulesReply fareCheckRulesReply) {
+        if (fareCheckRulesReply == null || fareCheckRulesReply.getTariffInfo() == null || fareCheckRulesReply.getTariffInfo().isEmpty()) {
+            return new ConcurrentHashMap<>();
+        }
+
+        List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList = fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText();
+        Map<String, Map<String, List<String>>> finalMap = new ConcurrentHashMap<>();
+        Map<String, List<String>> changeMap = new ConcurrentHashMap<>();
+        Map<String, List<String>> cancelMap = new ConcurrentHashMap<>();
+        Map<String, List<String>> noteMap = new ConcurrentHashMap<>();
+        int index = 0;
+        boolean changesProcessed = false;
+        boolean cancellationsProcessed = false;
+
+        while (index < fareRuleTextList.size()) {
+            String trimmedValue = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+            if (trimmedValue.equals("CHANGES") && !changesProcessed) {
+                changesProcessed = true;
+                index++;
+                index = processRules(fareRuleTextList, index, changeMap, "CANCELLATIONS");
+            } else if (trimmedValue.equals("CANCELLATIONS") && !cancellationsProcessed) {
+                cancellationsProcessed = true;
+                index++;
+                index = processRules(fareRuleTextList, index, cancelMap, "CHANGES");
+            } else {
+                index++;
+            }
+        }
+
+        if (changeMap.isEmpty() && cancelMap.isEmpty()) {
+            index = 0;
+            while (index < fareRuleTextList.size()) {
+                String trimmedValue = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+                if (isNoteText(trimmedValue)) {
+                    index++;
+                    List<String> noteRules = new ArrayList<>();
+                    while (index < fareRuleTextList.size()) {
+                        String text = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+                        if (isSeparatorLine(text)) {
+                            break;
+                        }
+                        if (!text.isEmpty() && !text.equals(" ")) {
+                            noteRules.add(text);
+                        }
+                        index++;
+                    }
+                    noteMap.put(trimmedValue, noteRules);
+                    break;
+                }
+                index++;
+            }
+        }
+
+        if (!changeMap.isEmpty()) finalMap.put("Change", changeMap);
+        if (!cancelMap.isEmpty()) finalMap.put("Cancellation", cancelMap);
+        if (changeMap.isEmpty() && cancelMap.isEmpty() && !noteMap.isEmpty()) finalMap.put("Note", noteMap);
+
+        return finalMap;
+    }
+
+    private static int processRules(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList, int startIndex, Map<String, List<String>> rulesMap, String breakSection) {
+        int index = startIndex;
+        String currentCategory = null;
+        List<String> rules = new ArrayList<>();
+        boolean noteEncounteredInCategory = false;
+
+        while (index < fareRuleTextList.size()) {
+            String text = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+
+            if (text.equals(breakSection)) {
+                if (currentCategory != null && !rules.isEmpty() && !rulesMap.containsKey(currentCategory)) {
+                    rulesMap.put(currentCategory, new ArrayList<>(rules));
+                }
+                break;
+            }
+
+            if (isSpecificCategory(text) && !rulesMap.containsKey(text)) {
+                if (currentCategory != null && !rules.isEmpty() && !rulesMap.containsKey(currentCategory)) {
+                    rulesMap.put(currentCategory, new ArrayList<>(rules));
+                }
+                currentCategory = text;
+                rules.clear();
+                noteEncounteredInCategory = false;
+                index++;
+                continue;
+            }
+
+            if (isNoteText(text) || isSeparatorLine(text)) {
+                if (currentCategory != null && !rules.isEmpty() && !rulesMap.containsKey(currentCategory)) {
+                    rulesMap.put(currentCategory, new ArrayList<>(rules));
+                }
+                noteEncounteredInCategory = true;
+                index++;
+                while (index < fareRuleTextList.size()) {
+                    String nextText = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+                    if (isSpecificCategory(nextText) || nextText.equals(breakSection)) {
+                        break;
+                    }
+                    index++;
+                }
+                continue;
+            }
+
+            if (!text.isEmpty() && !text.equals(" ") && !noteEncounteredInCategory) {
+                if (currentCategory == null) {
+                    currentCategory = "Generic";
+                }
+                if (!isSpecificCategory(text)) {
+                    rules.add(text);
+                }
+            }
+            index++;
+        }
+
+        if (currentCategory != null && !rules.isEmpty() && !noteEncounteredInCategory && !rulesMap.containsKey(currentCategory)) {
+            rulesMap.put(currentCategory, new ArrayList<>(rules));
+        }
+
+        return index;
+    }
+
+    private static boolean isSeparatorLine(String line) {
+        return line.matches("^[\\-\\=]+$");
+    }
+
+    private static boolean isNoteText(String line) {
+        return line.matches("^NOTE -.*");
+    }
+
+    private static boolean isSpecificCategory(String line) {
+        return line.equalsIgnoreCase("ANY TIME") || line.equalsIgnoreCase("BEFORE DEPARTURE") || line.equalsIgnoreCase("AFTER DEPARTURE");
+    }
+
+
     public static List<HashMap> getMiniRulesFromGenericRules(Map<String, Map> benzyFareRules,BigDecimal totalFare,String currency){
 
         Map<String,String> changeRulesMap = benzyFareRules.get("ChangeRules");
@@ -138,9 +274,9 @@ public class AmadeusHelper {
         HashMap adultMap = new HashMap();
         List<HashMap> miniRules = new LinkedList<>();
         if(changeRulesMap.size() == 0) {
-            miniRule.setChangeFeeBeforeDept(new BigDecimal(0));
-            miniRule.setChangeFeeAfterDept(new BigDecimal(0));
-            miniRule.setChangeFeeNoShow(new BigDecimal(0));
+            miniRule.setChangeFeeBeforeDept(null);
+            miniRule.setChangeFeeAfterDept(null);
+            miniRule.setChangeFeeNoShow(null);
             miniRule.setChangeFeeBeforeDeptCurrency(currency);
             miniRule.setChangeRefundableBeforeDept(true);
             miniRule.setChangeFeeFeeAfterDeptCurrency(currency);
@@ -250,9 +386,9 @@ public class AmadeusHelper {
         }
         Map<String,String> cancellationRulesMap = benzyFareRules.get("CancellationRules");
         if(cancellationRulesMap.size() == 0){
-            miniRule.setCancellationFeeBeforeDept(new BigDecimal("0"));
-            miniRule.setCancellationFeeAfterDept(new BigDecimal("0"));
-            miniRule.setCancellationFeeNoShow(new BigDecimal("0"));
+            miniRule.setCancellationFeeBeforeDept(null);
+            miniRule.setCancellationFeeAfterDept(null);
+            miniRule.setCancellationFeeNoShow(null);
             miniRule.setCancellationFeeBeforeDeptCurrency(currency);
             miniRule.setCancellationRefundableBeforeDept(true);
             miniRule.setCancellationFeeAfterDeptCurrency(currency);
