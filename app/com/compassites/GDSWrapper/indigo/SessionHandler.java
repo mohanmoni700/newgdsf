@@ -49,6 +49,10 @@ public class SessionHandler {
             logonRequestData.setDomainCode(factory.createLogonRequestDataDomainCode(Indigo.DOMAIN_CODE));
             logonRequestData.setAgentName(factory.createLogonRequestDataAgentName(Indigo.AGENT_CODE));
             logonRequestData.setPassword(factory.createLogonRequestDataPassword(Indigo.AGENT_PASSWORD));
+/*            logonRequestData.setLocationCode(null);
+            logonRequestData.setRoleCode(null);
+            logonRequestData.setTerminalInfo(null);
+            logonRequestData.setClientName(null);*/
             logonRequest.setLogonRequestData(factory.createLogonRequestData(logonRequestData));
             indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + new XStream().toXML(logonRequest));
             SessionManager sessionManager = new SessionManager();
@@ -57,7 +61,7 @@ public class SessionHandler {
                     .getRequestContext()
                     .put(javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
 
-            logonResponse = iSessionManager1.logon(logonRequest, Indigo.contractVersion, false);
+            logonResponse = iSessionManager1.logon(logonRequest, Indigo.contractVersion, true);
             indigoLogger.debug("Indigo Session Response " + new Date() +" ---->" + logonResponse);
         } catch (Exception e) {
             e.printStackTrace();
