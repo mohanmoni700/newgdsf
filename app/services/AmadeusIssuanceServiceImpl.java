@@ -643,6 +643,7 @@ public class AmadeusIssuanceServiceImpl {
         FareCheckRulesReply fareCheckRulesReply = null;
         List<HashMap> miniRule = new ArrayList<>();
         List<String> detailedFareRuleList = new ArrayList<>();
+        Map<String, Map<String, List<String>>> benzyFareRuleList = new ConcurrentHashMap<>();
         FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
 
         String fare = null;
@@ -665,6 +666,7 @@ public class AmadeusIssuanceServiceImpl {
                 if(fareCheckRulesReply.getErrorInfo()==null) {
                     fareRules = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
                     detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+                    benzyFareRuleList = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
                     miniRule = AmadeusHelper.getMiniRulesFromGenericRules(fareRules, totalFare, currency);
                 }
             }
@@ -672,6 +674,7 @@ public class AmadeusIssuanceServiceImpl {
 
         fareCheckRulesResponse.setMiniRule(miniRule);
         fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
+        fareCheckRulesResponse.setRuleMap(benzyFareRuleList);
 
         return fareCheckRulesResponse;
 

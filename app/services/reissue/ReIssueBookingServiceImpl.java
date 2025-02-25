@@ -1,9 +1,7 @@
 package services.reissue;
 
 import com.amadeus.xml._2010._06.fareinternaltypes_v2.PricingRecordType;
-import com.amadeus.xml._2010._06.retailing_types_v2.ErrorType;
-import com.amadeus.xml._2010._06.retailing_types_v2.ErrorsType;
-import com.amadeus.xml._2010._06.retailing_types_v2.WarningsType;
+import com.amadeus.xml._2010._06.retailing_types_v2.*;
 import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRS;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.compassites.GDSWrapper.amadeus.ReIssueConfirmationHandler;
@@ -11,9 +9,14 @@ import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.constants.StaticConstatnts;
 import com.compassites.exceptions.BaseCompassitesException;
-import com.compassites.model.*;
-import com.compassites.model.traveller.TravellerMasterInfo;
+import com.compassites.model.FareJourney;
+import com.compassites.model.FareSegment;
+import com.compassites.model.PAXFareDetails;
+import com.compassites.model.PNRResponse;
+import com.compassites.model.ErrorMessage;
+import com.compassites.model.PROVIDERS;
 import com.compassites.model.amadeus.AmadeusPaxInformation;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import dto.reissue.ReIssueConfirmationRequest;
 import models.AmadeusSessionWrapper;
 import models.FlightSearchOffice;
@@ -49,101 +52,64 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     static Logger logger = LoggerFactory.getLogger("gds");
 
     @Override
-    public PNRResponse confirmReissue(String newPnrToBeReIssued, ReIssueConfirmationRequest reIssueConfirmationRequest, FlightSearchOffice officeId) {
+    public PNRResponse confirmReissue(String newChildPnr, ReIssueConfirmationRequest reIssueConfirmationRequest, FlightSearchOffice officeId) {
 
-        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        AmadeusSessionWrapper session;
         boolean isReissueSuccess = true;
         PNRResponse finalPnrResponse = new PNRResponse();
 
         try {
 
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+            session = serviceHandler.logIn(officeId);
 
             //Retrieving PNR here for stateful operation
-            serviceHandler.retrivePNR(newPnrToBeReIssued, amadeusSessionWrapper);
+            serviceHandler.retrivePNR(newChildPnr, session);
 
             //Getting SegmentWiseClassInfo
-            PAXFareDetails paxFareDetails = reIssueConfirmationRequest.getNewTravellerMasterInfo().getItinerary().getReIssuePricingInformation().getPaxWisePricing().get(0).getPaxFareDetails();
-            List<String> segmentWiseClassInfo = getBookingClassForSegments(paxFareDetails);
+            PAXFareDetails paxFareDetailsForSegmentInfo = reIssueConfirmationRequest.getNewTravellerMasterInfo().getItinerary().getReIssuePricingInformation().getPaxWisePricing().get(0).getPaxFareDetails();
+            List<String> segmentWiseClassInfo = getBookingClassForSegmentsToBeReissued(paxFareDetailsForSegmentInfo);
 
-            AMATicketRebookAndRepricePNRRS ticketRebookAndRepricePNRRS = reIssueConfirmationHandler.rebookAndRepricePNR(reIssueConfirmationRequest, newPnrToBeReIssued, segmentWiseClassInfo, amadeusSessionWrapper);
+            AMATicketRebookAndRepricePNRRS ticketRebookAndRepricePNRRS = reIssueConfirmationHandler.rebookAndRepricePNR(reIssueConfirmationRequest, newChildPnr, segmentWiseClassInfo, session);
 
-            AMATicketRebookAndRepricePNRRS.Failure failure = ticketRebookAndRepricePNRRS.getFailure();
+            //Handling Reissue failures here
+            AMATicketRebookAndRepricePNRRS.Failure rebookAndRepricePNRRSFailure = ticketRebookAndRepricePNRRS.getFailure();
+            if (rebookAndRepricePNRRSFailure != null) {
+                ErrorsType failureErrors = rebookAndRepricePNRRSFailure.getErrors();
+                List<ErrorType> error = failureErrors.getError();
 
-            if (failure != null) {
-                ErrorMessage errorMessage = new ErrorMessage();
-
-                ErrorsType errors = failure.getErrors();
-                List<ErrorType> error = errors.getError();
-                for (ErrorType errorType : error) {
-                    String warningOrError = errorType.getType();
-                    String errorDescription = errorType.getValue();
-                    String code = errorType.getCode();
-
-                    if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F")) {
-
-                        errorMessage.setErrorCode("ReIssue Confirmation Error");
-                        errorMessage.setType(ErrorMessage.ErrorType.ERROR);
-                        errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
-                        if (errorDescription != null) {
-                            errorMessage.setMessage(errorDescription);
-                        } else {
-                            errorMessage.setMessage(code);
-                        }
-                        errorMessage.setGdsPNR(newPnrToBeReIssued);
-                        finalPnrResponse.setReIssueSuccess(false);
-
-                    }
-                    finalPnrResponse.setErrorMessage(errorMessage);
-                    break;
-                }
+                createErrorMessage(error, finalPnrResponse, newChildPnr);
                 return finalPnrResponse;
             }
 
-            AMATicketRebookAndRepricePNRRS.Success success = ticketRebookAndRepricePNRRS.getSuccess();
-            String reIssuedPnr = newPnrToBeReIssued;
-            if (success != null) {
-                reIssuedPnr = success.getReservation().getBookingIdentifier();
+            String reIssuedPnr = newChildPnr;
 
-                success = ticketRebookAndRepricePNRRS.getSuccess();
-                WarningsType warnings = success.getWarnings();
+            //Handling Successful Reissue here
+            AMATicketRebookAndRepricePNRRS.Success rebookAndRepricePNRRSSuccess = ticketRebookAndRepricePNRRS.getSuccess();
+            if (rebookAndRepricePNRRSSuccess != null) {
 
-                if (warnings != null) {
-                    ErrorMessage errorMessage = new ErrorMessage();
+                //Handling warnings on success here
+                WarningsType successWarnings = rebookAndRepricePNRRSSuccess.getWarnings();
+                if (successWarnings != null) {
+                    List<ErrorType> warning = successWarnings.getWarning();
 
-                    List<ErrorType> warning = warnings.getWarning();
-                    for (ErrorType errorType : warning) {
-                        String warningOrError = errorType.getType();
-                        String errorDescription = errorType.getValue();
-                        String code = errorType.getCode();
-
-                        if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F")) {
-
-                            errorMessage.setErrorCode("ReIssue Confirmation Error");
-                            errorMessage.setType(ErrorMessage.ErrorType.ERROR);
-                            errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
-                            if (errorDescription != null) {
-                                errorMessage.setMessage(errorDescription);
-                            } else {
-                                errorMessage.setMessage(code);
-                            }
-                            errorMessage.setGdsPNR(reIssuedPnr);
-                            finalPnrResponse.setReIssueSuccess(false);
-
-                        }
-                        finalPnrResponse.setErrorMessage(errorMessage);
-                        break;
-                    }
+                    createErrorMessage(warning, finalPnrResponse, reIssuedPnr);
                     return finalPnrResponse;
                 }
-                serviceHandler.savePNR(amadeusSessionWrapper);
-                serviceHandler.logOut(amadeusSessionWrapper);
+
+                reIssuedPnr = rebookAndRepricePNRRSSuccess.getReservation().getBookingIdentifier();
+
+                // Saving the PNR only if the reissue was successful without any warnings
+                serviceHandler.savePNR(session);
+
+                serviceHandler.logOut(session);
+
             }
 
-            createPNRResponseForReIssuedBooking(reIssuedPnr, officeId, serviceHandler, finalPnrResponse, reIssueConfirmationRequest.getNewTravellerMasterInfo(), amadeusSessionManager, success);
+            //Creating PNR response here
+            createPNRResponseForReIssuedBooking(reIssuedPnr, officeId, serviceHandler, finalPnrResponse, reIssueConfirmationRequest.getNewTravellerMasterInfo(), amadeusSessionManager, rebookAndRepricePNRRSSuccess);
 
-            finalPnrResponse.setReIssueSuccess(isReissueSuccess);
             finalPnrResponse.setPnrSplit(reIssueConfirmationRequest.isToSplit());
+            finalPnrResponse.setReIssueSuccess(isReissueSuccess);
 
             return finalPnrResponse;
 
@@ -155,69 +121,51 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     }
 
 
-    private static List<String> getBookingClassForSegments(PAXFareDetails paxFareDetails) {
+    //Gets segment wise booking class
+    private static List<String> getBookingClassForSegmentsToBeReissued(PAXFareDetails paxFareDetails) {
 
-        List<String> bookingClassList = new ArrayList<>();
-        List<FareJourney> fareJourneyList = paxFareDetails.getFareJourneyList();
+        List<String> segmentBookingClassList = new ArrayList<>();
+        List<FareJourney> journeyFareList = paxFareDetails.getFareJourneyList();
 
-        for (FareJourney fareJourney : fareJourneyList) {
-            List<FareSegment> fareSegmentList = fareJourney.getFareSegmentList();
-            for (FareSegment fareSegment : fareSegmentList) {
-                bookingClassList.add(fareSegment.getBookingClass());
+        for (FareJourney journeyFares : journeyFareList) {
+            List<FareSegment> segmentFareList = journeyFares.getFareSegmentList();
+            for (FareSegment fareSegment : segmentFareList) {
+                segmentBookingClassList.add(fareSegment.getBookingClass());
             }
         }
 
-        return bookingClassList;
+        return segmentBookingClassList;
     }
 
 
-    private void createPNRResponseForReIssuedBooking(String gdsPnr, FlightSearchOffice officeId, ServiceHandler serviceHandler, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, AmadeusSessionManager amadeusSessionManager, AMATicketRebookAndRepricePNRRS.Success success) throws BaseCompassitesException, InterruptedException {
+    //PNR Response for Reissued Bookings
+    private void createPNRResponseForReIssuedBooking(String gdsPnr, FlightSearchOffice officeId, ServiceHandler serviceHandler, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, AmadeusSessionManager amadeusSessionManager, AMATicketRebookAndRepricePNRRS.Success success) {
 
         PNRReply gdsPNRReply = null;
-        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        AmadeusSessionWrapper amadeusSession = null;
         try {
 
             try {
-                amadeusSessionWrapper = serviceHandler.logIn(officeId);
-                gdsPNRReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
+                amadeusSession = serviceHandler.logIn(officeId);
+                gdsPNRReply = serviceHandler.retrivePNR(gdsPnr, amadeusSession);
             } catch (NullPointerException e) {
-                logger.error("error in Retrieve PNR{}", e.getMessage());
+                logger.error("Error in Retrieving Reissued PNR {}", e.getMessage());
             } catch (Exception ex) {
                 if (ex.getMessage().contains("IGNORE")) {
-                    gdsPNRReply = serviceHandler.ignoreAndRetrievePNR(amadeusSessionWrapper);
+                    gdsPNRReply = serviceHandler.ignoreAndRetrievePNR(amadeusSession);
                 }
             }
 
             Date lastPNRAddMultiElements = new Date();
-            gdsPNRReply = readAirlinePNR(gdsPNRReply, lastPNRAddMultiElements, pnrResponse, amadeusSessionWrapper, serviceHandler);
+
+            //Setting Airline PNR here
+            assert gdsPNRReply != null;
+            gdsPNRReply = getAirlinePnr(gdsPNRReply, lastPNRAddMultiElements, pnrResponse, amadeusSession, serviceHandler);
+
+            //Checking Seat and Segment Availability here
             checkSegmentStatus(gdsPNRReply);
 
-            List<String> segmentNumbers = new ArrayList<>();
-            for (PNRReply.OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()) {
-                for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
-                    segmentNumbers.add("" + itineraryInfo.getElementManagementItinerary().getReference().getNumber());
-                }
-            }
-
-            Map<String, String> travellerMap = new HashMap<>();
-            for (PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()) {
-                String keyNo = "" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
-                String lastName = travellerInfo.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
-                String name = travellerInfo.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
-                String travellerName = name + lastName;
-                travellerName = travellerName.replaceAll("\\s+", "");
-                travellerName = travellerName.toLowerCase();
-                travellerMap.put(travellerName, keyNo);
-            }
-
-            //TODO: Null Pointer here (Or when split is not done(New PNR not created, do we need to add SSR again?)) Discuss
-//            if (!pnrResponse.isPnrSplit()) {
-//                addSSRDetailsToPNR(travellerMasterInfo, 1, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
-//            }
-//            Thread.sleep(5000);
-//            gdsPNRReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
-            createPNRResponse(gdsPNRReply, pnrResponse, travellerMasterInfo, success);
-
+            createPNRResponse(gdsPNRReply, pnrResponse, success);
 
         } catch (Exception e) {
             if (BaseCompassitesException.ExceptionCode.NO_SEAT.toString().equalsIgnoreCase(e.getMessage())) {
@@ -229,26 +177,29 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                 errorMessage.setGdsPNR(gdsPnr);
                 pnrResponse.setErrorMessage(errorMessage);
             } else {
-                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, "AMADEUS");
                 pnrResponse.setErrorMessage(errorMessage);
             }
         } finally {
-            if (amadeusSessionWrapper != null) {
-                amadeusSessionManager.removeActiveSession(amadeusSessionWrapper.getmSession().value);
-                serviceHandler.logOut(amadeusSessionWrapper);
+            if (amadeusSession != null) {
+                amadeusSessionManager.removeActiveSession(amadeusSession.getmSession().value);
+                serviceHandler.logOut(amadeusSession);
             }
         }
 
-        logger.info("generatePNR :" + Json.stringify(Json.toJson(pnrResponse)));
+        logger.info("ReIssued PNR Response :{}", Json.stringify(Json.toJson(pnrResponse)));
     }
 
 
-    private PNRReply readAirlinePNR(PNRReply pnrReply, Date lastPNRAddMultiElements, PNRResponse pnrResponse, AmadeusSessionWrapper amadeusSessionWrapper, ServiceHandler serviceHandler) throws BaseCompassitesException, InterruptedException {
+    //Gets the Airline PNR here
+    private PNRReply getAirlinePnr(PNRReply pnrReply, Date currentDate, PNRResponse pnrResponse, AmadeusSessionWrapper amadeusSessionWrapper, ServiceHandler serviceHandler) throws BaseCompassitesException, InterruptedException {
 
-        List<PNRReply.OriginDestinationDetails.ItineraryInfo> itineraryInfos = pnrReply.getOriginDestinationDetails().get(0).getItineraryInfo();
         String airlinePnr = null;
-        if (itineraryInfos != null && !itineraryInfos.isEmpty()) {
-            for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : itineraryInfos) {
+
+        List<PNRReply.OriginDestinationDetails.ItineraryInfo> itineraryInfoList = pnrReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+
+        if (itineraryInfoList != null && !itineraryInfoList.isEmpty()) {
+            for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : itineraryInfoList) {
                 if (itineraryInfo.getItineraryReservationInfo() != null && itineraryInfo.getItineraryReservationInfo().getReservation() != null) {
                     airlinePnr = itineraryInfo.getItineraryReservationInfo().getReservation().getControlNumber();
                 }
@@ -256,31 +207,35 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             pnrResponse.setAirlinePNR(airlinePnr);
             pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(pnrReply));
         }
+
         if (airlinePnr == null) {
-            Period period = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
-            if (period.getSeconds() >= 12) {
+
+            Period period = new Period(new DateTime(currentDate), new DateTime(), PeriodType.seconds());
+
+            if (period.getSeconds() >= 14) {
+
                 pnrResponse.setAirlinePNRError(true);
                 for (PNRReply.PnrHeader pnrHeader : pnrReply.getPnrHeader()) {
                     pnrResponse.setPnrNumber(pnrHeader.getReservationInfo().getReservation().getControlNumber());
                 }
-                throw new BaseCompassitesException("Simultaneous changes Error");
+                throw new BaseCompassitesException("Simultaneous Changes Error");
             } else {
                 Thread.sleep(3000);
                 pnrReply = serviceHandler.ignoreAndRetrievePNR(amadeusSessionWrapper);
-                readAirlinePNR(pnrReply, lastPNRAddMultiElements, pnrResponse, amadeusSessionWrapper, serviceHandler);
+                getAirlinePnr(pnrReply, currentDate, pnrResponse, amadeusSessionWrapper, serviceHandler);
             }
         }
 
         return pnrReply;
     }
 
-
+    //Checks the Seat Availability
     private void checkSegmentStatus(PNRReply pnrReply) throws BaseCompassitesException {
         for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
             for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
                 for (String status : itineraryInfo.getRelatedProduct().getStatus()) {
                     if (!AmadeusConstants.SEGMENT_HOLDING_CONFIRMED.equalsIgnoreCase(status)) {
-                        logger.debug("No Seats Available as segment status is : " + status);
+                        logger.debug("No Seats Available as segment status is : {}", status);
                         throw new BaseCompassitesException(BaseCompassitesException.ExceptionCode.NO_SEAT.getExceptionCode());
                     }
                 }
@@ -288,56 +243,22 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
         }
     }
 
-//    private void simultaneousChangeAction(PNRReply addSSRResponse, Date lastPNRAddMultiElements, TravellerMasterInfo travellerMasterInfo, int iteration, List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws InterruptedException, BaseCompassitesException {
-//
-//        boolean simultaneousChangeToPNR = AmadeusBookingHelper.checkForSimultaneousChange(addSSRResponse);
-//        if (simultaneousChangeToPNR) {
-//            Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
-//            if (p.getSeconds() >= 12) {
-//                serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
-//                throw new BaseCompassitesException("Simultaneous changes Error");
-//            } else {
-//                Thread.sleep(3000);
-//                PNRReply pnrReply = serviceHandler.ignoreAndRetrievePNR(amadeusSessionWrapper);
-//                lastPNRAddMultiElements = new Date();
-//                iteration = iteration + 1;
-//                addSSRDetailsToPNR(travellerMasterInfo, iteration, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
-//            }
-//        }
-//    }
-//
-//    private void addSSRDetailsToPNR(TravellerMasterInfo travellerMasterInfo, int iteration, Date lastPNRAddMultiElements, List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws BaseCompassitesException, InterruptedException {
-//
-//        if (iteration <= 3) {
-//            PNRReply addSSRResponse = serviceHandler.addSSRDetailsToPNR(travellerMasterInfo, segmentNumbers, travellerMap, amadeusSessionWrapper);
-//            simultaneousChangeAction(addSSRResponse, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap, amadeusSessionWrapper);
-//            PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-//            simultaneousChangeAction(savePNRReply, lastPNRAddMultiElements, travellerMasterInfo, iteration, segmentNumbers, travellerMap, amadeusSessionWrapper);
-//        } else {
-//            serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
-//            throw new BaseCompassitesException("Simultaneous changes Error");
-//        }
-//    }
+    //Creates PNR Response (Is this Needed?)
+    public void createPNRResponse(PNRReply pnrReply, PNRResponse pnrResponse, AMATicketRebookAndRepricePNRRS.Success success) {
 
-    public PNRResponse createPNRResponse(PNRReply gdsPNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, AMATicketRebookAndRepricePNRRS.Success success) {
-
-        pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+        pnrResponse.setPnrNumber(pnrReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
 
         //Creating Amadeus Pax Reference and Line number here
-        pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
-
-        //Setting Valid Till date here
-//        getValidTillDate(success,pnrResponse);
+        pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(pnrReply));
 
         pnrResponse.setFlightAvailable(true);
-        if (gdsPNRReply.getSecurityInformation() != null && gdsPNRReply.getSecurityInformation().getSecondRpInformation() != null) {
-            pnrResponse.setCreationOfficeId(gdsPNRReply.getSecurityInformation().getSecondRpInformation().getCreationOfficeId());
+        if (pnrReply.getSecurityInformation() != null && pnrReply.getSecurityInformation().getSecondRpInformation() != null) {
+            pnrResponse.setCreationOfficeId(pnrReply.getSecurityInformation().getSecondRpInformation().getCreationOfficeId());
         }
 
-
-        return pnrResponse;
     }
 
+    //Creates Amadeus Pax Reference
     private static List<AmadeusPaxInformation> createAmadeusPaxRefInfo(PNRReply gdsPNRReply) {
 
         List<AmadeusPaxInformation> amadeusPaxInformationList = new ArrayList<>();
@@ -349,8 +270,38 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
         return amadeusPaxInformationList;
     }
 
-    //TODO: Have it in ddMMyyyy format
-    private static void getValidTillDate(AMATicketRebookAndRepricePNRRS.Success success, PNRResponse pnrResponse) {
+    //Creates Error Message for Reissue Success warnings and Reissue Failures
+    private static void createErrorMessage(List<ErrorType> warnings, PNRResponse finalPnrResponse, String reIssuedPnr) {
+
+        ErrorMessage errorMessage = new ErrorMessage();
+
+        for (ErrorType errorType : warnings) {
+
+            String warningOrError = errorType.getType();
+            String errorDescription = errorType.getValue();
+            String code = errorType.getCode();
+
+            if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F")) {
+
+                errorMessage.setErrorCode("ReIssue Confirmation Error");
+                errorMessage.setType(ErrorMessage.ErrorType.ERROR);
+                errorMessage.setProvider(PROVIDERS.AMADEUS.toString());
+
+                if (errorDescription != null) {
+                    errorMessage.setMessage(errorDescription);
+                } else {
+                    errorMessage.setMessage(code);
+                }
+                errorMessage.setGdsPNR(reIssuedPnr);
+                finalPnrResponse.setReIssueSuccess(false);
+
+            }
+            finalPnrResponse.setErrorMessage(errorMessage);
+            break;
+        }
+    }
+
+    private static void getValidTillDate(AMATicketRebookAndRepricePNRRS.Success success) {
 
         AMATicketRebookAndRepricePNRRS.Success.Repricing.ItineraryRepricing.PricingDetails.PricingRecords pricingRecords = success.getRepricing().getItineraryRepricing().getPricingDetails().getPricingRecords();
         List<PricingRecordType> pricingRecordList = pricingRecords.getPricingRecord();
@@ -371,8 +322,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                 }
             }
         }
-
-//        pnrResponse.setValidTillDate(validTill);
     }
 
 }
