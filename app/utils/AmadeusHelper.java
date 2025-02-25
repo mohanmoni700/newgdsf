@@ -175,7 +175,8 @@ public class AmadeusHelper {
                             break;
                         }
                         if (!text.isEmpty() && !text.equals(" ")) {
-                            noteRules.add(text);
+                            String map = getCharacterConversion(text);
+                            noteRules.add(map);
                         }
                         index++;
                     }
@@ -241,7 +242,8 @@ public class AmadeusHelper {
                     currentCategory = "Generic";
                 }
                 if (!isSpecificCategory(text)) {
-                    rules.add(text);
+                    String benzyRule = getCharacterConversion(text);
+                    rules.add(benzyRule);
                 }
             }
             index++;
@@ -534,6 +536,20 @@ public class AmadeusHelper {
             charge = new BigDecimal(sb.toString());
         }
         return charge;
+    }
+
+    public static String getCharacterConversion(String text){
+        String[] split = text.split(" ");
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(String word : split){
+            stringBuilder.append(word.substring(0, 1).toUpperCase())
+                    .append(word.substring(1).toLowerCase())
+                    .append(" ");
+        }
+
+
+       return stringBuilder.toString().trim();
     }
 
 }
