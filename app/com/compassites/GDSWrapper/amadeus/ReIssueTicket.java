@@ -962,7 +962,7 @@ public class ReIssueTicket {
 
             //Airline Code set here
             AirSegmentType.ServiceProvider serviceProvider = new AirSegmentType.ServiceProvider();
-            serviceProvider.setCode(airSegmentInformation.getValidatingCarrierCode());
+            serviceProvider.setCode(airSegmentInformation.getOperatingCarrierCode());
             airSegmentType.setServiceProvider(serviceProvider);
 
             //Flight Number set here
