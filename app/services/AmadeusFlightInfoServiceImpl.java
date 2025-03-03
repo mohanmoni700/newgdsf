@@ -619,17 +619,25 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 		try {
 
-			switch (officeId) {
-				case "BOMVS34C3":
-					amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId());
-					break;
-				case "DELVS38LF":
-					amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId());
-					break;
-				case "BOMAK38SN":
-					amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-					break;
+			if(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(officeId)){
+				amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId());
+			} else if (amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId().equalsIgnoreCase(officeId)) {
+				amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId());
+			} else if (amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().equalsIgnoreCase(officeId)) {
+				amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 			}
+
+//			switch (officeId) {
+//				case "BOMVS34C3":
+//					amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId());
+//					break;
+//				case "DELVS38LF":
+//					amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId());
+//					break;
+//				case "BOMAK38SN":
+//					amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+//					break;
+//			}
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 
