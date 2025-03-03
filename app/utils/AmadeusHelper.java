@@ -9,6 +9,8 @@ import com.compassites.model.Journey;
 import models.Airport;
 import models.AmadeusSessionWrapper;
 import models.MiniRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -21,6 +23,8 @@ import java.util.regex.Pattern;
  * Created by yaseen on 19-10-2015.
  */
 public class AmadeusHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(AmadeusHelper.class);
 
     public static boolean checkAirportCountry(String country, List<Journey> journeys) {
         Set<String> airportCodes = new HashSet<>();
@@ -175,6 +179,7 @@ public class AmadeusHelper {
                             break;
                         }
                         if (!text.isEmpty() && !text.equals(" ")) {
+                            log.info("text..."+text);
                             String map = getCharacterConversion(text);
                             noteRules.add(map);
                         }
@@ -543,12 +548,14 @@ public class AmadeusHelper {
         StringBuilder stringBuilder = new StringBuilder();
 
         for(String word : split){
-            stringBuilder.append(word.substring(0, 1).toUpperCase())
-                    .append(word.substring(1).toLowerCase())
-                    .append(" ");
+            if (word != null && !word.isEmpty()) {
+                stringBuilder.append(word.substring(0, 1).toUpperCase())  // First letter to uppercase
+                        .append(word.substring(1).toLowerCase())     // Rest of the word to lowercase
+                        .append(" ");
+            } else {
+                stringBuilder.append(" ");  // Or handle the empty string case
+            }
         }
-
-
        return stringBuilder.toString().trim();
     }
 
