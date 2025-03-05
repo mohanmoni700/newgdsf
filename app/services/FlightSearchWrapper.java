@@ -45,7 +45,7 @@ public class FlightSearchWrapper {
 
         //long startTime = System.currentTimeMillis();
         //SearchResponse searchResponseList = new SearchResponse();
-        int maxThreads = 0;
+        int maxThreads = 1;
         for(FlightSearch flightSearch : flightSearchList){
             if(flightSearch.getOfficeList() == null || flightSearch.getOfficeList().size() == 0)
                   maxThreads += 1;

@@ -1,5 +1,6 @@
 package controllers;
 
+import com.compassites.GDSWrapper.indigo.IndigoLogin;
 import com.compassites.GDSWrapper.indigo.SessionHandler;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.model.*;
@@ -116,9 +117,9 @@ public class Application {
     }
 
     public Result indigo() {
-        SessionHandler sessionHandler = new SessionHandler();
-        LogonResponse logonResponse = sessionHandler.login();
-        return ok("Success");
+        IndigoLogin indigoLogin = new IndigoLogin();
+        LogonResponse logonResponse = indigoLogin.login();
+        return ok(Json.toJson(logonResponse));
     }
     public Result getRoutes() throws Exception {
         logger.debug("Request recieved");
