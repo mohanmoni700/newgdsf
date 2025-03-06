@@ -43,6 +43,16 @@ public class TravellerMasterInfo {
     
     private String journeyType;
 
+    private boolean isChangedPriceHigh;
+
+    public boolean isChangedPriceHigh() {
+        return isChangedPriceHigh;
+    }
+
+    public void setChangedPriceHigh(boolean changedPriceHigh) {
+        isChangedPriceHigh = changedPriceHigh;
+    }
+
     private Map<String, String> segmentBaggageMap;
 
 

@@ -74,7 +74,7 @@ public class AmadeusBookingHelper {
     }
 
     public static void checkFare(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
-    	
+
     	// TODO: re-factor
     	int adultCount = 0, childCount = 0, infantCount = 0;
 		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
@@ -109,7 +109,12 @@ public class AmadeusBookingHelper {
         } else {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
-
+        if (totalFare.compareTo(searchPrice) > 0) {
+            System.out.println("Changed price is high");
+            pnrResponse.setPriceChanged(false);
+            pnrResponse.setChangedPriceHigh(true);
+            return;
+        }
 
         logger.debug("Total price before comparing :" + searchPrice + " changed Price : " + totalFare);
         if(totalFare.compareTo(searchPrice) == 0) {
