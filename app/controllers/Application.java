@@ -11,7 +11,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.navitaire.schemas.webservices.LogonResponse;
+import com.navitaire.schemas.webservices.*;
+import com.navitaire.schemas.webservices.datacontracts.session.LogonRequestData;
+import com.navitaire.schemas.webservices.datacontracts.session.ObjectFactory;
+import com.navitaire.schemas.webservices.servicecontracts.sessionservice.LogonRequest;
 import dto.FareCheckRulesResponse;
 import dto.OpenTicketDTO;
 import dto.OpenTicketResponse;
@@ -32,15 +35,27 @@ import services.*;
 import services.ancillary.AncillaryService;
 import services.reissue.ReIssueService;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
+import javax.xml.ws.BindingProvider;
+import javax.xml.ws.Service;
+import javax.xml.ws.WebServiceFeature;
+import javax.xml.ws.handler.MessageContext;
+import javax.xml.ws.soap.AddressingFeature;
+import javax.xml.ws.soap.MTOMFeature;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static com.compassites.constants.StaticConstatnts.*;
 import static play.mvc.Controller.request;
+import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 
 @org.springframework.stereotype.Controller
@@ -92,6 +107,7 @@ public class Application {
     private OpenTicketReportService openTicketReportService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
+    static Logger indigoLogger = LoggerFactory.getLogger("indigo");
 
     public Result flightSearch() {
         logger.debug("Request recieved");
@@ -123,6 +139,285 @@ public class Application {
         IndigoLogin indigoLogin = new IndigoLogin();
         LogonResponse logonResponse = indigoLogin.login();
         return ok(Json.toJson(logonResponse));
+    }
+
+    public Result loginold1() throws MalformedURLException, ISessionManagerLogonAPISecurityFaultFaultFaultMessage, ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage, ISessionManagerLogonAPICriticalFaultFaultFaultMessage, ISessionManagerLogonAPIGeneralFaultFaultFaultMessage, ISessionManagerLogonAPIWarningFaultFaultFaultMessage, ISessionManagerLogonAPIValidationFaultFaultFaultMessage, ISessionManagerLogonAPIFaultFaultFaultMessage, JAXBException {
+        URL wsdlURL = new URL("https://soapapir4y.test.6e.navitaire.com/SessionManager.svc?singleWsdl");
+        QName serviceName = new QName("http://schemas.navitaire.com/WebServices", "SessionManager");
+        ObjectFactory factory = new ObjectFactory();
+        // Initialize service
+        Service service = Service.create(wsdlURL, serviceName);
+
+        // Enable WS-Addressing and MTOM
+        WebServiceFeature[] features = {
+                new AddressingFeature(true), // Enables WS-Addressing
+                new MTOMFeature(true)        // Enables MTOM
+        };
+        LogonRequest logonRequest = new LogonRequest();
+        // Get the proxy with features enabled
+        SessionManager port = new SessionManager(wsdlURL, serviceName);
+
+
+        // Call SOAP method
+        LogonRequestData logonRequestData = new LogonRequestData();
+        logonRequestData.setDomainCode(factory.createLogonRequestDataDomainCode("WWW"));
+        logonRequestData.setAgentName(factory.createLogonRequestDataAgentName("IGW2171"));
+        logonRequestData.setPassword(factory.createLogonRequestDataPassword("Indigo$2211"));
+        logonRequestData.setLocationCode(null);
+        logonRequestData.setRoleCode(null);
+        logonRequestData.setTerminalInfo(null);
+        logonRequestData.setClientName(null);
+        logonRequest.setLogonRequestData(factory.createLogonRequestData(logonRequestData));
+        indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + convertToSoapXml(logonRequest));
+        LogonResponse response = port.getBasicHttpBindingISessionManager().logon(logonRequest, 452, true);
+        return ok(Json.toJson(response));
+    }
+
+    public Result loginold2() throws MalformedURLException, ISessionManagerLogonAPISecurityFaultFaultFaultMessage, ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage, ISessionManagerLogonAPICriticalFaultFaultFaultMessage, ISessionManagerLogonAPIGeneralFaultFaultFaultMessage, ISessionManagerLogonAPIWarningFaultFaultFaultMessage, ISessionManagerLogonAPIValidationFaultFaultFaultMessage, ISessionManagerLogonAPIFaultFaultFaultMessage, JAXBException {
+        try {
+            // Load the WSDL
+            URL wsdlURL = Application.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");//new URL("https://soapapir4y.test.6e.navitaire.com/SessionManager.svc?singleWsdl"); // Replace with actual WSDL
+            QName SERVICE_NAME = new QName("http://schemas.navitaire.com/WebServices", "SessionManager");
+            ObjectFactory factory = new ObjectFactory();
+            // Create service instance
+            SessionManager service = new SessionManager(wsdlURL, SERVICE_NAME);
+            ISessionManager port = service.getBasicHttpBindingISessionManager();
+
+            // Set SOAP headers (if needed)
+            BindingProvider bindingProvider = (BindingProvider) port;
+            //bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "http://schemas.navitaire.com/WebServices/ISessionManager/Logon");
+
+            //bindingProvider.getRequestContext().put(BindingProvider.SOAPACTION_USE_PROPERTY, Boolean.TRUE);
+            bindingProvider.getRequestContext().put(BindingProvider.SOAPACTION_URI_PROPERTY, "http://schemas.navitaire.com/WebServices/ISessionManager/Logon");
+            /*HashMap httpHeaders = new HashMap();
+            httpHeaders.put("Content-Encoding", Collections.singletonList("gzip"));
+            httpHeaders.put("Accept-Encoding", Collections.singletonList("gzip"));
+            Map reqContext = ((BindingProvider) port).getRequestContext();
+            reqContext.put(MessageContext.HTTP_REQUEST_HEADERS, httpHeaders);*/
+
+
+            // Create logon request
+            LogonRequest logonRequest = new LogonRequest();
+            LogonRequestData requestData = new LogonRequestData();
+            requestData.setDomainCode(factory.createLogonRequestDataDomainCode("WWW"));
+            requestData.setAgentName(factory.createLogonRequestDataAgentName("IGW2171"));
+            requestData.setPassword(factory.createLogonRequestDataPassword("Indigo$2211"));
+            requestData.setLocationCode(factory.createLogonRequestDataLocationCode(null));
+            requestData.setRoleCode(factory.createLogonRequestDataRoleCode(null));
+            requestData.setTerminalInfo(factory.createLogonRequestDataTerminalInfo(null));
+            requestData.setClientName(factory.createLogonRequestDataClientName(null));
+            logonRequest.setLogonRequestData(factory.createLogonRequestData(requestData));
+            indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + convertToSoapXml(logonRequest));
+            // Send request
+            System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
+            System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
+            System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
+            System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dump", "true");
+            LogonResponse response = port.logon(logonRequest, 452, true);
+
+            // Process response
+            /*if (response != null && response.getLogonResponseData() != null) {
+                System.out.println("Session Token: " + response.getLogonResponseData().getSessionToken());
+            } else {
+                System.out.println("Logon failed: No response data");
+            }*/
+
+        } catch (ISessionManagerLogonAPIFaultFaultFaultMessage fault) {
+            System.err.println("SOAP Fault: " + fault.getFaultInfo().getMessage());
+            fault.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ok();
+    }
+
+    public Result login2old() throws ISessionManagerLogonAPISecurityFaultFaultFaultMessage, ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage, ISessionManagerLogonAPICriticalFaultFaultFaultMessage, ISessionManagerLogonAPIGeneralFaultFaultFaultMessage, ISessionManagerLogonAPIWarningFaultFaultFaultMessage, ISessionManagerLogonAPIValidationFaultFaultFaultMessage, ISessionManagerLogonAPIFaultFaultFaultMessage, JAXBException {
+        try {
+            URL wsdl = Application.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");
+            SessionManager service = new SessionManager(wsdl);
+            WebServiceFeature[] features = {
+                    new AddressingFeature(true), // Enables WS-Addressing
+                    new MTOMFeature(false)        // Enables MTOM
+            };
+            ISessionManager port = service.getBasicHttpBindingISessionManager(features);
+
+            // Configure BindingProvider
+            BindingProvider bindingProvider = (BindingProvider) port;
+            Map<String, Object> requestContext = bindingProvider.getRequestContext();
+
+            // Set Endpoint URL
+            // requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
+
+            // Set SOAPAction (from WSDL)
+            //requestContext.put(BindingProvider.SOAPACTION_USE_PROPERTY, Boolean.TRUE);
+            //requestContext.put(BindingProvider.SOAPACTION_URI_PROPERTY, "http://schemas.navitaire.com/WebServices/ISessionManager/Logon");
+            //requestContext.put(BindingProvider.SOAPACTION_URI_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
+            ((BindingProvider) port).getRequestContext().put("javax.xml.ws.http.request.headers", Collections.singletonMap("SOAPAction",
+                    "http://schemas.navitaire.com/WebServices/ISessionManager/Logon"));
+            ((BindingProvider) port).getRequestContext().put(
+                    BindingProvider.SOAPACTION_URI_PROPERTY,
+                    "http://schemas.navitaire.com/WebServices/ISessionManager/Logon"
+            );
+
+            ((BindingProvider) port).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("ContractVersion", Collections.singletonList("452"));
+            headers.put("EnableExceptionStackTrace", Collections.singletonList("true"));
+            ((BindingProvider) port).getRequestContext().put(MessageContext.HTTP_REQUEST_HEADERS, headers);
+            System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
+            System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
+            System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
+            System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dump", "true");
+
+            ObjectFactory factory = new ObjectFactory();
+            // Set the request parameters
+            LogonRequest request = new LogonRequest();
+            LogonRequestData requestData = new LogonRequestData();
+            requestData.setDomainCode(factory.createLogonRequestDataDomainCode("WWW"));
+            requestData.setAgentName(factory.createLogonRequestDataAgentName("IGW2171"));
+            requestData.setPassword(factory.createLogonRequestDataPassword("Indigo$2211"));
+            /*requestData.setLocationCode(factory.createLogonRequestDataLocationCode("A"));
+            requestData.setRoleCode(factory.createLogonRequestDataRoleCode("A"));
+            requestData.setTerminalInfo(factory.createLogonRequestDataTerminalInfo("A"));
+            requestData.setClientName(factory.createLogonRequestDataClientName("A"));*/
+            request.setLogonRequestData(factory.createLogonRequestData(requestData));
+
+
+
+            indigoLogger.debug("Indigo Session Req " + new Date() + " ---->" + convertToSoapXml(request));
+            // Invoke the Service
+            LogonResponse logonResponse = port.logon(request, 452, true);
+
+            return ok(Json.toJson(logonResponse));
+        } catch (ISessionManagerLogonAPIValidationFaultFaultFaultMessage e) {
+            e.getFaultInfo();
+        } catch (ISessionManagerLogonAPIFaultFaultFaultMessage e) {
+            e.printStackTrace();
+            e.getFaultInfo();
+        }
+        return ok();
+    }
+
+    public Result login() throws ISessionManagerLogonAPISecurityFaultFaultFaultMessage,
+            ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage,
+            ISessionManagerLogonAPICriticalFaultFaultFaultMessage,
+            ISessionManagerLogonAPIGeneralFaultFaultFaultMessage,
+            ISessionManagerLogonAPIWarningFaultFaultFaultMessage,
+            ISessionManagerLogonAPIValidationFaultFaultFaultMessage,
+            ISessionManagerLogonAPIFaultFaultFaultMessage,
+            JAXBException {
+        try {
+            // Load WSDL from the classpath
+            /*URL wsdl = Application.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");
+            if (wsdl == null) {
+                throw new RuntimeException("WSDL file not found in the classpath.");
+            }*/
+
+            URL wsdl = new URL("https://soapapir4y.test.6e.navitaire.com/SessionManager.svc?singleWsdl");
+            QName qname = new QName("http://schemas.navitaire.com/WebServices", "SessionManager");
+            Service service = Service.create(wsdl, qname);
+            SessionManager sessionManager = service.getPort(SessionManager.class);
+
+            // Create the service instance
+
+
+            // Enable WS-Addressing and MTOM features
+            WebServiceFeature[] features = {
+                    new AddressingFeature(true), // Enables WS-Addressing
+                    new MTOMFeature(false)      // Disables MTOM (set to true if needed)
+            };
+
+            // Get the port with features
+            ISessionManager port = sessionManager.getBasicHttpBindingISessionManager(features);
+
+            // Configure BindingProvider
+            BindingProvider bindingProvider = (BindingProvider) port;
+            Map<String, Object> requestContext = bindingProvider.getRequestContext();
+
+            requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
+
+            requestContext.put(BindingProvider.SOAPACTION_USE_PROPERTY, true);
+            requestContext.put(BindingProvider.SOAPACTION_URI_PROPERTY, "http://schemas.navitaire.com/WebServices/ISessionManager/Logon");
+
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("ContractVersion", Collections.singletonList("452"));
+            headers.put("EnableExceptionStackTrace", Collections.singletonList("true"));
+            requestContext.put(MessageContext.HTTP_REQUEST_HEADERS, headers);
+
+            System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
+            System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
+            System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
+            System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dump", "true");
+
+            ObjectFactory factory = new ObjectFactory();
+            LogonRequest request = new LogonRequest();
+            LogonRequestData requestData = new LogonRequestData();
+
+            requestData.setDomainCode(factory.createLogonRequestDataDomainCode("WWW"));
+            requestData.setAgentName(factory.createLogonRequestDataAgentName("IGW2171"));
+            requestData.setPassword(factory.createLogonRequestDataPassword("Indigo$2211"));
+
+            requestData.setLocationCode(factory.createLogonRequestDataLocationCode("EXT")); // Replace with actual value
+            requestData.setRoleCode(factory.createLogonRequestDataRoleCode("AGENT"));       // Replace with actual value
+            requestData.setTerminalInfo(factory.createLogonRequestDataTerminalInfo("TERM1")); // Replace with actual value
+            requestData.setClientName(factory.createLogonRequestDataClientName("CLIENT"));   // Replace with actual value
+
+            request.setLogonRequestData(factory.createLogonRequestData(requestData));
+
+            indigoLogger.debug("Indigo Session Request " + new Date() + " ----> " + convertToSoapXml(request));
+
+            LogonResponse logonResponse = port.logon(request, 452, true);
+
+            return ok(Json.toJson(logonResponse));
+        } catch (ISessionManagerLogonAPIValidationFaultFaultFaultMessage e) {
+            indigoLogger.error("Validation Fault: " + e.getFaultInfo());
+            return internalServerError("Validation Fault: " + e.getFaultInfo());
+        } catch (ISessionManagerLogonAPIFaultFaultFaultMessage e) {
+            indigoLogger.error("API Fault: " + e.getFaultInfo(), e);
+            return internalServerError("API Fault: " + e.getFaultInfo());
+        } catch (Exception e) {
+            indigoLogger.error("Unexpected error: " + e.getMessage(), e);
+            return internalServerError("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    private String convertToSoapXmlHeader(ISessionManager logonRequest) throws JAXBException {
+        // Marshal the Java object to XML
+        JAXBContext jaxbContext = JAXBContext.newInstance(LogonRequest.class);
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        StringWriter xmlWriter = new StringWriter();
+        marshaller.marshal(logonRequest, xmlWriter);
+        String bodyXml = xmlWriter.toString();
+
+        // Wrap the XML body inside a SOAP envelope
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "    <soapenv:Header/>\n" +
+                "    <soapenv:Body>\n" +
+                bodyXml +
+                "    </soapenv:Body>\n" +
+                "</soapenv:Envelope>";
+    }
+    private String convertToSoapXml(LogonRequest logonRequest) throws JAXBException {
+        // Marshal the Java object to XML
+        JAXBContext jaxbContext = JAXBContext.newInstance(LogonRequest.class);
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        StringWriter xmlWriter = new StringWriter();
+        marshaller.marshal(logonRequest, xmlWriter);
+        String bodyXml = xmlWriter.toString();
+
+        // Wrap the XML body inside a SOAP envelope
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "    <soapenv:Header/>\n" +
+                "    <soapenv:Body>\n" +
+                bodyXml +
+                "    </soapenv:Body>\n" +
+                "</soapenv:Envelope>";
     }
     public Result getRoutes() throws Exception {
         logger.debug("Request recieved");

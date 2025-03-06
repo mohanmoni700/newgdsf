@@ -1,6 +1,5 @@
 package com.compassites.GDSWrapper.indigo;
 
-
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.navitaire.schemas.webservices.ISessionManager;
 import com.navitaire.schemas.webservices.LogonResponse;
@@ -15,13 +14,18 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import com.navitaire.schemas.webservices.servicecontracts.sessionservice.LogonRequest;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import javax.xml.namespace.QName;
 
 @Service
 public class SessionHandler {
@@ -46,7 +50,8 @@ public class SessionHandler {
     public SessionHandler() {
         try {
             wsdlUrl = SessionHandler.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");
-            SessionManager sessionManager = new SessionManager(wsdlUrl);
+            QName serviceName = new QName("http://schemas.navitaire.com/WebServices", "SessionManager");
+            SessionManager sessionManager = new SessionManager(wsdlUrl,serviceName);
             iSessionManager = sessionManager.getBasicHttpBindingISessionManager();
             /*
             ((javax.xml.ws.BindingProvider) iSessionManager)
@@ -58,9 +63,9 @@ public class SessionHandler {
             httpHeaders.put("Accept-Encoding", Collections.singletonList("gzip"));
             Map reqContext = ((BindingProvider) iSessionManager).getRequestContext();
             reqContext.put(MessageContext.HTTP_REQUEST_HEADERS, httpHeaders);
-            reqContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
-            reqContext.put(BindingProvider.SOAPACTION_USE_PROPERTY, true);
-            reqContext.put(BindingProvider.SOAPACTION_URI_PROPERTY, "LogonRequest");
+            reqContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endPoint);
+            //reqContext.put(BindingProvider.SOAPACTION_USE_PROPERTY, true);
+            //reqContext.put(BindingProvider.SOAPACTION_URI_PROPERTY, "LogonRequest");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,7 +85,7 @@ public class SessionHandler {
             logonRequestData.setTerminalInfo(null);
             logonRequestData.setClientName(null);*/
             logonRequest.setLogonRequestData(factory.createLogonRequestData(logonRequestData));
-            indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + new XStream().toXML(logonRequest));
+            indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + convertToSoapXml(logonRequest));
             System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
             System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
             System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
@@ -92,6 +97,26 @@ public class SessionHandler {
             e.printStackTrace();
         }
         return logonResponse;
+    }
+
+    public String convertToSoapXml(LogonRequest logonRequest) throws JAXBException {
+        // Marshal the Java object to XML
+        JAXBContext jaxbContext = JAXBContext.newInstance(LogonRequest.class);
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        StringWriter xmlWriter = new StringWriter();
+        marshaller.marshal(logonRequest, xmlWriter);
+        String bodyXml = xmlWriter.toString();
+
+        // Wrap the XML body inside a SOAP envelope
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "    <soapenv:Header/>\n" +
+                "    <soapenv:Body>\n" +
+                bodyXml +
+                "    </soapenv:Body>\n" +
+                "</soapenv:Envelope>";
     }
 
 }
