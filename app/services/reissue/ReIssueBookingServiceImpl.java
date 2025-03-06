@@ -139,7 +139,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
                 serviceHandler.savePNR(amadeusSessionWrapper);
                 serviceHandler.logOut(amadeusSessionWrapper);
             }
-
             createPNRResponseForReIssuedBooking(reIssuedPnr, officeId, serviceHandler, finalPnrResponse, reIssueConfirmationRequest.getNewTravellerMasterInfo(), amadeusSessionManager, success);
 
             finalPnrResponse.setReIssueSuccess(isReissueSuccess);
@@ -155,6 +154,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 //        finally {
 //            serviceHandler.logOut(amadeusSessionWrapper);
 //        }
+
 
         return null;
     }

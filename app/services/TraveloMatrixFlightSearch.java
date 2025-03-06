@@ -101,6 +101,25 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(response.getMessage(), ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
                 sr.getErrorMessageList().add(errorMessage);
             }
+            if (response.getStatus()) {
+                travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
+                AirSolution airSolution = getAirSolution(response,searchParameters.getJourneyType().toString(),searchParameters.getJourneyList(),searchParameters.getDateType(),searchParameters.getTransit());
+                sr = new SearchResponse();
+                sr.setFlightSearchOffice(getOfficeList().get(0));
+                sr.setAirSolution(airSolution);
+                sr.setProvider(TraveloMatrixConstants.provider);
+            } else {
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(response.getMessage(), ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+                sr.getErrorMessageList().add(errorMessage);
+            }
+
+        } catch (Exception e) {
+            sr = new SearchResponse();
+            travelomatrixLogger.info("TimeOut during Travelomagrix flight search ");
+            e.printStackTrace();
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
+            sr.getErrorMessageList().add(errorMessage);
+        }
 
         } catch (Exception e) {
             sr = new SearchResponse();

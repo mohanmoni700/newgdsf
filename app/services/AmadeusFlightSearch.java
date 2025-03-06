@@ -624,7 +624,6 @@ public class AmadeusFlightSearch implements FlightSearch {
         return airSegmentInformation;
     }
 
-
     private PricingInformation getPricingInformation(Recommendation recommendation, String officeId, ReferenceInfoType segmentRef,
                                                      FareMasterPricerTravelBoardSearchReply.MnrGrp mnrGrp,
                                                      List<FareMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
@@ -946,7 +945,6 @@ public class AmadeusFlightSearch implements FlightSearch {
                     .map(referencingDetail -> valueOf(referencingDetail.getRefNumber()))
                     .findFirst()
                     .orElse(null);
-
 
             if (baggageReferenceNumber == null) {
                 return mnrSearchBaggage;
