@@ -109,7 +109,6 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
             sr.getErrorMessageList().add(errorMessage);
         }
-
         travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
         logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################" + sr.toString());
         //      }
