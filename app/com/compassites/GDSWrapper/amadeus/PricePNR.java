@@ -32,7 +32,7 @@ import java.util.List;
 public class PricePNR {
     public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply,boolean isSeamen,
                                                             boolean isDomesticFlight, FlightItinerary flightItinerary,
-                                                            List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing){
+                                                            List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing, boolean isAddBooking){
 
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
         CodedAttributeType overrideInformation = new CodedAttributeType();
@@ -73,6 +73,29 @@ public class PricePNR {
                 refDetails.setRefNumber(BigInteger.valueOf(i));
                 paxSegReference.getRefDetails().add(refDetails);
                 i = i + 1;*/
+                String key = airSegment.getFromLocation() + airSegment.getToLocation();
+                for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
+                    for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
+                        String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                        if(segType.equalsIgnoreCase("AIR")) {
+                            String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
+                                    + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                            if (segments.equals(key)) {
+                                refDetails = new ReferencingDetailsTypeI142222C();
+                                refDetails.setRefQualifier("S");
+                                refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
+                                paxSegReference.getRefDetails().add(refDetails);
+                            }
+                        }
+                    }
+                }
+            }
+
+            pricepnr.setPaxSegReference(paxSegReference);
+        }
+
+        if(isAddBooking && !isDomesticFlight && !isSegmentWisePricing) {
+            for(AirSegmentInformation airSegment : airSegmentList)  {
                 String key = airSegment.getFromLocation() + airSegment.getToLocation();
                 for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
                     for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {

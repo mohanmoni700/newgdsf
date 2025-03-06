@@ -123,6 +123,7 @@ public class FareInformation {
 		}
 		//System.out.println("airSegments json\n"+Json.toJson(airSegments));
         i = 0;
+		int segmentCounter = 1;
 		for (AirSegmentInformation airSegment : airSegments) {
 			SegmentGroup segmentGroup = new SegmentGroup();
 			SegmentInformation segmentInfo = new SegmentInformation();
@@ -153,6 +154,7 @@ public class FareInformation {
 			flightIdentification.setBookingClass(fareSegments.get(i).getBookingClass());
 			flightIdentification.setFlightNumber(airSegment.getFlightNumber());
 			segmentInfo.setFlightIdentification(flightIdentification);
+			segmentInfo.setItemNumber(BigDecimal.valueOf(segmentCounter++));
 
 			segmentGroup.setSegmentInformation(segmentInfo);
 			Trigger trigger = new Trigger();
