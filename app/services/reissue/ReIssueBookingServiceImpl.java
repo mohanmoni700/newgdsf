@@ -100,7 +100,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
                 // Saving the PNR only if the reissue was successful without any warnings
                 serviceHandler.savePNR(session);
-
                 serviceHandler.logOut(session);
 
             }
