@@ -69,7 +69,9 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             PAXFareDetails paxFareDetailsForSegmentInfo = reIssueConfirmationRequest.getNewTravellerMasterInfo().getItinerary().getReIssuePricingInformation().getPaxWisePricing().get(0).getPaxFareDetails();
             List<String> segmentWiseClassInfo = getBookingClassForSegmentsToBeReissued(paxFareDetailsForSegmentInfo);
 
+
             AMATicketRebookAndRepricePNRRS ticketRebookAndRepricePNRRS = reIssueConfirmationHandler.rebookAndRepricePNR(reIssueConfirmationRequest, newChildPnr, segmentWiseClassInfo, session);
+
 
             //Handling Reissue failures here
             AMATicketRebookAndRepricePNRRS.Failure rebookAndRepricePNRRSFailure = ticketRebookAndRepricePNRRS.getFailure();
@@ -100,6 +102,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
                 // Saving the PNR only if the reissue was successful without any warnings
                 serviceHandler.savePNR(session);
+              
                 serviceHandler.logOut(session);
 
             }
@@ -114,7 +117,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
         } catch (Exception e) {
             logger.debug("Error when trying to book the flight for reissue {}", e.getMessage(), e);
-        }
+        } 
 
         return null;
     }
@@ -245,7 +248,9 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     //Creates PNR Response (Is this Needed?)
     public void createPNRResponse(PNRReply pnrReply, PNRResponse pnrResponse, AMATicketRebookAndRepricePNRRS.Success success) {
 
+
         pnrResponse.setPnrNumber(pnrReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+
 
         //Creating Amadeus Pax Reference and Line number here
         pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(pnrReply));

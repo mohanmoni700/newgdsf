@@ -945,7 +945,6 @@ public class AmadeusFlightSearch implements FlightSearch {
                     .findFirst()
                     .orElse(null);
 
-
             if (baggageReferenceNumber == null) {
                 return mnrSearchBaggage;
             }
