@@ -43,6 +43,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
 import javax.xml.ws.WebServiceFeature;
+import javax.xml.ws.handler.Handler;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.soap.AddressingFeature;
 import javax.xml.ws.soap.MTOMFeature;
@@ -141,97 +142,7 @@ public class Application {
         return ok(Json.toJson(logonResponse));
     }
 
-    public Result loginold1() throws MalformedURLException, ISessionManagerLogonAPISecurityFaultFaultFaultMessage, ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage, ISessionManagerLogonAPICriticalFaultFaultFaultMessage, ISessionManagerLogonAPIGeneralFaultFaultFaultMessage, ISessionManagerLogonAPIWarningFaultFaultFaultMessage, ISessionManagerLogonAPIValidationFaultFaultFaultMessage, ISessionManagerLogonAPIFaultFaultFaultMessage, JAXBException {
-        URL wsdlURL = new URL("https://soapapir4y.test.6e.navitaire.com/SessionManager.svc?singleWsdl");
-        QName serviceName = new QName("http://schemas.navitaire.com/WebServices", "SessionManager");
-        ObjectFactory factory = new ObjectFactory();
-        // Initialize service
-        Service service = Service.create(wsdlURL, serviceName);
-
-        // Enable WS-Addressing and MTOM
-        WebServiceFeature[] features = {
-                new AddressingFeature(true), // Enables WS-Addressing
-                new MTOMFeature(true)        // Enables MTOM
-        };
-        LogonRequest logonRequest = new LogonRequest();
-        // Get the proxy with features enabled
-        SessionManager port = new SessionManager(wsdlURL, serviceName);
-
-
-        // Call SOAP method
-        LogonRequestData logonRequestData = new LogonRequestData();
-        logonRequestData.setDomainCode(factory.createLogonRequestDataDomainCode("WWW"));
-        logonRequestData.setAgentName(factory.createLogonRequestDataAgentName("IGW2171"));
-        logonRequestData.setPassword(factory.createLogonRequestDataPassword("Indigo$2211"));
-        logonRequestData.setLocationCode(null);
-        logonRequestData.setRoleCode(null);
-        logonRequestData.setTerminalInfo(null);
-        logonRequestData.setClientName(null);
-        logonRequest.setLogonRequestData(factory.createLogonRequestData(logonRequestData));
-        indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + convertToSoapXml(logonRequest));
-        LogonResponse response = port.getBasicHttpBindingISessionManager().logon(logonRequest, 452, true);
-        return ok(Json.toJson(response));
-    }
-
-    public Result loginold2() throws MalformedURLException, ISessionManagerLogonAPISecurityFaultFaultFaultMessage, ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage, ISessionManagerLogonAPICriticalFaultFaultFaultMessage, ISessionManagerLogonAPIGeneralFaultFaultFaultMessage, ISessionManagerLogonAPIWarningFaultFaultFaultMessage, ISessionManagerLogonAPIValidationFaultFaultFaultMessage, ISessionManagerLogonAPIFaultFaultFaultMessage, JAXBException {
-        try {
-            // Load the WSDL
-            URL wsdlURL = Application.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");//new URL("https://soapapir4y.test.6e.navitaire.com/SessionManager.svc?singleWsdl"); // Replace with actual WSDL
-            QName SERVICE_NAME = new QName("http://schemas.navitaire.com/WebServices", "SessionManager");
-            ObjectFactory factory = new ObjectFactory();
-            // Create service instance
-            SessionManager service = new SessionManager(wsdlURL, SERVICE_NAME);
-            ISessionManager port = service.getBasicHttpBindingISessionManager();
-
-            // Set SOAP headers (if needed)
-            BindingProvider bindingProvider = (BindingProvider) port;
-            //bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "http://schemas.navitaire.com/WebServices/ISessionManager/Logon");
-
-            //bindingProvider.getRequestContext().put(BindingProvider.SOAPACTION_USE_PROPERTY, Boolean.TRUE);
-            bindingProvider.getRequestContext().put(BindingProvider.SOAPACTION_URI_PROPERTY, "http://schemas.navitaire.com/WebServices/ISessionManager/Logon");
-            /*HashMap httpHeaders = new HashMap();
-            httpHeaders.put("Content-Encoding", Collections.singletonList("gzip"));
-            httpHeaders.put("Accept-Encoding", Collections.singletonList("gzip"));
-            Map reqContext = ((BindingProvider) port).getRequestContext();
-            reqContext.put(MessageContext.HTTP_REQUEST_HEADERS, httpHeaders);*/
-
-
-            // Create logon request
-            LogonRequest logonRequest = new LogonRequest();
-            LogonRequestData requestData = new LogonRequestData();
-            requestData.setDomainCode(factory.createLogonRequestDataDomainCode("WWW"));
-            requestData.setAgentName(factory.createLogonRequestDataAgentName("IGW2171"));
-            requestData.setPassword(factory.createLogonRequestDataPassword("Indigo$2211"));
-            requestData.setLocationCode(factory.createLogonRequestDataLocationCode(null));
-            requestData.setRoleCode(factory.createLogonRequestDataRoleCode(null));
-            requestData.setTerminalInfo(factory.createLogonRequestDataTerminalInfo(null));
-            requestData.setClientName(factory.createLogonRequestDataClientName(null));
-            logonRequest.setLogonRequestData(factory.createLogonRequestData(requestData));
-            indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + convertToSoapXml(logonRequest));
-            // Send request
-            System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
-            System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
-            System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
-            System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dump", "true");
-            LogonResponse response = port.logon(logonRequest, 452, true);
-
-            // Process response
-            /*if (response != null && response.getLogonResponseData() != null) {
-                System.out.println("Session Token: " + response.getLogonResponseData().getSessionToken());
-            } else {
-                System.out.println("Logon failed: No response data");
-            }*/
-
-        } catch (ISessionManagerLogonAPIFaultFaultFaultMessage fault) {
-            System.err.println("SOAP Fault: " + fault.getFaultInfo().getMessage());
-            fault.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return ok();
-    }
-
-    public Result login2old() throws ISessionManagerLogonAPISecurityFaultFaultFaultMessage, ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage, ISessionManagerLogonAPICriticalFaultFaultFaultMessage, ISessionManagerLogonAPIGeneralFaultFaultFaultMessage, ISessionManagerLogonAPIWarningFaultFaultFaultMessage, ISessionManagerLogonAPIValidationFaultFaultFaultMessage, ISessionManagerLogonAPIFaultFaultFaultMessage, JAXBException {
+    public Result login() throws ISessionManagerLogonAPISecurityFaultFaultFaultMessage, ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage, ISessionManagerLogonAPICriticalFaultFaultFaultMessage, ISessionManagerLogonAPIGeneralFaultFaultFaultMessage, ISessionManagerLogonAPIWarningFaultFaultFaultMessage, ISessionManagerLogonAPIValidationFaultFaultFaultMessage, ISessionManagerLogonAPIFaultFaultFaultMessage, JAXBException {
         try {
             URL wsdl = Application.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");
             SessionManager service = new SessionManager(wsdl);
@@ -241,54 +152,46 @@ public class Application {
             };
             ISessionManager port = service.getBasicHttpBindingISessionManager(features);
 
-            // Configure BindingProvider
-            BindingProvider bindingProvider = (BindingProvider) port;
-            Map<String, Object> requestContext = bindingProvider.getRequestContext();
-
-            // Set Endpoint URL
-            // requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
-
-            // Set SOAPAction (from WSDL)
-            //requestContext.put(BindingProvider.SOAPACTION_USE_PROPERTY, Boolean.TRUE);
-            //requestContext.put(BindingProvider.SOAPACTION_URI_PROPERTY, "http://schemas.navitaire.com/WebServices/ISessionManager/Logon");
-            //requestContext.put(BindingProvider.SOAPACTION_URI_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
             ((BindingProvider) port).getRequestContext().put("javax.xml.ws.http.request.headers", Collections.singletonMap("SOAPAction",
                     "http://schemas.navitaire.com/WebServices/ISessionManager/Logon"));
             ((BindingProvider) port).getRequestContext().put(
                     BindingProvider.SOAPACTION_URI_PROPERTY,
                     "http://schemas.navitaire.com/WebServices/ISessionManager/Logon"
             );
-
+            ((BindingProvider) port).getRequestContext()
+                    .put("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", true);
             ((BindingProvider) port).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, "https://soapapir4y.test.6e.navitaire.com/SessionManager.svc");
             Map<String, List<String>> headers = new HashMap<>();
             headers.put("ContractVersion", Collections.singletonList("452"));
             headers.put("EnableExceptionStackTrace", Collections.singletonList("true"));
             ((BindingProvider) port).getRequestContext().put(MessageContext.HTTP_REQUEST_HEADERS, headers);
-            System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
-            System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
-            System.setProperty("com.sun.xml.ws.transport.http.HttpAdapter.dump", "true");
-            System.setProperty("com.sun.xml.internal.ws.transport.http.HttpAdapter.dump", "true");
+            /*List<Handler> handlerChain = new ArrayList<>();
+            handlerChain.add(new NamespaceFixHandler());
+            ((BindingProvider) port).getBinding().setHandlerChain(handlerChain);*/
 
             ObjectFactory factory = new ObjectFactory();
+            com.navitaire.schemas.webservices.servicecontracts.sessionservice.ObjectFactory factory1 = new com.navitaire.schemas.webservices.servicecontracts.sessionservice.ObjectFactory();
             // Set the request parameters
-            LogonRequest request = new LogonRequest();
-            LogonRequestData requestData = new LogonRequestData();
+            LogonRequestData requestData = factory.createLogonRequestData();
+            LogonRequest logonRequest = factory1.createLogonRequest();
+
+
             requestData.setDomainCode(factory.createLogonRequestDataDomainCode("WWW"));
             requestData.setAgentName(factory.createLogonRequestDataAgentName("IGW2171"));
             requestData.setPassword(factory.createLogonRequestDataPassword("Indigo$2211"));
-            /*requestData.setLocationCode(factory.createLogonRequestDataLocationCode("A"));
-            requestData.setRoleCode(factory.createLogonRequestDataRoleCode("A"));
-            requestData.setTerminalInfo(factory.createLogonRequestDataTerminalInfo("A"));
-            requestData.setClientName(factory.createLogonRequestDataClientName("A"));*/
-            request.setLogonRequestData(factory.createLogonRequestData(requestData));
+            requestData.setLocationCode(factory.createLogonRequestDataLocationCode(null));
+            requestData.setRoleCode(factory.createLogonRequestDataRoleCode(null));
+            requestData.setTerminalInfo(factory.createLogonRequestDataTerminalInfo(null));
+            requestData.setClientName(factory.createLogonRequestDataClientName(null));
+            logonRequest.setLogonRequestData(factory1.createLogonRequestLogonRequestData(requestData));
 
 
 
-            indigoLogger.debug("Indigo Session Req " + new Date() + " ---->" + convertToSoapXml(request));
+            //indigoLogger.debug("Indigo Session Req " + new Date() + " ---->" + convertToSoapXml(factory1));
             // Invoke the Service
-            LogonResponse logonResponse = port.logon(request, 452, true);
+            LogonResponse logonResponse = port.logon(logonRequest, 452, true);
 
-            return ok(Json.toJson(logonResponse));
+            return ok(Json.toJson(logonResponse.getSignature().getValue()));
         } catch (ISessionManagerLogonAPIValidationFaultFaultFaultMessage e) {
             e.getFaultInfo();
         } catch (ISessionManagerLogonAPIFaultFaultFaultMessage e) {
@@ -298,7 +201,7 @@ public class Application {
         return ok();
     }
 
-    public Result login() throws ISessionManagerLogonAPISecurityFaultFaultFaultMessage,
+    public Result loginnew() throws ISessionManagerLogonAPISecurityFaultFaultFaultMessage,
             ISessionManagerLogonAPIUnhandledServerFaultFaultFaultMessage,
             ISessionManagerLogonAPICriticalFaultFaultFaultMessage,
             ISessionManagerLogonAPIGeneralFaultFaultFaultMessage,
@@ -308,12 +211,12 @@ public class Application {
             JAXBException {
         try {
             // Load WSDL from the classpath
-            /*URL wsdl = Application.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");
+            URL wsdl = Application.class.getResource("/META-INF/wsdl/indigo/SessionManager.wsdl");
             if (wsdl == null) {
                 throw new RuntimeException("WSDL file not found in the classpath.");
-            }*/
+            }
 
-            URL wsdl = new URL("https://soapapir4y.test.6e.navitaire.com/SessionManager.svc?singleWsdl");
+            //URL wsdl = new URL("https://soapapir4y.test.6e.navitaire.com/SessionManager.svc?singleWsdl");
             QName qname = new QName("http://schemas.navitaire.com/WebServices", "SessionManager");
             Service service = Service.create(wsdl, qname);
             SessionManager sessionManager = service.getPort(SessionManager.class);
