@@ -1,5 +1,6 @@
 package com.compassites.GDSWrapper.indigo;
 
+import com.compassites.constants.CacheConstants;
 import com.navitaire.schemas.webservices.ISessionManager;
 import com.navitaire.schemas.webservices.LogonResponse;
 import com.navitaire.schemas.webservices.SessionManager;
@@ -21,6 +22,7 @@ import javax.xml.ws.WebServiceFeature;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import javax.xml.ws.soap.AddressingFeature;
 import javax.xml.ws.soap.MTOMFeature;
 
@@ -72,6 +74,10 @@ public class SessionHandler {
             logonRequest.setLogonRequestData(factory1.createLogonRequestLogonRequestData(requestData));
             indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + convertToSoapXml(logonRequest));
             logonResponse = this.iSessionManager.logon(logonRequest, Indigo.contractVersion, false);
+            if(logonResponse.getSignature().getValue()!=null) {
+                redisTemplate.opsForValue().set(Indigo.sessionValidity, logonResponse.getSignature().getValue());
+                redisTemplate.expire(Indigo.sessionValidity, CacheConstants.INDIGO_CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
+            }
             indigoLogger.debug("Indigo Session Response " + new Date() +" ---->" + new XStream().toXML(logonResponse));
         } catch (Exception e) {
             e.printStackTrace();
@@ -79,24 +85,17 @@ public class SessionHandler {
         return logonResponse;
     }
 
-    public String convertToSoapXml(LogonRequest logonRequest) throws JAXBException {
+    public String convertToSoapXml(Object object) throws JAXBException {
         // Marshal the Java object to XML
-        JAXBContext jaxbContext = JAXBContext.newInstance(LogonRequest.class);
+        JAXBContext jaxbContext = JAXBContext.newInstance(Object.class);
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 
         StringWriter xmlWriter = new StringWriter();
-        marshaller.marshal(logonRequest, xmlWriter);
+        marshaller.marshal(object, xmlWriter);
         String bodyXml = xmlWriter.toString();
 
-        // Wrap the XML body inside a SOAP envelope
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
-                "    <soapenv:Header/>\n" +
-                "    <soapenv:Body>\n" +
-                bodyXml +
-                "    </soapenv:Body>\n" +
-                "</soapenv:Envelope>";
+        return bodyXml;
     }
 
 }
