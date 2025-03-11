@@ -19,8 +19,6 @@ import com.amadeus.xml.fatceq_13_1_1a.TravellerDetailsType;
 import com.amadeus.xml.fatceq_13_1_1a.TravellerReferenceInformationType;
 import com.amadeus.xml.fmtctq_18_2_1a.*;
 import com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C;
-import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentificationType;
-import com.amadeus.xml.fmtctq_18_2_1a.CorporateIdentityType;
 import com.amadeus.xml.pnrspl_11_3_1a.*;
 import com.amadeus.xml.pnrspl_11_3_1a.PNRSplit;
 import com.amadeus.xml.tarcpq_13_2_1a.TicketReissueConfirmedPricing;
@@ -43,7 +41,6 @@ import dto.reissue.ReIssueSearchRequest;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utils.CorporateCodeHelper;
 
 import java.math.BigInteger;
 import java.time.ZoneOffset;
@@ -965,7 +962,7 @@ public class ReIssueTicket {
 
             //Airline Code set here
             AirSegmentType.ServiceProvider serviceProvider = new AirSegmentType.ServiceProvider();
-            serviceProvider.setCode(airSegmentInformation.getValidatingCarrierCode());
+            serviceProvider.setCode(airSegmentInformation.getOperatingCarrierCode());
             airSegmentType.setServiceProvider(serviceProvider);
 
             //Flight Number set here

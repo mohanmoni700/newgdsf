@@ -1,8 +1,6 @@
 package services.reissue;
 
-import com.amadeus.xml.fatcer_13_1_1a.AttributeInformationType;
-import com.amadeus.xml.fatcer_13_1_1a.TicketCheckEligibilityReply;
-import com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType;
+import com.amadeus.xml.fatcer_13_1_1a.*;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
 import com.amadeus.xml.tarcpr_13_2_1a.TicketReissueConfirmedPricingReply;
@@ -181,6 +179,21 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
     private static SearchResponse checkIfTicketIsAllowedForReIssuance(TicketCheckEligibilityReply checkEligibilityReply, String gdsPnr) {
 
         SearchResponse reissueSearchResponse = new SearchResponse();
+
+        if (!checkEligibilityReply.getApplicationErrorInfo().isEmpty()) {
+            List<ErrorInformationTypeI> applicationErrorInfo = checkEligibilityReply.getApplicationErrorInfo();
+            ErrorInformationTypeI errorInformationTypeI = applicationErrorInfo.get(0);
+            ErrorInformationDetailsTypeI applicationErrorDetail = errorInformationTypeI.getApplicationErrorDetail();
+            String amadeusErrorMessage = applicationErrorDetail.getRejectMessage();
+
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setProvider("Amadeus");
+            errorMessage.setType(ErrorMessage.ErrorType.ERROR);
+            errorMessage.setGdsPNR(gdsPnr);
+            errorMessage.setMessage(amadeusErrorMessage);
+
+            reissueSearchResponse.getErrorMessageList().add(errorMessage);
+        }
 
         outerLoop:
         for (TicketCheckEligibilityReply.EligibilityInfo eligibilityInfo : checkEligibilityReply.getEligibilityInfo()) {

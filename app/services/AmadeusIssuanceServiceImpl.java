@@ -13,6 +13,7 @@ import com.compassites.GDSWrapper.amadeus.PNRAddMultiElementsh;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
+import com.compassites.model.traveller.AdditionalInfo;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
 import dto.FareCheckRulesResponse;
@@ -86,6 +87,18 @@ public class AmadeusIssuanceServiceImpl {
         FareCheckRulesResponse fareInformativePricing = null;
 
         TravellerMasterInfo travellerMasterInfo = amadeusBookingService.allPNRDetails(issuanceRequest, issuanceRequest.getGdsPNR());
+        boolean isAddedNewSegment = false;
+        if(issuanceRequest.getAddBooking()) {
+            if(travellerMasterInfo.getAdditionalInfo()==null) {
+                AdditionalInfo additionalInfo = new AdditionalInfo();
+                additionalInfo.setAddBooking(true);
+                travellerMasterInfo.setAdditionalInfo(additionalInfo);
+                isAddedNewSegment = true;
+            } else {
+                travellerMasterInfo.getAdditionalInfo().setAddBooking(true);
+                isAddedNewSegment = true;
+            }
+        }
         /*if(travellerMasterInfo.getTravellersList() != null) {
             int ticketSize = travellerMasterInfo.getTravellersList().get(0).getTicketNumberMap().size();
             if (ticketSize > 0) {
@@ -157,7 +170,7 @@ public class AmadeusIssuanceServiceImpl {
             List<FareList> pricePNRReplyFareList = new ArrayList<>();
             boolean isSegmentWisePricing = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).isSegmentWisePricing();
 
-            if (isSegmentWisePricing) {
+            if (isSegmentWisePricing || isAddedNewSegment) {
                 List<SegmentPricing> segmentPricingList = issuanceRequest.getFlightItinerary().getPricingInformation(issuanceRequest.isSeamen()).getSegmentPricingList();
 
                 Map<String, AirSegmentInformation> segmentsInfo = new HashMap<>();
@@ -193,10 +206,13 @@ public class AmadeusIssuanceServiceImpl {
                         }
                     }
 
-
+                    boolean isAddBooking = false;
+                    if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                        isAddBooking = true;
+                    }
                     //isSegmentWisePricing ==TRUE
                     pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
-                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, amadeusSessionWrapper);
+                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, amadeusSessionWrapper, isAddBooking);
                      fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                     issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
 
@@ -228,7 +244,10 @@ public class AmadeusIssuanceServiceImpl {
                         AmadeusSessionWrapper benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                         System.out.println(tstRefNo);
                         serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
-                        pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, benzyAmadeusSessionWrapper);
+                        if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                            isAddBooking = true;
+                        }
+                        pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, benzyAmadeusSessionWrapper, isAddBooking);
                         fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                         issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
 
@@ -287,8 +306,11 @@ public class AmadeusIssuanceServiceImpl {
                         officeId = amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId();
                     }
                 }
-
-                pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper);
+                boolean isAddBooking = false;
+                if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                    isAddBooking = true;
+                }
+                pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper, isAddBooking);
                 fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                 issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
 
@@ -319,7 +341,10 @@ public class AmadeusIssuanceServiceImpl {
                     AmadeusSessionWrapper benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 
                     serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
-                    pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, benzyAmadeusSessionWrapper);
+                    if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+                        isAddBooking = true;
+                    }
+                    pricePNRReply = serviceHandler.pricePNR(validatingcarrierCode, gdsPNRReply, issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegmentList, isSegmentWisePricing, benzyAmadeusSessionWrapper, isAddBooking);
                     fareInformativePricing = getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
                     issuanceResponse.setFareCheckRulesResponse(fareInformativePricing);
                     gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
@@ -618,31 +643,38 @@ public class AmadeusIssuanceServiceImpl {
         FareCheckRulesReply fareCheckRulesReply = null;
         List<HashMap> miniRule = new ArrayList<>();
         List<String> detailedFareRuleList = new ArrayList<>();
+        Map<String, Map<String, List<String>>> benzyFareRuleList = new ConcurrentHashMap<>();
         FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
 
         String fare = null;
-        List<MonetaryInformationDetailsType223826C> fareDataSupInformation = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
-        if(fareDataSupInformation != null){
-            for(MonetaryInformationDetailsType223826C fareData : fareDataSupInformation){
-                if(fareData.getFareDataQualifier().equalsIgnoreCase("712"))
-                    fare =  fareData.getFareAmount();
+        if(reply.getFareList()!=null && reply.getFareList().size() !=0) {
+            List<MonetaryInformationDetailsType223826C> fareDataSupInformation = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation();
+            if (fareDataSupInformation != null) {
+                for (MonetaryInformationDetailsType223826C fareData : fareDataSupInformation) {
+                    if (fareData.getFareDataQualifier().equalsIgnoreCase("712"))
+                        fare = fareData.getFareAmount();
+                }
             }
-        }
-        BigDecimal totalFare = new BigDecimal(fare);
-        String currency = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
+            BigDecimal totalFare = new BigDecimal(fare);
+            String currency = reply.getFareList().get(0).getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
 
-        Map<String, Map> fareRules = new ConcurrentHashMap<>();
-        if (reply.getApplicationError() != null) {
-            logger.debug("FareInformativePricing failed while running fare check rules {} ", reply.getApplicationError().getErrorWarningDescription().getFreeText());
-        } else {
-            fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-            fareRules = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
-            detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
-            miniRule = AmadeusHelper.getMiniRulesFromGenericRules(fareRules, totalFare, currency);
+            Map<String, Map> fareRules = new ConcurrentHashMap<>();
+            if (reply.getApplicationError() != null) {
+                logger.debug("FareInformativePricing failed while running fare check rules {} ", reply.getApplicationError().getErrorWarningDescription().getFreeText());
+            } else {
+                fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+                if(fareCheckRulesReply.getErrorInfo()==null) {
+                    fareRules = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+                    detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+                    benzyFareRuleList = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
+                    miniRule = AmadeusHelper.getMiniRulesFromGenericRules(fareRules, totalFare, currency);
+                }
+            }
         }
 
         fareCheckRulesResponse.setMiniRule(miniRule);
         fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
+        fareCheckRulesResponse.setRuleMap(benzyFareRuleList);
 
         return fareCheckRulesResponse;
 
