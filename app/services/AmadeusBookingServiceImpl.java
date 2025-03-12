@@ -403,31 +403,36 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pricingInfo.setSegmentWisePricing(false);
 			pnrResponse.setPricingInfo(pricingInfo);
 			pnrResponse.setPnrNumber(childPNR);
+			pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
 			Date lastPNRAddMultiElements = new Date();
 			PNRReply childGdsReply = readChildAirlinePNR(serviceHandler, childRetrive, lastPNRAddMultiElements, pnrResponse, amadeusSessionWrapper);
 			if (pnrResponse.getAirlinePNR() != null) {
 				try {
 					if (issuanceRequest.getCtSegmentDtoList() != null && !issuanceRequest.getCtSegmentDtoList().isEmpty()) {
-						Map<BigInteger, String> segmentMap = new HashMap<>();
-						for (CartAirSegmentDTO cartAirSegment : issuanceRequest.getCtSegmentDtoList()) {
-							for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
-								for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
-									ElementIdentificationType elementIdentificationType = new ElementIdentificationType();
-									String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
-									if (segType.equalsIgnoreCase("AIR")) {
-										BigInteger segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-										String segQualifier = itineraryInfo.getElementManagementItinerary().getReference().getQualifier();
-										if (segmentRef.equals(BigInteger.valueOf(cartAirSegment.getSequence()))) {
-											String boardCityCode = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode();
-											String offPointCityCode = itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
-											if (boardCityCode.equalsIgnoreCase(cartAirSegment.getFromLocation()) && offPointCityCode.equalsIgnoreCase(cartAirSegment.getToLocation())) {
-												segmentMap.put(segmentRef, segQualifier);
-											}
-										}
-									}
-								}
-							}
-						}
+
+
+//						Map<BigInteger, String> segmentMap = new HashMap<>();
+//						for (CartAirSegmentDTO cartAirSegment : issuanceRequest.getCtSegmentDtoList()) {
+//							for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
+//								for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
+//									ElementIdentificationType elementIdentificationType = new ElementIdentificationType();
+//									String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+//									if (segType.equalsIgnoreCase("AIR")) {
+//										BigInteger segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+//										String segQualifier = itineraryInfo.getElementManagementItinerary().getReference().getQualifier();
+//										if (segmentRef.equals(BigInteger.valueOf(cartAirSegment.getSequence()))) {
+//											String boardCityCode = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode();
+//											String offPointCityCode = itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+//											if (boardCityCode.equalsIgnoreCase(cartAirSegment.getFromLocation()) && offPointCityCode.equalsIgnoreCase(cartAirSegment.getToLocation())) {
+//												segmentMap.put(segmentRef, segQualifier);
+//											}
+//										}
+//									}
+//								}
+//							}
+//						}
+
+
 						if(type.equalsIgnoreCase(VOID_TICKET)) {
 							TicketCancelDocumentResponse  ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(),issuanceRequest.getTicketsList());
 							if(ticketCancelDocumentResponse.isSuccess()){
@@ -457,10 +462,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					if(!type.equalsIgnoreCase(REFUND_TICKET))
 					splitPNRResponse.setCancelPNRResponse(cancelPNRResponse);
 					serviceHandler.saveChildPNR("10", amadeusSessionWrapper);
-					if(!type.equalsIgnoreCase(REFUND_TICKET) && !type.equalsIgnoreCase(SPLIT_PNR)) {
+					/*if(!type.equalsIgnoreCase(REFUND_TICKET) && !type.equalsIgnoreCase(SPLIT_PNR)) {
 						FarePricePNRWithBookingClassReply pricePNRReply = null;
 						pricePNRReply = checkPNRPrice(issuanceRequest, tstRefNo, pricePNRReply, pnrResponse, amadeusSessionWrapper);
-					}
+					}*/
 
 				} catch (Exception ex) {
 					logger.error("error in cancelPNR : ", ex);
@@ -498,7 +503,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 			PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
 			if (!isFullPNR) {
-				pnrReply = serviceHandler.partialCancelPNR(pnr, pnrReply, segmentMap, amadeusSessionWrapper);
+				//pnrReply = serviceHandler.partialCancelPNR(pnr, pnrReply, segmentMap, amadeusSessionWrapper);
+				pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper, false);
+
 			} else {
 				logger.debug("Cancel full pnr called: " + pnr);
 				pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper, false);
@@ -580,7 +587,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		try {
 
 			PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
-			if (!isFullPNR) {
 				for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : pnrReply.getDataElementsMaster().getDataElementsIndiv()) {
 					logger.debug("dataElementsDiv.getElementManagementData().getSegmentName() called for PNR : " + dataElementsDiv.getElementManagementData().getSegmentName());
 					/*if ("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
@@ -603,11 +609,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						return cancelPNRResponse;
 					}*/
 				}
-				pnrReply = serviceHandler.cancelPNR(pnr, pnrReply, amadeusSessionWrapper);
-			} else {
-				logger.debug("Cancel full pnr called: " + pnr);
+				logger.debug("Cancel pnr called: " + pnr);
 				pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper, false);
-			}
 			com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 			PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
 
@@ -841,6 +844,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     airlinePnr =  itineraryInfo.getItineraryReservationInfo().getReservation().getControlNumber();
                 }
             }
+			logger.info("airlinePnr...."+airlinePnr);
             pnrResponse.setAirlinePNR(airlinePnr);
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(pnrReply));
 		}
