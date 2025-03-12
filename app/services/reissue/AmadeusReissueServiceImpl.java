@@ -230,32 +230,31 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
     @Override
     public PNRResponse confirmReIssue(ReIssueConfirmationRequest reIssueConfirmationRequest) {
 
-        ServiceHandler serviceHandler = null;
-        PNRResponse reIssuePNRResponse = null;
+        ServiceHandler serviceHandler;
+        PNRResponse reIssuePNRResponse = new PNRResponse();
 
         try {
 
             serviceHandler = new ServiceHandler();
-            FlightSearchOffice officeId = null;
+            FlightSearchOffice officeId = amadeusSourceOfficeService.getDelhiSourceOffice();
 
             //Dynamic Office ID here
 //            if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("BOMVS34C3")) {
 //                officeId = amadeusSourceOfficeService.getPrioritySourceOffice();
 //            } else if (reIssueConfirmationRequest.getOfficeId().equalsIgnoreCase("DELVS38LF")) {
-            officeId = amadeusSourceOfficeService.getDelhiSourceOffice();
+//            officeId = amadeusSourceOfficeService.getDelhiSourceOffice();
 //            }
-            String pnrToBeReIssued;
 
-            pnrToBeReIssued = reIssueConfirmationRequest.getOriginalGdsPnr();
+            reIssuePNRResponse.setPnrNumber(reIssueConfirmationRequest.getOriginalGdsPnr());
 
             //Splitting and generating a new PNR to be reissued here (Login And LogOut as the Ticket_RebookAndRepricePNR is stateful and needs a fresh session)
             if (reIssueConfirmationRequest.isToSplit()) {
-                pnrToBeReIssued = splitAndGetNewPnrToReissue(reIssueConfirmationRequest, officeId, serviceHandler);
+                reIssuePNRResponse.setPnrSplit(true);
+                reIssuePNRResponse = splitAndGetNewPnrToReissue(reIssueConfirmationRequest, officeId, reIssuePNRResponse, serviceHandler);
             }
 
             //Cancel, Rebook and reprice here and generate a new PNR Response
-            reIssuePNRResponse = reIssueBookingService.confirmReissue(pnrToBeReIssued, reIssueConfirmationRequest, officeId);
-
+            reIssuePNRResponse = reIssueBookingService.confirmReissue(reIssueConfirmationRequest, officeId, reIssuePNRResponse);
 
             return reIssuePNRResponse;
         } catch (Exception e) {
@@ -265,7 +264,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
     }
 
 
-    private static String splitAndGetNewPnrToReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, FlightSearchOffice officeId, ServiceHandler serviceHandler) {
+    private static PNRResponse splitAndGetNewPnrToReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, FlightSearchOffice officeId, PNRResponse reIssuePNRResponse, ServiceHandler serviceHandler) {
 
         String childPnr = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
@@ -277,7 +276,9 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
             serviceHandler.retrivePNR(reIssueConfirmationRequest.getOriginalGdsPnr(), amadeusSessionWrapper);
 
             //Splitting the PNR
-            serviceHandler.splitPNRForReissue(reIssueConfirmationRequest, amadeusSessionWrapper);
+            PNRReply splitPnrResponse = serviceHandler.splitPNRForReissue(reIssueConfirmationRequest, amadeusSessionWrapper);
+
+            //TODO: PNR split errors
 
             //Saving the Original Booking after the Split
             serviceHandler.saveChildPNR("14", amadeusSessionWrapper);
@@ -293,7 +294,9 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
                 }
             }
 
-            return childPnr;
+            reIssuePNRResponse.setPnrNumber(childPnr);
+            return  reIssuePNRResponse;
+
         } catch (Exception e) {
             logger.debug("Error Splitting the PNR : {} for Reissue \n {} ", reIssueConfirmationRequest.getOriginalGdsPnr(), e.getMessage(), e);
             return null;
