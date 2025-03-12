@@ -68,6 +68,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             AMATicketRebookAndRepricePNRRS ticketRebookAndRepricePNRRS = reIssueConfirmationHandler.rebookAndRepricePNR(reIssueConfirmationRequest, pnrToBeReissued, segmentWiseClassInfo, session);
 
 
+
             //Handling Reissue failures here
             AMATicketRebookAndRepricePNRRS.Failure rebookAndRepricePNRRSFailure = ticketRebookAndRepricePNRRS.getFailure();
             if (rebookAndRepricePNRRSFailure != null) {
@@ -103,7 +104,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
                 // Saving the PNR only if the reissue was successful without any warnings
                 serviceHandler.savePNR(session);
-
                 serviceHandler.logOut(session);
 
             }
@@ -313,6 +313,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
     //Creates PNR Response (Is this Needed?)
     private void createPNRResponseForReissuedPNR(PNRReply pnrReply, PNRResponse pnrResponse, AMATicketRebookAndRepricePNRRS.Success success) {
+
 
 
         pnrResponse.setPnrNumber(pnrReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
