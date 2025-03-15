@@ -78,7 +78,12 @@ public class AmadeusBookingHelper {
     	// TODO: re-factor
     	int adultCount = 0, childCount = 0, infantCount = 0;
 		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
-			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            PassengerTypeCode passengerType;
+            if(traveller.getPassportDetails() != null){
+			    passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            } else {
+                passengerType = PassengerTypeCode.ADT;
+            }
 			if (passengerType.equals(PassengerTypeCode.ADT) || passengerType.equals(PassengerTypeCode.SEA)) {
 				adultCount++;
 			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
