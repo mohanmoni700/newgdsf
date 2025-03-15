@@ -978,6 +978,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			isAddBooking = true;
 		}
 		pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, travellerMasterInfo.isSeamen() , isDomestic, travellerMasterInfo.getItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper,isAddBooking);
+
 		if(pricePNRReply.getApplicationError() != null) {
 			if(pricePNRReply.getApplicationError().getErrorOrWarningCodeDetails().getErrorDetails().getErrorCode().equalsIgnoreCase("0")
 					&& pricePNRReply.getApplicationError().getErrorOrWarningCodeDetails().getErrorDetails().getErrorCategory().equalsIgnoreCase("EC")) {
@@ -2102,6 +2103,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					pnrResponse.setAirlinePNR(airlinePnr);
 				}
 			}
+
+			// fetch generic fare rule
+			FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
+			pricePNRReply = checkPNRPricing(masterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
+			FareCheckRulesResponse fareInformativePricing = amadeusIssuanceService.getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
+			pnrResponse.setFareCheckRulesResponse(fareInformativePricing);
+
 			List<HashMap> miniRules = getMiniRuleFeeFromPNR(gdsPNR);
 			logger.debug("mini rules in getbooking details is "+Json.toJson(miniRules));
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
