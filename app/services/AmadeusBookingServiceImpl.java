@@ -57,6 +57,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.compassites.constants.StaticConstatnts.*;
 
@@ -1211,19 +1212,29 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					}
 				}
 
-				/* Benzy changes */
-				PNRReply gdsPNRReplyBenzy = null;
-				FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
-				pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
-				FareCheckRulesResponse fareInformativePricing = amadeusIssuanceService.getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
-				pnrResponse.setFareCheckRulesResponse(fareInformativePricing);
-				int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1	: getNumberOfTST(travellerMasterInfo.getTravellersList());
-				/**
-				 * isEkAndSeamen flag to check Emirates flight and Seamen booking
-				 * Price the PNR in Benzy if its EK-Seamen
-				 */
-				//gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-
+                /* Benzy changes */
+                PNRReply gdsPNRReplyBenzy = null;
+                FarePricePNRWithBookingClassReply pricePNRReplyBenzy = null;
+                pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
+                if(pricePNRReply.getApplicationError() == null){
+                    FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
+                    FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+                    Map<String, Map<String,List<String>>> fareRules = new ConcurrentHashMap<>();
+                    List<String> detailedFareRuleList = new ArrayList<>();
+                    if (fareCheckRulesReply.getErrorInfo() == null) {
+                        fareRules = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
+                        detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+                    }
+                    fareCheckRulesResponse.setRuleMap(fareRules);
+                    fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
+                    pnrResponse.setFareCheckRulesResponse(fareCheckRulesResponse);
+                }
+                int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1 : getNumberOfTST(travellerMasterInfo.getTravellersList());
+                /**
+                 * isEkAndSeamen flag to check Emirates flight and Seamen booking
+                 * Price the PNR in Benzy if its EK-Seamen
+                 */
+                //gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 				//gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
 				//gdsPNRReply = serviceHandler.retrivePNR(travellerMasterInfo.getAdditionalInfo().getOriginalPNR(),amadeusSessionWrapper);
 				if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
@@ -1260,81 +1271,89 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
 						gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
 
-						if (!gdsPNRReplyBenzy.getGeneralErrorInfo().isEmpty()) {
-							List<PNRReply.GeneralErrorInfo> generalErrorInfos = gdsPNRReplyBenzy.getGeneralErrorInfo();
-							for (PNRReply.GeneralErrorInfo generalErrorInfo : generalErrorInfos) {
-								String textMsg = generalErrorInfo.getMessageErrorText().getText().get(0).trim();
-								if (textMsg.equals("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")) {
-									error = Boolean.TRUE;
-								}
-							}
-						}
-					}
-					if(error){
-						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
-						serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
-						serviceHandler.logOut(benzyAmadeusSessionWrapper);
-						gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-						benzyAmadeusSessionWrapper= serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-						try {
-							serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
-						}catch(Exception ex){
-							ex.printStackTrace();
-							if(ex != null && ex.getMessage() != null &&  ex.getMessage().toString().contains("IGNORE")) {
-								gdsPNRReply =   serviceHandler.ignoreAndRetrievePNR(benzyAmadeusSessionWrapper);
-							}
-						}
-						//serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
-						pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
-						createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
-						setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
-						gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
-					}
-					if(pnrResponse.getPricingInfo() != null)
-					pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
-					FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
-					try{
-						Map<String,Map> benzyFareRulesMap = null;
-						if(fareCheckRulesReply.getErrorInfo() == null)
-						 benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+                        if (!gdsPNRReplyBenzy.getGeneralErrorInfo().isEmpty()) {
+                            List<PNRReply.GeneralErrorInfo> generalErrorInfos = gdsPNRReplyBenzy.getGeneralErrorInfo();
+                            for (PNRReply.GeneralErrorInfo generalErrorInfo : generalErrorInfos) {
+                                String textMsg = generalErrorInfo.getMessageErrorText().getText().get(0).trim();
+                                if (textMsg.equals("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")) {
+                                    error = Boolean.TRUE;
+                                }
+                            }
+                        }
+                    }
+                    if (error) {
+                        PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
+                        serviceHandler.exitESPnr(pnrCancel, amadeusSessionWrapper);
+                        serviceHandler.logOut(benzyAmadeusSessionWrapper);
+                        gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+                        benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+                        try {
+                            serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            if (ex != null && ex.getMessage() != null && ex.getMessage().toString().contains("IGNORE")) {
+                                gdsPNRReply = serviceHandler.ignoreAndRetrievePNR(benzyAmadeusSessionWrapper);
+                            }
+                        }
+                        //serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
+                        pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
+                        createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
+                        setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
+                        gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
+                    }
+                    FareCheckRulesReply fareCheckRulesReply = null;
+                    if (pnrResponse.getPricingInfo() != null) {
+                        pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
+                        fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
+                    }
+                    FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
+                    try {
+                        Map<String, Map<String,List<String>>> fareRules = new ConcurrentHashMap<>();
+                        List<String> detailedFareRuleList = new ArrayList<>();
+                        if (fareCheckRulesReply.getErrorInfo() == null) {
+                            fareRules = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
+                            detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+                        }
+                        fareCheckRulesResponse.setRuleMap(fareRules);
+                        fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
+                        pnrResponse.setFareCheckRulesResponse(fareCheckRulesResponse);
 
-						pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
-						PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
-						serviceHandler.exitESPnr(pnrCancel,amadeusSessionWrapper);
-						serviceHandler.savePNR(amadeusSessionWrapper);
-						if(pnrResponse.getErrorMessage() == null)
-						pnrResponse.setPnrNumber(tstRefNo);
-						Thread.sleep(10000);
-					}catch (Exception e){
-						throw new Exception();
-					}
-				} else {
-					setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
-					String benzyOfficeId = amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString();
-					if(travellerMasterInfo.getSearchSelectOfficeId().equalsIgnoreCase(benzyOfficeId)) {
-						boolean seamen = travellerMasterInfo.isSeamen();
-						List<HashMap> miniRule = new ArrayList<>();
-						FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
-						try {
-							AmadeusSessionWrapper benzyamadeusSessionWrapper = serviceHandler.logIn(benzyOfficeId);
-						List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
-						List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-						FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, 1, 0, 0, paxFareDetailsList, amadeusSessionWrapper);
-						if(reply.getErrorGroup() != null){
-							amadeusLogger.debug("Not able to fetch FareInformativePricingWithoutPNRReply: "+ reply.getErrorGroup().getErrorWarningDescription().getFreeText() );
-						}else {
-							String fare = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getAmount();
-							BigDecimal totalFare = new BigDecimal(fare);
-							String currency = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getCurrency();
-							FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-							try{
-								Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
-								pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
-								pnrResponse.getPricingInfo().setPricingOfficeId(benzyOfficeId);
-							}catch (Exception e){
-								amadeusLogger.debug("An exception while fetching the fareCheckRules:"+ e.getMessage());
-							}
-						}
+                        PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
+                        serviceHandler.exitESPnr(pnrCancel, amadeusSessionWrapper);
+                        serviceHandler.savePNR(amadeusSessionWrapper);
+                        if (pnrResponse.getErrorMessage() == null)
+                            pnrResponse.setPnrNumber(tstRefNo);
+                        Thread.sleep(10000);
+                    } catch (Exception e) {
+                        throw new Exception();
+                    }
+                } else {
+                    setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
+                    String benzyOfficeId = amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString();
+                    if (travellerMasterInfo.getSearchSelectOfficeId().equalsIgnoreCase(benzyOfficeId)) {
+                        boolean seamen = travellerMasterInfo.isSeamen();
+                        List<HashMap> miniRule = new ArrayList<>();
+                        FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+                        try {
+                            AmadeusSessionWrapper benzyamadeusSessionWrapper = serviceHandler.logIn(benzyOfficeId);
+                            List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+                            List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
+                            FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, 1, 0, 0, paxFareDetailsList, amadeusSessionWrapper);
+                            if (reply.getErrorGroup() != null) {
+                                amadeusLogger.debug("Not able to fetch FareInformativePricingWithoutPNRReply: " + reply.getErrorGroup().getErrorWarningDescription().getFreeText());
+                            } else {
+                                String fare = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getAmount();
+                                BigDecimal totalFare = new BigDecimal(fare);
+                                String currency = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getCurrency();
+                                FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+                                try {
+                                    Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
+                                    pnrResponse.setBenzyFareRuleMap(benzyFareRulesMap);
+                                    pnrResponse.getPricingInfo().setPricingOfficeId(benzyOfficeId);
+                                } catch (Exception e) {
+                                    amadeusLogger.debug("An exception while fetching the fareCheckRules:" + e.getMessage());
+                                }
+                            }
 
 						} catch (Exception e) {
 							amadeusLogger.debug("An exception while fetching the genericfareRule:"+ e.getMessage());
