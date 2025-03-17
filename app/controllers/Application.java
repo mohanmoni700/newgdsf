@@ -165,9 +165,7 @@ public class Application {
             headers.put("ContractVersion", Collections.singletonList("452"));
             headers.put("EnableExceptionStackTrace", Collections.singletonList("true"));
             ((BindingProvider) port).getRequestContext().put(MessageContext.HTTP_REQUEST_HEADERS, headers);
-            /*List<Handler> handlerChain = new ArrayList<>();
-            handlerChain.add(new NamespaceFixHandler());
-            ((BindingProvider) port).getBinding().setHandlerChain(handlerChain);*/
+
 
             ObjectFactory factory = new ObjectFactory();
             com.navitaire.schemas.webservices.servicecontracts.sessionservice.ObjectFactory factory1 = new com.navitaire.schemas.webservices.servicecontracts.sessionservice.ObjectFactory();
@@ -185,10 +183,6 @@ public class Application {
             requestData.setClientName(factory.createLogonRequestDataClientName(null));
             logonRequest.setLogonRequestData(factory1.createLogonRequestLogonRequestData(requestData));
 
-
-
-            //indigoLogger.debug("Indigo Session Req " + new Date() + " ---->" + convertToSoapXml(factory1));
-            // Invoke the Service
             LogonResponse logonResponse = port.logon(logonRequest, 452, true);
 
             return ok(Json.toJson(logonResponse.getSignature().getValue()));

@@ -54,7 +54,7 @@ public class SessionHandler {
                     new AddressingFeature(true), // Enables WS-Addressing
                     new MTOMFeature(false)        // Enables MTOM
             };
-            iSessionManager = service.getBasicHttpBindingISessionManager(features);
+            iSessionManager = service.getBasicHttpBindingISessionManager();
             ((BindingProvider) iSessionManager).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endPoint);
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,11 +74,11 @@ public class SessionHandler {
             logonRequest.setLogonRequestData(factory1.createLogonRequestLogonRequestData(requestData));
             indigoLogger.debug("Indigo Session Req " + new Date() +" ---->" + convertToSoapXml(logonRequest));
             logonResponse = this.iSessionManager.logon(logonRequest, Indigo.contractVersion, false);
+            indigoLogger.debug("Indigo Session Response " + new Date() +" ---->" + convertToSoapXml(logonResponse));
             if(logonResponse.getSignature().getValue()!=null) {
                 redisTemplate.opsForValue().set(Indigo.sessionValidity, logonResponse.getSignature().getValue());
                 redisTemplate.expire(Indigo.sessionValidity, CacheConstants.INDIGO_CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
             }
-            indigoLogger.debug("Indigo Session Response " + new Date() +" ---->" + new XStream().toXML(logonResponse));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,16 +86,16 @@ public class SessionHandler {
     }
 
     public String convertToSoapXml(Object object) throws JAXBException {
-        // Marshal the Java object to XML
-        JAXBContext jaxbContext = JAXBContext.newInstance(Object.class);
+        if (object == null) {
+            throw new IllegalArgumentException("Object to convert cannot be null");
+        }
+        JAXBContext jaxbContext = JAXBContext.newInstance(object.getClass());
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 
         StringWriter xmlWriter = new StringWriter();
         marshaller.marshal(object, xmlWriter);
-        String bodyXml = xmlWriter.toString();
-
-        return bodyXml;
+        return xmlWriter.toString();
     }
 
 }
