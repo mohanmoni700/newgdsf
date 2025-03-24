@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.traveller.Traveller;
+import dto.reissue.AmadeusPaxRefAndTicket;
 import models.CartAirSegmentDTO;
 
 import java.io.Serializable;
@@ -56,6 +57,16 @@ public class IssuanceRequest implements Serializable{
     private List<String> ticketsList;
 
     private boolean addBooking;
+
+    private List<AmadeusPaxRefAndTicket> amadeusPaxRefAndTicketList;
+
+    public List<AmadeusPaxRefAndTicket> getAmadeusPaxRefAndTicketList() {
+        return amadeusPaxRefAndTicketList;
+    }
+
+    public void setAmadeusPaxRefAndTicketList(List<AmadeusPaxRefAndTicket> amadeusPaxRefAndTicketList) {
+        this.amadeusPaxRefAndTicketList = amadeusPaxRefAndTicketList;
+    }
 
     public boolean getAddBooking() {
         return addBooking;
