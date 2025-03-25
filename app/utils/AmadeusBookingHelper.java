@@ -78,7 +78,12 @@ public class AmadeusBookingHelper {
     	// TODO: re-factor
     	int adultCount = 0, childCount = 0, infantCount = 0;
 		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
-			PassengerTypeCode passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            PassengerTypeCode passengerType;
+            if(traveller.getPassportDetails() != null){
+			    passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            } else {
+                passengerType = PassengerTypeCode.ADT;
+            }
 			if (passengerType.equals(PassengerTypeCode.ADT) || passengerType.equals(PassengerTypeCode.SEA)) {
 				adultCount++;
 			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
@@ -760,10 +765,16 @@ public class AmadeusBookingHelper {
                     airSegmentInformation.setToLocation(toLoc);
                     airSegmentInformation.setBookingClass(itineraryInfo.getTravelProduct() != null ? itineraryInfo.getTravelProduct().getProductDetails().getClassOfService() : "");
                     airSegmentInformation.setCabinClass(itineraryInfo.getCabinDetails() != null ? itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator() : "");
-                    Airport fromAirport = Airport
-                            .getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
-                    Airport toAirport = Airport.getAirport(airSegmentInformation
-                            .getToLocation(), redisTemplate);
+
+                    Airport fromAirport;
+                    Airport toAirport;
+                    if (redisTemplate == null) {
+                        fromAirport = Airport.getAirportByIataCode(airSegmentInformation.getFromLocation());
+                        toAirport = Airport.getAirportByIataCode(airSegmentInformation.getToLocation());
+                    } else {
+                        fromAirport = Airport.getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
+                        toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
+                    }
 
                     SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
                     String DATE_FORMAT = "ddMMyyHHmm";
@@ -817,9 +828,15 @@ public class AmadeusBookingHelper {
                                 .getFlightDetail().getArrivalStationInfo().getTerminal());
                     }
                     airSegmentInformation.setCarrierCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification());
-                    airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification(), redisTemplate));
-                    airSegmentInformation.setFromAirport(Airport.getAirport(fromLoc, redisTemplate));
-                    airSegmentInformation.setToAirport(Airport.getAirport(toLoc, redisTemplate));
+                    if (redisTemplate == null) {
+                        airSegmentInformation.setFromAirport(Airport.getAirportByIataCode(fromLoc));
+                        airSegmentInformation.setToAirport(Airport.getAirportByIataCode(toLoc));
+                        airSegmentInformation.setAirline(Airline.getAirlineByIataCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification()));
+                    } else {
+                        airSegmentInformation.setFromAirport(Airport.getAirport(fromLoc, redisTemplate));
+                        airSegmentInformation.setToAirport(Airport.getAirport(toLoc, redisTemplate));
+                        airSegmentInformation.setAirline(Airline.getAirlineByCode(itineraryInfo.getTravelProduct().getCompanyDetail().getIdentification(), redisTemplate));
+                    }
                     String responseEquipment = itineraryInfo.getFlightDetail()
                             .getProductDetails().getEquipment();
                     if (responseEquipment != null) {
