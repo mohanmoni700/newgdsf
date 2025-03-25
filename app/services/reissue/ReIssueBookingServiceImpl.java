@@ -1,3 +1,4 @@
+
 package services.reissue;
 
 import com.amadeus.xml._2010._06.fareinternaltypes_v2.PricingRecordType;
@@ -64,9 +65,9 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             //Getting SegmentWiseClassInfo
             PAXFareDetails paxFareDetailsForSegmentInfo = reIssueConfirmationRequest.getNewTravellerMasterInfo().getItinerary().getReIssuePricingInformation().getPaxWisePricing().get(0).getPaxFareDetails();
             List<String> segmentWiseClassInfo = getBookingClassForSegmentsToBeReissued(paxFareDetailsForSegmentInfo);
+          
 
             AMATicketRebookAndRepricePNRRS ticketRebookAndRepricePNRRS = reIssueConfirmationHandler.rebookAndRepricePNR(reIssueConfirmationRequest, pnrToBeReissued, segmentWiseClassInfo, session);
-
 
 
             //Handling Reissue failures here
@@ -116,7 +117,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
         } catch (Exception e) {
             logger.debug("Error when trying to book the flight for reissue {}", e.getMessage(), e);
-        }
+        } 
 
         return null;
     }
@@ -313,6 +314,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
     //Creates PNR Response (Is this Needed?)
     private void createPNRResponseForReissuedPNR(PNRReply pnrReply, PNRResponse pnrResponse, AMATicketRebookAndRepricePNRRS.Success success) {
+
 
 
 
