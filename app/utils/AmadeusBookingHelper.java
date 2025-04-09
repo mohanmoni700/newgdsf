@@ -1,12 +1,10 @@
 package utils;
 
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
-import com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_11_3_1a.*;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
-import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType111975C;
-import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType127526C;
+import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.BaggageDetailsTypeI;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
@@ -46,10 +44,10 @@ public class AmadeusBookingHelper {
 
     private static final String AIR_SEGMENT_QUALIFIER = "AIR";
 
-    public static List<TaxDetails> getTaxDetails(FarePricePNRWithBookingClassReply pricePNRReply){
+    public static List<TaxDetails> getTaxDetails(FarePricePNRWithBookingClassReply pricePNRReply) {
         List<TaxDetails> taxDetailsList = new ArrayList<>();
-        for(FarePricePNRWithBookingClassReply.FareList fareList : pricePNRReply.getFareList()){
-            for(FarePricePNRWithBookingClassReply.FareList.TaxInformation taxInformation :fareList.getTaxInformation()){
+        for (FarePricePNRWithBookingClassReply.FareList fareList : pricePNRReply.getFareList()) {
+            for (FarePricePNRWithBookingClassReply.FareList.TaxInformation taxInformation : fareList.getTaxInformation()) {
                 TaxDetails taxDetails = new TaxDetails();
                 taxDetails.setTaxCode(taxInformation.getTaxDetails().getTaxType().getIsoCountry());
                 taxDetails.setTaxAmount(new BigDecimal(taxInformation.getAmountDetails().getFareDataMainInformation().getFareAmount()));
@@ -59,12 +57,12 @@ public class AmadeusBookingHelper {
         return taxDetailsList;
     }
 
-    public static boolean validateFlightAvailability(AirSellFromRecommendationReply sellFromRecommendation,String amadeusFlightAvailibilityCode){
+    public static boolean validateFlightAvailability(AirSellFromRecommendationReply sellFromRecommendation, String amadeusFlightAvailibilityCode) {
         boolean errors = true;
-        for (AirSellFromRecommendationReply.ItineraryDetails itinerary : sellFromRecommendation.getItineraryDetails()){
-            for(AirSellFromRecommendationReply.ItineraryDetails.SegmentInformation segmentInformation : itinerary.getSegmentInformation()){
-                for(String statusCode : segmentInformation.getActionDetails().getStatusCode()){
-                    if(!amadeusFlightAvailibilityCode.equals(statusCode)){
+        for (AirSellFromRecommendationReply.ItineraryDetails itinerary : sellFromRecommendation.getItineraryDetails()) {
+            for (AirSellFromRecommendationReply.ItineraryDetails.SegmentInformation segmentInformation : itinerary.getSegmentInformation()) {
+                for (String statusCode : segmentInformation.getActionDetails().getStatusCode()) {
+                    if (!amadeusFlightAvailibilityCode.equals(statusCode)) {
                         errors = false;
                     }
                 }
@@ -73,33 +71,33 @@ public class AmadeusBookingHelper {
         return errors;
     }
 
-    public static void checkFare(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo){
+    public static void checkFare(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
 
-    	// TODO: re-factor
-    	int adultCount = 0, childCount = 0, infantCount = 0;
-		for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
+        // TODO: re-factor
+        int adultCount = 0, childCount = 0, infantCount = 0;
+        for (Traveller traveller : travellerMasterInfo.getTravellersList()) {
             PassengerTypeCode passengerType;
-            if(traveller.getPassportDetails() != null){
-			    passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
+            if (traveller.getPassportDetails() != null) {
+                passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
             } else {
                 passengerType = PassengerTypeCode.ADT;
             }
-			if (passengerType.equals(PassengerTypeCode.ADT) || passengerType.equals(PassengerTypeCode.SEA)) {
-				adultCount++;
-			} else if (passengerType.equals(PassengerTypeCode.CHD)) {
-				childCount++;
-			} else {
-				infantCount++;
-			}
-		}
-		BigDecimal totalFare = new BigDecimal(0);
-		BigDecimal baseFare = new BigDecimal(0);
+            if (passengerType.equals(PassengerTypeCode.ADT) || passengerType.equals(PassengerTypeCode.SEA)) {
+                adultCount++;
+            } else if (passengerType.equals(PassengerTypeCode.CHD)) {
+                childCount++;
+            } else {
+                infantCount++;
+            }
+        }
+        BigDecimal totalFare = new BigDecimal(0);
+        BigDecimal baseFare = new BigDecimal(0);
         int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1
                 : AmadeusBookingHelper.getNumberOfTST(travellerMasterInfo.getTravellersList());
         List<FarePricePNRWithBookingClassReply.FareList> fareList = new ArrayList<>();
-        if(pricePNRReply.getFareList().size() != numberOfTst){
+        if (pricePNRReply.getFareList().size() != numberOfTst) {
             fareList = pricePNRReply.getFareList().subList(0, numberOfTst);
-        }else {
+        } else {
             fareList = pricePNRReply.getFareList();
         }
         PricingInformation pricingInformation = getPricingInfo(fareList, adultCount, childCount, infantCount);
@@ -109,7 +107,7 @@ public class AmadeusBookingHelper {
         pnrResponse.setPricingInfo(pricingInformation);
 
         BigDecimal searchPrice = new BigDecimal(0);
-        if(travellerMasterInfo.isSeamen()) {
+        if (travellerMasterInfo.isSeamen()) {
             searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
         } else {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
@@ -122,7 +120,7 @@ public class AmadeusBookingHelper {
         }
 
         logger.debug("Total price before comparing :" + searchPrice + " changed Price : " + totalFare);
-        if(totalFare.compareTo(searchPrice) == 0) {
+        if (totalFare.compareTo(searchPrice) == 0) {
             logger.debug("inside comparison 1111111111111111");
             pnrResponse.setPriceChanged(false);
             return;
@@ -136,7 +134,7 @@ public class AmadeusBookingHelper {
     }
 
 
-    public static AmadeusPaxInformation extractPassengerData(PNRReply.TravellerInfo travellerInfo){
+    public static AmadeusPaxInformation extractPassengerData(PNRReply.TravellerInfo travellerInfo) {
 
         AmadeusPaxInformation amadeusPaxInformation = new AmadeusPaxInformation();
 
@@ -169,24 +167,24 @@ public class AmadeusBookingHelper {
         }
 
         for (String name : names) {
-            if (!name.equalsIgnoreCase(salutation) && !name.equalsIgnoreCase(firstName)){
+            if (!name.equalsIgnoreCase(salutation) && !name.equalsIgnoreCase(firstName)) {
                 fullName += name;
             }
         }
 
-        fullName+=lastName;
+        fullName += lastName;
 
         amadeusPaxInformation.setSalutation(salutation);
         amadeusPaxInformation.setFirstName(firstName);
         amadeusPaxInformation.setLastName(lastName);
-        amadeusPaxInformation.setFullName(fullName.replace(" ",""));
+        amadeusPaxInformation.setFullName(fullName.replace(" ", ""));
         amadeusPaxInformation.setPaxRef(referenceNumber);
         amadeusPaxInformation.setLineNumber(lineNumber);
 
         return amadeusPaxInformation;
     }
 
-    public static boolean createOfflineTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){
+    public static boolean createOfflineTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply) {
         int ticketsCount = 0;
         Map<String, Object> airSegmentRefMap = new HashMap<>();
         Map<String, Object> travellerMap = new HashMap<>();
@@ -197,7 +195,7 @@ public class AmadeusBookingHelper {
         Object[] travelArray = null;
         for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
             for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
-                if(AIR_SEGMENT_QUALIFIER.equalsIgnoreCase(itineraryInfo.getElementManagementItinerary().getSegmentName())) {
+                if (AIR_SEGMENT_QUALIFIER.equalsIgnoreCase(itineraryInfo.getElementManagementItinerary().getSegmentName())) {
                     String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier() + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
                     airSegmentRefMap.put(segmentRef, itineraryInfo);
                     segmentSequenceMap.put(segmentRef, segmentSequence + "");
@@ -341,7 +339,7 @@ public class AmadeusBookingHelper {
                         //if(segmentRefList.size() != 0) {
                         for (String segmentRef : segmentRefList) {
                             PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo) airSegmentRefMap.get(segmentRef);
-                            if(Objects.nonNull(itineraryInfo.getTravelProduct()) && Objects.nonNull(itineraryInfo.getTravelProduct().getBoardpointDetail())
+                            if (Objects.nonNull(itineraryInfo.getTravelProduct()) && Objects.nonNull(itineraryInfo.getTravelProduct().getBoardpointDetail())
                                     && Objects.nonNull(itineraryInfo.getTravelProduct().getOffpointDetail())) {
                                 String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() +
                                         itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
@@ -380,37 +378,37 @@ public class AmadeusBookingHelper {
         return false;
     }
 
-    public static boolean createOfflineTicketsinFHE(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){
+    public static boolean createOfflineTicketsinFHE(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply) {
         int ticketsCount = 0;
-        Map<String,Object> airSegmentRefMap = new HashMap<>();
-        Map<String,Object> travellerMap = new HashMap<>();
+        Map<String, Object> airSegmentRefMap = new HashMap<>();
+        Map<String, Object> travellerMap = new HashMap<>();
         Map<String, String> segmentSequenceMap = new HashMap<>();
         int segmentSequence = 1;
         //String segmentRef = "";
         String key1 = "";
         Object[] travelArray = null;
-        for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
-            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-                if(AIR_SEGMENT_QUALIFIER.equalsIgnoreCase(itineraryInfo.getElementManagementItinerary().getSegmentName())){
-                    String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-                    airSegmentRefMap.put(segmentRef,itineraryInfo);
-                    segmentSequenceMap.put(segmentRef, segmentSequence+"");
+        for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
+            for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
+                if (AIR_SEGMENT_QUALIFIER.equalsIgnoreCase(itineraryInfo.getElementManagementItinerary().getSegmentName())) {
+                    String segmentRef = itineraryInfo.getElementManagementItinerary().getReference().getQualifier() + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                    airSegmentRefMap.put(segmentRef, itineraryInfo);
+                    segmentSequenceMap.put(segmentRef, segmentSequence + "");
                     segmentSequence++;
                 }
             }
         }
-        for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+        for (PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()) {
             key1 = travellerInfo.getElementManagementPassenger().getReference().getQualifier() + travellerInfo.getElementManagementPassenger().getReference().getNumber();
-            travellerMap.put(key1,travellerInfo);
+            travellerMap.put(key1, travellerInfo);
         }
-        for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv :gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()){
-            if("FHE".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
+        for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
+            if ("FHE".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
                 String passengerRef = "";
                 List<String> segmentRefList = new ArrayList<>();
                 String travellerKey = "";
                 // int count = dataElementsDiv.getReferenceForDataElement().getReference().size();
 
-                if(dataElementsDiv.getReferenceForDataElement() != null){
+                if (dataElementsDiv.getReferenceForDataElement() != null) {
                     for (ReferencingDetailsType111975C reference : dataElementsDiv.getReferenceForDataElement().getReference()) {
                         travellerKey = reference.getQualifier() + reference.getNumber();
                         if (travellerMap.containsKey(travellerKey)) {
@@ -425,39 +423,38 @@ public class AmadeusBookingHelper {
                 }
                 PNRReply.TravellerInfo traveller = null;
                 // Fix for one way multi tst ticket not getting uploaded
-                if(passengerRef.isEmpty())
-                {
+                if (passengerRef.isEmpty()) {
                     travelArray = (Object[]) travellerMap.keySet().toArray();
-                    for(int i=0;i<travelArray.length;i++) {
+                    for (int i = 0; i < travelArray.length; i++) {
                         passengerRef = (String) travelArray[i];
                     }
                 }
-                traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
+                traveller = (PNRReply.TravellerInfo) travellerMap.get(passengerRef);
 
                 String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
                 String name1 = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
                 String[] names = name1.split("\\s");
                 String fstName = "";
-                for(int i=0;i<names.length-1;i++){
-                    fstName = fstName+" "+names[i];
+                for (int i = 0; i < names.length - 1; i++) {
+                    fstName = fstName + " " + names[i];
                 }
                 String name = fstName.trim();
                 String ticketText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
-                String infantIndicator = ticketText.substring(0,3);
+                String infantIndicator = ticketText.substring(0, 3);
 
                 //checking for infant passenger associated to adult
-                if("inf".equalsIgnoreCase(infantIndicator)){
+                if ("inf".equalsIgnoreCase(infantIndicator)) {
                     //passenger association when booked from online system
-                    if(traveller.getPassengerData().size() > 1){
+                    if (traveller.getPassengerData().size() > 1) {
                         String type = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getType();
-                        if("inf".equalsIgnoreCase(type)){
+                        if ("inf".equalsIgnoreCase(type)) {
                             lastName = traveller.getPassengerData().get(1).getTravellerInformation().getTraveller().getSurname();
                             name = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getFirstName();
                         }
                         //passenger association when booked from offline system
-                    }else if(traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().size() > 1){
+                    } else if (traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().size() > 1) {
                         String type = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getType();
-                        if("inf".equalsIgnoreCase(type)){
+                        if ("inf".equalsIgnoreCase(type)) {
                             lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
                             name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getFirstName();
                         }
@@ -470,14 +467,14 @@ public class AmadeusBookingHelper {
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
 
                 name = name.replaceAll("\\s+", "");
-                int len = names.length-1;
-                if(!"inf".equalsIgnoreCase(infantIndicator)) {
+                int len = names.length - 1;
+                if (!"inf".equalsIgnoreCase(infantIndicator)) {
                     if (name.equalsIgnoreCase("FNU")) {
                         name = names[len];
                     } else {
-                        String salutatio="";
-                        if("Ms".equalsIgnoreCase(names[len])){
-                            salutatio="Mrs";
+                        String salutatio = "";
+                        if ("Ms".equalsIgnoreCase(names[len])) {
+                            salutatio = "Mrs";
                         } else {
                             salutatio = names[len];
                         }
@@ -485,36 +482,37 @@ public class AmadeusBookingHelper {
                     }
                 }
                 lastName = lastName.replaceAll("\\s+", "");
-                if(lastName.equalsIgnoreCase("LNU")){
-                    lastName="";
+                if (lastName.equalsIgnoreCase("LNU")) {
+                    lastName = "";
                 }
 
-                for(Traveller traveller1 : issuanceRequest.getTravellerList()){
+                for (Traveller traveller1 : issuanceRequest.getTravellerList()) {
                     String contactName = "";
-                    if(traveller1.getPersonalDetails().getMiddleName() != null){
+                    if (traveller1.getPersonalDetails().getMiddleName() != null) {
                         contactName = traveller1.getPersonalDetails().getFirstName() + traveller1.getPersonalDetails().getMiddleName();
 
-                    }else {
+                    } else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
                     }
-                    String salutation = traveller1.getPersonalDetails().getSalutation();;
+                    String salutation = traveller1.getPersonalDetails().getSalutation();
+                    ;
                     /*if("master".equalsIgnoreCase(traveller1.getPersonalDetails().getSalutation())){
                         salutation = "MSTR";
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
                     }*/
-                    if("Ms".equalsIgnoreCase(salutation)){
-                        salutation="Mrs";
+                    if ("Ms".equalsIgnoreCase(salutation)) {
+                        salutation = "Mrs";
                     }
-                    contactName = contactName +salutation;
+                    contactName = contactName + salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
-                    contactLastName  = contactLastName.replaceAll("\\s+", "");
-                    if(name.equalsIgnoreCase(contactName)
-                            && lastName.equalsIgnoreCase(contactLastName)){
+                    contactLastName = contactLastName.replaceAll("\\s+", "");
+                    if (name.equalsIgnoreCase(contactName)
+                            && lastName.equalsIgnoreCase(contactLastName)) {
                         String freeText = "";
-                        if("inf".equalsIgnoreCase(infantIndicator)) {
-                            if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
+                        if ("inf".equalsIgnoreCase(infantIndicator)) {
+                            if (dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1) {
                                 String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("F", 3);
                                 freeText = freeText1[1];
                             } else {
@@ -525,17 +523,17 @@ public class AmadeusBookingHelper {
                         }
                         String[] freeTextArr = freeText.split("/");
                         String ticketNumber = freeTextArr[0].trim();
-                        Map<String,String> ticketMap;
-                        if(traveller1.getTicketNumberMap() != null){
+                        Map<String, String> ticketMap;
+                        if (traveller1.getTicketNumberMap() != null) {
                             ticketMap = traveller1.getTicketNumberMap();
-                        }else {
+                        } else {
                             ticketMap = new HashMap<>();
                         }
                         //if(segmentRefList.size() != 0) {
                         for (String segmentRef : segmentRefList) {
                             PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo) airSegmentRefMap.get(segmentRef);
-                            if(Objects.nonNull(itineraryInfo.getTravelProduct()) && Objects.nonNull(itineraryInfo.getTravelProduct().getBoardpointDetail())
-                                && Objects.nonNull(itineraryInfo.getTravelProduct().getOffpointDetail())) {
+                            if (Objects.nonNull(itineraryInfo.getTravelProduct()) && Objects.nonNull(itineraryInfo.getTravelProduct().getBoardpointDetail())
+                                    && Objects.nonNull(itineraryInfo.getTravelProduct().getOffpointDetail())) {
                                 String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() +
                                         itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
                                         + segmentSequenceMap.get(segmentRef);
@@ -559,77 +557,77 @@ public class AmadeusBookingHelper {
             }
         }
         int passengerCount = 0;
-        if(issuanceRequest.isSeamen()){
+        if (issuanceRequest.isSeamen()) {
             passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount() + issuanceRequest.getInfantCount();
 
-        }else {
+        } else {
             passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount();
         }
         logger.debug("ticketCount : " + ticketsCount + " passengerCount " + passengerCount);
-        if(ticketsCount >= passengerCount){
+        if (ticketsCount >= passengerCount) {
             return true;
         }
 
         return false;
     }
 
-    public static boolean createTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply){
+    public static boolean createTickets(IssuanceResponse issuanceResponse, IssuanceRequest issuanceRequest, PNRReply gdsPNRReply) {
         int ticketsCount = 0;
-        Map<String,Object> airSegmentRefMap = new HashMap<>();
-        Map<String,Object> travellerMap = new HashMap<>();
+        Map<String, Object> airSegmentRefMap = new HashMap<>();
+        Map<String, Object> travellerMap = new HashMap<>();
         Map<String, String> segmentSequenceMap = new HashMap<>();
         int segmentSequence = 1;
-        for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
-            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
-                String segmentRef1 = itineraryInfo.getElementManagementItinerary().getReference().getQualifier()+itineraryInfo.getElementManagementItinerary().getReference().getNumber();
-                airSegmentRefMap.put(segmentRef1,itineraryInfo);
-                segmentSequenceMap.put(segmentRef1, segmentSequence+"");
+        for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
+            for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
+                String segmentRef1 = itineraryInfo.getElementManagementItinerary().getReference().getQualifier() + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
+                airSegmentRefMap.put(segmentRef1, itineraryInfo);
+                segmentSequenceMap.put(segmentRef1, segmentSequence + "");
                 segmentSequence++;
             }
         }
-        for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+        for (PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()) {
             String key = travellerInfo.getElementManagementPassenger().getReference().getQualifier() + travellerInfo.getElementManagementPassenger().getReference().getNumber();
-            travellerMap.put(key,travellerInfo);
+            travellerMap.put(key, travellerInfo);
         }
-        for(PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv :gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()){
-            if("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())){
+        for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
+            if ("FA".equals(dataElementsDiv.getElementManagementData().getSegmentName())) {
                 String passengerRef = "";
                 List<String> segmentRefList1 = new ArrayList<>();
                 String travellerKey = "";
-                for(ReferencingDetailsType111975C reference :dataElementsDiv.getReferenceForDataElement().getReference()){
-                    travellerKey = reference.getQualifier()+ reference.getNumber();
-                    if(travellerMap.containsKey(travellerKey)){
+                for (ReferencingDetailsType111975C reference : dataElementsDiv.getReferenceForDataElement().getReference()) {
+                    travellerKey = reference.getQualifier() + reference.getNumber();
+                    if (travellerMap.containsKey(travellerKey)) {
                         passengerRef = travellerKey;
-                    }else {
+                    } else {
                         segmentRefList1.add(travellerKey);
                     }
                 }
-                PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo)travellerMap.get(passengerRef);
+                PNRReply.TravellerInfo traveller = (PNRReply.TravellerInfo) travellerMap.get(passengerRef);
                 String lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
                 String name1 = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getFirstName();
                 String[] names = name1.split("\\s");
                 String fstName = "";
-                for(int i=0;i<names.length-1;i++){
-                    fstName = fstName+" "+names[i];
+                for (int i = 0; i < names.length - 1; i++) {
+                    fstName = fstName + " " + names[i];
                 }
                 String name = fstName.trim();
 
                 String ticketText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
-                String infantIndicator = ticketText.substring(0,3);
+                String infantIndicator = ticketText.substring(0, 3);
 
                 //checking for infant passenger associated to adult
-                if("inf".equalsIgnoreCase(infantIndicator)){
+                if ("inf".equalsIgnoreCase(infantIndicator)) {
                     //passenger association when booked from online system
-                    if(traveller.getPassengerData().size() > 1){
+                    if (traveller.getPassengerData().size() > 1) {
                         String type = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getType();
-                        if("inf".equalsIgnoreCase(type)){
+                        if ("inf".equalsIgnoreCase(type)) {
                             lastName = traveller.getPassengerData().get(1).getTravellerInformation().getTraveller().getSurname();
                             name = traveller.getPassengerData().get(1).getTravellerInformation().getPassenger().get(0).getFirstName();
                         }
                         //passenger association when booked from offline system
-                    }else if(traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().size() > 1){
+                    } else if (traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().size() > 1) {
                         String type = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getType();
-                        if("inf".equalsIgnoreCase(type)){
+                        if ("inf".equalsIgnoreCase(type)) {
                             lastName = traveller.getPassengerData().get(0).getTravellerInformation().getTraveller().getSurname();
                             name = traveller.getPassengerData().get(0).getTravellerInformation().getPassenger().get(1).getFirstName();
                         }
@@ -642,14 +640,14 @@ public class AmadeusBookingHelper {
                 String middleName = (nameArray.length > 1)? nameArray[1]: "";*/
 
                 name = name.replaceAll("\\s+", "");
-                int len = names.length-1;
-                if(!"inf".equalsIgnoreCase(infantIndicator)) {
+                int len = names.length - 1;
+                if (!"inf".equalsIgnoreCase(infantIndicator)) {
                     if (name.equalsIgnoreCase("FNU")) {
                         name = names[len];
                     } else {
-                        String salutatio="";
-                        if("Ms".equalsIgnoreCase(names[len])){
-                            salutatio="Mrs";
+                        String salutatio = "";
+                        if ("Ms".equalsIgnoreCase(names[len])) {
+                            salutatio = "Mrs";
                         } else {
                             salutatio = names[len];
                         }
@@ -657,15 +655,15 @@ public class AmadeusBookingHelper {
                     }
                 }
                 lastName = lastName.replaceAll("\\s+", "");
-                if(lastName.equalsIgnoreCase("LNU")){
-                    lastName="";
+                if (lastName.equalsIgnoreCase("LNU")) {
+                    lastName = "";
                 }
-                for(Traveller traveller1 : issuanceRequest.getTravellerList()){
+                for (Traveller traveller1 : issuanceRequest.getTravellerList()) {
                     String contactName = "";
-                    if(traveller1.getPersonalDetails().getMiddleName() != null){
+                    if (traveller1.getPersonalDetails().getMiddleName() != null) {
                         contactName = traveller1.getPersonalDetails().getFirstName() + traveller1.getPersonalDetails().getMiddleName();
 
-                    }else {
+                    } else {
                         contactName = traveller1.getPersonalDetails().getFirstName();
                     }
                     String salutation = traveller1.getPersonalDetails().getSalutation();
@@ -674,19 +672,19 @@ public class AmadeusBookingHelper {
                     } else {
                         salutation = traveller1.getPersonalDetails().getSalutation();
                     }*/
-                    if("Ms".equalsIgnoreCase(salutation)){
+                    if ("Ms".equalsIgnoreCase(salutation)) {
                         salutation = "Mrs";
                     }
                     contactName = contactName + salutation;
                     contactName = contactName.replaceAll("\\s+", "").replaceAll("\\.", "");
                     String contactLastName = traveller1.getPersonalDetails().getLastName();
-                    contactLastName  = contactLastName.replaceAll("\\s+", "");
-                    if(name.equalsIgnoreCase(contactName)
-                            && lastName.equalsIgnoreCase(contactLastName)){
-                    	//String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
+                    contactLastName = contactLastName.replaceAll("\\s+", "");
+                    if (name.equalsIgnoreCase(contactName)
+                            && lastName.equalsIgnoreCase(contactLastName)) {
+                        //String freeText = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext();
                         String freeText = "";
-                        if("inf".equalsIgnoreCase(infantIndicator)) {
-                            if ( dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1 ) {
+                        if ("inf".equalsIgnoreCase(infantIndicator)) {
+                            if (dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().toLowerCase().indexOf("INF".toLowerCase()) != -1) {
                                 String freeText1[] = dataElementsDiv.getOtherDataFreetext().get(0).getLongFreetext().split("F", 3);
                                 freeText = freeText1[1];
                             } else {
@@ -697,16 +695,16 @@ public class AmadeusBookingHelper {
                         }
                         String[] freeTextArr = freeText.split("/");
                         String ticketNumber = freeTextArr[0].substring(3);
-                        Map<String,String> ticketMap;
-                        if(traveller1.getTicketNumberMap() != null){
+                        Map<String, String> ticketMap;
+                        if (traveller1.getTicketNumberMap() != null) {
                             ticketMap = traveller1.getTicketNumberMap();
-                        }else {
+                        } else {
                             ticketMap = new HashMap<>();
                         }
-                        for(String segmentRef : segmentRefList1){
-                            PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo)airSegmentRefMap.get(segmentRef);
+                        for (String segmentRef : segmentRefList1) {
+                            PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo) airSegmentRefMap.get(segmentRef);
                             String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
-                            if(segType.equalsIgnoreCase("AIR")) {
+                            if (segType.equalsIgnoreCase("AIR")) {
                                 String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() +
                                         itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
                                         + segmentSequenceMap.get(segmentRef);
@@ -723,14 +721,14 @@ public class AmadeusBookingHelper {
             }
         }
         int passengerCount = 0;
-        if(issuanceRequest.isSeamen()){
+        if (issuanceRequest.isSeamen()) {
             passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount() + issuanceRequest.getInfantCount();
 
-        }else {
+        } else {
             passengerCount = issuanceRequest.getAdultCount() + issuanceRequest.getChildCount();
         }
         logger.debug("ticketCount : " + ticketsCount + " passengerCount " + passengerCount);
-        if(ticketsCount >= passengerCount){
+        if (ticketsCount >= passengerCount) {
             return true;
         }
 
@@ -911,40 +909,40 @@ public class AmadeusBookingHelper {
         return journeyList;
     }
 
-	private static boolean isHoppingStopExists(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo) {
-		boolean hoppingStopExits = false;
-		if(itineraryInfo.getFlightDetail()!=null && itineraryInfo.getFlightDetail().getProductDetails()!=null && itineraryInfo.getFlightDetail().getProductDetails().getNumOfStops()!=null && itineraryInfo.getFlightDetail().getProductDetails().getNumOfStops().intValue()>0){
-			hoppingStopExits = true;
-		}
-		return hoppingStopExits;
-	}
+    private static boolean isHoppingStopExists(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo) {
+        boolean hoppingStopExits = false;
+        if (itineraryInfo.getFlightDetail() != null && itineraryInfo.getFlightDetail().getProductDetails() != null && itineraryInfo.getFlightDetail().getProductDetails().getNumOfStops() != null && itineraryInfo.getFlightDetail().getProductDetails().getNumOfStops().intValue() > 0) {
+            hoppingStopExits = true;
+        }
+        return hoppingStopExits;
+    }
 
 
-    public static  PricingInformation getPricingForDownsellAndConversion(FarePricePNRWithBookingClassReply pricePNRReply, String totalFareIdentifier, int adultCount){
+    public static PricingInformation getPricingForDownsellAndConversion(FarePricePNRWithBookingClassReply pricePNRReply, String totalFareIdentifier, int adultCount) {
         BigDecimal totalFare = new BigDecimal(0);
         BigDecimal totalTax = new BigDecimal(0);
         BigDecimal baseFare = new BigDecimal(0);
         List<FareList> fareList = pricePNRReply.getFareList();
         PricingInformation pricingInformation = new PricingInformation();
 
-        for(FareList fare : fareList) {
+        for (FareList fare : fareList) {
             int paxCount = 0;
             String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
-            if(paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
+            if (paxType.equalsIgnoreCase("ADT") || paxType.equalsIgnoreCase("SEA") || paxType.equalsIgnoreCase("SC")) {
                 logger.debug("adultCount : " + adultCount);
                 paxCount = adultCount;
             }
             logger.debug("passenger counts : " + paxCount);
             logger.debug("size of fareData : " + fare.getFareDataInformation().getFareDataSupInformation().size());
-            for(MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+            for (MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
-                if(totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
+                if (totalFareIdentifier.equals(fareData.getFareDataQualifier())) {
                     totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
                     logger.debug("=======================>> Setting new total fare: " + totalFare);
                 }
                 //Todo --commented below line as the base fare string is B need to validate
 //                if("E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
-                if("B".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                if ("B".equalsIgnoreCase(fareData.getFareDataQualifier())) {
                     baseFare = amount;
                 }
             }
@@ -961,66 +959,66 @@ public class AmadeusBookingHelper {
         return pricingInformation;
     }
 
-	public static PricingInformation getPricingInfo(
-			List<FareList> pricePNRReplyFareList,
-			int adultCount, int childCount,
-			int infantCount) {
-		BigDecimal totalFare = new BigDecimal(0);
+    public static PricingInformation getPricingInfo(
+            List<FareList> pricePNRReplyFareList,
+            int adultCount, int childCount,
+            int infantCount) {
+        BigDecimal totalFare = new BigDecimal(0);
         BigDecimal totalBaseFare = new BigDecimal(0);
         BigDecimal adtBaseFare = new BigDecimal(0);
         BigDecimal chdBaseFare = new BigDecimal(0);
         BigDecimal infBaseFare = new BigDecimal(0);
         String currency = null;
-        
+
 //        List<FareList> fareList = pricePNRReplyFareList;
         PricingInformation pricingInformation = new PricingInformation();
-        for(FareList fare : pricePNRReplyFareList) {
+        for (FareList fare : pricePNRReplyFareList) {
             int paxCount = 0;
             String paxType = fare.getSegmentInformation().get(0).getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
-            if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
-            	paxCount = childCount;
-			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
-				paxCount = infantCount;
-			} else if("adt".equalsIgnoreCase(paxType)){
-				paxCount = adultCount;
-			}else {
+            if ("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+                paxCount = childCount;
+            } else if ("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+                paxCount = infantCount;
+            } else if ("adt".equalsIgnoreCase(paxType)) {
+                paxCount = adultCount;
+            } else {
                 paxCount = adultCount + childCount + infantCount;
             }
-            logger.info("paxCount...."+paxCount);
+            logger.info("paxCount...." + paxCount);
 //            currency = fare.getFareDataInformation().getFareDataSupInformation().get(0).getFareCurrency();
             boolean equivalentFareAvailable = false;
             BigDecimal baseFare = new BigDecimal(0);
-            for(MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+            for (MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
-                if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
+                if (AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
                     totalFare = totalFare.add(amount.multiply(new BigDecimal(paxCount)));
                 }
-                if("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
-                    if(!equivalentFareAvailable){
+                if ("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                    if (!equivalentFareAvailable) {
                         baseFare = amount;
                         currency = fareData.getFareCurrency();
                     }
-                    logger.info("baseFare...."+baseFare+"...."+amount);
+                    logger.info("baseFare...." + baseFare + "...." + amount);
                 }
 
-                if("E".equalsIgnoreCase(fareData.getFareDataQualifier())){
+                if ("E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
                     equivalentFareAvailable = true;
                 }
 
             }
 
             totalBaseFare = totalBaseFare.add(baseFare.multiply(new BigDecimal(paxCount)));
-            if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+            if ("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
                 chdBaseFare = baseFare;
-            } else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+            } else if ("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
                 infBaseFare = baseFare;
             } else {
                 adtBaseFare = baseFare;
             }
         }
-        logger.info("totalFare...."+totalFare);
-        logger.info("totalBaseFare...."+totalBaseFare);
-        logger.info("adtBaseFare...."+adtBaseFare);
+        logger.info("totalFare...." + totalFare);
+        logger.info("totalBaseFare...." + totalBaseFare);
+        logger.info("adtBaseFare...." + adtBaseFare);
         pricingInformation.setGdsCurrency(currency);
         pricingInformation.setTotalPrice(totalFare);
         pricingInformation.setTotalPriceValue(totalFare);
@@ -1037,7 +1035,7 @@ public class AmadeusBookingHelper {
         pricingInformation.setProvider("Amadeus");
         pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReplyFareList, passengerTypeMap));
         return pricingInformation;
-	}
+    }
 
     public static void setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, FarePricePNRWithBookingClassReply pricePNRReply) {
         Map<String, Integer> passengerTypeMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
@@ -1049,7 +1047,7 @@ public class AmadeusBookingHelper {
         pnrResponse.setPricingInfo(pricingInfo);
     }
 
-    public static List<PassengerTax> getTaxBreakup(List<FareList> pricePNRReplyFareList, Map<String, Integer> passengerTypeMap){
+    public static List<PassengerTax> getTaxBreakup(List<FareList> pricePNRReplyFareList, Map<String, Integer> passengerTypeMap) {
         List<PassengerTax> passengerTaxes = new ArrayList<>();
         for (FareList fare : pricePNRReplyFareList) {
             FareList.SegmentInformation segmentInfo = fare.getSegmentInformation().get(0);
@@ -1057,36 +1055,36 @@ public class AmadeusBookingHelper {
             if (segmentInfo != null && taxInfos.size() > 0) {
                 String paxType = segmentInfo.getFareQualifier().getFareBasisDetails().getDiscTktDesignator();
                 PassengerTax passengerTax = null;
-                if(paxType.equalsIgnoreCase("CH") || paxType.equalsIgnoreCase("CHD")) {
-                	passengerTax = setTaxDetails(taxInfos, "CHD", passengerTypeMap.get("childCount"));
-        		} else if(paxType.equalsIgnoreCase("IN") || paxType.equalsIgnoreCase("INF")) {
-        			passengerTax = setTaxDetails(taxInfos, "INF", passengerTypeMap.get("infantCount"));
-        		} else {
-        			passengerTax = setTaxDetails(taxInfos, "ADT", passengerTypeMap.get("adultCount"));
-        		}
+                if (paxType.equalsIgnoreCase("CH") || paxType.equalsIgnoreCase("CHD")) {
+                    passengerTax = setTaxDetails(taxInfos, "CHD", passengerTypeMap.get("childCount"));
+                } else if (paxType.equalsIgnoreCase("IN") || paxType.equalsIgnoreCase("INF")) {
+                    passengerTax = setTaxDetails(taxInfos, "INF", passengerTypeMap.get("infantCount"));
+                } else {
+                    passengerTax = setTaxDetails(taxInfos, "ADT", passengerTypeMap.get("adultCount"));
+                }
                 passengerTaxes.add(passengerTax);
             }
         }
-        return  passengerTaxes;
+        return passengerTaxes;
     }
 
-	private static PassengerTax setTaxDetails(List<TaxInformation> taxInfos, String passengerType, int count) {
-		PassengerTax passengerTax = new PassengerTax();
-		passengerTax.setPassengerType(passengerType);
-		passengerTax.setPassengerCount(count);
-		Map<String, BigDecimal> taxes = new HashMap<>();
-		for(TaxInformation taxInfo : taxInfos) {
-			String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
-			String taxCode = taxInfo.getTaxDetails().getTaxType().getIsoCountry();
-			if(taxes.containsKey(taxCode)) {
-				taxes.put(taxCode, taxes.get(taxCode).add(new BigDecimal(amount)));
-			} else {
-				taxes.put(taxCode, new BigDecimal(amount));
-			}
-		}
-		passengerTax.setTaxes(taxes);
-		return passengerTax;
-	}
+    private static PassengerTax setTaxDetails(List<TaxInformation> taxInfos, String passengerType, int count) {
+        PassengerTax passengerTax = new PassengerTax();
+        passengerTax.setPassengerType(passengerType);
+        passengerTax.setPassengerCount(count);
+        Map<String, BigDecimal> taxes = new HashMap<>();
+        for (TaxInformation taxInfo : taxInfos) {
+            String amount = taxInfo.getAmountDetails().getFareDataMainInformation().getFareAmount();
+            String taxCode = taxInfo.getTaxDetails().getTaxType().getIsoCountry();
+            if (taxes.containsKey(taxCode)) {
+                taxes.put(taxCode, taxes.get(taxCode).add(new BigDecimal(amount)));
+            } else {
+                taxes.put(taxCode, new BigDecimal(amount));
+            }
+        }
+        passengerTax.setTaxes(taxes);
+        return passengerTax;
+    }
 
     public static Map<String, Integer> getPassengerTypeCount(List<Traveller> travellerList) {
         int adultCount = 0, childCount = 0, infantCount = 0;
@@ -1106,35 +1104,35 @@ public class AmadeusBookingHelper {
         passengerTypeMap.put("infantCount", infantCount);
         return passengerTypeMap;
     }
-    
-    public static Map<String, Integer> getPaxTypeCount(List<TravellerInfo> travellerinfoList) {
-		Map<String, Integer> paxTypeCounts = new HashMap<>();
-		int adultCount = 0, childCount = 0, infantCount = 0;
-		for(TravellerInfo travellerInfo : travellerinfoList) {
-			PassengerData paxData = travellerInfo.getPassengerData().get(0);
-			String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
-			if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
-				childCount++;
-			} else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
-				infantCount++;
-			} else {
-				adultCount++;
-			}
-		}
-		paxTypeCounts.put("adultCount", adultCount);
-		paxTypeCounts.put("childCount", childCount);
-		paxTypeCounts.put("infantCount", infantCount);
-		return paxTypeCounts;
-	}
 
-    public static boolean checkForSimultaneousChange(PNRReply pnrReply){
+    public static Map<String, Integer> getPaxTypeCount(List<TravellerInfo> travellerinfoList) {
+        Map<String, Integer> paxTypeCounts = new HashMap<>();
+        int adultCount = 0, childCount = 0, infantCount = 0;
+        for (TravellerInfo travellerInfo : travellerinfoList) {
+            PassengerData paxData = travellerInfo.getPassengerData().get(0);
+            String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
+            if ("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+                childCount++;
+            } else if ("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+                infantCount++;
+            } else {
+                adultCount++;
+            }
+        }
+        paxTypeCounts.put("adultCount", adultCount);
+        paxTypeCounts.put("childCount", childCount);
+        paxTypeCounts.put("infantCount", infantCount);
+        return paxTypeCounts;
+    }
+
+    public static boolean checkForSimultaneousChange(PNRReply pnrReply) {
 
         boolean simultaneousChange = false;
-        if(pnrReply.getGeneralErrorInfo() != null && pnrReply.getGeneralErrorInfo().size() > 0){
-            for(PNRReply.GeneralErrorInfo generalErrorInfo : pnrReply.getGeneralErrorInfo()){
+        if (pnrReply.getGeneralErrorInfo() != null && pnrReply.getGeneralErrorInfo().size() > 0) {
+            for (PNRReply.GeneralErrorInfo generalErrorInfo : pnrReply.getGeneralErrorInfo()) {
                 String errorText = StringUtils.join(generalErrorInfo.getMessageErrorText().getText());
                 //todo check the string contains works with spaces and all other cases , use regular expression
-                if(errorText.contains(AmadeusConstants.SIMULTANEOUS_PNR_CHANGE)){
+                if (errorText.contains(AmadeusConstants.SIMULTANEOUS_PNR_CHANGE)) {
                     simultaneousChange = true;
                 }
             }
@@ -1161,50 +1159,50 @@ public class AmadeusBookingHelper {
 
         Map<String, TSTPrice> tstPriceMap = new HashMap<>();
 
-        Map<String,Object> airSegmentRefMap = new HashMap<>();
-        Map<String,Object> travellerMap = new HashMap<>();
+        Map<String, Object> airSegmentRefMap = new HashMap<>();
+        Map<String, Object> travellerMap = new HashMap<>();
         Map<String, String> passengerType = new HashMap<>();
 
-        for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
-            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
+        for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
+            for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
                 String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
-                if(segType.equalsIgnoreCase("AIR")) {
+                if (segType.equalsIgnoreCase("AIR")) {
                     String segmentRef = "S" + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
                     String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
                     airSegmentRefMap.put(segmentRef, segments);
                 }
             }
         }
-        for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+        for (PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()) {
             String key = "P" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
             String infantIndicator = travellerInfo.getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getInfantIndicator();
-            travellerMap.put(key,travellerInfo);
-            if(!isSeamen){
+            travellerMap.put(key, travellerInfo);
+            if (!isSeamen) {
                 PassengerData paxData = travellerInfo.getPassengerData().get(0);
                 String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
-                if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
-                    passengerType.put(key,"CHD");
-                } else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
-                    passengerType.put(key,"INF");
-                }else {
-                    passengerType.put(key,"ADT");
+                if ("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+                    passengerType.put(key, "CHD");
+                } else if ("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+                    passengerType.put(key, "INF");
+                } else {
+                    passengerType.put(key, "ADT");
                 }
 
-                if(infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)){
-                    passengerType.put("PI"+ travellerInfo.getElementManagementPassenger().getReference().getNumber(), "INF");
+                if (infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)) {
+                    passengerType.put("PI" + travellerInfo.getElementManagementPassenger().getReference().getNumber(), "INF");
                 }
-            }else {
+            } else {
                 passengerType.put(key, "ADT");
-                if(infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)){
-                    passengerType.put("PI"+ travellerInfo.getElementManagementPassenger().getReference().getNumber(), "ADT");
+                if (infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)) {
+                    passengerType.put("PI" + travellerInfo.getElementManagementPassenger().getReference().getNumber(), "ADT");
                 }
             }
         }
 
         Map<String, AirSegmentInformation> segmentMap = new HashMap<>();
-        for (Journey journey : journeyList){
-            for(AirSegmentInformation airSegment : journey.getAirSegmentList()){
-                String key = airSegment.getFromLocation() +  airSegment.getToLocation();
+        for (Journey journey : journeyList) {
+            for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+                String key = airSegment.getFromLocation() + airSegment.getToLocation();
                 segmentMap.put(key, airSegment);
             }
         }
@@ -1212,7 +1210,7 @@ public class AmadeusBookingHelper {
         List<SegmentPricing> segmentPricingList = new ArrayList<>();
         List<PassengerTax> passengerTaxList = new ArrayList<>();
         boolean segmentWisePricing = false;
-        for(TicketDisplayTSTReply.FareList fare : fareList) {
+        for (TicketDisplayTSTReply.FareList fare : fareList) {
             BigDecimal totalFarePerPaxType = new BigDecimal(0);
             BigDecimal paxTotalFare = new BigDecimal(0);
             BigDecimal baseFareOfPerPaxType = new BigDecimal(0);
@@ -1220,25 +1218,25 @@ public class AmadeusBookingHelper {
             SegmentPricing segmentPricing = new SegmentPricing();
             boolean equivalentFareAvailable = false;
             BigDecimal baseFare = new BigDecimal(0);
-            for(MonetaryInformationDetailsTypeI211824C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+            for (MonetaryInformationDetailsTypeI211824C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
-                if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
+                if (AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
                     paxTotalFare = amount;
                 }
-                if("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
-                    if(!equivalentFareAvailable){
+                if ("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                    if (!equivalentFareAvailable) {
                         baseFare = amount;
                         currency = fareData.getFareCurrency();
                     }
                 }
-                if("E".equalsIgnoreCase(fareData.getFareDataQualifier())){
+                if ("E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
                     equivalentFareAvailable = true;
                 }
             }
 
             int paxCount = fare.getPaxSegReference().getRefDetails().size();
-            String paxTypeKey =  "P" + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber();
-            if("PI".equalsIgnoreCase(fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier())){
+            String paxTypeKey = "P" + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber();
+            if ("PI".equalsIgnoreCase(fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier())) {
                 paxTypeKey = fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier() + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber();
             }
             String paxType = passengerType.get(paxTypeKey);
@@ -1247,19 +1245,19 @@ public class AmadeusBookingHelper {
             PassengerTax passengerTax = getTaxDetailsFromTST(fare.getTaxInformation(), paxType, paxCount);
             passengerTaxList.add(passengerTax);
 
-            if(airSegmentRefMap.size() != fare.getSegmentInformation().size()){
+            if (airSegmentRefMap.size() != fare.getSegmentInformation().size()) {
                 segmentWisePricing = true;
             }
             List<String> segmentKeys = new ArrayList<>();
             //if(segmentWisePricing){
-                for(TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()){
-                    if(segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null){
-                        ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
-                        String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
-                        segmentKeys.add(airSegmentRefMap.get(key).toString().toLowerCase());
-                    }
-
+            for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
+                if (segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null) {
+                    ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
+                    String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
+                    segmentKeys.add(airSegmentRefMap.get(key).toString().toLowerCase());
                 }
+
+            }
             //}
             segmentPricing.setSegmentKeysList(segmentKeys);
             segmentPricing.setTotalPrice(totalFarePerPaxType);
@@ -1270,24 +1268,24 @@ public class AmadeusBookingHelper {
             segmentPricing.setPassengerCount(new Long(paxCount));
             segmentPricing.setTstSequenceNumber(fare.getFareReference().getIDDescription().getIDSequenceNumber());
             segmentPricingList.add(segmentPricing);
-            if("CHD".equalsIgnoreCase(paxType)){
+            if ("CHD".equalsIgnoreCase(paxType)) {
                 chdBaseFare = chdBaseFare.add(baseFare);
                 chdTotalFare = chdTotalFare.add(paxTotalFare);
-            }else if("INF".equalsIgnoreCase(paxType)){
+            } else if ("INF".equalsIgnoreCase(paxType)) {
                 infBaseFare = infBaseFare.add(baseFare);
                 infTotalFare = infTotalFare.add(paxTotalFare);
-            }else {
+            } else {
                 adtBaseFare = adtBaseFare.add(baseFare);
                 adtTotalFare = adtTotalFare.add(paxTotalFare);
             }
             totalPriceOfBooking = totalPriceOfBooking.add(totalFarePerPaxType);
             basePriceOfBooking = basePriceOfBooking.add(baseFareOfPerPaxType);
 
-            TSTPrice tstPrice = getTSTPrice(fare, paxTotalFare, baseFare,paxType, passengerTax);
+            TSTPrice tstPrice = getTSTPrice(fare, paxTotalFare, baseFare, paxType, passengerTax);
             for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
                 for (String key : segmentMap.keySet()) {
-                    for(Object airSegVal : airSegmentRefMap.values()) {
-                        if (key.equals(airSegVal) && segmentInformation.getFareQualifier()!=null && segmentInformation.getFareQualifier().size()>0) {
+                    for (Object airSegVal : airSegmentRefMap.values()) {
+                        if (key.equals(airSegVal) && segmentInformation.getFareQualifier() != null && segmentInformation.getFareQualifier().size() > 0) {
                             String farebasis = segmentInformation.getFareQualifier().get(0).getFareBasisDetails().getPrimaryCode()
                                     + segmentInformation.getFareQualifier().get(0).getFareBasisDetails().getFareBasisCode();
                             segmentMap.get(key).setFareBasis(farebasis);
@@ -1295,7 +1293,7 @@ public class AmadeusBookingHelper {
                     }
                 }
 
-                if(segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null){
+                if (segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null) {
                     ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
                     String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
 
@@ -1686,4 +1684,153 @@ public class AmadeusBookingHelper {
         pnrResponse.setFlightAvailable(true);
 
     }
+
+    public static List<PAXFareDetails> getPaxFareDetails(PNRReply gdsPNRReply) {
+
+
+        List<FareSegment> fareSegmentList = new ArrayList<>();
+
+        List<FareJourney> fareJourneyList = new ArrayList<>();
+        PAXFareDetails paxFareDetails = new PAXFareDetails();
+        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
+
+        List<PNRReply.TstData> tstDataList = gdsPNRReply.getTstData();
+
+        List<String> fareBasesList = new ArrayList<>();
+        for(PNRReply.TstData tstData : tstDataList){
+            List<FareElementType> fareElementTypeList = tstData.getFareBasisInfo().getFareElement();
+            for(FareElementType fareElement : fareElementTypeList){
+                fareBasesList.add(fareElement.getFareBasis());
+            }
+        }
+
+
+        List<PNRReply.OriginDestinationDetails.ItineraryInfo> itinerary = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
+        int index = 0;
+        for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : itinerary) {
+
+            FareSegment fareSegment = new FareSegment();
+            FareJourney fareJourney = new FareJourney();
+            if (itineraryInfo.getTravelProduct() != null && itineraryInfo.getTravelProduct().getProductDetails() != null) {
+                fareSegment.setBookingClass(itineraryInfo.getTravelProduct() != null ? itineraryInfo.getTravelProduct().getProductDetails().getClassOfService() : "");
+            }
+            if (itineraryInfo.getCabinDetails() != null && itineraryInfo.getCabinDetails().getCabinDetails() != null) {
+                fareSegment.setCabinClass(itineraryInfo.getCabinDetails() != null ? itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator() : "");
+            }
+
+            if(itineraryInfo.getTravelProduct().getBoardpointDetail() != null && itineraryInfo.getTravelProduct().getOffpointDetail() != null) {
+                if (index < fareBasesList.size()) {
+                    fareSegment.setFareBasis(fareBasesList.get(index));
+                    index++;
+                }
+                fareSegmentList.add(fareSegment);
+                fareJourney.setFareSegmentList(fareSegmentList);
+                fareJourneyList.add(fareJourney);
+            }
+
+        }
+
+        paxFareDetails.setPassengerTypeCode(PassengerTypeCode.ADT);
+        paxFareDetails.setFareJourneyList(fareJourneyList);
+        paxFareDetailsList.add(paxFareDetails);
+
+        return paxFareDetailsList;
+
+
+    }
+
+    public static Map<String, String> fareComponentWithoutPNR(FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply) {
+
+        Map<String, String> fareComponentsMap = new LinkedHashMap<>();
+
+        FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup pricingGroup = fareInformativePricingPNRReply.getMainGroup().getPricingGroupLevelGroup().get(0);
+
+        if (pricingGroup.getFareInfoGroup() != null) {
+            FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup fareInfo = pricingGroup.getFareInfoGroup();
+
+            List<FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup> fareComponents = fareInfo.getFareComponentDetailsGroup();
+
+            if (fareComponents != null) {
+                for (FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup fareComponent : fareComponents) {
+
+                    FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.FareComponentID fareComponentID = fareComponent.getFareComponentID();
+
+                    if (fareComponentID != null && fareComponentID.getItemNumberDetails() != null) {
+                        for (FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.FareComponentID.ItemNumberDetails item : fareComponentID.getItemNumberDetails()) {
+
+                            if (item.getNumber() != null) {
+                                String itemNumber = item.getNumber();
+                                StringBuilder location = new StringBuilder();
+
+                                if (fareComponent.getMarketFareComponent() != null) {
+                                    FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.MarketFareComponent marketFareComponent = fareComponent.getMarketFareComponent();
+
+                                    String boardPoint = "";
+                                    String offPoint = "";
+
+                                    if (marketFareComponent.getBoardPointDetails() != null && marketFareComponent.getBoardPointDetails().getTrueLocationId() != null) {
+                                        boardPoint = marketFareComponent.getBoardPointDetails().getTrueLocationId();
+                                    }
+
+                                    if (marketFareComponent.getOffpointDetails() != null && marketFareComponent.getOffpointDetails().getTrueLocationId() != null) {
+                                        offPoint = marketFareComponent.getOffpointDetails().getTrueLocationId();
+                                    }
+
+                                    location.append(boardPoint).append("-").append(offPoint);
+                                }
+
+                                if (location.length() > 1) {
+                                    fareComponentsMap.put(itemNumber, location.toString());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return fareComponentsMap;
+    }
+
+
+
+    public static List<Journey> getJourneyDetails(List<Journey> journeyList, Map<String, String> fareComponentJourneyMap, RedisTemplate redisTemplate) {
+
+        List<Journey> actualJourneyList = new ArrayList<>();
+        List<AirSegmentInformation> pnrReplyJourneyList = journeyList.get(0).getAirSegmentList();
+
+        int currentAirSegment = 0;
+
+        for (Map.Entry<String, String> journeyMap : fareComponentJourneyMap.entrySet()) {
+
+            String[] originDestinationList = journeyMap.getValue().split("-");
+            String destination = originDestinationList[1].trim();
+
+            Journey currentJourney = new Journey();
+            List<AirSegmentInformation> actualAirSegmentList = new ArrayList<>();
+
+            while (currentAirSegment < pnrReplyJourneyList.size()) {
+                AirSegmentInformation airSegmentInformation = pnrReplyJourneyList.get(currentAirSegment);
+
+                Airport toAirport;
+                if (redisTemplate == null) {
+                    toAirport = Airport.getAirportByIataCode(airSegmentInformation.getToLocation());
+                } else {
+                    toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
+                }
+
+                actualAirSegmentList.add(airSegmentInformation);
+                pnrReplyJourneyList.remove(currentAirSegment);
+
+                if (airSegmentInformation.getToLocation().equalsIgnoreCase(destination) || toAirport.getCityCode().equalsIgnoreCase(destination)) {
+                    currentJourney.setAirSegmentList(actualAirSegmentList);
+                    actualJourneyList.add(currentJourney);
+                    break;
+                }
+            }
+        }
+        return actualJourneyList;
+    }
+
 }
+

@@ -61,6 +61,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.compassites.constants.StaticConstatnts.*;
+import static utils.AmadeusBookingHelper.*;
 
 /**
  * Created by Yaseen
@@ -368,6 +369,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		String gdsPNR = issuanceRequest.getGdsPNR();
 		PNRReply gdsPNRReply = null;
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
+		SplitPNRType splitPNRType = null;
 
 //		PartialCancellationRequest partialCancellationRequest = new PartialCancellationRequest();
 //		partialCancellationRequest.setOriginalGdsPnr(gdsPNR);
@@ -387,12 +389,20 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				isSeamen = true;
 
 //			Map<String, Object> travellerSegMap = createTravellerSegmentMap(gdsPNRReply);
+
 			String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 			reservationControlInformationDetailsTypeI.setControlNumber(tstRefNo);
 			reservationInfo.setReservation(reservationControlInformationDetailsTypeI);
 			pnrSplit.setReservationInfo(reservationInfo);
-//			SplitPNRType splitPNRType = createSplitPNRType(issuanceRequest, travellerSegMap);
-			SplitPNRType splitPNRType = createSplitPNR(issuanceRequest);
+
+			if(issuanceRequest.isSplitPnr()) {
+				Map<String, Object> travellerSegMap = createTravellerSegmentMap(gdsPNRReply);
+				splitPNRType = createSplitPNRType(issuanceRequest, travellerSegMap);
+			} else {
+				// partialCancellation
+				splitPNRType = createSplitPNR(issuanceRequest);
+			}
+      
 			pnrSplit.setSplitDetails(splitPNRType);
 			PNRReply pnrSplitReply = serviceHandler.splitPNR(pnrSplit, amadeusSessionWrapper);
 			serviceHandler.saveChildPNR("14", amadeusSessionWrapper);
@@ -402,7 +412,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			Thread.sleep(4000);
 			PNRReply childRetrive = serviceHandler.retrivePNR(childPNR, amadeusSessionWrapper);
 
-			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(childRetrive, redisTemplate);
+			journeyList = getJourneyListFromPNRResponse(childRetrive, redisTemplate);
 
 			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
 
@@ -411,7 +421,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				pnrResponse.setErrorMessage(errorMessage);
 			}
 
-			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(childRetrive, ticketDisplayTSTReply, isSeamen, journeyList);
+			pricingInfo = getPricingInfoFromTST(childRetrive, ticketDisplayTSTReply, isSeamen, journeyList);
 			pricingInfo.setSegmentWisePricing(false);
 			pnrResponse.setPricingInfo(pricingInfo);
 			pnrResponse.setPnrNumber(childPNR);
@@ -612,7 +622,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 		}
 		Map<String, Object> travellerSegMap = createTravellerCountMap(gdsPNRReply, issuanceRequest.getBookingTravellerList());
-		AmadeusBookingHelper.checkFarePrice(pricePNRReply, pnrResponse, travellerMasterInfo, travellerSegMap);
+		checkFarePrice(pricePNRReply, pnrResponse, travellerMasterInfo, travellerSegMap);
 		readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
 		return pricePNRReply;
 	}
@@ -922,7 +932,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 										  Date lastPNRAddMultiElements, TravellerMasterInfo travellerMasterInfo, int iteration,
 										  List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws InterruptedException, BaseCompassitesException {
 
-		boolean simultaneousChangeToPNR = AmadeusBookingHelper.checkForSimultaneousChange(addSSRResponse);
+		boolean simultaneousChangeToPNR = checkForSimultaneousChange(addSSRResponse);
 		if (simultaneousChangeToPNR) {
 			Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
 			if (p.getSeconds() >= 12) {
@@ -969,8 +979,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					"error", ErrorMessage.ErrorType.ERROR, "Amadeus");
 			pnrResponse.setErrorMessage(errorMessage);
 		}
-		boolean flightAvailable = AmadeusBookingHelper
-				.validateFlightAvailability(sellFromRecommendation,
+		boolean flightAvailable = validateFlightAvailability(sellFromRecommendation,
                         AmadeusConstants.AMADEUS_FLIGHT_AVAILIBILITY_CODE);
         /*if(!flightAvailable){
             serviceHandler.logOut();
@@ -1024,7 +1033,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 			return pricePNRReply;
 		}
-		AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse,travellerMasterInfo);
+		checkFare(pricePNRReply, pnrResponse,travellerMasterInfo);
 		readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
 //        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
 		return pricePNRReply;
@@ -1075,7 +1084,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		List<TravellerInfo> travellerInfoList = gdsPNRReply.getTravellerInfo();
 
 		for (PNRReply.TravellerInfo travellerInfo : travellerInfoList) {
-			amadeusPaxInformationList.add(AmadeusBookingHelper.extractPassengerData(travellerInfo));
+			amadeusPaxInformationList.add(extractPassengerData(travellerInfo));
 		}
 
 		return amadeusPaxInformationList;
@@ -1512,15 +1521,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			/*logger.debug("SET>>>>>>>>>>>>>>>>>>>"+Json.toJson(isTicketContainSet));*/
 			for (String isFA : isTicketContainSet) {
 				if(isFA.equalsIgnoreCase("FA")){
-					AmadeusBookingHelper.createTickets(issuanceResponse,
+					createTickets(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
 					//break;
 				} if(isFA.equalsIgnoreCase("FHM")){
-					AmadeusBookingHelper.createOfflineTickets(issuanceResponse,
+					createOfflineTickets(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
 					//break;
 				} if(isFA.equalsIgnoreCase("FHE")){
-					AmadeusBookingHelper.createOfflineTicketsinFHE(issuanceResponse,
+					createOfflineTicketsinFHE(issuanceResponse,
 							issuanceRequest, gdsPNRReply);
 					//break;
 				}
@@ -1530,7 +1539,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
 							+ "\n" + Json.toJson(gdsPNRReply));*/
             FlightItinerary flightItinerary = new FlightItinerary();
-            List<Journey> journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
+            List<Journey> journeyList = getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
 
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
@@ -1539,7 +1548,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 
 			TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
-			PricingInformation pricingInformation = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
+			PricingInformation pricingInformation = getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 
 			List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
 			validatingCarrierInSegment(fareList,flightItinerary,isSeamen,gdsPNRReply);
@@ -1980,6 +1989,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 		FarePricePNRWithBookingClassReply pricePNRReply = null;
 		PricingInformation pricingInfo = null;
 		List<Journey> journeyList = null;
+		int adtCount = 0;
+		int childCount = 0;
+		int infactCount = 0;
 		Map<String, Object> json = new HashMap<>();
 		try {
 			gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
@@ -2040,15 +2052,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 						personalDetails.setPaxType("CHD");
 						traveller.setPersonalDetails(personalDetails);
 						childTravellersList.add(traveller);
+						childCount++;
 					} else {
 						personalDetails.setPaxType("ADT");
 						traveller.setPersonalDetails(personalDetails);
 						travellersList.add(traveller);
+						adtCount++;
 					}
 				} else {
 					personalDetails.setPaxType("ADT");
 					traveller.setPersonalDetails(personalDetails);
 					travellersList.add(traveller);
+					adtCount++;
 				}
 				if(infantIndicator != null && !"".equalsIgnoreCase(infantIndicator)){
 					Traveller infantTraveller = new Traveller();
@@ -2090,6 +2105,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         infantPersonalDetail.setMiddleName(names[1]);*/
 					infantTraveller.setPersonalDetails(infantPersonalDetail);
 					infantTravellersList.add(infantTraveller);
+					infactCount++;
 				}
 
 			}
@@ -2100,14 +2116,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				travellersList.addAll(infantTravellersList);
 			}
 			masterInfo.setTravellersList(travellersList);
-			Map<String, Integer> paxTypeCount = AmadeusBookingHelper.getPaxTypeCount(travellerinfoList);
+			Map<String, Integer> paxTypeCount = getPaxTypeCount(travellerinfoList);
 			String paxType = travellerinfoList.get(0).getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getType();
 			boolean isSeamen = false;
 			if ("sea".equalsIgnoreCase(paxType)	|| "sc".equalsIgnoreCase(paxType))
 				isSeamen = true;
 
 			FlightItinerary flightItinerary = new FlightItinerary();
-			journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
+			journeyList = getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
 			//String carrierCode = "";
 			if (isSeamen) {
 				flightItinerary.setJourneyList(journeyList);
@@ -2133,7 +2149,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 			List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
 			validatingCarrierInSegment(fareList,flightItinerary,isSeamen,gdsPNRReply);
-			pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
+			pricingInfo = getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 			if (isSeamen) {
 				flightItinerary.setSeamanPricingInformation(pricingInfo);
 			} else {
@@ -2163,6 +2179,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			pricePNRReply = checkPNRPricing(masterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
 			FareCheckRulesResponse fareInformativePricing = amadeusIssuanceService.getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
 			pnrResponse.setFareCheckRulesResponse(fareInformativePricing);
+
+			// fetch journey wise
+			List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
+			FareInformativePricingWithoutPNRReply fareInfo = serviceHandler.getFareInfo(journeyList, isSeamen, adtCount, childCount, infactCount, paxFareDetails, amadeusSessionWrapper);
+			Map<String, String> fareComponentDetails = fareComponentWithoutPNR(fareInfo);
+			List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentDetails, redisTemplate);
+			if(isSeamen){
+				flightItinerary.setJourneyList(actualJourneyList);
+			} else{
+				flightItinerary.setNonSeamenJourneyList(actualJourneyList);
+			}
+			masterInfo.setItinerary(flightItinerary);
 
 			List<HashMap> miniRules = getMiniRuleFeeFromPNR(gdsPNR);
 			logger.debug("mini rules in getbooking details is "+Json.toJson(miniRules));
