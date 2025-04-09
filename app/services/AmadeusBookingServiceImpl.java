@@ -388,6 +388,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			if ("sea".equalsIgnoreCase(paxType) || "sc".equalsIgnoreCase(paxType))
 				isSeamen = true;
 
+//			Map<String, Object> travellerSegMap = createTravellerSegmentMap(gdsPNRReply);
+
 			String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
 			reservationControlInformationDetailsTypeI.setControlNumber(tstRefNo);
 			reservationInfo.setReservation(reservationControlInformationDetailsTypeI);
@@ -400,7 +402,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 				// partialCancellation
 				splitPNRType = createSplitPNR(issuanceRequest);
 			}
-
+      
 			pnrSplit.setSplitDetails(splitPNRType);
 			PNRReply pnrSplitReply = serviceHandler.splitPNR(pnrSplit, amadeusSessionWrapper);
 			serviceHandler.saveChildPNR("14", amadeusSessionWrapper);
