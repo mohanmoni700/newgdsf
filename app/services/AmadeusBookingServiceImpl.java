@@ -2200,18 +2200,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 			masterInfo.setItinerary(flightItinerary);
 
-			// fetch journey wise
-			List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
-			FareInformativePricingWithoutPNRReply fareInfo = serviceHandler.getFareInfo(journeyList, isSeamen, adtCount, childCount, infactCount, paxFareDetails, amadeusSessionWrapper);
-			Map<String, String> fareComponentDetails = fareComponentWithoutPNR(fareInfo);
-			List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentDetails, redisTemplate);
-			if(isSeamen){
-				flightItinerary.setJourneyList(actualJourneyList);
-			} else{
-				flightItinerary.setNonSeamenJourneyList(actualJourneyList);
-			}
-			masterInfo.setItinerary(flightItinerary);
-
 			List<HashMap> miniRules = getMiniRuleFeeFromPNR(gdsPNR);
 			logger.debug("mini rules in getbooking details is "+Json.toJson(miniRules));
 			pnrResponse.setAirlinePNRMap(AmadeusHelper.readMultipleAirlinePNR(gdsPNRReply));
