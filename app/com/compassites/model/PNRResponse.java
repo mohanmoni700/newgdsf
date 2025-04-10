@@ -102,6 +102,8 @@ public class PNRResponse implements Serializable  {
 
     private FareCheckRulesResponse fareCheckRulesResponse;
 
+    private String status;
+
     public Map<String, String> getPnrMap() {
         return pnrMap;
     }
@@ -435,6 +437,14 @@ public class PNRResponse implements Serializable  {
 
     public void setFareCheckRulesResponse(FareCheckRulesResponse fareCheckRulesResponse) {
         this.fareCheckRulesResponse = fareCheckRulesResponse;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
 

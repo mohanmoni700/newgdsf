@@ -2172,13 +2172,21 @@ public class AmadeusBookingServiceImpl implements BookingService {
 					String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
 					pnrResponse.setAirlinePNR(airlinePnr);
 				}
+				if(itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getRelatedProduct().getStatus() != null){
+					List<String> statusList = itineraryInfos.get(0).getRelatedProduct().getStatus();
+					String status = statusList.get(0);
+					pnrResponse.setStatus(status);
+				}
 			}
 
-			// fetch generic fare rule
-			FarePricePNRWithBookingClassReply  pricePNRReplyBenzy = null;
-			pricePNRReply = checkPNRPricing(masterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
-			FareCheckRulesResponse fareInformativePricing = amadeusIssuanceService.getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
-			pnrResponse.setFareCheckRulesResponse(fareInformativePricing);
+
+			if(!pnrResponse.getStatus().equalsIgnoreCase("GK")) {
+				// fetch generic fare rule
+				FarePricePNRWithBookingClassReply pricePNRReplyBenzy = null;
+				pricePNRReply = checkPNRPricing(masterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
+				FareCheckRulesResponse fareInformativePricing = amadeusIssuanceService.getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
+				pnrResponse.setFareCheckRulesResponse(fareInformativePricing);
+			}
 
 			// fetch journey wise
 			List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
