@@ -138,15 +138,18 @@ public class AmadeusHelper {
 
 
     public static Map<String, Map<String, List<String>>> getFareCheckRulesBenzy(FareCheckRulesReply fareCheckRulesReply) {
+
         if (fareCheckRulesReply == null || fareCheckRulesReply.getTariffInfo() == null || fareCheckRulesReply.getTariffInfo().isEmpty()) {
             return new ConcurrentHashMap<>();
         }
 
         List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList = fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText();
-        Map<String, Map<String, List<String>>> finalMap = new ConcurrentHashMap<>();
+        Map<String, Map<String, List<String>>> finalMap = new LinkedHashMap<>();
         Map<String, List<String>> changeMap = new ConcurrentHashMap<>();
         Map<String, List<String>> cancelMap = new ConcurrentHashMap<>();
         Map<String, List<String>> noteMap = new ConcurrentHashMap<>();
+        Map<String, List<String>> noShowMap = new ConcurrentHashMap<>();
+
         int index = 0;
         boolean changesProcessed = false;
         boolean cancellationsProcessed = false;
@@ -192,14 +195,109 @@ public class AmadeusHelper {
             }
         }
 
-        if (!changeMap.isEmpty()) finalMap.put("Change", changeMap);
-        if (!cancelMap.isEmpty()) finalMap.put("Cancellation", cancelMap);
-        if (changeMap.isEmpty() && cancelMap.isEmpty() && !noteMap.isEmpty()) finalMap.put("Note", noteMap);
+
+        List<String> noShowRules = new ArrayList<>();
+        List<String> yqYrRules = new ArrayList<>();
+        boolean yqYrFound = false;
+        StringBuilder currentSentence = new StringBuilder();
+
+        for (FareCheckRulesReply.TariffInfo.FareRuleText fareRuleText : fareRuleTextList) {
+            String text = fareRuleText.getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+            if (text.isEmpty() || text.equals(" ")) {
+                continue;
+            }
+            String convertedText = getCharacterConversion(text);
+
+            if (isLineSeparator(convertedText)) {
+                if (currentSentence.length() > 0) {
+                    processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules, !yqYrFound);
+                    currentSentence.setLength(0);
+                }
+                continue;
+            }
+
+            currentSentence.append(convertedText).append(" ");
+
+            if (convertedText.endsWith(".")) {
+                processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules, !yqYrFound);
+                currentSentence.setLength(0);
+            }
+        }
+
+        if (currentSentence.length() > 0) {
+            processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules, !yqYrFound);
+        }
+
+        if (!cancelMap.isEmpty()) {
+            finalMap.put("Cancellation", cancelMap);
+        }
+        if (!changeMap.isEmpty()) {
+            finalMap.put("Change", changeMap);
+        }
+        if (!noShowRules.isEmpty()) {
+            noShowMap.put("Generic", noShowRules);
+            finalMap.put("No Show", noShowMap);
+        }
+        if (!noteMap.isEmpty() || !yqYrRules.isEmpty()) {
+            List<String> combinedNote = new ArrayList<>();
+            if (!noteMap.isEmpty()) {
+                combinedNote.addAll(noteMap.values().iterator().next());
+            }
+            if (!yqYrRules.isEmpty()) {
+                combinedNote.add(yqYrRules.get(0));
+            }
+            Map<String, List<String>> finalNoteMap = new ConcurrentHashMap<>();
+            finalNoteMap.put("Generic", combinedNote);
+            finalMap.put("Note", finalNoteMap);
+        }
 
         return finalMap;
     }
 
+    private static void processSentence(String fullSentence, List<String> noShowRules, List<String> yqYrRules, boolean checkYqYr) {
+
+        String[] sentences = fullSentence.split("\\.\\s*");
+        for (String sentence : sentences) {
+            if (!sentence.isEmpty()) {
+                String trimmedSentence = sentence.trim() + ".";
+                if (containsNoShowKeywords(trimmedSentence)) {
+                    String cleanedSentence = trimmedSentence.replaceFirst("^Note -\\s*", "");
+                    cleanedSentence = cleanedSentence.replaceFirst("^(Any Time|Before Departure|After Departure)\\s*", "");
+                    if (!noShowRules.contains(cleanedSentence)) {
+                        noShowRules.add(cleanedSentence);
+                    }
+                }
+                if (checkYqYr && containsYqYrAndRefundKeywords(trimmedSentence) && yqYrRules.isEmpty()) {
+                    String cleanedSentence = trimmedSentence.replaceFirst("^Note -\\s*", "");
+                    cleanedSentence = cleanedSentence.replaceFirst("^(Any Time|Before Departure|After Departure)\\s*", "");
+                    yqYrRules.add(cleanedSentence);
+                }
+            }
+        }
+    }
+
+    private static boolean containsNoShowKeywords(String text) {
+
+        String upperText = text.toUpperCase();
+        boolean hasNoShow = upperText.contains("NO-SHOW") || upperText.contains("NO SHOW") || upperText.contains("NO-SHOW FEE") || upperText.contains("NOSHOW");
+        boolean hasTimeUnit = upperText.matches(".*(\\b|\\d)(DAY|DAYS|HR|HRS|HOUR|HOURS)\\b.*");
+
+        return hasNoShow && hasTimeUnit;
+    }
+
+    private static boolean containsYqYrAndRefundKeywords(String text) {
+
+        String upperText = text.toUpperCase();
+        boolean hasYqYr = upperText.contains("YQ/YR") || upperText.contains("YQ / YR");
+        boolean hasRefund = upperText.contains("REFUND");
+        boolean hasOnlyYq = upperText.contains("YQ") && !upperText.contains("YQ/YR") && !upperText.contains("YQ / YR");
+        boolean hasOnlyYr = upperText.contains("YR") && !upperText.contains("YQ/YR") && !upperText.contains("YQ / YR");
+
+        return hasYqYr && hasRefund && !hasOnlyYq && !hasOnlyYr;
+    }
+
     private static int processRules(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList, int startIndex, Map<String, List<String>> rulesMap, String breakSection) {
+
         int index = startIndex;
         String currentCategory = null;
         List<String> rules = new ArrayList<>();
@@ -263,6 +361,10 @@ public class AmadeusHelper {
 
     private static boolean isSeparatorLine(String line) {
         return line.matches("^[\\-\\=]+$");
+    }
+
+    private static boolean isLineSeparator(String line) {
+        return line.matches("^[-]{3,}$") || line.matches("^[\\-\\=]+$");
     }
 
     private static boolean isNoteText(String line) {
