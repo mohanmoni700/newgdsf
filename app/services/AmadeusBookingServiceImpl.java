@@ -40,6 +40,7 @@ import dto.reissue.AmadeusPaxRefAndTicket;
 import models.AmadeusSessionWrapper;
 import models.CartAirSegmentDTO;
 import models.MiniRule;
+import models.PreloadedSeamanFareRules;
 import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -2157,6 +2158,24 @@ public class AmadeusBookingServiceImpl implements BookingService {
 			}
 			masterInfo.setSeamen(isSeamen);
 			masterInfo.setItinerary(flightItinerary);
+			String validatingCarrierCode = null;
+
+			for (Journey journey : journeyList) {
+				List<AirSegmentInformation> segments = journey.getAirSegmentList();
+				if (segments != null && !segments.isEmpty()) {
+					validatingCarrierCode = segments.get(0).getCarrierCode();
+					break;
+				}
+			}
+			PreloadedSeamanFareRules preloadedSeamanFareForCarrier = null;
+
+			if (isSeamen) {
+				PreloadedSeamanFareRules preloadedSeamanFareRules = PreloadedSeamanFareRules.findSeamanFareRuleByAirlineCode(validatingCarrierCode);
+				if (preloadedSeamanFareRules != null) {
+					preloadedSeamanFareForCarrier = preloadedSeamanFareRules;
+				}
+			}
+			masterInfo.getItinerary().getSeamanPricingInformation().setPreloadedSeamanFareRules(preloadedSeamanFareForCarrier);
 
 			// TODO: change hardcoded value
 			masterInfo.setCabinClass(CabinClass.ECONOMY);
