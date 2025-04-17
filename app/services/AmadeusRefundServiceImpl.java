@@ -39,6 +39,8 @@ public class AmadeusRefundServiceImpl implements RefundService{
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
+    private static final String ticketingOfficeId = play.Play.application().configuration().getString("amadeus.ticketingOffice");
+
     @Autowired
     private AmadeusSourceOfficeService amadeusSourceOfficeService;
 
@@ -57,7 +59,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr
@@ -191,7 +193,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr
@@ -277,7 +279,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr
@@ -382,7 +384,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr

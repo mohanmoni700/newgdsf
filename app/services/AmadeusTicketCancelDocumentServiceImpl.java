@@ -28,6 +28,8 @@ public class AmadeusTicketCancelDocumentServiceImpl implements TicketCancelDocum
     @Autowired
     private AmadeusSourceOfficeService amadeusSourceOfficeService;
 
+    private static final String ticketingOfficeId = play.Play.application().configuration().getString("amadeus.ticketingOffice");
+
     @Override
     public TicketCancelDocumentResponse ticketCancelDocument(String pnr, List<String> ticketsList) {
         logger.debug("ticketCancelDocument called for PNR : " + pnr);
@@ -36,13 +38,13 @@ public class AmadeusTicketCancelDocumentServiceImpl implements TicketCancelDocum
         try {
             logger.debug("serviceHandler login for PNR : " + pnr);
 
-            amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId());
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
 
             PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
             logger.debug("retrieve PNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
                     + "\n" + Json.toJson(pnrReply));
 
-            TicketCancelDocumentReply ticketCancelDocumentReply = serviceHandler.ticketCancelDocument(pnr,  ticketsList, pnrReply, amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId(), amadeusSessionWrapper);
+            TicketCancelDocumentReply ticketCancelDocumentReply = serviceHandler.ticketCancelDocument(pnr,  ticketsList, pnrReply, ticketingOfficeId, amadeusSessionWrapper);
             if (ticketCancelDocumentReply.getTransactionResults() != null) {
                 for (TicketCancelDocumentReply.TransactionResults result : ticketCancelDocumentReply.getTransactionResults()) {
                     if (result.getResponseDetails().getStatusCode().equals("O")) {
