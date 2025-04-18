@@ -1306,14 +1306,14 @@ public class AmadeusBookingHelper {
 
         pricingInformation.setSegmentWisePricing(segmentWisePricing);
         pricingInformation.setSegmentPricingList(segmentPricingList);
-        logger.debug("getPricingInfoFromTST begin....adtBaseFare..."+adtBaseFare);
+        logger.debug("getPricingInfoFromTST begin....adtBaseFare..." + adtBaseFare);
         pricingInformation.setAdtBasePrice(adtBaseFare);
         pricingInformation.setAdtTotalPrice(adtTotalFare);
         pricingInformation.setChdBasePrice(chdBaseFare);
         pricingInformation.setChdTotalPrice(chdTotalFare);
         pricingInformation.setInfBasePrice(infBaseFare);
         pricingInformation.setInfTotalPrice(infTotalFare);
-        logger.debug("getPricingInfoFromTST begin....currency..."+currency);
+        logger.debug("getPricingInfoFromTST begin....currency..." + currency);
 
         pricingInformation.setGdsCurrency(currency);
         pricingInformation.setTotalPrice(totalPriceOfBooking);
@@ -1327,28 +1327,28 @@ public class AmadeusBookingHelper {
         return pricingInformation;
     }
 
-    public static TSTPrice getTSTPrice(TicketDisplayTSTReply.FareList fare, BigDecimal paxTotalFare, BigDecimal paxBaseFare, String paxType, PassengerTax passengerTax){
+    public static TSTPrice getTSTPrice(TicketDisplayTSTReply.FareList fare, BigDecimal paxTotalFare, BigDecimal paxBaseFare, String paxType, PassengerTax passengerTax) {
         TSTPrice tstPrice = new TSTPrice();
-        for(TicketDisplayTSTReply.FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
-        	com.amadeus.xml.ttstrr_13_1_1a.BaggageDetailsTypeI bagAllowance =  null;
-        	if(segmentInfo.getBagAllowanceInformation()!=null){
-        		bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
-        		if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
-                    if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
+        for (TicketDisplayTSTReply.FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
+            com.amadeus.xml.ttstrr_13_1_1a.BaggageDetailsTypeI bagAllowance = null;
+            if (segmentInfo.getBagAllowanceInformation() != null) {
+                bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
+                if (bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
+                    if (tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
                         tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
                     }
                 } else {
-                    if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
+                    if (tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
                         tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
                     }
                 }
-        	}          	
-            
+            }
+
             //reading booking class(RBD)
-        	String bookingClass = null;
-        	if(segmentInfo.getSegDetails()!=null && segmentInfo.getSegDetails().getSegmentDetail()!=null){
-        		bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
-        	}            
+            String bookingClass = null;
+            if (segmentInfo.getSegDetails() != null && segmentInfo.getSegDetails().getSegmentDetail() != null) {
+                bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
+            }
             tstPrice.setBookingClass(bookingClass);
         }
 
@@ -1359,15 +1359,15 @@ public class AmadeusBookingHelper {
         return tstPrice;
     }
 
-    public static PassengerTax getTaxDetailsFromTST(List<TicketDisplayTSTReply.FareList.TaxInformation> taxInformationList, String passengerType, int count){
+    public static PassengerTax getTaxDetailsFromTST(List<TicketDisplayTSTReply.FareList.TaxInformation> taxInformationList, String passengerType, int count) {
         PassengerTax passengerTax = new PassengerTax();
         passengerTax.setPassengerType(passengerType);
         passengerTax.setPassengerCount(count);
         Map<String, BigDecimal> taxes = new HashMap<>();
-        for(TicketDisplayTSTReply.FareList.TaxInformation taxInformation : taxInformationList){
+        for (TicketDisplayTSTReply.FareList.TaxInformation taxInformation : taxInformationList) {
             String amount = taxInformation.getAmountDetails().getFareDataMainInformation().getFareAmount();
             String taxCode = taxInformation.getTaxDetails().getTaxType().getIsoCountry();
-            if(taxes.containsKey(taxCode)) {
+            if (taxes.containsKey(taxCode)) {
                 taxes.put(taxCode, taxes.get(taxCode).add(new BigDecimal(amount)));
             } else {
                 taxes.put(taxCode, new BigDecimal(amount));
@@ -1380,12 +1380,12 @@ public class AmadeusBookingHelper {
     }
 
 
-    public static int getNumberOfTST(List<Traveller> travellerList){
+    public static int getNumberOfTST(List<Traveller> travellerList) {
 
         int adultCount = 0, childCount = 0, infantCount = 0;
         int totalCount = 0;
-        for(Traveller traveller : travellerList){
-            if(traveller.getPassportDetails() != null) {
+        for (Traveller traveller : travellerList) {
+            if (traveller.getPassportDetails() != null) {
                 PassengerTypeCode passengerTypeCode = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth());
                 if (passengerTypeCode.name().equals(PassengerTypeCode.ADT.name())) {
                     adultCount = 1;
@@ -1400,7 +1400,7 @@ public class AmadeusBookingHelper {
             totalCount = adultCount + childCount + infantCount;
 
         }
-        return  totalCount;
+        return totalCount;
     }
 
     //Added to get segment wise pricing while re-pring at payment time
@@ -1422,54 +1422,54 @@ public class AmadeusBookingHelper {
 
         Map<String, TSTPrice> tstPriceMap = new HashMap<>();
 
-        Map<String,Object> airSegmentRefMap = new HashMap<>();
-        Map<String,Object> travellerMap = new HashMap<>();
+        Map<String, Object> airSegmentRefMap = new HashMap<>();
+        Map<String, Object> travellerMap = new HashMap<>();
         Map<String, String> passengerType = new HashMap<>();
 
-        for(PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()){
-            for(PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()){
+        for (PNRReply.OriginDestinationDetails originDestination : gdsPNRReply.getOriginDestinationDetails()) {
+            for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestination.getItineraryInfo()) {
                 String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
-                if(segType.equalsIgnoreCase("AIR")) {
+                if (segType.equalsIgnoreCase("AIR")) {
                     String segmentRef = "S" + itineraryInfo.getElementManagementItinerary().getReference().getNumber();
                     String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
                     airSegmentRefMap.put(segmentRef, segments);
                 }
             }
         }
-        for(PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()){
+        for (PNRReply.TravellerInfo travellerInfo : gdsPNRReply.getTravellerInfo()) {
             String key = "P" + travellerInfo.getElementManagementPassenger().getReference().getNumber();
-            travellerMap.put(key,travellerInfo);
-            if(!isSeamen){
+            travellerMap.put(key, travellerInfo);
+            if (!isSeamen) {
                 PassengerData paxData = travellerInfo.getPassengerData().get(0);
                 String paxType = paxData.getTravellerInformation().getPassenger().get(0).getType();
                 String infantIndicator = paxData.getTravellerInformation().getPassenger().get(0).getInfantIndicator();
-                if("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
-                    passengerType.put(key,"CHD");
-                } else if("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
-                    passengerType.put(key,"INF");
-                }else {
-                    passengerType.put(key,"ADT");
+                if ("chd".equalsIgnoreCase(paxType) || "ch".equalsIgnoreCase(paxType)) {
+                    passengerType.put(key, "CHD");
+                } else if ("inf".equalsIgnoreCase(paxType) || "in".equalsIgnoreCase(paxType)) {
+                    passengerType.put(key, "INF");
+                } else {
+                    passengerType.put(key, "ADT");
                 }
 
-                if(infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)){
-                    passengerType.put("PI"+ travellerInfo.getElementManagementPassenger().getReference().getNumber(), "INF");
+                if (infantIndicator != null && "1".equalsIgnoreCase(infantIndicator)) {
+                    passengerType.put("PI" + travellerInfo.getElementManagementPassenger().getReference().getNumber(), "INF");
                 }
-            }else {
+            } else {
                 passengerType.put(key, "ADT");
             }
         }
 
         Map<String, AirSegmentInformation> segmentMap = new HashMap<>();
 
-        for(AirSegmentInformation airSegment : airSegmentList){
-            String key = airSegment.getFromLocation() +  airSegment.getToLocation();
+        for (AirSegmentInformation airSegment : airSegmentList) {
+            String key = airSegment.getFromLocation() + airSegment.getToLocation();
             segmentMap.put(key, airSegment);
         }
 
         List<SegmentPricing> segmentPricingList = new ArrayList<>();
         List<PassengerTax> passengerTaxList = new ArrayList<>();
         boolean segmentWisePricing = false;
-        for(FareList fare : pricePNRReplyFareList) {
+        for (FareList fare : pricePNRReplyFareList) {
             BigDecimal totalFarePerPaxType = new BigDecimal(0);
             BigDecimal paxTotalFare = new BigDecimal(0);
             BigDecimal baseFareOfPerPaxType = new BigDecimal(0);
@@ -1477,26 +1477,26 @@ public class AmadeusBookingHelper {
             SegmentPricing segmentPricing = new SegmentPricing();
             boolean equivalentFareAvailable = false;
             BigDecimal baseFare = new BigDecimal(0);
-            for(MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
+            for (MonetaryInformationDetailsType223826C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
                 BigDecimal amount = new BigDecimal(fareData.getFareAmount());
-                if(AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
+                if (AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
                     paxTotalFare = amount;
                 }
-                if("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
-                    if(!equivalentFareAvailable){
+                if ("B".equalsIgnoreCase(fareData.getFareDataQualifier()) || "E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
+                    if (!equivalentFareAvailable) {
                         baseFare = amount;
                         currency = fareData.getFareCurrency();
                     }
                 }
-                if("E".equalsIgnoreCase(fareData.getFareDataQualifier())){
+                if ("E".equalsIgnoreCase(fareData.getFareDataQualifier())) {
                     equivalentFareAvailable = true;
                 }
             }
 
             int paxCount = fare.getPaxSegReference().getRefDetails().size();
 
-            String paxTypeKey =  "P" + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber();
-            if("PI".equalsIgnoreCase(fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier())){
+            String paxTypeKey = "P" + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber();
+            if ("PI".equalsIgnoreCase(fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier())) {
                 paxTypeKey = fare.getPaxSegReference().getRefDetails().get(0).getRefQualifier() + fare.getPaxSegReference().getRefDetails().get(0).getRefNumber();
             }
 
@@ -1507,13 +1507,13 @@ public class AmadeusBookingHelper {
             PassengerTax passengerTax = getTaxDetailsWithSegmentPrice(fare.getTaxInformation(), paxType, paxCount);
             passengerTaxList.add(passengerTax);
 
-            if(airSegmentRefMap.size() != fare.getSegmentInformation().size()){
+            if (airSegmentRefMap.size() != fare.getSegmentInformation().size()) {
                 segmentWisePricing = true;
             }
             List<String> segmentKeys = new ArrayList<>();
-            if(segmentWisePricing){
-                for(FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()){
-                    if(segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null){
+            if (segmentWisePricing) {
+                for (FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
+                    if (segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null) {
                         com.amadeus.xml.tpcbrr_12_4_1a.ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
                         String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
                         segmentKeys.add(airSegmentRefMap.get(key).toString().toLowerCase());
@@ -1529,36 +1529,35 @@ public class AmadeusBookingHelper {
             segmentPricing.setPassengerTax(passengerTax);
             segmentPricing.setPassengerCount(new Long(paxCount));
             segmentPricingList.add(segmentPricing);
-            if("CHD".equalsIgnoreCase(paxType)){
+            if ("CHD".equalsIgnoreCase(paxType)) {
                 chdBaseFare = chdBaseFare.add(baseFare);
                 chdTotalFare = chdTotalFare.add(paxTotalFare);
-            }else if("INF".equalsIgnoreCase(paxType)){
+            } else if ("INF".equalsIgnoreCase(paxType)) {
                 infBaseFare = infBaseFare.add(baseFare);
                 infTotalFare = infTotalFare.add(paxTotalFare);
-            }else {
+            } else {
                 adtBaseFare = adtBaseFare.add(baseFare);
                 adtTotalFare = adtTotalFare.add(paxTotalFare);
             }
             totalPriceOfBooking = totalPriceOfBooking.add(totalFarePerPaxType);
             basePriceOfBooking = basePriceOfBooking.add(baseFareOfPerPaxType);
 
-            TSTPrice tstPrice = getTSTPriceWithSegmentPrice(fare, paxTotalFare, baseFare,paxType, passengerTax);
+            TSTPrice tstPrice = getTSTPriceWithSegmentPrice(fare, paxTotalFare, baseFare, paxType, passengerTax);
             for (FareList.SegmentInformation segmentInformation : fare.getSegmentInformation()) {
                 for (String key : segmentMap.keySet()) {
-                    for(Object airSegVal : airSegmentRefMap.values()) {
+                    for (Object airSegVal : airSegmentRefMap.values()) {
                         if (key.equals(airSegVal)) {
-                        	String farebasis = null;
-                        	if(segmentInformation.getFareQualifier()!=null && segmentInformation.getFareQualifier().getFareBasisDetails()!=null && segmentInformation.getFareQualifier().getFareBasisDetails().getPrimaryCode()!=null)
-                            {
-                        		farebasis = segmentInformation.getFareQualifier().getFareBasisDetails().getPrimaryCode()
-                                    + segmentInformation.getFareQualifier().getFareBasisDetails().getFareBasisCode();
-                            segmentMap.get(key).setFareBasis(farebasis);
+                            String farebasis = null;
+                            if (segmentInformation.getFareQualifier() != null && segmentInformation.getFareQualifier().getFareBasisDetails() != null && segmentInformation.getFareQualifier().getFareBasisDetails().getPrimaryCode() != null) {
+                                farebasis = segmentInformation.getFareQualifier().getFareBasisDetails().getPrimaryCode()
+                                        + segmentInformation.getFareQualifier().getFareBasisDetails().getFareBasisCode();
+                                segmentMap.get(key).setFareBasis(farebasis);
                             }
                         }
                     }
                 }
 
-                if(segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null){
+                if (segmentInformation.getSegmentReference() != null && segmentInformation.getSegmentReference().getRefDetails() != null) {
                     com.amadeus.xml.tpcbrr_12_4_1a.ReferencingDetailsTypeI referencingDetailsTypeI = segmentInformation.getSegmentReference().getRefDetails().get(0);
                     String key = referencingDetailsTypeI.getRefQualifier() + referencingDetailsTypeI.getRefNumber();
 
@@ -1592,15 +1591,15 @@ public class AmadeusBookingHelper {
     }
 
     //Added to get segment wise pricing while re-pring at payment time
-    public static PassengerTax getTaxDetailsWithSegmentPrice(List<FareList.TaxInformation> taxInformationList, String passengerType, int count){
+    public static PassengerTax getTaxDetailsWithSegmentPrice(List<FareList.TaxInformation> taxInformationList, String passengerType, int count) {
         PassengerTax passengerTax = new PassengerTax();
         passengerTax.setPassengerType(passengerType);
         passengerTax.setPassengerCount(count);
         Map<String, BigDecimal> taxes = new HashMap<>();
-        for(TaxInformation taxInformation : taxInformationList){
+        for (TaxInformation taxInformation : taxInformationList) {
             String amount = taxInformation.getAmountDetails().getFareDataMainInformation().getFareAmount();
             String taxCode = taxInformation.getTaxDetails().getTaxType().getIsoCountry();
-            if(taxes.containsKey(taxCode)) {
+            if (taxes.containsKey(taxCode)) {
                 taxes.put(taxCode, taxes.get(taxCode).add(new BigDecimal(amount)));
             } else {
                 taxes.put(taxCode, new BigDecimal(amount));
@@ -1613,21 +1612,21 @@ public class AmadeusBookingHelper {
     }
 
     //Added to get segment wise pricing while re-pring at payment time
-    public static TSTPrice getTSTPriceWithSegmentPrice(FareList fare, BigDecimal paxTotalFare, BigDecimal paxBaseFare, String paxType, PassengerTax passengerTax){
+    public static TSTPrice getTSTPriceWithSegmentPrice(FareList fare, BigDecimal paxTotalFare, BigDecimal paxBaseFare, String paxType, PassengerTax passengerTax) {
         TSTPrice tstPrice = new TSTPrice();
-        for(FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
-        	BaggageDetailsTypeI bagAllowance =  null;
-        	if(segmentInfo.getBagAllowanceInformation()!=null){
-        		bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
-                if(bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
-                    if(tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
-                        if(bagAllowance.getBaggageWeight() != null) {
+        for (FareList.SegmentInformation segmentInfo : fare.getSegmentInformation()) {
+            BaggageDetailsTypeI bagAllowance = null;
+            if (segmentInfo.getBagAllowanceInformation() != null) {
+                bagAllowance = segmentInfo.getBagAllowanceInformation().getBagAllowanceDetails();
+                if (bagAllowance.getBaggageType().equalsIgnoreCase("w")) {
+                    if (tstPrice.getMaxBaggageWeight() == 0 || tstPrice.getMaxBaggageWeight() > bagAllowance.getBaggageWeight().intValue()) {
+                        if (bagAllowance.getBaggageWeight() != null) {
                             tstPrice.setMaxBaggageWeight(bagAllowance.getBaggageWeight().intValue());
                         }
                     }
                 } else {
-                    if(tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
-                        if(bagAllowance.getBaggageQuantity() != null) {
+                    if (tstPrice.getBaggageCount() == 0 || tstPrice.getBaggageCount() > bagAllowance.getBaggageQuantity().intValue()) {
+                        if (bagAllowance.getBaggageQuantity() != null) {
                             tstPrice.setBaggageCount(bagAllowance.getBaggageQuantity().intValue());
                         }
                     }
@@ -1635,8 +1634,8 @@ public class AmadeusBookingHelper {
                 //reading booking class(RBD)
                 String bookingClass = segmentInfo.getSegDetails().getSegmentDetail().getClassOfService();
                 tstPrice.setBookingClass(bookingClass);
-        	}            
-           
+            }
+
         }
 
         tstPrice.setTotalPrice(paxTotalFare);
@@ -1645,7 +1644,8 @@ public class AmadeusBookingHelper {
         tstPrice.setPassengerTax(passengerTax);
         return tstPrice;
     }
-    public static void checkFarePrice(FarePricePNRWithBookingClassReply pricePNRReply,PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo,Map<String,Object> travellerSegMap){
+
+    public static void checkFarePrice(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, Map<String, Object> travellerSegMap) {
 
         // TODO: re-factor
         int adultCount = 0, childCount = 0, infantCount = 0;
@@ -1666,14 +1666,14 @@ public class AmadeusBookingHelper {
         pnrResponse.setPricingInfo(pricingInformation);
 
         BigDecimal searchPrice = new BigDecimal(0);
-        if(travellerMasterInfo.isSeamen()) {
+        if (travellerMasterInfo.isSeamen()) {
             searchPrice = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getTotalPriceValue();
         } else {
             searchPrice = travellerMasterInfo.getItinerary().getPricingInformation().getTotalPriceValue();
         }
 
 
-        if(totalFare.compareTo(searchPrice) == 0) {
+        if (totalFare.compareTo(searchPrice) == 0) {
             pnrResponse.setPriceChanged(false);
             return;
         }
@@ -1697,9 +1697,9 @@ public class AmadeusBookingHelper {
         List<PNRReply.TstData> tstDataList = gdsPNRReply.getTstData();
 
         List<String> fareBasesList = new ArrayList<>();
-        for(PNRReply.TstData tstData : tstDataList){
+        for (PNRReply.TstData tstData : tstDataList) {
             List<FareElementType> fareElementTypeList = tstData.getFareBasisInfo().getFareElement();
-            for(FareElementType fareElement : fareElementTypeList){
+            for (FareElementType fareElement : fareElementTypeList) {
                 fareBasesList.add(fareElement.getFareBasis());
             }
         }
@@ -1718,7 +1718,7 @@ public class AmadeusBookingHelper {
                 fareSegment.setCabinClass(itineraryInfo.getCabinDetails() != null ? itineraryInfo.getCabinDetails().getCabinDetails().getClassDesignator() : "");
             }
 
-            if(itineraryInfo.getTravelProduct().getBoardpointDetail() != null && itineraryInfo.getTravelProduct().getOffpointDetail() != null) {
+            if (itineraryInfo.getTravelProduct().getBoardpointDetail() != null && itineraryInfo.getTravelProduct().getOffpointDetail() != null) {
                 if (index < fareBasesList.size()) {
                     fareSegment.setFareBasis(fareBasesList.get(index));
                     index++;
@@ -1743,55 +1743,64 @@ public class AmadeusBookingHelper {
 
         Map<String, String> fareComponentsMap = new LinkedHashMap<>();
 
-        FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup pricingGroup = fareInformativePricingPNRReply.getMainGroup().getPricingGroupLevelGroup().get(0);
+        try {
 
-        if (pricingGroup.getFareInfoGroup() != null) {
-            FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup fareInfo = pricingGroup.getFareInfoGroup();
+            if (fareInformativePricingPNRReply != null && fareInformativePricingPNRReply.getMainGroup() != null && fareInformativePricingPNRReply.getErrorGroup() == null) {
 
-            List<FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup> fareComponents = fareInfo.getFareComponentDetailsGroup();
+                FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup pricingGroup = fareInformativePricingPNRReply.getMainGroup().getPricingGroupLevelGroup().get(0);
 
-            if (fareComponents != null) {
-                for (FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup fareComponent : fareComponents) {
+                if (pricingGroup.getFareInfoGroup() != null) {
+                    FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup fareInfo = pricingGroup.getFareInfoGroup();
 
-                    FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.FareComponentID fareComponentID = fareComponent.getFareComponentID();
+                    List<FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup> fareComponents = fareInfo.getFareComponentDetailsGroup();
 
-                    if (fareComponentID != null && fareComponentID.getItemNumberDetails() != null) {
-                        for (FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.FareComponentID.ItemNumberDetails item : fareComponentID.getItemNumberDetails()) {
+                    if (fareComponents != null) {
+                        for (FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup fareComponent : fareComponents) {
 
-                            if (item.getNumber() != null) {
-                                String itemNumber = item.getNumber();
-                                StringBuilder location = new StringBuilder();
+                            FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.FareComponentID fareComponentID = fareComponent.getFareComponentID();
 
-                                if (fareComponent.getMarketFareComponent() != null) {
-                                    FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.MarketFareComponent marketFareComponent = fareComponent.getMarketFareComponent();
+                            if (fareComponentID != null && fareComponentID.getItemNumberDetails() != null) {
+                                for (FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.FareComponentID.ItemNumberDetails item : fareComponentID.getItemNumberDetails()) {
 
-                                    String boardPoint = "";
-                                    String offPoint = "";
+                                    if (item.getNumber() != null) {
+                                        String itemNumber = item.getNumber();
+                                        StringBuilder location = new StringBuilder();
 
-                                    if (marketFareComponent.getBoardPointDetails() != null && marketFareComponent.getBoardPointDetails().getTrueLocationId() != null) {
-                                        boardPoint = marketFareComponent.getBoardPointDetails().getTrueLocationId();
+                                        if (fareComponent.getMarketFareComponent() != null) {
+                                            FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.FareComponentDetailsGroup.MarketFareComponent marketFareComponent = fareComponent.getMarketFareComponent();
+
+                                            String boardPoint = "";
+                                            String offPoint = "";
+
+                                            if (marketFareComponent.getBoardPointDetails() != null && marketFareComponent.getBoardPointDetails().getTrueLocationId() != null) {
+                                                boardPoint = marketFareComponent.getBoardPointDetails().getTrueLocationId();
+                                            }
+
+                                            if (marketFareComponent.getOffpointDetails() != null && marketFareComponent.getOffpointDetails().getTrueLocationId() != null) {
+                                                offPoint = marketFareComponent.getOffpointDetails().getTrueLocationId();
+                                            }
+
+                                            location.append(boardPoint).append("-").append(offPoint);
+                                        }
+
+                                        if (location.length() > 1) {
+                                            fareComponentsMap.put(itemNumber, location.toString());
+                                        }
                                     }
-
-                                    if (marketFareComponent.getOffpointDetails() != null && marketFareComponent.getOffpointDetails().getTrueLocationId() != null) {
-                                        offPoint = marketFareComponent.getOffpointDetails().getTrueLocationId();
-                                    }
-
-                                    location.append(boardPoint).append("-").append(offPoint);
-                                }
-
-                                if (location.length() > 1) {
-                                    fareComponentsMap.put(itemNumber, location.toString());
                                 }
                             }
                         }
                     }
                 }
             }
+
+            return fareComponentsMap;
+
+        } catch (Exception e) {
+            logger.debug("Error with getting Fare Component Group {} : ", e.getMessage(), e);
+            return null;
         }
-
-        return fareComponentsMap;
     }
-
 
 
     public static List<Journey> getJourneyDetails(List<Journey> journeyList, Map<String, String> fareComponentJourneyMap, RedisTemplate redisTemplate) {

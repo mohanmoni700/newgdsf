@@ -40,6 +40,8 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
     private final ServiceHandler serviceHandler;
     private final AmadeusSourceOfficeService amadeusSourceOfficeService;
 
+    private static final String ticketingOfficeId = play.Play.application().configuration().getString("amadeus.ticketingOffice");
+
     @Autowired
     public AmadeusReissueServiceImpl(
             ReIssueFlightSearch reIssueFlightSearch,
@@ -65,7 +67,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         try {
             serviceHandler = new ServiceHandler();
 //            amadeusSessionWrapper = serviceHandler.logIn();
-            amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getDelhiSourceOffice());
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
 
             //1. Retrieving the PNR
             PNRReply pnrReply = serviceHandler.retrivePNR(reIssueSearchRequest.getGdsPNR(), amadeusSessionWrapper);
