@@ -32,7 +32,7 @@ public class AmadeusTicketCancelDocumentServiceImpl implements TicketCancelDocum
 
     @Override
     public TicketCancelDocumentResponse ticketCancelDocument(String pnr, List<String> ticketsList) {
-        logger.debug("ticketCancelDocument called for PNR : " + pnr);
+        logger.debug("ticketCancelDocument called for PNR : {} -- {} ",  pnr, Json.toJson(ticketsList));
         TicketCancelDocumentResponse ticketCancelDocumentResponse = new TicketCancelDocumentResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {

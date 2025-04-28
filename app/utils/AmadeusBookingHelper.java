@@ -1128,11 +1128,12 @@ public class AmadeusBookingHelper {
     public static boolean checkForSimultaneousChange(PNRReply pnrReply) {
 
         boolean simultaneousChange = false;
-        if (pnrReply.getGeneralErrorInfo() != null && pnrReply.getGeneralErrorInfo().size() > 0) {
+        if (pnrReply.getGeneralErrorInfo() != null && !pnrReply.getGeneralErrorInfo().isEmpty()) {
             for (PNRReply.GeneralErrorInfo generalErrorInfo : pnrReply.getGeneralErrorInfo()) {
                 String errorText = StringUtils.join(generalErrorInfo.getMessageErrorText().getText());
+                String errorDesc = errorText.trim();
                 //todo check the string contains works with spaces and all other cases , use regular expression
-                if (errorText.contains(AmadeusConstants.SIMULTANEOUS_PNR_CHANGE)) {
+                if (errorDesc.contains(AmadeusConstants.SIMULTANEOUS_PNR_CHANGE) || errorDesc.equalsIgnoreCase("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")) {
                     simultaneousChange = true;
                 }
             }

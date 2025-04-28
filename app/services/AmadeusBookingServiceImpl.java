@@ -956,6 +956,18 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     }
 
+    private PNRReply handleSimultaneousChangeForEsEntry(AmadeusSessionWrapper amadeusSessionWrapper, String officeId) {
+        try {
+            Thread.sleep(1000);
+            serviceHandler.ignoreAndRetrievePNR(amadeusSessionWrapper);
+            PNRReply pnrReply = serviceHandler.savePNRES(amadeusSessionWrapper, officeId);
+            return pnrReply;
+        } catch (InterruptedException ie) {
+            logger.debug("Thread Exception while handling simultaneous changes for ES entry : {} ", ie.getMessage(), ie);
+            return null;
+        }
+    }
+
     public void checkSegmentStatus(PNRReply pnrReply) throws BaseCompassitesException {
         for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
             for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
@@ -1310,6 +1322,12 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     //pnrResponse.setPnrNumber(tstRefNo);
                     Boolean error = Boolean.FALSE;
                     gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+                    boolean isSimultaneousChangeToPnr = checkForSimultaneousChange(gdsPNRReplyBenzy);
+
+                    if(isSimultaneousChangeToPnr) {
+                        gdsPNRReply = handleSimultaneousChangeForEsEntry(amadeusSessionWrapper,amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+                    }
+
                     if (!gdsPNRReply.getGeneralErrorInfo().isEmpty()) {
                         Thread.sleep(20000);
                         error = Boolean.TRUE;
@@ -1376,7 +1394,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                             pnrResponse.setPnrNumber(tstRefNo);
                         Thread.sleep(10000);
                     } catch (Exception e) {
-                        throw new Exception();
+                        logger.debug("Error --  {} ", e.getMessage(), e);
                     }
                 } else {
                     setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
