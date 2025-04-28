@@ -956,6 +956,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     }
 
+
     private PNRReply handleSimultaneousChangeForEsEntry(AmadeusSessionWrapper amadeusSessionWrapper, String officeId) {
         try {
             Thread.sleep(1000);
@@ -967,6 +968,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             return null;
         }
     }
+
 
     public void checkSegmentStatus(PNRReply pnrReply) throws BaseCompassitesException {
         for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
@@ -1322,11 +1324,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     //pnrResponse.setPnrNumber(tstRefNo);
                     Boolean error = Boolean.FALSE;
                     gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+
                     boolean isSimultaneousChangeToPnr = checkForSimultaneousChange(gdsPNRReplyBenzy);
 
                     if(isSimultaneousChangeToPnr) {
                         gdsPNRReply = handleSimultaneousChangeForEsEntry(amadeusSessionWrapper,amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                     }
+
 
                     if (!gdsPNRReply.getGeneralErrorInfo().isEmpty()) {
                         Thread.sleep(20000);
@@ -1936,10 +1940,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     ChildMap.put(key, miniRule);
                 } else if (paxType.equalsIgnoreCase("INF")) {
                     InfantMap.put(key, miniRule);
-
                 }
             }
         }
+
 
         String paxType = gdsPNRReply.getTravellerInfo().get(0).getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getType();
         String isSeamen = "false";
@@ -1996,6 +2000,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
         return getBookingDetail(gdsPNR, amadeusSessionWrapper);
     }
+
 
     public JsonNode getBookingDetailsByOfficeId(String gdsPNR, String officeId) {
         logger.info("Amadeus getBookingDetailsByOfficeId called for PNR: " + gdsPNR + "--OfficeID: " + officeId);
