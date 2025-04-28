@@ -316,6 +316,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     private void createPNRResponseForReissuedPNR(PNRReply pnrReply, PNRResponse pnrResponse, AMATicketRebookAndRepricePNRRS.Success success) {
 
 
+
         pnrResponse.setPnrNumber(pnrReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
 
 
