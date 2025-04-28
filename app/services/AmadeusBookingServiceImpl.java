@@ -11,8 +11,6 @@ import com.amadeus.xml.pnracc_11_3_1a.ReferencingDetailsType127526C;
 import com.amadeus.xml.pnracc_11_3_1a.TravellerDetailsTypeI;
 import com.amadeus.xml.pnrspl_11_3_1a.*;
 import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
-import com.amadeus.xml.pnrxcl_14_1_1a.ElementIdentificationType;
-import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tmrxrr_18_1_1a.*;
@@ -59,7 +57,6 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.compassites.constants.StaticConstatnts.*;
 import static utils.AmadeusBookingHelper.*;
@@ -93,6 +90,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     @Autowired
     private AmadeusIssuanceServiceImpl amadeusIssuanceService;
+
+    @Autowired
+    private AmadeusBookingHelper amadeusBookingHelper;
 
     static {
         baggageCodes.put("700", "KG");
@@ -1282,17 +1282,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 FarePricePNRWithBookingClassReply pricePNRReplyBenzy = null;
                 pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
                 if (pricePNRReply.getApplicationError() == null) {
-                    FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
-                    FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-                    Map<String, Map<String, List<String>>> fareRules = new ConcurrentHashMap<>();
-                    List<String> detailedFareRuleList = new ArrayList<>();
-                    if (fareCheckRulesReply.getErrorInfo() == null) {
-                        fareRules = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
-                        detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
-                    }
-                    fareCheckRulesResponse.setRuleMap(fareRules);
-                    fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
-                    pnrResponse.setFareCheckRulesResponse(fareCheckRulesResponse);
+
+                    Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap;
+
+                    Map<String, String> fareComponentsMap = AmadeusBookingHelper.getFareComponentMapFromPricePNRWithBookingClass(pricePNRReply);
+                    fareCheckRulesResponseMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(amadeusSessionWrapper, fareComponentsMap);
+                    pnrResponse.setFareCheckRulesResponseMap(fareCheckRulesResponseMap);
+
                 }
                 int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1 : getNumberOfTST(travellerMasterInfo.getTravellersList());
                 /**
@@ -1374,22 +1370,17 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
                         gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
                     }
-                    FareCheckRulesReply fareCheckRulesReply = null;
                     if (pnrResponse.getPricingInfo() != null) {
                         pnrResponse.getPricingInfo().setPricingOfficeId(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId().toString());
-                        fareCheckRulesReply = serviceHandler.getFareRules(benzyAmadeusSessionWrapper);
                     }
-                    FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
+                    Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap;
                     try {
-                        Map<String, Map<String, List<String>>> fareRules = new ConcurrentHashMap<>();
-                        List<String> detailedFareRuleList = new ArrayList<>();
-                        if (fareCheckRulesReply.getErrorInfo() == null) {
-                            fareRules = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
-                            detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+
+                        if(pricePNRReplyBenzy.getApplicationError() == null) {
+                            Map<String, String> fareComponentsMap = AmadeusBookingHelper.getFareComponentMapFromPricePNRWithBookingClass(pricePNRReplyBenzy);
+                            fareCheckRulesResponseMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(benzyAmadeusSessionWrapper, fareComponentsMap);
+                            pnrResponse.setFareCheckRulesResponseMap(fareCheckRulesResponseMap);
                         }
-                        fareCheckRulesResponse.setRuleMap(fareRules);
-                        fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
-                        pnrResponse.setFareCheckRulesResponse(fareCheckRulesResponse);
 
                         PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
                         serviceHandler.exitESPnr(pnrCancel, amadeusSessionWrapper);
@@ -1418,6 +1409,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
                                 String fare = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getAmount();
                                 BigDecimal totalFare = new BigDecimal(fare);
                                 String currency = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getCurrency();
+
+                                try {
+                                    Map<String, String> fareComponentMap = AmadeusBookingHelper.getFareComponentMapFromFareInformativePricing(reply);
+                                    Map<String, FareCheckRulesResponse> fareCheckRuleMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(amadeusSessionWrapper, fareComponentMap);
+                                    pnrResponse.setFareCheckRulesResponseMap(fareCheckRuleMap);
+                                } catch (Exception e) {
+                                    logger.debug("Error with getting fare check rule response map {} ", e.getMessage(), e);
+                                }
+
                                 FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
                                 try {
                                     Map<String, Map> benzyFareRulesMap = AmadeusHelper.getFareCheckRules(fareCheckRulesReply);
@@ -2227,17 +2227,22 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
             if (!pnrResponse.getStatus().equalsIgnoreCase("GK")) {
+
                 // fetch generic fare rule
-                FarePricePNRWithBookingClassReply pricePNRReplyBenzy = null;
                 pricePNRReply = checkPNRPricing(masterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
-                FareCheckRulesResponse fareInformativePricing = amadeusIssuanceService.getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
-                pnrResponse.setFareCheckRulesResponse(fareInformativePricing);
+
+                Map<String, String> fareComponentMap = AmadeusBookingHelper.getFareComponentMapFromPricePNRWithBookingClass(pricePNRReply);
+                Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(amadeusSessionWrapper,fareComponentMap);
+                pnrResponse.setFareCheckRulesResponseMap(fareCheckRulesResponseMap);
+
+//                FareCheckRulesResponse fareInformativePricing = amadeusIssuanceService.getFareInformativePricing(pricePNRReply, amadeusSessionWrapper);
+//                pnrResponse.setFareCheckRulesResponse(fareInformativePricing);
             }
 
             // fetch journey wise
             List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
             FareInformativePricingWithoutPNRReply fareInfo = serviceHandler.getFareInfo(journeyList, isSeamen, adtCount, childCount, infactCount, paxFareDetails, amadeusSessionWrapper);
-            Map<String, String> fareComponentDetails = fareComponentWithoutPNR(fareInfo);
+            Map<String, String> fareComponentDetails = getFareComponentMapFromFareInformativePricing(fareInfo);
             List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentDetails, redisTemplate);
 
             if (actualJourneyList.isEmpty()) {

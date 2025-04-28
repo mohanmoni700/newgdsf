@@ -100,7 +100,7 @@ public class PNRResponse implements Serializable  {
 
     private Map<String, String> pnrMap;
 
-    private FareCheckRulesResponse fareCheckRulesResponse;
+    private Map<String,FareCheckRulesResponse> fareCheckRulesResponseMap;
 
     private String status;
 
@@ -431,12 +431,12 @@ public class PNRResponse implements Serializable  {
         isPnrSplit = pnrSplit;
     }
 
-    public FareCheckRulesResponse getFareCheckRulesResponse() {
-        return fareCheckRulesResponse;
+    public Map<String, FareCheckRulesResponse> getFareCheckRulesResponseMap() {
+        return fareCheckRulesResponseMap;
     }
 
-    public void setFareCheckRulesResponse(FareCheckRulesResponse fareCheckRulesResponse) {
-        this.fareCheckRulesResponse = fareCheckRulesResponse;
+    public void setFareCheckRulesResponseMap(Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap) {
+        this.fareCheckRulesResponseMap = fareCheckRulesResponseMap;
     }
 
     public String getStatus() {

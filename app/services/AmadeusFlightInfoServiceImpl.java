@@ -9,6 +9,7 @@ import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.Main
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup.BaggageAllowance.BaggageDetails;
 import com.amadeus.xml.tmrxrr_18_1_1a.*;
 import com.amadeus.xml.tmrxrr_18_1_1a.MiniRuleGetFromRecReply.MnrByPricingRecord;
+import com.compassites.GDSWrapper.amadeus.FareRules;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
+import utils.AmadeusBookingHelper;
 import utils.AmadeusHelper;
 import utils.AmadeusSessionManager;
 import utils.XMLFileUtility;
@@ -39,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
-    static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
+	static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
 	static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
@@ -52,6 +54,12 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 
 	@Autowired
 	private ServiceHandler serviceHandler;
+
+	@Autowired
+	private FareRules fareRules;
+
+	@Autowired
+	private AmadeusBookingHelper amadeusBookingHelper;
 
 	@Autowired
 	public void setAmadeusSessionManager(AmadeusSessionManager amadeusSessionManager){
@@ -89,7 +97,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
 			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
-			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+//			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
 			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 			
 		} catch (ServerSOAPFaultException ssf) {
@@ -135,7 +143,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 				paxFareDetails1.setFareJourneyList(fareJourneyList);
 				paxFareDetails.add(paxFareDetails1);
 				FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
-				FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+//				FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
 				addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 				i++;
 			}
@@ -607,17 +615,14 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 //	}
 
 
-	public FareCheckRulesResponse getFareCheckRules(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
+	public Map<String, FareCheckRulesResponse> getFareCheckRules(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
 
 		AmadeusSessionWrapper amadeusSessionWrapper = null;
-		FareCheckRulesReply fareCheckRulesReply = null;
-		String officeId = seamen ? flightItinerary.getSeamanPricingInformation().getPricingOfficeId() : flightItinerary.getPricingInformation().getPricingOfficeId();
-
-		List<HashMap> miniRule = new ArrayList<>();
-		List<String> detailedFareRuleList = new ArrayList<>();
-		FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
+		Map<String, String> fareComponents = null;
+		Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap = new LinkedHashMap<>();
 
 		try {
+			String officeId = seamen ? flightItinerary.getSeamanPricingInformation().getPricingOfficeId() : flightItinerary.getPricingInformation().getPricingOfficeId();
 
 			if(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(officeId)){
 				amadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId());
@@ -646,24 +651,21 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 //			BigDecimal totalFare = new BigDecimal(fare);
 //			String currency = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getCurrency();
 
-			Map<String, Map<String,List<String>>> fareRules = new ConcurrentHashMap<>();
+//			Map<String, Map<String,List<String>>> fareRules = new ConcurrentHashMap<>();
 			if (reply.getErrorGroup() != null) {
-				logger.debug("FareInformativePricing failed while running fare check rules {} ", reply.getErrorGroup().getErrorWarningDescription().getFreeText());
+				logger.debug("FareInformativePricing failed while running fare check rules: {}",
+						reply.getErrorGroup().getErrorWarningDescription().getFreeText());
 			} else {
-				fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-				fareRules = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
-				detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
-//				miniRule = AmadeusHelper.getMiniRulesFromGenericRules(fareRules, totalFare, currency);
+				fareComponents = AmadeusBookingHelper.getFareComponentMapFromFareInformativePricing(reply);
+				logger.debug("Fare components: {}", fareComponents);
+
+				fareCheckRulesResponseMap =  amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(amadeusSessionWrapper, fareComponents);
 			}
 
-//			fareCheckRulesResponse.setMiniRule(miniRule);
-			fareCheckRulesResponse.setRuleMap(fareRules);
-			fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
-
-			return fareCheckRulesResponse;
+			return fareCheckRulesResponseMap;
 
 		} catch (Exception e) {
-			logger.debug("Error Getting fare check rules Json {} ", e.getMessage(), e);
+			logger.debug("Error getting fare check rules JSON: {}", e.getMessage(), e);
 			serviceHandler.logOut(amadeusSessionWrapper);
 			return null;
 		}

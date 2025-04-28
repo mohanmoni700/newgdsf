@@ -1,25 +1,28 @@
 package utils;
 
+import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_11_3_1a.*;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
-import com.amadeus.xml.tpcbrr_12_4_1a.BaggageDetailsTypeI;
-import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply;
+import com.amadeus.xml.tpcbrr_12_4_1a.*;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList.TaxInformation;
-import com.amadeus.xml.tpcbrr_12_4_1a.MonetaryInformationDetailsType223826C;
+import com.amadeus.xml.tpcbrr_12_4_1a.TravelProductInformationTypeI;
 import com.amadeus.xml.ttstrr_13_1_1a.MonetaryInformationDetailsTypeI211824C;
 import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
+import com.compassites.GDSWrapper.amadeus.FareRules;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.amadeus.AmadeusPaxInformation;
+import dto.FareCheckRulesResponse;
 import models.Airline;
 import models.Airport;
+import models.AmadeusSessionWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.joda.time.DateTime;
@@ -28,7 +31,9 @@ import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -38,11 +43,16 @@ import java.util.*;
 /**
  * Created by Yaseen on 18-12-2014.
  */
+@Component
 public class AmadeusBookingHelper {
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
     private static final String AIR_SEGMENT_QUALIFIER = "AIR";
+
+
+    @Autowired
+    private FareRules fareRules;
 
     public static List<TaxDetails> getTaxDetails(FarePricePNRWithBookingClassReply pricePNRReply) {
         List<TaxDetails> taxDetailsList = new ArrayList<>();
@@ -1740,7 +1750,7 @@ public class AmadeusBookingHelper {
 
     }
 
-    public static Map<String, String> fareComponentWithoutPNR(FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply) {
+    public static Map<String, String> getFareComponentMapFromFareInformativePricing(FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply) {
 
         Map<String, String> fareComponentsMap = new LinkedHashMap<>();
 
@@ -1798,7 +1808,66 @@ public class AmadeusBookingHelper {
             return fareComponentsMap;
 
         } catch (Exception e) {
-            logger.debug("Error with getting Fare Component Group {} : ", e.getMessage(), e);
+            logger.debug("Error with getting Fare Component Group from fareInformativePricingPNRReply {} : ", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public static Map<String, String> getFareComponentMapFromPricePNRWithBookingClass(FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply) {
+
+        Map<String, String> fareComponentsMap = new LinkedHashMap<>();
+
+        try {
+
+            if (pricePNRWithBookingClassReply != null && pricePNRWithBookingClassReply.getFareList() != null) {
+                List<FarePricePNRWithBookingClassReply.FareList> fareLists = pricePNRWithBookingClassReply.getFareList();
+
+                for (FarePricePNRWithBookingClassReply.FareList fareList : fareLists) {
+                    if (fareList.getFareComponentDetailsGroup() != null) {
+                        List<FareComponentDetailsType> fareComponents = fareList.getFareComponentDetailsGroup();
+
+                        for (FareComponentDetailsType fareComponent : fareComponents) {
+                            ItemNumberType fareComponentID = fareComponent.getFareComponentID();
+
+                            if (fareComponentID != null && fareComponentID.getItemNumberDetails() != null) {
+                                for (ItemNumberIdentificationType item : fareComponentID.getItemNumberDetails()) {
+                                    if (item.getNumber() != null) {
+                                        String itemNumber = item.getNumber();
+                                        StringBuilder location = new StringBuilder();
+
+                                        TravelProductInformationTypeI marketFareComponent = fareComponent.getMarketFareComponent();
+
+                                        if (marketFareComponent != null) {
+                                            String boardPoint = "";
+                                            String offPoint = "";
+
+                                            if (marketFareComponent.getBoardPointDetails() != null && marketFareComponent.getBoardPointDetails().getTrueLocationId() != null) {
+                                                boardPoint = marketFareComponent.getBoardPointDetails().getTrueLocationId();
+                                            }
+
+                                            if (marketFareComponent.getOffpointDetails() != null && marketFareComponent.getOffpointDetails().getTrueLocationId() != null) {
+                                                offPoint = marketFareComponent.getOffpointDetails().getTrueLocationId();
+                                            }
+
+                                            location.append(boardPoint).append("-").append(offPoint);
+                                        }
+
+                                        if (location.length() > 1) {
+                                            fareComponentsMap.put(itemNumber, location.toString());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return fareComponentsMap;
+
+        } catch (Exception e) {
+
+            logger.debug("Error with getting Fare Component Group from pricePNRWithBookingClassReply {} : ", e.getMessage(), e);
             return null;
         }
     }
@@ -1840,6 +1909,45 @@ public class AmadeusBookingHelper {
             }
         }
         return actualJourneyList;
+    }
+
+
+    public Map<String, FareCheckRulesResponse> getFareRuleTxtMapFromPricingAndFc(AmadeusSessionWrapper amadeusSessionWrapper, Map<String, String> fareComponents) {
+
+        Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap = new LinkedHashMap<>();
+
+        try {
+
+            Map<String, FareCheckRulesReply> fareReplies = fareRules.processFareRulesJourneyWise(amadeusSessionWrapper, fareComponents);
+            logger.debug("Fare replies: {}", fareReplies);
+
+            if (fareReplies.isEmpty()) {
+                logger.warn("No fare rules retrieved for components: {}", fareComponents);
+                return null;
+            }
+
+            for (Map.Entry<String, FareCheckRulesReply> entry : fareReplies.entrySet()) {
+                String originDestination = entry.getKey();
+                FareCheckRulesReply fareCheckRulesReply = entry.getValue();
+
+                Map<String, Map<String, List<String>>> fareRulesMap = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
+                List<String> detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+
+                FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
+                fareCheckRulesResponse.setRuleMap(fareRulesMap);
+                fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
+
+                fareCheckRulesResponseMap.put(originDestination, fareCheckRulesResponse);
+            }
+
+            return fareCheckRulesResponseMap;
+
+        } catch (Exception e) {
+
+            logger.debug("Error with getting Fare Component Group from getFareRuleTxtMapFromPricingAndFc {} : ", e.getMessage(), e);
+            return null;
+        }
+
     }
 
 }

@@ -31,10 +31,7 @@ import services.reissue.ReIssueService;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static com.compassites.constants.StaticConstatnts.*;
 import static play.mvc.Controller.request;
@@ -277,7 +274,7 @@ public class Application {
     @BodyParser.Of(BodyParser.Json.class)
     public Result getMiniRuleFromFlightItinerary() {
 
-        FareCheckRulesResponse fareCheckRulesJson;
+        Map<String, FareCheckRulesResponse> fareCheckRulesJson;
         try {
 
             JsonNode json = request().body().asJson();
