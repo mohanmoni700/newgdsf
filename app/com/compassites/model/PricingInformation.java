@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.amadeus.reissue.ReIssuePerPaxPricingInfo;
+import models.PreloadedSeamanFareRules;
 
 import javax.persistence.Transient;
 import java.io.Serializable;
@@ -14,340 +15,362 @@ import java.util.Map;
  */
 public class PricingInformation implements Serializable {
 
-	private boolean isLCC;
+    private boolean isLCC;
 
-	private BigDecimal basePrice;
-	
-	private BigDecimal adtBasePrice;
+    private BigDecimal basePrice;
+
+    private BigDecimal adtBasePrice;
 
     private BigDecimal chdBasePrice;
-	
+
     private BigDecimal infBasePrice;
 
-	private BigDecimal adtOnwardBasePrice;
+    private BigDecimal adtOnwardBasePrice;
 
-	private BigDecimal chdOnwardBasePrice;
+    private BigDecimal chdOnwardBasePrice;
 
-	private BigDecimal infOnwardBasePrice;
+    private BigDecimal infOnwardBasePrice;
 
-	private BigDecimal adtReturnBasePrice;
+    private BigDecimal adtReturnBasePrice;
 
-	private BigDecimal chdReturnBasePrice;
+    private BigDecimal chdReturnBasePrice;
 
-	private BigDecimal infReturnBasePrice;
+    private BigDecimal infReturnBasePrice;
 
-	@Transient
-	private BigDecimal grandTotalDifferenceAmountD;
+    private PreloadedSeamanFareRules preloadedSeamanFareRules;
 
-	@Transient
-	private BigDecimal totalTaxDifferenceB;
 
-	@Transient
-	private BigDecimal totalPenaltyAmountP;
+    @Transient
+    private BigDecimal grandTotalDifferenceAmountD;
 
-	@Transient
-	private BigDecimal totalAdditionalCollectionA;
+    @Transient
+    private BigDecimal totalTaxDifferenceB;
 
-	@Transient
-	private BigDecimal mcoResidualValueC;
+    @Transient
+    private BigDecimal totalPenaltyAmountP;
 
-	@Transient
-	private BigDecimal grandTotalValueM;
+    @Transient
+    private BigDecimal totalAdditionalCollectionA;
 
-	@Transient
-	private List<ReIssuePerPaxPricingInfo> paxWisePricing;
+    @Transient
+    private BigDecimal mcoResidualValueC;
 
-	public BigDecimal getAdtOnwardBasePrice() {
-		return adtOnwardBasePrice;
-	}
+    @Transient
+    private BigDecimal grandTotalValueM;
 
-	public void setAdtOnwardBasePrice(BigDecimal adtOnwardBasePrice) {
-		this.adtOnwardBasePrice = adtOnwardBasePrice;
-	}
+    @Transient
+    private List<ReIssuePerPaxPricingInfo> paxWisePricing;
+    private Map<String, Object> preloadedSeamanFareRulesMap; // Adjust the type as necessary
 
-	public BigDecimal getChdOnwardBasePrice() {
-		return chdOnwardBasePrice;
-	}
+    // Getters and Setters
+    public Map<String, Object> getPreloadedSeamanFareRulesMap() {
+        return preloadedSeamanFareRulesMap;
+    }
 
-	public void setChdOnwardBasePrice(BigDecimal chdOnwardBasePrice) {
-		this.chdOnwardBasePrice = chdOnwardBasePrice;
-	}
+    public void setPreloadedSeamanFareRulesMap(Map<String, Object> preloadedSeamanFareRulesMap) {
+        this.preloadedSeamanFareRulesMap = preloadedSeamanFareRulesMap;
+    }
 
-	public BigDecimal getInfOnwardBasePrice() {
-		return infOnwardBasePrice;
-	}
+    public BigDecimal getAdtOnwardBasePrice() {
+        return adtOnwardBasePrice;
+    }
 
-	public void setInfOnwardBasePrice(BigDecimal infOnwardBasePrice) {
-		this.infOnwardBasePrice = infOnwardBasePrice;
-	}
+    public void setAdtOnwardBasePrice(BigDecimal adtOnwardBasePrice) {
+        this.adtOnwardBasePrice = adtOnwardBasePrice;
+    }
 
-	public BigDecimal getAdtReturnBasePrice() {
-		return adtReturnBasePrice;
-	}
+    public BigDecimal getChdOnwardBasePrice() {
+        return chdOnwardBasePrice;
+    }
 
-	public void setAdtReturnBasePrice(BigDecimal adtReturnBasePrice) {
-		this.adtReturnBasePrice = adtReturnBasePrice;
-	}
+    public void setChdOnwardBasePrice(BigDecimal chdOnwardBasePrice) {
+        this.chdOnwardBasePrice = chdOnwardBasePrice;
+    }
 
-	public BigDecimal getChdReturnBasePrice() {
-		return chdReturnBasePrice;
-	}
+    public BigDecimal getInfOnwardBasePrice() {
+        return infOnwardBasePrice;
+    }
 
-	public void setChdReturnBasePrice(BigDecimal chdReturnBasePrice) {
-		this.chdReturnBasePrice = chdReturnBasePrice;
-	}
+    public void setInfOnwardBasePrice(BigDecimal infOnwardBasePrice) {
+        this.infOnwardBasePrice = infOnwardBasePrice;
+    }
 
-	public BigDecimal getInfReturnBasePrice() {
-		return infReturnBasePrice;
-	}
+    public BigDecimal getAdtReturnBasePrice() {
+        return adtReturnBasePrice;
+    }
 
-	public void setInfReturnBasePrice(BigDecimal infReturnBasePrice) {
-		this.infReturnBasePrice = infReturnBasePrice;
-	}
+    public void setAdtReturnBasePrice(BigDecimal adtReturnBasePrice) {
+        this.adtReturnBasePrice = adtReturnBasePrice;
+    }
 
-	private BigDecimal adtTotalPrice;
+    public BigDecimal getChdReturnBasePrice() {
+        return chdReturnBasePrice;
+    }
 
-	private BigDecimal chdTotalPrice;
+    public void setChdReturnBasePrice(BigDecimal chdReturnBasePrice) {
+        this.chdReturnBasePrice = chdReturnBasePrice;
+    }
 
-	private BigDecimal infTotalPrice;
+    public BigDecimal getInfReturnBasePrice() {
+        return infReturnBasePrice;
+    }
 
-	private BigDecimal tax;
+    public void setInfReturnBasePrice(BigDecimal infReturnBasePrice) {
+        this.infReturnBasePrice = infReturnBasePrice;
+    }
 
-	private BigDecimal totalPrice;
+    private BigDecimal adtTotalPrice;
 
-	private String currency;
+    private BigDecimal chdTotalPrice;
+
+    private BigDecimal infTotalPrice;
+
+    private BigDecimal tax;
+
+    private BigDecimal totalPrice;
+
+    private String currency;
 
     private String gdsCurrency;
-	
-	private BigDecimal totalPriceValue;
 
-	private List<PassengerTax> passengerTaxes;
+    private BigDecimal totalPriceValue;
 
-	private List<PAXFareDetails> paxFareDetailsList;
+    private List<PassengerTax> passengerTaxes;
 
-	private Map<String, BigDecimal> taxMap;
+    private List<PAXFareDetails> paxFareDetailsList;
 
-	private BigDecimal totalBasePrice;
+    private Map<String, BigDecimal> taxMap;
+
+    private BigDecimal totalBasePrice;
 
     private BigDecimal totalTax;
 
     private BigDecimal discount;
 
-	private BigDecimal totalCalculatedValue;
+    private BigDecimal totalCalculatedValue;
 
     private BigDecimal cancelFee;
 
-	private String fareRules;
+    private String fareRules;
 
-	private String provider;
+    private String provider;
 
-	private boolean segmentWisePricing;
+    private boolean segmentWisePricing;
 
-	private List<SegmentPricing> segmentPricingList;
+    private List<SegmentPricing> segmentPricingList;
 
-	private boolean isTotalAmountConverted;
+    private boolean isTotalAmountConverted;
 
-	private Map<String, TSTPrice> tstPriceMap;
+    private Map<String, TSTPrice> tstPriceMap;
 
-	private String fareSourceCode;
+    private String fareSourceCode;
 
-	private String pricingOfficeId;
+    private String pricingOfficeId;
 
-	private BigDecimal onwardTotalBasePrice;
+    private BigDecimal onwardTotalBasePrice;
 
-	private BigDecimal returnTotalBasePrice;
+    private BigDecimal returnTotalBasePrice;
 
-	private Boolean isPriceChanged;
+    private Boolean isPriceChanged;
 
-	private MnrSearchFareRules mnrSearchFareRules;
+    private MnrSearchFareRules mnrSearchFareRules;
 
-	private MnrSearchBaggage mnrSearchBaggage;
+    private MnrSearchBaggage mnrSearchBaggage;
 
-	public List<ReIssuePerPaxPricingInfo> getPaxWisePricing() {
-		return paxWisePricing;
-	}
+    public List<ReIssuePerPaxPricingInfo> getPaxWisePricing() {
+        return paxWisePricing;
+    }
 
-	public void setPaxWisePricing(List<ReIssuePerPaxPricingInfo> paxWisePricing) {
-		this.paxWisePricing = paxWisePricing;
-	}
+    public PreloadedSeamanFareRules getPreloadedSeamanFareRules() {
+        return preloadedSeamanFareRules;
+    }
 
-	public PricingInformation() {
-		paxFareDetailsList = new ArrayList<>();
-		segmentWisePricing = false;
-		segmentPricingList = new ArrayList<>();
-		adtBasePrice = new BigDecimal(0);
-		chdBasePrice = new BigDecimal(0);
-		infBasePrice = new BigDecimal(0);
-	}
+    public void setPreloadedSeamanFareRules(PreloadedSeamanFareRules preloadedSeamanFareRules) {
+        this.preloadedSeamanFareRules = preloadedSeamanFareRules;
+    }
 
-	public Boolean getPriceChanged() {
-		return isPriceChanged;
-	}
+    public void setPaxWisePricing(List<ReIssuePerPaxPricingInfo> paxWisePricing) {
+        this.paxWisePricing = paxWisePricing;
+    }
 
-	public void setPriceChanged(Boolean priceChanged) {
-		isPriceChanged = priceChanged;
-	}
+    public PricingInformation() {
+        paxFareDetailsList = new ArrayList<>();
+        segmentWisePricing = false;
+        segmentPricingList = new ArrayList<>();
+        adtBasePrice = new BigDecimal(0);
+        chdBasePrice = new BigDecimal(0);
+        infBasePrice = new BigDecimal(0);
+    }
 
-	public BigDecimal getOnwardTotalBasePrice() {
-		return onwardTotalBasePrice;
-	}
+    public Boolean getPriceChanged() {
+        return isPriceChanged;
+    }
 
-	public void setOnwardTotalBasePrice(BigDecimal onwardTotalBasePrice) {
-		this.onwardTotalBasePrice = onwardTotalBasePrice;
-	}
+    public void setPriceChanged(Boolean priceChanged) {
+        isPriceChanged = priceChanged;
+    }
 
-	public BigDecimal getReturnTotalBasePrice() {
-		return returnTotalBasePrice;
-	}
+    public BigDecimal getOnwardTotalBasePrice() {
+        return onwardTotalBasePrice;
+    }
 
-	public void setReturnTotalBasePrice(BigDecimal returnTotalBasePrice) {
-		this.returnTotalBasePrice = returnTotalBasePrice;
-	}
+    public void setOnwardTotalBasePrice(BigDecimal onwardTotalBasePrice) {
+        this.onwardTotalBasePrice = onwardTotalBasePrice;
+    }
+
+    public BigDecimal getReturnTotalBasePrice() {
+        return returnTotalBasePrice;
+    }
+
+    public void setReturnTotalBasePrice(BigDecimal returnTotalBasePrice) {
+        this.returnTotalBasePrice = returnTotalBasePrice;
+    }
 
 
-	public String getPricingOfficeId() {
-		return pricingOfficeId;
-	}
+    public String getPricingOfficeId() {
+        return pricingOfficeId;
+    }
 
-	public void setPricingOfficeId(String pricingOfficeId) {
-		this.pricingOfficeId = pricingOfficeId;
-	}
+    public void setPricingOfficeId(String pricingOfficeId) {
+        this.pricingOfficeId = pricingOfficeId;
+    }
 
-	public boolean isLCC() {
-		return isLCC;
-	}
+    public boolean isLCC() {
+        return isLCC;
+    }
 
-	public void setLCC(boolean isLCC) {
-		this.isLCC = isLCC;
-	}
+    public void setLCC(boolean isLCC) {
+        this.isLCC = isLCC;
+    }
 
-	public BigDecimal getBasePrice() {
-		return basePrice;
-	}
+    public BigDecimal getBasePrice() {
+        return basePrice;
+    }
 
-	public void setBasePrice(BigDecimal basePrice) {
-		this.basePrice = basePrice;
-	}
+    public void setBasePrice(BigDecimal basePrice) {
+        this.basePrice = basePrice;
+    }
 
-	public BigDecimal getAdtBasePrice() {
-		return adtBasePrice;
-	}
+    public BigDecimal getAdtBasePrice() {
+        return adtBasePrice;
+    }
 
-	public void setAdtBasePrice(BigDecimal adtBasePrice) {
-		this.adtBasePrice = adtBasePrice;
-	}
+    public void setAdtBasePrice(BigDecimal adtBasePrice) {
+        this.adtBasePrice = adtBasePrice;
+    }
 
-	public BigDecimal getChdBasePrice() {
-		return chdBasePrice;
-	}
+    public BigDecimal getChdBasePrice() {
+        return chdBasePrice;
+    }
 
-	public void setChdBasePrice(BigDecimal chdBasePrice) {
-		this.chdBasePrice = chdBasePrice;
-	}
+    public void setChdBasePrice(BigDecimal chdBasePrice) {
+        this.chdBasePrice = chdBasePrice;
+    }
 
-	public BigDecimal getInfBasePrice() {
-		return infBasePrice;
-	}
+    public BigDecimal getInfBasePrice() {
+        return infBasePrice;
+    }
 
-	public void setInfBasePrice(BigDecimal infBasePrice) {
-		this.infBasePrice = infBasePrice;
-	}
+    public void setInfBasePrice(BigDecimal infBasePrice) {
+        this.infBasePrice = infBasePrice;
+    }
 
-	public BigDecimal getTax() {
-		return tax;
-	}
+    public BigDecimal getTax() {
+        return tax;
+    }
 
-	public void setTax(BigDecimal tax) {
-		this.tax = tax;
-	}
+    public void setTax(BigDecimal tax) {
+        this.tax = tax;
+    }
 
-	public BigDecimal getTotalPrice() {
-		return totalPrice;
-	}
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
 
-	public void setTotalPrice(BigDecimal totalPrice) {
-		this.totalPrice = totalPrice;
-	}
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
-	public String getCurrency() {
-		return currency;
-	}
+    public String getCurrency() {
+        return currency;
+    }
 
-	public void setCurrency(String currency) {
-		this.currency = currency;
-	}
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
 
-	public BigDecimal getTotalPriceValue() {
-		return totalPriceValue;
-	}
+    public BigDecimal getTotalPriceValue() {
+        return totalPriceValue;
+    }
 
-	public void setTotalPriceValue(BigDecimal totalPriceValue) {
-		this.totalPriceValue = totalPriceValue;
-	}
+    public void setTotalPriceValue(BigDecimal totalPriceValue) {
+        this.totalPriceValue = totalPriceValue;
+    }
 
-	public List<PassengerTax> getPassengerTaxes() {
-		return passengerTaxes;
-	}
+    public List<PassengerTax> getPassengerTaxes() {
+        return passengerTaxes;
+    }
 
-	public void setPassengerTaxes(List<PassengerTax> passengerTaxes) {
-		this.passengerTaxes = passengerTaxes;
-	}
+    public void setPassengerTaxes(List<PassengerTax> passengerTaxes) {
+        this.passengerTaxes = passengerTaxes;
+    }
 
-	public List<PAXFareDetails> getPaxFareDetailsList() {
-		return paxFareDetailsList;
-	}
+    public List<PAXFareDetails> getPaxFareDetailsList() {
+        return paxFareDetailsList;
+    }
 
-	public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
-		this.paxFareDetailsList = paxFareDetailsList;
-	}
+    public void setPaxFareDetailsList(List<PAXFareDetails> paxFareDetailsList) {
+        this.paxFareDetailsList = paxFareDetailsList;
+    }
 
-	public String getProvider() {
-		return provider;
-	}
+    public String getProvider() {
+        return provider;
+    }
 
-	public void setProvider(String provider) {
-		this.provider = provider;
-	}
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
 
-	public Map<String, BigDecimal> getTaxMap() {
-		return taxMap;
-	}
+    public Map<String, BigDecimal> getTaxMap() {
+        return taxMap;
+    }
 
-	public void setTaxMap(Map<String, BigDecimal> taxMap) {
-		this.taxMap = taxMap;
-	}
+    public void setTaxMap(Map<String, BigDecimal> taxMap) {
+        this.taxMap = taxMap;
+    }
 
-	public BigDecimal getTotalBasePrice() {
-		return totalBasePrice;
-	}
+    public BigDecimal getTotalBasePrice() {
+        return totalBasePrice;
+    }
 
-	public void setTotalBasePrice(BigDecimal totalBasePrice) {
-		this.totalBasePrice = totalBasePrice;
-	}
+    public void setTotalBasePrice(BigDecimal totalBasePrice) {
+        this.totalBasePrice = totalBasePrice;
+    }
 
-	public BigDecimal getDiscount() {
-		return discount;
-	}
+    public BigDecimal getDiscount() {
+        return discount;
+    }
 
-	public void setDiscount(BigDecimal discount) {
-		this.discount = discount;
-	}
+    public void setDiscount(BigDecimal discount) {
+        this.discount = discount;
+    }
 
-	public BigDecimal getTotalCalculatedValue() {
-		return totalCalculatedValue;
-	}
+    public BigDecimal getTotalCalculatedValue() {
+        return totalCalculatedValue;
+    }
 
-	public void setTotalCalculatedValue(BigDecimal totalCalculatedValue) {
-		this.totalCalculatedValue = totalCalculatedValue;
-	}
+    public void setTotalCalculatedValue(BigDecimal totalCalculatedValue) {
+        this.totalCalculatedValue = totalCalculatedValue;
+    }
 
-	public String getFareRules() {
-		return fareRules;
-	}
+    public String getFareRules() {
+        return fareRules;
+    }
 
-	public void setFareRules(String fareRules) {
-		this.fareRules = fareRules;
-	}
+    public void setFareRules(String fareRules) {
+        this.fareRules = fareRules;
+    }
+
     public String getGdsCurrency() {
         return gdsCurrency;
     }
@@ -372,145 +395,145 @@ public class PricingInformation implements Serializable {
         this.cancelFee = cancelFee;
     }
 
-	public BigDecimal getAdtTotalPrice() {
-		return adtTotalPrice;
-	}
+    public BigDecimal getAdtTotalPrice() {
+        return adtTotalPrice;
+    }
 
-	public void setAdtTotalPrice(BigDecimal adtTotalPrice) {
-		this.adtTotalPrice = adtTotalPrice;
-	}
+    public void setAdtTotalPrice(BigDecimal adtTotalPrice) {
+        this.adtTotalPrice = adtTotalPrice;
+    }
 
-	public BigDecimal getChdTotalPrice() {
-		return chdTotalPrice;
-	}
+    public BigDecimal getChdTotalPrice() {
+        return chdTotalPrice;
+    }
 
-	public void setChdTotalPrice(BigDecimal chdTotalPrice) {
-		this.chdTotalPrice = chdTotalPrice;
-	}
+    public void setChdTotalPrice(BigDecimal chdTotalPrice) {
+        this.chdTotalPrice = chdTotalPrice;
+    }
 
-	public BigDecimal getInfTotalPrice() {
-		return infTotalPrice;
-	}
+    public BigDecimal getInfTotalPrice() {
+        return infTotalPrice;
+    }
 
-	public BigDecimal getGrandTotalDifferenceAmountD() {
-		return grandTotalDifferenceAmountD;
-	}
+    public BigDecimal getGrandTotalDifferenceAmountD() {
+        return grandTotalDifferenceAmountD;
+    }
 
-	public void setGrandTotalDifferenceAmountD(BigDecimal grandTotalDifferenceAmountD) {
-		this.grandTotalDifferenceAmountD = grandTotalDifferenceAmountD;
-	}
+    public void setGrandTotalDifferenceAmountD(BigDecimal grandTotalDifferenceAmountD) {
+        this.grandTotalDifferenceAmountD = grandTotalDifferenceAmountD;
+    }
 
-	public BigDecimal getTotalTaxDifferenceB() {
-		return totalTaxDifferenceB;
-	}
+    public BigDecimal getTotalTaxDifferenceB() {
+        return totalTaxDifferenceB;
+    }
 
-	public void setTotalTaxDifferenceB(BigDecimal totalTaxDifferenceB) {
-		this.totalTaxDifferenceB = totalTaxDifferenceB;
-	}
+    public void setTotalTaxDifferenceB(BigDecimal totalTaxDifferenceB) {
+        this.totalTaxDifferenceB = totalTaxDifferenceB;
+    }
 
-	public BigDecimal getTotalPenaltyAmountP() {
-		return totalPenaltyAmountP;
-	}
+    public BigDecimal getTotalPenaltyAmountP() {
+        return totalPenaltyAmountP;
+    }
 
-	public void setTotalPenaltyAmountP(BigDecimal totalPenaltyAmountP) {
-		this.totalPenaltyAmountP = totalPenaltyAmountP;
-	}
+    public void setTotalPenaltyAmountP(BigDecimal totalPenaltyAmountP) {
+        this.totalPenaltyAmountP = totalPenaltyAmountP;
+    }
 
-	public BigDecimal getTotalAdditionalCollectionA() {
-		return totalAdditionalCollectionA;
-	}
+    public BigDecimal getTotalAdditionalCollectionA() {
+        return totalAdditionalCollectionA;
+    }
 
-	public void setTotalAdditionalCollectionA(BigDecimal totalAdditionalCollectionA) {
-		this.totalAdditionalCollectionA = totalAdditionalCollectionA;
-	}
+    public void setTotalAdditionalCollectionA(BigDecimal totalAdditionalCollectionA) {
+        this.totalAdditionalCollectionA = totalAdditionalCollectionA;
+    }
 
-	public BigDecimal getMcoResidualValueC() {
-		return mcoResidualValueC;
-	}
+    public BigDecimal getMcoResidualValueC() {
+        return mcoResidualValueC;
+    }
 
-	public void setMcoResidualValueC(BigDecimal mcoResidualValueC) {
-		this.mcoResidualValueC = mcoResidualValueC;
-	}
+    public void setMcoResidualValueC(BigDecimal mcoResidualValueC) {
+        this.mcoResidualValueC = mcoResidualValueC;
+    }
 
-	public BigDecimal getGrandTotalValueM() {
-		return grandTotalValueM;
-	}
+    public BigDecimal getGrandTotalValueM() {
+        return grandTotalValueM;
+    }
 
-	public void setGrandTotalValueM(BigDecimal grandTotalValueM) {
-		this.grandTotalValueM = grandTotalValueM;
-	}
+    public void setGrandTotalValueM(BigDecimal grandTotalValueM) {
+        this.grandTotalValueM = grandTotalValueM;
+    }
 
-	public void setInfTotalPrice(BigDecimal infTotalPrice) {
-		this.infTotalPrice = infTotalPrice;
-	}
+    public void setInfTotalPrice(BigDecimal infTotalPrice) {
+        this.infTotalPrice = infTotalPrice;
+    }
 
-	public boolean isSegmentWisePricing() {
-		return segmentWisePricing;
-	}
+    public boolean isSegmentWisePricing() {
+        return segmentWisePricing;
+    }
 
-	public void setSegmentWisePricing(boolean segmentWisePricing) {
-		this.segmentWisePricing = segmentWisePricing;
-	}
+    public void setSegmentWisePricing(boolean segmentWisePricing) {
+        this.segmentWisePricing = segmentWisePricing;
+    }
 
-	public List<SegmentPricing> getSegmentPricingList() {
-		return segmentPricingList;
-	}
+    public List<SegmentPricing> getSegmentPricingList() {
+        return segmentPricingList;
+    }
 
-	public void setSegmentPricingList(List<SegmentPricing> segmentPricingList) {
-		this.segmentPricingList = segmentPricingList;
-	}
+    public void setSegmentPricingList(List<SegmentPricing> segmentPricingList) {
+        this.segmentPricingList = segmentPricingList;
+    }
 
-	public String getFareSourceCode() {
-		return fareSourceCode;
-	}
+    public String getFareSourceCode() {
+        return fareSourceCode;
+    }
 
-	public void setFareSourceCode(String fareSourceCode) {
-		this.fareSourceCode = fareSourceCode;
-	}
+    public void setFareSourceCode(String fareSourceCode) {
+        this.fareSourceCode = fareSourceCode;
+    }
 
-	@Override
-	public String toString() {
-		return "PricingInformation [isLCC=" + isLCC + ", basePrice=" + basePrice + ", adtBasePrice=" + adtBasePrice
-				+ ", chdBasePrice=" + chdBasePrice + ", infBasePrice=" + infBasePrice + ", adtTotalPrice="
-				+ adtTotalPrice + ", chdTotalPrice=" + chdTotalPrice + ", infTotalPrice=" + infTotalPrice + ", tax="
-				+ tax + ", totalPrice=" + totalPrice + ", currency=" + currency + ", gdsCurrency=" + gdsCurrency
-				+ ", totalPriceValue=" + totalPriceValue + ", passengerTaxes=" + passengerTaxes
-				+ ", paxFareDetailsList=" + paxFareDetailsList + ", taxMap=" + taxMap + ", totalBasePrice="
-				+ totalBasePrice + ", totalTax=" + totalTax + ", discount=" + discount + ", totalCalculatedValue="
-				+ totalCalculatedValue + ", cancelFee=" + cancelFee + ", fareRules=" + fareRules + ", provider="
-				+ provider + ", segmentWisePricing=" + segmentWisePricing + ", segmentPricingList=" + segmentPricingList
-				+ "]";
-	}
+    @Override
+    public String toString() {
+        return "PricingInformation [isLCC=" + isLCC + ", basePrice=" + basePrice + ", adtBasePrice=" + adtBasePrice
+                + ", chdBasePrice=" + chdBasePrice + ", infBasePrice=" + infBasePrice + ", adtTotalPrice="
+                + adtTotalPrice + ", chdTotalPrice=" + chdTotalPrice + ", infTotalPrice=" + infTotalPrice + ", tax="
+                + tax + ", totalPrice=" + totalPrice + ", currency=" + currency + ", gdsCurrency=" + gdsCurrency
+                + ", totalPriceValue=" + totalPriceValue + ", passengerTaxes=" + passengerTaxes
+                + ", paxFareDetailsList=" + paxFareDetailsList + ", taxMap=" + taxMap + ", totalBasePrice="
+                + totalBasePrice + ", totalTax=" + totalTax + ", discount=" + discount + ", totalCalculatedValue="
+                + totalCalculatedValue + ", cancelFee=" + cancelFee + ", fareRules=" + fareRules + ", provider="
+                + provider + ", segmentWisePricing=" + segmentWisePricing + ", segmentPricingList=" + segmentPricingList
+                + "]";
+    }
 
-	public boolean isTotalAmountConverted() {
-		return isTotalAmountConverted;
-	}
+    public boolean isTotalAmountConverted() {
+        return isTotalAmountConverted;
+    }
 
-	public void setTotalAmountConverted(boolean totalAmountConverted) {
-		isTotalAmountConverted = totalAmountConverted;
-	}
+    public void setTotalAmountConverted(boolean totalAmountConverted) {
+        isTotalAmountConverted = totalAmountConverted;
+    }
 
-	public Map<String, TSTPrice> getTstPriceMap() {
-		return tstPriceMap;
-	}
+    public Map<String, TSTPrice> getTstPriceMap() {
+        return tstPriceMap;
+    }
 
-	public void setTstPriceMap(Map<String, TSTPrice> tstPriceMap) {
-		this.tstPriceMap = tstPriceMap;
-	}
+    public void setTstPriceMap(Map<String, TSTPrice> tstPriceMap) {
+        this.tstPriceMap = tstPriceMap;
+    }
 
-	public MnrSearchFareRules getMnrSearchFareRules() {
-		return mnrSearchFareRules;
-	}
+    public MnrSearchFareRules getMnrSearchFareRules() {
+        return mnrSearchFareRules;
+    }
 
-	public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
-		this.mnrSearchFareRules = mnrSearchFareRules;
-	}
+    public void setMnrSearchFareRules(MnrSearchFareRules mnrSearchFareRules) {
+        this.mnrSearchFareRules = mnrSearchFareRules;
+    }
 
-	public MnrSearchBaggage getMnrSearchBaggage() {
-		return mnrSearchBaggage;
-	}
+    public MnrSearchBaggage getMnrSearchBaggage() {
+        return mnrSearchBaggage;
+    }
 
-	public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
-		this.mnrSearchBaggage = mnrSearchBaggage;
-	}
+    public void setMnrSearchBaggage(MnrSearchBaggage mnrSearchBaggage) {
+        this.mnrSearchBaggage = mnrSearchBaggage;
+    }
 }
