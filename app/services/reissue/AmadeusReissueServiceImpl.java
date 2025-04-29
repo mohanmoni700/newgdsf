@@ -195,6 +195,8 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
             errorMessage.setMessage(amadeusErrorMessage);
 
             reissueSearchResponse.getErrorMessageList().add(errorMessage);
+
+            return reissueSearchResponse;
         }
 
         outerLoop:

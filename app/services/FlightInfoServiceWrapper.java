@@ -12,6 +12,7 @@ import com.compassites.GDSWrapper.mystifly.Mystifly;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Santhosh
@@ -92,12 +93,15 @@ public class FlightInfoServiceWrapper {
 	}
 
 
-	public FareCheckRulesResponse getGenericFareRuleFlightItinerary(FlightItinerary flightItinerary, SearchParameters searchParameters, boolean seamen, String provider) {
-		FareCheckRulesResponse fareCheckRulesResponse = null;
+	public Map<String, FareCheckRulesResponse> getGenericFareRuleFlightItinerary(FlightItinerary flightItinerary, SearchParameters searchParameters, boolean seamen, String provider) {
+
+		Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap = null;
+
 		if ("Amadeus".equalsIgnoreCase(provider)) {
-			fareCheckRulesResponse = amadeusFlightInfoService.getFareCheckRules(flightItinerary, searchParameters, seamen);
+			fareCheckRulesResponseMap = amadeusFlightInfoService.getFareCheckRules(flightItinerary, searchParameters, seamen);
 		}
-		return fareCheckRulesResponse;
+
+		return fareCheckRulesResponseMap;
 	}
 
 

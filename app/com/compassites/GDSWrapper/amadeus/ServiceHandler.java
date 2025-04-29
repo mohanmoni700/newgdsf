@@ -415,6 +415,16 @@ public class ServiceHandler {
         return fareCheckRulesReply;
     }
 
+    public FareCheckRulesReply getFareRulesFromFareComponent(AmadeusSessionWrapper amadeusSessionWrapper, Map<String, String> fareComponentsMap){
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        logger.debug("amadeus getFareRulesFromFareComponent called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+        FareCheckRules fareCheckRules = new FareRules().getFareCheckRulesForFareComponents(fareComponentsMap);
+        amadeusLogger.debug("fareRulesFromFareComponentsReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareCheckRules));
+        FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("fareRulesFromFareComponentsRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareCheckRulesReply));
+        return fareCheckRulesReply;
+    }
+
     public FareCheckRulesReply getFareRulesForFCType(String fcNumber, AmadeusSessionWrapper amadeusSessionWrapper){
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus getFareRulesForFCType called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
