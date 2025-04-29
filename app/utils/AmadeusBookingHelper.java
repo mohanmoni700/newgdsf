@@ -102,6 +102,7 @@ public class AmadeusBookingHelper {
         }
         BigDecimal totalFare = new BigDecimal(0);
         BigDecimal baseFare = new BigDecimal(0);
+
         int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1
                 : AmadeusBookingHelper.getNumberOfTST(travellerMasterInfo.getTravellersList());
         List<FarePricePNRWithBookingClassReply.FareList> fareList = new ArrayList<>();
