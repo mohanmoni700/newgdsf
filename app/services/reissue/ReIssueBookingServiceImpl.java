@@ -117,7 +117,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
         } catch (Exception e) {
             logger.debug("Error when trying to book the flight for reissue {}", e.getMessage(), e);
-        }
+        } 
 
         return null;
     }
@@ -314,6 +314,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
     //Creates PNR Response (Is this Needed?)
     private void createPNRResponseForReissuedPNR(PNRReply pnrReply, PNRResponse pnrResponse, AMATicketRebookAndRepricePNRRS.Success success) {
+
 
 
 
