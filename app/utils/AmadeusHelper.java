@@ -138,15 +138,18 @@ public class AmadeusHelper {
 
 
     public static Map<String, Map<String, List<String>>> getFareCheckRulesBenzy(FareCheckRulesReply fareCheckRulesReply) {
+
         if (fareCheckRulesReply == null || fareCheckRulesReply.getTariffInfo() == null || fareCheckRulesReply.getTariffInfo().isEmpty()) {
             return new ConcurrentHashMap<>();
         }
 
         List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList = fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText();
-        Map<String, Map<String, List<String>>> finalMap = new ConcurrentHashMap<>();
+        Map<String, Map<String, List<String>>> finalMap = new LinkedHashMap<>();
         Map<String, List<String>> changeMap = new ConcurrentHashMap<>();
         Map<String, List<String>> cancelMap = new ConcurrentHashMap<>();
         Map<String, List<String>> noteMap = new ConcurrentHashMap<>();
+        Map<String, List<String>> noShowMap = new ConcurrentHashMap<>();
+
         int index = 0;
         boolean changesProcessed = false;
         boolean cancellationsProcessed = false;
@@ -165,6 +168,7 @@ public class AmadeusHelper {
                 index++;
             }
         }
+
 
         if (changeMap.isEmpty() && cancelMap.isEmpty()) {
             index = 0;
@@ -192,14 +196,178 @@ public class AmadeusHelper {
             }
         }
 
-        if (!changeMap.isEmpty()) finalMap.put("Change", changeMap);
-        if (!cancelMap.isEmpty()) finalMap.put("Cancellation", cancelMap);
-        if (changeMap.isEmpty() && cancelMap.isEmpty() && !noteMap.isEmpty()) finalMap.put("Note", noteMap);
+        // YQ/YR and No-Show processing
+        List<String> noShowRules = new ArrayList<>();
+        List<String> yqYrRules = new ArrayList<>();
+        index = 0;
+        StringBuilder currentSentence = new StringBuilder();
+        boolean yqYrWithRefundFound = false;
+
+        while (index < fareRuleTextList.size()) {
+            String text = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+            if (text.isEmpty() || text.equals(" ")) {
+                index++;
+                continue;
+            }
+            String convertedText = getCharacterConversion(text);
+
+            if (isLineSeparator(convertedText) || isSpecificCategory(convertedText)) {
+                if (currentSentence.length() > 0) {
+                    processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules,
+                            !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+                    currentSentence.setLength(0);
+                }
+                index++;
+                continue;
+            }
+
+            currentSentence.append(convertedText).append(" ");
+
+            if (convertedText.endsWith(".")) {
+                String sentence = currentSentence.toString().trim();
+                processSentence(sentence, noShowRules, yqYrRules,
+                        !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+                if (!yqYrWithRefundFound && containsYqYrAndRefundKeywords(sentence)) {
+                    yqYrWithRefundFound = true;
+                }
+                currentSentence.setLength(0);
+            }
+            index++;
+        }
+
+        if (currentSentence.length() > 0) {
+            processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules,
+                    !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+        }
+
+        // Populate finalMap
+        if (!cancelMap.isEmpty()) {
+            finalMap.put("Cancellation", cancelMap);
+        }
+        if (!changeMap.isEmpty()) {
+            finalMap.put("Change", changeMap);
+        }
+        if (!noShowRules.isEmpty()) {
+            noShowMap.put("Generic", noShowRules);
+            finalMap.put("No Show", noShowMap);
+        }
+        if (!noteMap.isEmpty() || !yqYrRules.isEmpty()) {
+            List<String> combinedNote = new ArrayList<>();
+            if (!noteMap.isEmpty()) {
+                combinedNote.addAll(noteMap.values().iterator().next());
+            }
+            if (!yqYrRules.isEmpty()) {
+                combinedNote.addAll(yqYrRules);
+            }
+            Map<String, List<String>> finalNoteMap = new ConcurrentHashMap<>();
+            finalNoteMap.put("Generic", combinedNote);
+            finalMap.put("Note", finalNoteMap);
+        }
 
         return finalMap;
     }
 
+    private static void processSentence(String fullSentence, List<String> noShowRules, List<String> yqYrRules, boolean checkYqYr, boolean checkYq, boolean checkYr) {
+
+        if (fullSentence.isEmpty()) {
+            return;
+        }
+
+        String[] sentences = fullSentence.split("\\.\\s*");
+        for (String sentence : sentences) {
+            if (!sentence.isEmpty()) {
+                String trimmedSentence = sentence.trim();
+                if (!trimmedSentence.endsWith(".")) {
+                    trimmedSentence += ".";
+                }
+
+                // Process No-Show rules
+                if (containsNoShowKeywords(trimmedSentence)) {
+                    String cleanedSentence = trimmedSentence.replaceFirst("^Note -\\s*", "");
+                    cleanedSentence = cleanedSentence.replaceFirst("^(Any Time|Before Departure|After Departure)\\s*", "");
+                    if (!noShowRules.contains(cleanedSentence)) {
+                        noShowRules.add(cleanedSentence);
+                    }
+                }
+
+                // Process YQ/YR rules
+                if (checkYqYr && containsYqYrAndRefundKeywords(trimmedSentence) && yqYrRules.isEmpty()) {
+                    String cleanedSentence = trimmedSentence.replaceFirst("^Note -\\s*", "");
+                    cleanedSentence = cleanedSentence.replaceFirst("^(Any Time|Before Departure|After Departure)\\s*", "");
+                    yqYrRules.add(cleanedSentence);
+                }
+                // Yq only
+                else if (checkYq && containsOnlyYqAndRefundKeywords(trimmedSentence)) {
+                    boolean hasYq = false;
+                    for (String rule : yqYrRules) {
+                        if (rule.contains("Yq")) {
+                            hasYq = true;
+                            break;
+                        }
+                    }
+                    if (!hasYq) {
+                        String cleanedSentence = trimmedSentence.replaceFirst("^Note -\\s*", "");
+                        cleanedSentence = cleanedSentence.replaceFirst("^(Any Time|Before Departure|After Departure)\\s*", "");
+                        yqYrRules.add(cleanedSentence);
+                    }
+                }
+                // Yr only
+                else if (checkYr && containsOnlyYrAndRefundKeywords(trimmedSentence)) {
+                    boolean hasYr = false;
+                    for (String rule : yqYrRules) {
+                        if (rule.contains("Yr")) {
+                            hasYr = true;
+                            break;
+                        }
+                    }
+                    if (!hasYr) {
+                        String cleanedSentence = trimmedSentence.replaceFirst("^Note -\\s*", "");
+                        cleanedSentence = cleanedSentence.replaceFirst("^(Any Time|Before Departure|After Departure)\\s*", "");
+                        yqYrRules.add(cleanedSentence);
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean containsNoShowKeywords(String text) {
+
+        String upperText = text.toUpperCase();
+        boolean hasNoShow = upperText.contains("NO-SHOW") || upperText.contains("NO SHOW") || upperText.contains("NO-SHOW FEE") || upperText.contains("NOSHOW");
+        boolean hasTimeUnit = upperText.matches(".*(\\b|\\d)(DAY|DAYS|HR|HRS|HOUR|HOURS)\\b.*");
+
+        return hasNoShow && hasTimeUnit;
+    }
+
+    private static boolean containsYqYrAndRefundKeywords(String text) {
+
+        String upperText = text.toUpperCase();
+        boolean hasYqYr = upperText.contains("YQ/YR") || upperText.contains("YQ / YR") ||
+                upperText.contains("YR/YQ") || upperText.contains("YR / YQ") || upperText.contains("YQ YR") || upperText.contains("YR YQ");
+        boolean hasRefund = upperText.contains("REFUND");
+        return hasYqYr && hasRefund;
+    }
+
+    private static boolean containsOnlyYqAndRefundKeywords(String text) {
+
+        String upperText = text.toUpperCase();
+        boolean hasYq = upperText.contains("YQ") && !upperText.contains("YQ/YR") && !upperText.contains("YQ / YR") &&
+                !upperText.contains("YR/YQ") && !upperText.contains("YR / YQ") && !upperText.contains("YQ YR") && !upperText.contains("YR YQ");
+        boolean hasRefund = upperText.contains("REFUND");
+        return hasYq && hasRefund;
+    }
+
+    private static boolean containsOnlyYrAndRefundKeywords(String text) {
+
+        String upperText = text.toUpperCase();
+        boolean hasYr = upperText.contains("YR") && !upperText.contains("YQ/YR") && !upperText.contains("YQ / YR") &&
+                !upperText.contains("YR/YQ") && !upperText.contains("YR / YQ") && !upperText.contains("YQ YR") && !upperText.contains("YR YQ");
+        boolean hasRefund = upperText.contains("REFUND");
+        return hasYr && hasRefund;
+    }
+
     private static int processRules(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList, int startIndex, Map<String, List<String>> rulesMap, String breakSection) {
+
         int index = startIndex;
         String currentCategory = null;
         List<String> rules = new ArrayList<>();
@@ -263,6 +431,10 @@ public class AmadeusHelper {
 
     private static boolean isSeparatorLine(String line) {
         return line.matches("^[\\-\\=]+$");
+    }
+
+    private static boolean isLineSeparator(String line) {
+        return line.matches("^[-]{3,}$") || line.matches("^[\\-\\=]+$");
     }
 
     private static boolean isNoteText(String line) {

@@ -258,7 +258,7 @@ public class Airline {
 		Airline airline = null;
 
 		List<Airline> airlines = Airline.find.where().eq("iata_code", airlineCode).findList();
-		if (airlines.size() > 0) {
+		if (!airlines.isEmpty()) {
 			airline = Airline.find.where().eq("iata_code", airlineCode).findList().get(0);
 		} else {
 			airline = new Airline();

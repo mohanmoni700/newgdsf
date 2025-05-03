@@ -54,8 +54,6 @@ public class ReIssueTicket {
 
     private static final Logger logger = LoggerFactory.getLogger("gds");
 
-    private static final String vistaraAirlineStr = play.Play.application().configuration().getString("vistara.airline.code");
-
     private static final String amadeusReIssueEnvironment = play.Play.application().configuration().getString("amadeus.reIssue.environment");
 
     /**
