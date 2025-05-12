@@ -4,6 +4,8 @@ import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply;
 import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply.FlightScheduleDetails.InteractiveFreeText;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
+import com.amadeus.xml.tipnrr_13_2_1a.BaggageDetailsTypeI;
+import com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply.*;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup.BaggageAllowance.BaggageDetails;
@@ -96,9 +98,11 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			amadeusSessionWrapper = amadeusSessionManager.getSession(flightSearchOffice);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
 			List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
-			FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
-//			FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-			addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
+			//FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
+			com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply fareInformativePricingWithoutPNRReply = serviceHandler.getFareInfo_32(journeyList, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetailsList, amadeusSessionWrapper);
+			List<com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup> pricingGroupLevelGroup = fareInformativePricingWithoutPNRReply.getMainGroup().getPricingGroupLevelGroup();
+			//FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
+			addBaggageInfo_13_2(flightItinerary, pricingGroupLevelGroup, seamen);
 			
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
@@ -588,6 +592,37 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 			e.printStackTrace();
 		}
 		
+	}
+
+	private void addBaggageInfo_13_2(FlightItinerary itinerary, List<com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup> pricingLevelGroup, boolean seamen) {
+		try {
+			List<com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup> segmentGrpList = new ArrayList<>();
+			for(com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup pricingLevelGrp : pricingLevelGroup) {
+				for(com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup segment : pricingLevelGrp.getFareInfoGroup().getSegmentLevelGroup()) {
+					segmentGrpList.add(segment);
+				}
+			}
+			for (Journey journey : seamen ? itinerary.getJourneyList() : itinerary.getNonSeamenJourneyList()) {
+				for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+					for (com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply.MainGroup.PricingGroupLevelGroup.FareInfoGroup.SegmentLevelGroup segmentGrp : segmentGrpList) {
+						String from  = segmentGrp.getSegmentInformation().getBoardPointDetails().getTrueLocationId();
+						String to = segmentGrp.getSegmentInformation().getOffpointDetails().getTrueLocationId();
+						if(airSegment.getFromLocation().equalsIgnoreCase(from) && airSegment.getToLocation().equalsIgnoreCase(to)) {
+							FlightInfo baggageInfo = new FlightInfo();
+							BaggageDetailsTypeI baggageDetails = segmentGrp.getBaggageAllowance().getBaggageDetails();
+							baggageInfo.setBaggageAllowance(baggageDetails.getFreeAllowance());
+							baggageInfo.setBaggageUnit(baggageCodes.get(baggageDetails.getQuantityCode()));
+							airSegment.setFlightInfo(baggageInfo);
+						}
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			amadeusLogger.error("Error in addBaggageInfo" , e);
+			e.printStackTrace();
+		}
+
 	}
 
 //	public List<HashMap> getGenericFareRuleFlightItenary(FlightItinerary flightItinerary,

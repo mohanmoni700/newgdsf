@@ -394,6 +394,16 @@ public class ServiceHandler {
         return  fareInformativePricingPNRReply;
     }
 
+    public com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply getFareInfo_32(List<Journey> journeys, boolean seamen, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList, AmadeusSessionWrapper amadeusSessionWrapper) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        logger.debug("amadeus getFareInfo called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+        com.amadeus.xml.tipnrq_13_2_1a.FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation13_2().getPriceInfo(journeys,seamen, adultCount, childCount, infantCount, paxFareDetailsList);
+        amadeusLogger.debug("farePricingWithoutPNRReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(farePricingWithoutPNR));
+        com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR132(farePricingWithoutPNR, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("farePricingWithoutPNRRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareInformativePricingPNRReply));
+        return  fareInformativePricingPNRReply;
+    }
+
     public AirFlightInfoReply getFlightInfo(AirSegmentInformation airSegment, AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus getFlightInfo  called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
