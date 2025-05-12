@@ -11,6 +11,7 @@ import com.compassites.model.*;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
+import dto.CabinDetails;
 import models.*;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.Play;
+import play.libs.F;
 import play.libs.Json;
 import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
@@ -73,6 +75,17 @@ public class AmadeusFlightSearch implements FlightSearch {
 
     public void setRedisTemplate(RedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
+    }
+
+
+    private static final Map<String,String> cabinMap = new HashMap<>();
+
+    static {
+        cabinMap.put("C","BUSINESS");
+        cabinMap.put("F","FIRST");
+        cabinMap.put("Y","ECONOMIC");
+        cabinMap.put("W","ECONOMIC PREMIUM");
+        cabinMap.put("M","ECONOMIC STANDARD");
     }
 
     @Autowired
@@ -659,6 +672,11 @@ public class AmadeusFlightSearch implements FlightSearch {
             pricingInformation.setMnrSearchFareRules(createSearchFareRules(segmentRef, mnrGrp));
         }
 
+        List<CabinDetails> cabinDetails = getCabinDetails(recommendation);
+
+        if(!cabinDetails.isEmpty()) {
+            pricingInformation.setCabinDetails(cabinDetails);
+        }
 
         if (isSeamen) {
             PreloadedSeamanFareRules preloadedSeamanFareRules = PreloadedSeamanFareRules.findSeamanFareRuleByAirlineCode(validatingCarrierCode);
@@ -670,6 +688,54 @@ public class AmadeusFlightSearch implements FlightSearch {
         pricingInformation.setMnrSearchBaggage(createBaggageInformation(segmentRef, baggageList));
 
         return pricingInformation;
+    }
+
+    private List<CabinDetails> getCabinDetails(Recommendation recommendation) {
+
+        List<CabinDetails> cabinDetailsList = new LinkedList<>();
+
+        try {
+
+            List<PaxFareProduct> paxFareProductList = recommendation.getPaxFareProduct();
+
+            if (paxFareProductList != null) {
+                for (PaxFareProduct paxFareProduct : paxFareProductList) {
+                    List<PaxFareProduct.FareDetails> fareDetailsList = paxFareProduct.getFareDetails();
+
+                    if (fareDetailsList != null) {
+                        for (PaxFareProduct.FareDetails fareDetails : fareDetailsList) {
+                               PaxFareProduct.FareDetails.GroupOfFares groupOfFaresList = fareDetails.getGroupOfFares().get(0);
+
+                            if (groupOfFaresList != null) {
+
+                                CabinDetails cabinDetails = new CabinDetails();
+
+                                FlightProductInformationType176659S flightProductInformation = groupOfFaresList.getProductInformation();
+
+                                CabinProductDetailsType cabinProductDetails = flightProductInformation.getCabinProduct();
+
+                                String cabin = cabinMap.get(cabinProductDetails.getCabin());
+                                String bookingClass = cabinProductDetails.getRbd();
+                                String availableSeats = cabinProductDetails.getAvlStatus();
+
+                                cabinDetails.setCabin(cabin);
+                                cabinDetails.setRbd(bookingClass);
+                                cabinDetails.setAvailableSeats(availableSeats);
+
+                                cabinDetailsList.add(cabinDetails);
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            return cabinDetailsList;
+
+        } catch (Exception e) {
+            logger.debug("Error with getting cabin details from search recommendation {} : ", e.getMessage(), e);
+            return null;
+        }
     }
 
     public static SimpleDateFormat searchFormat = new SimpleDateFormat("ddMMyy-kkmm");
@@ -782,6 +848,7 @@ public class AmadeusFlightSearch implements FlightSearch {
                     FareSegment fareSegment = new FareSegment();
                     fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
                     fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
+                    fareSegment.setAvailableSeats(groupOfFares.getProductInformation().getCabinProduct().getAvlStatus());
                     paxFareDetails.setPassengerTypeCode(PassengerTypeCode.valueOf(groupOfFares.getProductInformation().getFareProductDetail().getPassengerType()));
 
                     fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());

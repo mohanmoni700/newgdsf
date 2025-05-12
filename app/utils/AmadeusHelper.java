@@ -245,7 +245,7 @@ public class AmadeusHelper {
             finalMap.put("Cancellation", cancelMap);
         }
         if (!changeMap.isEmpty()) {
-            finalMap.put("Change", changeMap);
+            finalMap.put("Changes", changeMap);
         }
         if (!noShowRules.isEmpty()) {
             noShowMap.put("Generic", noShowRules);

@@ -2,6 +2,8 @@ package com.compassites.model;
 
 import com.compassites.model.amadeus.AmadeusPaxInformation;
 import dto.FareCheckRulesResponse;
+import dto.FreeMealsDetails;
+import dto.FreeSeatDetails;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -99,6 +101,10 @@ public class PNRResponse implements Serializable  {
     private boolean isPnrSplit;
 
     private Map<String, String> pnrMap;
+
+    private List<FreeMealsDetails> freeMealsDetailsList;
+
+    private List<FreeSeatDetails> freeSeatList;
 
     private Map<String,FareCheckRulesResponse> fareCheckRulesResponseMap;
 
@@ -446,5 +452,22 @@ public class PNRResponse implements Serializable  {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public List<FreeMealsDetails> getFreeMealsList() {
+        return freeMealsDetailsList;
+    }
+
+    public void setFreeMealsList(List<FreeMealsDetails> freeMealsDetailsList) {
+        this.freeMealsDetailsList = freeMealsDetailsList;
+    }
+
+    public List<FreeSeatDetails> getFreeSeatList() {
+        return freeSeatList;
+    }
+
+    public void setFreeSeatList(List<FreeSeatDetails> freeSeatList) {
+        this.freeSeatList = freeSeatList;
+    }
+
 }
 
