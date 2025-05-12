@@ -1,13 +1,23 @@
 package dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.pojomatic.annotations.Property;
+
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FareCheckRulesResponse {
+public class FareCheckRulesResponse implements Serializable {
 
     private List<HashMap> miniRule;
     private List<String> detailedRuleList;
+
+    @JsonProperty
+    @Property
+    private String cabinClass;
+
+    private List<FareType> fareTypes;
 
     public Map<String, Map<String, List<String>>> getRuleMap() {
         return ruleMap;
@@ -35,5 +45,20 @@ public class FareCheckRulesResponse {
         this.detailedRuleList = detailedRuleList;
     }
 
+    public List<FareType> getFareTypes() {
+        return fareTypes;
+    }
+
+    public void setFareTypes(List<FareType> fareTypes) {
+        this.fareTypes = fareTypes;
+    }
+
+    public String getCabinClass(String cabinClass) {
+        return this.cabinClass;
+    }
+
+    public void setCabinClass(String cabinClass) {
+        this.cabinClass = cabinClass;
+    }
 
 }

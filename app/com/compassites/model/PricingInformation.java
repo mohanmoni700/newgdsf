@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.amadeus.reissue.ReIssuePerPaxPricingInfo;
+import dto.CabinDetails;
 import models.PreloadedSeamanFareRules;
 
 import javax.persistence.Transient;
@@ -65,6 +66,16 @@ public class PricingInformation implements Serializable {
     // Getters and Setters
     public Map<String, Object> getPreloadedSeamanFareRulesMap() {
         return preloadedSeamanFareRulesMap;
+    }
+
+    private List<CabinDetails> cabinDetails;
+
+    public List<CabinDetails> getCabinDetails() {
+        return cabinDetails;
+    }
+
+    public void setCabinDetails(List<CabinDetails> cabinDetails) {
+        this.cabinDetails = cabinDetails;
     }
 
     public void setPreloadedSeamanFareRulesMap(Map<String, Object> preloadedSeamanFareRulesMap) {

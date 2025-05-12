@@ -907,9 +907,9 @@ public class PNRAddMultiElementsh {
         List<ReferencingDetailsType> referenceList = referenceForDataElement.getReference();
         ReferencingDetailsType rf = new ReferencingDetailsType();
         rf.setQualifier("PT");
-//        rf.setNumber("" + (passengerRefNumber));
+        rf.setNumber("" + (passengerRefNumber));
         //// TODO: 28-03-2016  removed added for testing
-        rf.setNumber("" + (2));
+//        rf.setNumber("" + (2));
         referenceList.add(rf);
 
         for (String segment : segmentNumbers) {

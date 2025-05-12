@@ -22,7 +22,18 @@ public class SplitTicketHelper {
             searchParameters1.setJourneyList(journeyList);
             searchParametersList.add(searchParameters1);
         }
-        //Collections.sort(searchParametersList, (p1, p2) -> Integer.compare(p1.getSequence(), p2.getSequence()));
+        return searchParametersList;
+    }
+
+    public List<SearchParameters> createSplitSearchParameters(Map<String, PossibleRoutes> possibleRoutesMap, SearchParameters searchParameters, List<SplitTicketTransitAirports> splitTicketTransitAirports) {
+        List<SearchParameters> searchParametersList = new ArrayList<>();
+        for (Map.Entry<String, PossibleRoutes> possibleRoutesEntry : possibleRoutesMap.entrySet()) {
+            SearchParameters searchParameters1 = SerializationUtils.clone(searchParameters);
+            searchParameters1.setSequence(possibleRoutesEntry.getValue().getSequence());
+            List<SearchJourney> journeyList = createTransitJourneys(possibleRoutesEntry.getValue(), searchParameters1);
+            searchParameters1.setJourneyList(journeyList);
+            searchParametersList.add(searchParameters1);
+        }
         return searchParametersList;
     }
 
@@ -82,6 +93,26 @@ public class SplitTicketHelper {
         }
         return mapWithFromLocation;
     }
+
+    public List<SearchJourney> createTransitJourneys(PossibleRoutes possibleRoutes, SearchParameters searchParameters) {
+        List<SearchJourney> journeyList = new ArrayList<>();
+        for (SearchJourney searchJourneyItem: searchParameters.getJourneyList()) {
+            SearchJourney searchJourney = SerializationUtils.clone(searchJourneyItem);
+            searchJourney.setOrigin(possibleRoutes.getToLocation());
+            searchJourney.setDestination(searchParameters.getJourneyList().get(0).getDestination());
+            searchJourney.setTravelDate(possibleRoutes.getArrivalDate());
+
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(possibleRoutes.getArrivalTime());
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(24);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String formattedTime = midnightTime.format(formatter);
+
+            searchJourney.setTravelDateStr(formattedTime);
+            journeyList.add(searchJourney);
+        }
+        return journeyList;
+    }
+
     public List<SearchJourney> createJourneys(PossibleRoutes possibleRoutes, SearchParameters searchParameters) {
         List<SearchJourney> journeyList = new ArrayList<>();
         for (SearchJourney searchJourneyItem: searchParameters.getJourneyList()) {

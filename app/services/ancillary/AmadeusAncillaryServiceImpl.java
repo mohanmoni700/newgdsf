@@ -121,7 +121,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                 if (segmentReference.equalsIgnoreCase(currentSegmentNumber.toString())) {
                                     tempSegCounter++;
 
-                                    if (currentSegmentStatus.equalsIgnoreCase("OK")) {
+                                    if (currentSegmentStatus != null && currentSegmentStatus.equalsIgnoreCase("OK")) {
                                         okStatusCounter++;
                                     }
                                 }

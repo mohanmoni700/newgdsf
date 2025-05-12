@@ -20,6 +20,7 @@ import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.amadeus.AmadeusPaxInformation;
 import dto.FareCheckRulesResponse;
+import dto.FareType;
 import models.Airline;
 import models.Airport;
 import models.AmadeusSessionWrapper;
@@ -1933,11 +1934,15 @@ public class AmadeusBookingHelper {
 
                 Map<String, Map<String, List<String>>> fareRulesMap = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
                 List<String> detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
-
+                String cabinClass = getCabinClassFromFareCheckRulesReply(fareCheckRulesReply);
+                List<FareType> fareTypes = getCabinDetailsFromFareCheckRulesReply(fareCheckRulesReply);
                 FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
+                if (fareTypes != null && !fareTypes.isEmpty()) {
+                    fareCheckRulesResponse.setFareTypes(fareTypes);
+                }
                 fareCheckRulesResponse.setRuleMap(fareRulesMap);
                 fareCheckRulesResponse.setDetailedRuleList(detailedFareRuleList);
-
+                fareCheckRulesResponse.setCabinClass(cabinClass);
                 fareCheckRulesResponseMap.put(originDestination, fareCheckRulesResponse);
             }
 
@@ -1949,6 +1954,158 @@ public class AmadeusBookingHelper {
             return null;
         }
 
+    }
+
+    public String getCabinClassFromFareCheckRulesReply (FareCheckRulesReply fareCheckRulesReply) {
+
+        String designator = null;
+
+        try {
+            List<FareCheckRulesReply.FlightDetails> flightDetails = fareCheckRulesReply.getFlightDetails();
+
+            if (flightDetails != null) {
+                for ( FareCheckRulesReply.FlightDetails flightDetail : flightDetails) {
+
+                    List<FareCheckRulesReply.FlightDetails.ProductInfo> productInfo = flightDetail.getProductInfo();
+
+                    if (productInfo != null) {
+                        for (FareCheckRulesReply.FlightDetails.ProductInfo productInfos : productInfo) {
+
+                            FareCheckRulesReply.FlightDetails.ProductInfo.ProductDetails productDetails = productInfos.getProductDetails();
+                            if (productDetails != null) {
+                                List<FareCheckRulesReply.FlightDetails.ProductInfo.ProductDetails.BookingClassDetails> bookingClassDetails = productDetails.getBookingClassDetails();
+
+                                if (bookingClassDetails != null) {
+                                    for (FareCheckRulesReply.FlightDetails.ProductInfo.ProductDetails.BookingClassDetails bookingClassDetail : bookingClassDetails) {
+                                        designator = bookingClassDetail.getDesignator();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return designator;
+
+        } catch (Exception e) {
+            logger.debug("Error with getting designator from FareCheckRulesReply {} : ", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public List<FareType> getCabinDetailsFromFareCheckRulesReply(FareCheckRulesReply fareCheckRulesReply) {
+
+        List<FareType> fareTypeList = new LinkedList<>();
+        FareType fareType = new FareType();
+
+        try {
+            List<FareCheckRulesReply.FlightDetails> flightDetails = fareCheckRulesReply.getFlightDetails();
+
+            if (flightDetails != null) {
+                for (FareCheckRulesReply.FlightDetails flightDetail : flightDetails) {
+
+                    //For FTC and FFD
+                    List<FareCheckRulesReply.FlightDetails.FlightErrorCode> flightErrorCodes = flightDetail.getFlightErrorCode();
+
+                    if (flightErrorCodes != null) {
+                        for (FareCheckRulesReply.FlightDetails.FlightErrorCode flightErrorCode : flightErrorCodes) {
+                            if (flightErrorCode.getFreeTextQualification() != null) {
+                                String informationType = flightErrorCode.getFreeTextQualification().getInformationType();
+
+                                if (informationType != null) {
+                                    List<String> freeText = flightErrorCode.getFreeText();
+                                    if (freeText != null && !freeText.isEmpty()) {
+                                        String text = freeText.get(0);
+                                        if (informationType.equalsIgnoreCase("FTC") && text != null && !text.isEmpty()) {
+                                            fareType.setFtc(text);
+                                        } else if (informationType.equalsIgnoreCase("FFD") && text != null && !text.isEmpty()) {
+                                            fareType.setFfd(text);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //For Fare Family
+                    List<FareCheckRulesReply.FlightDetails.QualificationFareDetails> qualificationFareDetailsList = flightDetail.getQualificationFareDetails();
+
+                    if (qualificationFareDetailsList != null) {
+                        for (FareCheckRulesReply.FlightDetails.QualificationFareDetails qualificationFareDetails : qualificationFareDetailsList) {
+                            List<FareCheckRulesReply.FlightDetails.QualificationFareDetails.DiscountDetails> discountDetailsList = qualificationFareDetails.getDiscountDetails();
+
+                            if (discountDetailsList != null) {
+                                for (FareCheckRulesReply.FlightDetails.QualificationFareDetails.DiscountDetails discountDetails : discountDetailsList) {
+                                    String fareQualifier = discountDetails.getFareQualifier();
+                                    if (fareQualifier != null && fareQualifier.equalsIgnoreCase("FF")) {
+                                        String rateCategory = discountDetails.getRateCategory();
+                                        if (rateCategory != null && !rateCategory.isEmpty()) {
+                                            fareType.setFareFamily(rateCategory);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ((fareType.getFtc() != null && !fareType.getFtc().isEmpty()) ||
+                    (fareType.getFfd() != null && !fareType.getFfd().isEmpty()) ||
+                    (fareType.getFareFamily() != null && !fareType.getFareFamily().isEmpty())) {
+
+                fareTypeList.add(fareType);
+            }
+
+            return fareTypeList;
+
+        } catch (Exception e) {
+            logger.debug("Error with getting fare type from FareCheckRulesReply {} : ", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public static Map<String,String> getPaxRefAndNameMap(List<PNRReply.TravellerInfo> travellerInfoList) {
+
+        Map<String, String> paxName = new LinkedHashMap<>();
+
+        try {
+
+            for (PNRReply.TravellerInfo travellerInfo : travellerInfoList) {
+
+                com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType passengerReference = travellerInfo.getElementManagementPassenger();
+                String referenceNumber = String.valueOf(passengerReference.getReference().getNumber());
+                PNRReply.TravellerInfo.PassengerData passengerData = travellerInfo.getPassengerData().get(0);
+
+                String salutation = null;
+                String firstName = null;
+                String lastName = passengerData.getTravellerInformation().getTraveller().getSurname();
+                String fullName = null;
+
+                String firstNameResponse = passengerData.getTravellerInformation().getPassenger().get(0).getFirstName();
+                String[] names = firstNameResponse.split("\\s");
+                firstName = names[0];
+
+                if (names.length > 1) {
+                    for (String name : names) {
+                        if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms") || name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")) {
+                            salutation = WordUtils.capitalizeFully(name);
+                        }
+                    }
+                }
+
+                if (salutation != null) {
+                    fullName = salutation + " " + firstName + " " + lastName;
+                }
+
+                paxName.put(referenceNumber, fullName);
+            }
+
+            return paxName;
+
+        } catch (Exception e) {
+            logger.debug("Error with getting pax ref and name{} : ", e.getMessage(), e);
+            return null;        }
     }
 
 }
