@@ -9,6 +9,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface ReIssueBookingService {
 
-    PNRResponse confirmReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, FlightSearchOffice officeId, PNRResponse reIssuePNRResponse);
+    PNRResponse confirmReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, String officeId, PNRResponse reIssuePNRResponse);
 
 }

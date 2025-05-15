@@ -504,7 +504,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
                         if (type.equalsIgnoreCase(VOID_TICKET)) {
-                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList());
+                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList(), issuanceRequest.getTicketingOfficeId());
                             if (ticketCancelDocumentResponse.isSuccess()) {
                                 cancelPNRResponse.setSuccess(true);
                             } else {
@@ -517,7 +517,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         }
                     } else {
                         if (type.equalsIgnoreCase(VOID_TICKET)) {
-                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList());
+                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList(), issuanceRequest.getTicketingOfficeId());
                             if (ticketCancelDocumentResponse.isSuccess()) {
                                 cancelPNRResponse.setSuccess(true);
                             } else {
@@ -1587,20 +1587,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
             Set<String> isTicketContainSet = new HashSet<String>();
             for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
                 String isTicketIssued = isticket.getElementManagementData().getSegmentName();
-                /*logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<DataElementsIndiv>>>>>>>>>>>>>>>>>>>>>>>>"+Json.toJson(isticket.getElementManagementData().getSegmentName()));*/
                 isTicketContainSet.add(isTicketIssued);
-				/*if (isTicketIssued.equals("FA")) {
-					AmadeusBookingHelper.createTickets(issuanceResponse,
-							issuanceRequest, gdsPNRReply);
-				}else {
-					return masterInfo;
-				}*/
-				/*if(isticket.getElementManagementData().getSegmentName() == "FA"){
-					AmadeusBookingHelper.createTickets(issuanceResponse,
-							issuanceRequest, gdsPNRReply);
-				} else {
-					return masterInfo;
-				}*/
+
+                if(isticket.getTicketElement()!=null) {
+                    TicketElementType ticketElementType = isticket.getTicketElement();
+                    TicketInformationType ticketInformationType = ticketElementType.getTicket();
+                    String ticketingOfficeId = ticketInformationType.getOfficeId();
+                    masterInfo.setTicketingOfficeId(ticketingOfficeId);
+                }
+
             }
             if (isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM") || isTicketContainSet.contains("FHE")) {
                 issuanceResponse.setIssued(true);

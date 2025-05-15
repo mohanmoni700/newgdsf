@@ -81,6 +81,8 @@ public class TravellerMasterInfo {
 
     private String searchResultToken;
 
+    private String ticketingOfficeId;
+
     public String getSearchResultToken() {
         return searchResultToken;
     }
@@ -308,6 +310,14 @@ public class TravellerMasterInfo {
 
     public String getVesselName() {
         return vesselName;
+    }
+
+    public String getTicketingOfficeId() {
+        return ticketingOfficeId;
+    }
+
+    public void setTicketingOfficeId(String ticketingOfficeId) {
+        this.ticketingOfficeId = ticketingOfficeId;
     }
 
 }

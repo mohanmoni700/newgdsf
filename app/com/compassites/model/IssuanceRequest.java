@@ -62,6 +62,8 @@ public class IssuanceRequest implements Serializable{
 
     private boolean isSplitPnr;
 
+    private String ticketingOfficeId;
+
     public List<AmadeusPaxRefAndTicket> getAmadeusPaxRefAndTicketList() {
         return amadeusPaxRefAndTicketList;
     }
@@ -259,5 +261,13 @@ public class IssuanceRequest implements Serializable{
 
     public void setSplitPnr(boolean splitPnr) {
         isSplitPnr = splitPnr;
+    }
+
+    public String getTicketingOfficeId() {
+        return ticketingOfficeId;
+    }
+
+    public void setTicketingOfficeId(String ticketingOfficeId) {
+        this.ticketingOfficeId = ticketingOfficeId;
     }
 }
