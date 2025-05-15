@@ -1877,40 +1877,46 @@ public class AmadeusBookingHelper {
 
     public static List<Journey> getJourneyDetails(List<Journey> journeyList, Map<String, String> fareComponentJourneyMap, RedisTemplate redisTemplate) {
 
-        List<Journey> actualJourneyList = new ArrayList<>();
-        List<AirSegmentInformation> pnrReplyJourneyList = journeyList.get(0).getAirSegmentList();
+        try {
 
-        int currentAirSegment = 0;
+            List<Journey> actualJourneyList = new ArrayList<>();
+            List<AirSegmentInformation> pnrReplyJourneyList = journeyList.get(0).getAirSegmentList();
 
-        for (Map.Entry<String, String> journeyMap : fareComponentJourneyMap.entrySet()) {
+            int currentAirSegment = 0;
 
-            String[] originDestinationList = journeyMap.getValue().split("-");
-            String destination = originDestinationList[1].trim();
+            for (Map.Entry<String, String> journeyMap : fareComponentJourneyMap.entrySet()) {
 
-            Journey currentJourney = new Journey();
-            List<AirSegmentInformation> actualAirSegmentList = new ArrayList<>();
+                String[] originDestinationList = journeyMap.getValue().split("-");
+                String destination = originDestinationList[1].trim();
 
-            while (currentAirSegment < pnrReplyJourneyList.size()) {
-                AirSegmentInformation airSegmentInformation = pnrReplyJourneyList.get(currentAirSegment);
+                Journey currentJourney = new Journey();
+                List<AirSegmentInformation> actualAirSegmentList = new ArrayList<>();
 
-                Airport toAirport;
-                if (redisTemplate == null) {
-                    toAirport = Airport.getAirportByIataCode(airSegmentInformation.getToLocation());
-                } else {
-                    toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
-                }
+                while (currentAirSegment < pnrReplyJourneyList.size()) {
+                    AirSegmentInformation airSegmentInformation = pnrReplyJourneyList.get(currentAirSegment);
 
-                actualAirSegmentList.add(airSegmentInformation);
-                pnrReplyJourneyList.remove(currentAirSegment);
+                    Airport toAirport;
+                    if (redisTemplate == null) {
+                        toAirport = Airport.getAirportByIataCode(airSegmentInformation.getToLocation());
+                    } else {
+                        toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
+                    }
 
-                if (airSegmentInformation.getToLocation().equalsIgnoreCase(destination) || toAirport.getCityCode().equalsIgnoreCase(destination)) {
-                    currentJourney.setAirSegmentList(actualAirSegmentList);
-                    actualJourneyList.add(currentJourney);
-                    break;
+                    actualAirSegmentList.add(airSegmentInformation);
+                    pnrReplyJourneyList.remove(currentAirSegment);
+
+                    if (airSegmentInformation.getToLocation().equalsIgnoreCase(destination) || toAirport.getCityCode().equalsIgnoreCase(destination)) {
+                        currentJourney.setAirSegmentList(actualAirSegmentList);
+                        actualJourneyList.add(currentJourney);
+                        break;
+                    }
                 }
             }
+            return actualJourneyList;
+        } catch (Exception e) {
+            logger.debug("Error fetching journey wise booking {}",e.getMessage());
+            return null;
         }
-        return actualJourneyList;
     }
 
 
@@ -2106,6 +2112,78 @@ public class AmadeusBookingHelper {
         } catch (Exception e) {
             logger.debug("Error with getting pax ref and name{} : ", e.getMessage(), e);
             return null;        }
+    }
+
+    public static Map<String, String> getFareComponentFromTst(TicketDisplayTSTReply ticketDisplayTSTReply ){
+
+        Map<String, String> fareComponentsMap = new LinkedHashMap<>();
+        int itemNumber = 0;
+
+        try{
+
+            if(ticketDisplayTSTReply != null && ticketDisplayTSTReply.getFareList() != null && ticketDisplayTSTReply.getErrorGroup() == null) {
+
+                List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
+
+                if(fareList != null && !fareList.isEmpty()){
+
+                    for(TicketDisplayTSTReply.FareList fare :fareList){
+
+                        List<TicketDisplayTSTReply.FareList.FareComponentDetailsGroup> fareComponentDetailsGroupList = fare.getFareComponentDetailsGroup();
+
+                        if(fareComponentDetailsGroupList != null && !fareComponentDetailsGroupList.isEmpty()){
+
+                            for(TicketDisplayTSTReply.FareList.FareComponentDetailsGroup fareComponentDetailsGroup: fareComponentDetailsGroupList){
+
+                                if(fareComponentDetailsGroup != null) {
+
+                                    com.amadeus.xml.ttstrr_13_1_1a.TravelProductInformationTypeI marketFareComponent = fareComponentDetailsGroup.getMarketFareComponent();
+
+                                    if (marketFareComponent != null) {
+
+                                        StringBuilder location = new StringBuilder();
+
+                                        String boardPoint = "";
+                                        String offPoint = "";
+
+                                        if (marketFareComponent.getBoardPointDetails() != null && marketFareComponent.getBoardPointDetails().getTrueLocationId() != null) {
+                                            boardPoint = marketFareComponent.getBoardPointDetails().getTrueLocationId();
+                                        }
+
+                                        if (marketFareComponent.getOffpointDetails() != null && marketFareComponent.getOffpointDetails().getTrueLocationId() != null) {
+                                            offPoint = marketFareComponent.getOffpointDetails().getTrueLocationId();
+                                        }
+
+                                        location.append(boardPoint).append("-").append(offPoint);
+
+                                        if (location.length() > 1) {
+                                            ++itemNumber;
+                                            fareComponentsMap.put(String.valueOf(itemNumber), location.toString());
+                                        }
+
+                                    }
+
+                                }
+
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            return fareComponentsMap;
+
+        } catch (Exception e) {
+            logger.debug("Error fetching farecomponent from tst display {}",e.getMessage());
+            return  null;
+        }
+
+
     }
 
 }

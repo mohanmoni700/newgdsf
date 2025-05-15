@@ -2295,10 +2295,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
 
             // fetch journey wise
-            List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
-            FareInformativePricingWithoutPNRReply fareInfo = serviceHandler.getFareInfo(journeyList, isSeamen, adtCount, childCount, infactCount, paxFareDetails, amadeusSessionWrapper);
-            Map<String, String> fareComponentDetails = getFareComponentMapFromFareInformativePricing(fareInfo);
-            List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentDetails, redisTemplate);
+//            List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
+//            FareInformativePricingWithoutPNRReply fareInfo = serviceHandler.getFareInfo(journeyList, isSeamen, adtCount, childCount, infactCount, paxFareDetails, amadeusSessionWrapper);
+//            Map<String, String> fareComponentDetails = getFareComponentMapFromFareInformativePricing(fareInfo);
+            Map<String, String> fareComponentFromTst = getFareComponentFromTst(ticketDisplayTSTReply);
+            List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentFromTst, redisTemplate);
 
             if (actualJourneyList.isEmpty()) {
                 actualJourneyList = journeyList;
