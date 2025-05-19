@@ -184,6 +184,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         String tstRefNo = "";
         try {
+            FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+            amadeusFlightInfoService.getInFlightDetails(flightItinerary, travellerMasterInfo.isSeamen());
+            if(flightItinerary.getCarbonDioxide()!=null && flightItinerary.getCarbonDioxide().size()>0) {
+                pnrResponse.setCarbonDioxide(flightItinerary.getCarbonDioxide());
+            }
             amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByRef(travellerMasterInfo.getSessionIdRef());
             logger.debug("generatePNR called........" + Json.stringify(Json.toJson(amadeusSessionWrapper)));
             int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1 : getNumberOfTST(travellerMasterInfo.getTravellersList());

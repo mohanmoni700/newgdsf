@@ -9,4 +9,5 @@ public interface CancelService {
 
     public CancelPNRResponse cancelPNR(String pnr,Boolean isFullPNR);
 
+    public CancelPNRResponse cancelTimeLimitReachedPNR(String pnr, Boolean isFullPNR);
 }
