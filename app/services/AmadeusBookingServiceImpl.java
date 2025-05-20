@@ -84,7 +84,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     private static Map<String, String> baggageCodes = new HashMap<>();
 
-
     @Autowired
     private RedisTemplate redisTemplate;
 
@@ -110,6 +109,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
 
+  
     @Autowired
     AmadeusFlightInfoServiceImpl amadeusFlightInfoService;
 
@@ -2482,6 +2482,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
         return Boolean.FALSE;
     }
-
-
+  
+  
 }
