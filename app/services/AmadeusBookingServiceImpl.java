@@ -7,7 +7,6 @@ import com.amadeus.xml.pnracc_11_3_1a.PNRReply.DataElementsMaster.DataElementsIn
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
-import com.amadeus.xml.pnracc_11_3_1a.ReferenceInfoType;
 import com.amadeus.xml.pnrspl_11_3_1a.*;
 import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationDetailsTypeI;
 import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
@@ -37,8 +36,6 @@ import com.compassites.model.amadeus.AmadeusPaxInformation;
 import com.fasterxml.jackson.databind.JsonNode;
 //import com.sun.org.apache.xpath.internal.operations.Bool;
 import dto.FareCheckRulesResponse;
-import dto.FreeMealsDetails;
-import dto.FreeSeatDetails;
 import dto.reissue.AmadeusPaxRefAndTicket;
 import models.AmadeusSessionWrapper;
 import models.CartAirSegmentDTO;
@@ -87,10 +84,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     private static Map<String, String> baggageCodes = new HashMap<>();
 
-    private static final Map<String,String> mealCodeNameMap = new HashMap<>();
-
-    private static final Map<String,String> seatNameMap = new HashMap<>();
-
     @Autowired
     private RedisTemplate redisTemplate;
 
@@ -115,43 +108,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
         baggageCodes.put("W", "Weight");
     }
 
-    static {
-        mealCodeNameMap.put("AVML", "VEGETARIAN HINDU MEAL");
-        mealCodeNameMap.put("BBML", "BABY MEAL");
-        mealCodeNameMap.put("BLML", "BLAND MEAL");
-        mealCodeNameMap.put("CHML", "CHILD MEAL");
-        mealCodeNameMap.put("CNML", "CHICKEN MEAL (LY SPECIFIC)");
-        mealCodeNameMap.put("DBML", "DIABETIC MEAL");
-        mealCodeNameMap.put("FPML", "FRUIT PLATTER MEAL");
-        mealCodeNameMap.put("FSML", "FISH MEAL");
-        mealCodeNameMap.put("GFML", "GLUTEN INTOLERANT MEAL");
-        mealCodeNameMap.put("HNML", "HINDU (NON VEGETARIAN) MEAL SPECIFIC");
-        mealCodeNameMap.put("IVML", "INDIAN VEGETARIAN MEAL (UA SPECIFIC)");
-        mealCodeNameMap.put("JPML", "JAPANESE MEAL (LH SPECIFIC)");
-        mealCodeNameMap.put("KSML", "KOSHER MEAL");
-        mealCodeNameMap.put("LCML", "LOW CALORIE MEAL");
-        mealCodeNameMap.put("LFML", "LOW FAT MEAL");
-        mealCodeNameMap.put("LSML", "LOW SALT MEAL");
-        mealCodeNameMap.put("MOML", "MOSLEM MEAL");
-        mealCodeNameMap.put("NFML", "NO FISH MEAL (LH SPECIFIC)");
-        mealCodeNameMap.put("NLML", "LOW LACTOSE MEAL");
-        mealCodeNameMap.put("OBML", "JAPANESE OBENTO MEAL (UA SPECIFIC)");
-        mealCodeNameMap.put("RVML", "VEGETARIAN RAW MEAL");
-        mealCodeNameMap.put("SFML", "SEA FOOD MEAL");
-        mealCodeNameMap.put("SPML", "SPECIAL MEAL, SPECIFY FOOD");
-        mealCodeNameMap.put("VGML", "VEGETARIAN VEGAN MEAL");
-        mealCodeNameMap.put("VJML", "VEGETARIAN JAIN MEAL");
-        mealCodeNameMap.put("VOML", "VEGETARIAN ORIENTAL MEAL");
-        mealCodeNameMap.put("VLML", "VEGETARIAN LACTO-OVO MEAL");
 
-    }
-
-    static {
-        seatNameMap.put("W" , "WINDOW");
-        seatNameMap.put("A", "ASILE");
-    }
-
-
+  
     @Autowired
     AmadeusFlightInfoServiceImpl amadeusFlightInfoService;
 
@@ -184,6 +142,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         String tstRefNo = "";
         try {
+            FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+            amadeusFlightInfoService.getInFlightDetails(flightItinerary, travellerMasterInfo.isSeamen());
+            if(flightItinerary.getCarbonDioxide()!=null && flightItinerary.getCarbonDioxide().size()>0) {
+                pnrResponse.setCarbonDioxide(flightItinerary.getCarbonDioxide());
+            }
             amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByRef(travellerMasterInfo.getSessionIdRef());
             logger.debug("generatePNR called........" + Json.stringify(Json.toJson(amadeusSessionWrapper)));
             int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1 : getNumberOfTST(travellerMasterInfo.getTravellersList());
@@ -473,6 +436,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
             pnrResponse.setPricingInfo(pricingInfo);
             pnrResponse.setPnrNumber(childPNR);
             pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
+            pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(gdsPNRReply));
+            pnrResponse.setFreeSeatList(AmadeusBookingHelper.getFreeSeatDetailsFromPnr(gdsPNRReply));
             Date lastPNRAddMultiElements = new Date();
             PNRReply childGdsReply = readChildAirlinePNR(serviceHandler, childRetrive, lastPNRAddMultiElements, pnrResponse, amadeusSessionWrapper);
             if (pnrResponse.getAirlinePNR() != null) {
@@ -504,7 +469,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
 
                         if (type.equalsIgnoreCase(VOID_TICKET)) {
-                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList());
+                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList(), issuanceRequest.getTicketingOfficeId());
                             if (ticketCancelDocumentResponse.isSuccess()) {
                                 cancelPNRResponse.setSuccess(true);
                             } else {
@@ -517,7 +482,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         }
                     } else {
                         if (type.equalsIgnoreCase(VOID_TICKET)) {
-                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList());
+                            TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(issuanceRequest.getGdsPNR(), issuanceRequest.getTicketsList(), issuanceRequest.getTicketingOfficeId());
                             if (ticketCancelDocumentResponse.isSuccess()) {
                                 cancelPNRResponse.setSuccess(true);
                             } else {
@@ -1138,9 +1103,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
         //Creating Amadeus Pax Reference and Line number here
         pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
 
-        pnrResponse.setFreeMealsList(getFreeMealsInfoFromPnr(gdsPNRReply));
+        pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(gdsPNRReply));
 
-        pnrResponse.setFreeSeatList(getFreeSeatDetailsFromPnr(gdsPNRReply));
+        pnrResponse.setFreeSeatList(AmadeusBookingHelper.getFreeSeatDetailsFromPnr(gdsPNRReply));
 
         if (pricePNRReply != null) {
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
@@ -1587,20 +1552,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
             Set<String> isTicketContainSet = new HashSet<String>();
             for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
                 String isTicketIssued = isticket.getElementManagementData().getSegmentName();
-                /*logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<DataElementsIndiv>>>>>>>>>>>>>>>>>>>>>>>>"+Json.toJson(isticket.getElementManagementData().getSegmentName()));*/
                 isTicketContainSet.add(isTicketIssued);
-				/*if (isTicketIssued.equals("FA")) {
-					AmadeusBookingHelper.createTickets(issuanceResponse,
-							issuanceRequest, gdsPNRReply);
-				}else {
-					return masterInfo;
-				}*/
-				/*if(isticket.getElementManagementData().getSegmentName() == "FA"){
-					AmadeusBookingHelper.createTickets(issuanceResponse,
-							issuanceRequest, gdsPNRReply);
-				} else {
-					return masterInfo;
-				}*/
+
+                if(isticket.getTicketElement()!=null) {
+                    TicketElementType ticketElementType = isticket.getTicketElement();
+                    TicketInformationType ticketInformationType = ticketElementType.getTicket();
+                    String ticketingOfficeId = ticketInformationType.getOfficeId();
+                    masterInfo.setTicketingOfficeId(ticketingOfficeId);
+                }
+
             }
             if (isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM") || isTicketContainSet.contains("FHE")) {
                 issuanceResponse.setIssued(true);
@@ -2300,10 +2260,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
 
             // fetch journey wise
-            List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
-            FareInformativePricingWithoutPNRReply fareInfo = serviceHandler.getFareInfo(journeyList, isSeamen, adtCount, childCount, infactCount, paxFareDetails, amadeusSessionWrapper);
-            Map<String, String> fareComponentDetails = getFareComponentMapFromFareInformativePricing(fareInfo);
-            List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentDetails, redisTemplate);
+//            List<PAXFareDetails> paxFareDetails = getPaxFareDetails(gdsPNRReply);
+//            FareInformativePricingWithoutPNRReply fareInfo = serviceHandler.getFareInfo(journeyList, isSeamen, adtCount, childCount, infactCount, paxFareDetails, amadeusSessionWrapper);
+//            Map<String, String> fareComponentDetails = getFareComponentMapFromFareInformativePricing(fareInfo);
+            Map<String, String> fareComponentFromTst = getFareComponentFromTst(ticketDisplayTSTReply);
+            List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentFromTst, redisTemplate);
 
             if (actualJourneyList.isEmpty()) {
                 actualJourneyList = journeyList;
@@ -2521,193 +2482,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
         return Boolean.FALSE;
     }
-
-
-    private static List<FreeMealsDetails> getFreeMealsInfoFromPnr(PNRReply pnrReply) {
-
-        List<FreeMealsDetails> freeMealsDetailsList = new ArrayList<>();
-
-        try {
-
-            List<TravellerInfo> travellerInfoList = pnrReply.getTravellerInfo();
-
-            Map<String, String> paxRefAndNameMap = AmadeusBookingHelper.getPaxRefAndNameMap(travellerInfoList);
-
-            List<DataElementsIndiv> dataElementsIndivList = pnrReply.getDataElementsMaster().getDataElementsIndiv();
-
-
-            if (!dataElementsIndivList.isEmpty()) {
-                for (DataElementsIndiv dataElementsIndiv : dataElementsIndivList) {
-
-                    String segmentReferenceNumber = null;
-                    String passengerReferenceNumber = null;
-
-                    ReferenceInfoType referenceForDataElement = dataElementsIndiv.getReferenceForDataElement();
-
-                    if (referenceForDataElement != null) {
-                        List<ReferencingDetailsType111975C> reference = referenceForDataElement.getReference();
-
-                        if (reference != null) {
-                            for (ReferencingDetailsType111975C referencingDetailsType111975C : reference) {
-                                String qualifier = referencingDetailsType111975C.getQualifier();
-                                String referenceNumber = referencingDetailsType111975C.getNumber();
-
-                                if (qualifier.equalsIgnoreCase("PT")) {
-                                    passengerReferenceNumber = referenceNumber;
-                                } else if (qualifier.equalsIgnoreCase("ST")) {
-                                    segmentReferenceNumber = referenceNumber;
-                                }
-                            }
-                        }
-                    }
-
-                    if (dataElementsIndiv.getElementManagementData() != null) {
-
-                        com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType elementManagementData = dataElementsIndiv.getElementManagementData();
-                        String segmentName = elementManagementData.getSegmentName();
-
-                        if (segmentName != null && segmentName.equalsIgnoreCase("SSR")) {
-                            SpecialRequirementsDetailsTypeI serviceRequest = dataElementsIndiv.getServiceRequest();
-                            if (serviceRequest.getSsr() != null) {
-                                SpecialRequirementsTypeDetailsTypeI ssr = serviceRequest.getSsr();
-
-                                String ssrType = ssr.getType();
-
-                                if (mealCodeNameMap.containsKey(ssrType)) {
-
-                                    FreeMealsDetails freeMealsDetails = new FreeMealsDetails();
-
-                                    freeMealsDetails.setMealCode(ssrType);
-                                    freeMealsDetails.setMealName(mealCodeNameMap.get(ssrType));
-                                    freeMealsDetails.setMealQuantity(ssr.getQuantity());
-                                    freeMealsDetails.setMealStatus(ssr.getStatus());
-
-                                    StringBuilder stringBuilder = new StringBuilder();
-                                    for (String text : ssr.getFreeText()) {
-                                        if (text != null && !text.trim().isEmpty()) {
-                                            if (stringBuilder.length() > 0) {
-                                                stringBuilder.append(". ");
-                                            }
-                                            stringBuilder.append(text.trim());
-                                        }
-                                    }
-                                    if (stringBuilder.length() > 0) {
-                                        stringBuilder.append(".");
-                                    }
-                                    freeMealsDetails.setComments(stringBuilder.toString());
-
-                                    if (passengerReferenceNumber != null) {
-                                        freeMealsDetails.setAmadeusPaxReference(passengerReferenceNumber);
-                                        freeMealsDetails.setPaxName(paxRefAndNameMap.get(passengerReferenceNumber));
-                                    }
-
-                                    freeMealsDetailsList.add(freeMealsDetails);
-                                }
-
-                            }
-
-                        }
-
-                    }
-                }
-            }
-
-            return freeMealsDetailsList;
-
-        } catch (Exception e) {
-            logger.debug("Error with getting free meals details from PNR {} : ", e.getMessage(), e);
-            return null;
-        }
-    }
-
-
-    private static List<FreeSeatDetails> getFreeSeatDetailsFromPnr(PNRReply pnrReply) {
-
-        List<FreeSeatDetails> freeSeatList = new ArrayList<>();
-
-        try {
-
-            List<TravellerInfo> travellerInfoList = pnrReply.getTravellerInfo();
-            Map<String, String> paxRefAndNameMap = AmadeusBookingHelper.getPaxRefAndNameMap(travellerInfoList);
-
-            List<DataElementsIndiv> dataElementsIndivList = pnrReply.getDataElementsMaster().getDataElementsIndiv();
-
-            if (!dataElementsIndivList.isEmpty()) {
-                for (DataElementsIndiv dataElementsIndiv : dataElementsIndivList) {
-                    String segmentReferenceNumber = null;
-                    String passengerReferenceNumber = null;
-
-                    ReferenceInfoType referenceForDataElement = dataElementsIndiv.getReferenceForDataElement();
-                    if (referenceForDataElement != null) {
-                        List<ReferencingDetailsType111975C> reference = referenceForDataElement.getReference();
-                        if (reference != null) {
-                            for (ReferencingDetailsType111975C referencingDetailsType111975C : reference) {
-                                String qualifier = referencingDetailsType111975C.getQualifier();
-                                String referenceNumber = referencingDetailsType111975C.getNumber();
-                                if (qualifier.equalsIgnoreCase("PT")) {
-                                    passengerReferenceNumber = referenceNumber;
-                                } else if (qualifier.equalsIgnoreCase("ST")) {
-                                    segmentReferenceNumber = referenceNumber;
-                                }
-                            }
-                        }
-                    }
-
-                    if (dataElementsIndiv.getElementManagementData() != null) {
-                        com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType elementManagementData = dataElementsIndiv.getElementManagementData();
-                        String segmentName = elementManagementData.getSegmentName();
-
-                        if (segmentName != null && segmentName.equalsIgnoreCase("SSR")) {
-                            SpecialRequirementsDetailsTypeI serviceRequest = dataElementsIndiv.getServiceRequest();
-
-                            if (!dataElementsIndiv.getSeatPaxInfo().isEmpty() && serviceRequest != null && serviceRequest.getSsr() != null) {
-                                SpecialRequirementsTypeDetailsTypeI ssr = serviceRequest.getSsr();
-                                String ssrType = ssr.getType();
-
-                                FreeSeatDetails freeSeatDetails = new FreeSeatDetails();
-
-                                freeSeatDetails.setOrigin(ssr.getBoardpoint());
-                                freeSeatDetails.setDestination(ssr.getOffpoint());
-                                freeSeatDetails.setSeatStatus(ssr.getStatus());
-                                //NSST is seatType
-                                freeSeatDetails.setSeatType(ssrType);
-
-                                if (serviceRequest.getSsrb() != null && !serviceRequest.getSsrb().isEmpty()) {
-                                    SpecialRequirementsDataDetailsTypeI ssrb = serviceRequest.getSsrb().get(0);
-                                    freeSeatDetails.setSeatNumber(ssrb.getData());
-                                    if (ssrb.getSeatType() != null && !ssrb.getSeatType().isEmpty()) {
-                                        for (String seatType : ssrb.getSeatType()) {
-                                            if (seatType != null && (seatType.equals("W") || seatType.equals("A"))) {
-                                                // W/A is seatCode
-                                                freeSeatDetails.setSeatCode(seatType);
-                                                if (seatNameMap.containsKey(seatType)) {
-                                                    freeSeatDetails.setSeatName(seatNameMap.get(seatType));
-
-                                                }
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (passengerReferenceNumber != null) {
-                                    freeSeatDetails.setAmadeusPaxReference(passengerReferenceNumber);
-                                    freeSeatDetails.setPaxName(paxRefAndNameMap.get(passengerReferenceNumber));
-                                }
-
-                                freeSeatList.add(freeSeatDetails);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return freeSeatList;
-
-        } catch (Exception e) {
-            logger.debug("Error with getting free seat details from PNR {} : ", e.getMessage(), e);
-            return null;
-        }
-    }
-
+  
+  
 }

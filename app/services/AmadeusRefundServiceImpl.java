@@ -39,7 +39,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
 
     static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
 
-    private static final String ticketingOfficeId = play.Play.application().configuration().getString("amadeus.ticketingOffice");
+//    private static final String ticketingOfficeId = play.Play.application().configuration().getString("amadeus.ticketingOffice");
 
     @Autowired
     private AmadeusSourceOfficeService amadeusSourceOfficeService;
@@ -49,8 +49,9 @@ public class AmadeusRefundServiceImpl implements RefundService{
 
     @Autowired
     private RefundServiceHandler refundServiceHandler;
+
     @Override
-    public TicketCheckEligibilityRes checkTicketEligibility(String gdsPnr,String searchOfficeId) {
+    public TicketCheckEligibilityRes checkTicketEligibility(String gdsPnr,String searchOfficeId, String ticketingOfficeId) {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         AMATicketInitRefundRS amaTicketInitRefundRS = null;
         TicketCheckEligibilityRes ticketCheckEligibilityRes = new TicketCheckEligibilityRes();
@@ -183,7 +184,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
     }
 
     @Override
-    public TicketProcessRefundRes processFullRefund(String gdsPnr,String searchOfficeId) {
+    public TicketProcessRefundRes processFullRefund(String gdsPnr,String searchOfficeId, String ticketingOfficeId) {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         AMATicketInitRefundRS amaTicketInitRefundRS = null;
         AMATicketProcessRefundRS amaTicketProcessRefundRS = null;
@@ -270,7 +271,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
     }
 
     @Override
-    public TicketCheckEligibilityRes checkPartRefundTicketEligibility(List<String> refundticketList, String gdsPnr,String searchOfficeId) {
+    public TicketCheckEligibilityRes checkPartRefundTicketEligibility(List<String> refundticketList, String gdsPnr,String searchOfficeId, String ticketingOfficeId) {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         AMATicketInitRefundRS amaTicketInitRefundRS = null;
         TicketCheckEligibilityRes ticketCheckEligibilityRes = new TicketCheckEligibilityRes();
@@ -374,7 +375,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
     }
 
     @Override
-    public TicketProcessRefundRes processPartialRefund(List<String> refundticketList, String gdsPnr,String searchOfficeId) {
+    public TicketProcessRefundRes processPartialRefund(List<String> refundticketList, String gdsPnr,String searchOfficeId, String ticketingOfficeId) {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         AMATicketInitRefundRS amaTicketInitRefundRS = null;
         AMATicketProcessRefundRS amaTicketProcessRefundRS = null;

@@ -42,6 +42,8 @@ public class ReIssueSearchRequest implements Serializable {
 
     private boolean isClassChanged;
 
+    private String ticketingOfficeId;
+
     public boolean isSeaman() {
         return isSeaman;
     }
@@ -161,6 +163,14 @@ public class ReIssueSearchRequest implements Serializable {
 
     public void setClassChanged(boolean classChanged) {
         isClassChanged = classChanged;
+    }
+
+    public String getTicketingOfficeId() {
+        return ticketingOfficeId;
+    }
+
+    public void setTicketingOfficeId(String ticketingOfficeId) {
+        this.ticketingOfficeId = ticketingOfficeId;
     }
 
     public BookingType getBookingType() {

@@ -5,6 +5,7 @@ import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
 import com.amadeus.xml.pnracc_11_3_1a.*;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
+import com.amadeus.xml.pnracc_11_3_1a.ReferenceInfoType;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tpcbrr_12_4_1a.*;
 import com.amadeus.xml.tpcbrr_12_4_1a.FarePricePNRWithBookingClassReply.FareList;
@@ -21,6 +22,8 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.amadeus.AmadeusPaxInformation;
 import dto.FareCheckRulesResponse;
 import dto.FareType;
+import dto.FreeMealsDetails;
+import dto.FreeSeatDetails;
 import models.Airline;
 import models.Airport;
 import models.AmadeusSessionWrapper;
@@ -51,6 +54,45 @@ public class AmadeusBookingHelper {
 
     private static final String AIR_SEGMENT_QUALIFIER = "AIR";
 
+    private static final Map<String,String> mealCodeNameMap = new HashMap<>();
+
+    private static final Map<String,String> seatNameMap = new HashMap<>();
+
+    static {
+        mealCodeNameMap.put("AVML", "VEGETARIAN HINDU MEAL");
+        mealCodeNameMap.put("BBML", "BABY MEAL");
+        mealCodeNameMap.put("BLML", "BLAND MEAL");
+        mealCodeNameMap.put("CHML", "CHILD MEAL");
+        mealCodeNameMap.put("CNML", "CHICKEN MEAL (LY SPECIFIC)");
+        mealCodeNameMap.put("DBML", "DIABETIC MEAL");
+        mealCodeNameMap.put("FPML", "FRUIT PLATTER MEAL");
+        mealCodeNameMap.put("FSML", "FISH MEAL");
+        mealCodeNameMap.put("GFML", "GLUTEN INTOLERANT MEAL");
+        mealCodeNameMap.put("HNML", "HINDU (NON VEGETARIAN) MEAL SPECIFIC");
+        mealCodeNameMap.put("IVML", "INDIAN VEGETARIAN MEAL (UA SPECIFIC)");
+        mealCodeNameMap.put("JPML", "JAPANESE MEAL (LH SPECIFIC)");
+        mealCodeNameMap.put("KSML", "KOSHER MEAL");
+        mealCodeNameMap.put("LCML", "LOW CALORIE MEAL");
+        mealCodeNameMap.put("LFML", "LOW FAT MEAL");
+        mealCodeNameMap.put("LSML", "LOW SALT MEAL");
+        mealCodeNameMap.put("MOML", "MOSLEM MEAL");
+        mealCodeNameMap.put("NFML", "NO FISH MEAL (LH SPECIFIC)");
+        mealCodeNameMap.put("NLML", "LOW LACTOSE MEAL");
+        mealCodeNameMap.put("OBML", "JAPANESE OBENTO MEAL (UA SPECIFIC)");
+        mealCodeNameMap.put("RVML", "VEGETARIAN RAW MEAL");
+        mealCodeNameMap.put("SFML", "SEA FOOD MEAL");
+        mealCodeNameMap.put("SPML", "SPECIAL MEAL, SPECIFY FOOD");
+        mealCodeNameMap.put("VGML", "VEGETARIAN VEGAN MEAL");
+        mealCodeNameMap.put("VJML", "VEGETARIAN JAIN MEAL");
+        mealCodeNameMap.put("VOML", "VEGETARIAN ORIENTAL MEAL");
+        mealCodeNameMap.put("VLML", "VEGETARIAN LACTO-OVO MEAL");
+
+    }
+
+    static {
+        seatNameMap.put("W" , "WINDOW");
+        seatNameMap.put("A", "ASILE");
+    }
 
     @Autowired
     private FareRules fareRules;
@@ -1877,40 +1919,46 @@ public class AmadeusBookingHelper {
 
     public static List<Journey> getJourneyDetails(List<Journey> journeyList, Map<String, String> fareComponentJourneyMap, RedisTemplate redisTemplate) {
 
-        List<Journey> actualJourneyList = new ArrayList<>();
-        List<AirSegmentInformation> pnrReplyJourneyList = journeyList.get(0).getAirSegmentList();
+        try {
 
-        int currentAirSegment = 0;
+            List<Journey> actualJourneyList = new ArrayList<>();
+            List<AirSegmentInformation> pnrReplyJourneyList = journeyList.get(0).getAirSegmentList();
 
-        for (Map.Entry<String, String> journeyMap : fareComponentJourneyMap.entrySet()) {
+            int currentAirSegment = 0;
 
-            String[] originDestinationList = journeyMap.getValue().split("-");
-            String destination = originDestinationList[1].trim();
+            for (Map.Entry<String, String> journeyMap : fareComponentJourneyMap.entrySet()) {
 
-            Journey currentJourney = new Journey();
-            List<AirSegmentInformation> actualAirSegmentList = new ArrayList<>();
+                String[] originDestinationList = journeyMap.getValue().split("-");
+                String destination = originDestinationList[1].trim();
 
-            while (currentAirSegment < pnrReplyJourneyList.size()) {
-                AirSegmentInformation airSegmentInformation = pnrReplyJourneyList.get(currentAirSegment);
+                Journey currentJourney = new Journey();
+                List<AirSegmentInformation> actualAirSegmentList = new ArrayList<>();
 
-                Airport toAirport;
-                if (redisTemplate == null) {
-                    toAirport = Airport.getAirportByIataCode(airSegmentInformation.getToLocation());
-                } else {
-                    toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
-                }
+                while (currentAirSegment < pnrReplyJourneyList.size()) {
+                    AirSegmentInformation airSegmentInformation = pnrReplyJourneyList.get(currentAirSegment);
 
-                actualAirSegmentList.add(airSegmentInformation);
-                pnrReplyJourneyList.remove(currentAirSegment);
+                    Airport toAirport;
+                    if (redisTemplate == null) {
+                        toAirport = Airport.getAirportByIataCode(airSegmentInformation.getToLocation());
+                    } else {
+                        toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
+                    }
 
-                if (airSegmentInformation.getToLocation().equalsIgnoreCase(destination) || toAirport.getCityCode().equalsIgnoreCase(destination)) {
-                    currentJourney.setAirSegmentList(actualAirSegmentList);
-                    actualJourneyList.add(currentJourney);
-                    break;
+                    actualAirSegmentList.add(airSegmentInformation);
+                    pnrReplyJourneyList.remove(currentAirSegment);
+
+                    if (airSegmentInformation.getToLocation().equalsIgnoreCase(destination) || toAirport.getCityCode().equalsIgnoreCase(destination)) {
+                        currentJourney.setAirSegmentList(actualAirSegmentList);
+                        actualJourneyList.add(currentJourney);
+                        break;
+                    }
                 }
             }
+            return actualJourneyList;
+        } catch (Exception e) {
+            logger.debug("Error fetching journey wise booking {}",e.getMessage());
+            return null;
         }
-        return actualJourneyList;
     }
 
 
@@ -2106,6 +2154,357 @@ public class AmadeusBookingHelper {
         } catch (Exception e) {
             logger.debug("Error with getting pax ref and name{} : ", e.getMessage(), e);
             return null;        }
+    }
+
+    public static Map<String, String> getFareComponentFromTst(TicketDisplayTSTReply ticketDisplayTSTReply ){
+
+        Map<String, String> fareComponentsMap = new LinkedHashMap<>();
+        int itemNumber = 0;
+
+        try{
+
+            if(ticketDisplayTSTReply != null && ticketDisplayTSTReply.getFareList() != null && ticketDisplayTSTReply.getErrorGroup() == null) {
+
+                List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
+
+                if(fareList != null && !fareList.isEmpty()){
+
+                    for(TicketDisplayTSTReply.FareList fare :fareList){
+
+                        List<TicketDisplayTSTReply.FareList.FareComponentDetailsGroup> fareComponentDetailsGroupList = fare.getFareComponentDetailsGroup();
+
+                        if(fareComponentDetailsGroupList != null && !fareComponentDetailsGroupList.isEmpty()){
+
+                            for(TicketDisplayTSTReply.FareList.FareComponentDetailsGroup fareComponentDetailsGroup: fareComponentDetailsGroupList){
+
+                                if(fareComponentDetailsGroup != null) {
+
+                                    com.amadeus.xml.ttstrr_13_1_1a.TravelProductInformationTypeI marketFareComponent = fareComponentDetailsGroup.getMarketFareComponent();
+
+                                    if (marketFareComponent != null) {
+
+                                        StringBuilder location = new StringBuilder();
+
+                                        String boardPoint = "";
+                                        String offPoint = "";
+
+                                        if (marketFareComponent.getBoardPointDetails() != null && marketFareComponent.getBoardPointDetails().getTrueLocationId() != null) {
+                                            boardPoint = marketFareComponent.getBoardPointDetails().getTrueLocationId();
+                                        }
+
+                                        if (marketFareComponent.getOffpointDetails() != null && marketFareComponent.getOffpointDetails().getTrueLocationId() != null) {
+                                            offPoint = marketFareComponent.getOffpointDetails().getTrueLocationId();
+                                        }
+
+                                        location.append(boardPoint).append("-").append(offPoint);
+
+                                        if (location.length() > 1) {
+                                            ++itemNumber;
+                                            fareComponentsMap.put(String.valueOf(itemNumber), location.toString());
+                                        }
+
+                                    }
+
+                                }
+
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            return fareComponentsMap;
+
+        } catch (Exception e) {
+            logger.debug("Error fetching farecomponent from tst display {}",e.getMessage());
+            return  null;
+        }
+
+
+    }
+
+
+    public static List<FreeMealsDetails> getFreeMealsInfoFromPnr(PNRReply pnrReply) {
+
+        List<FreeMealsDetails> freeMealsDetailsList = new ArrayList<>();
+
+        try {
+            // Get passenger reference and name map
+            List<TravellerInfo> travellerInfoList = pnrReply.getTravellerInfo();
+
+            Map<String, String> paxRefAndNameMap = AmadeusBookingHelper.getPaxRefAndNameMap(travellerInfoList);
+
+            // Get segment map
+            Map<String, Map<String, String>> segmentMap = getSegmentNameMapFromPnr(pnrReply);
+
+            // Process DataElementsIndiv for SSR
+            List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElementsIndivList = pnrReply.getDataElementsMaster().getDataElementsIndiv();
+
+
+            if (!dataElementsIndivList.isEmpty()) {
+                for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsIndiv : dataElementsIndivList) {
+
+                    String segmentReferenceNumber = null;
+                    String passengerReferenceNumber = null;
+
+                    // Extract segmentReferenceNumber and passengerReferenceNumber
+                    ReferenceInfoType referenceForDataElement = dataElementsIndiv.getReferenceForDataElement();
+
+                    if (referenceForDataElement != null) {
+                        List<ReferencingDetailsType111975C> reference = referenceForDataElement.getReference();
+
+                        if (reference != null) {
+                            for (ReferencingDetailsType111975C referencingDetailsType111975C : reference) {
+                                String qualifier = referencingDetailsType111975C.getQualifier();
+                                String referenceNumber = referencingDetailsType111975C.getNumber();
+
+                                if (qualifier.equalsIgnoreCase("PT")) {
+                                    passengerReferenceNumber = referenceNumber;
+                                } else if (qualifier.equalsIgnoreCase("ST")) {
+                                    segmentReferenceNumber = referenceNumber;
+                                }
+                            }
+                        }
+                    }
+
+                    if (dataElementsIndiv.getElementManagementData() != null) {
+
+                        com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType elementManagementData = dataElementsIndiv.getElementManagementData();
+                        String segmentName = elementManagementData.getSegmentName();
+
+                        if (segmentName != null && segmentName.equalsIgnoreCase("SSR")) {
+                            SpecialRequirementsDetailsTypeI serviceRequest = dataElementsIndiv.getServiceRequest();
+                            if (serviceRequest != null && serviceRequest.getSsr() != null) {
+                                SpecialRequirementsTypeDetailsTypeI ssr = serviceRequest.getSsr();
+
+                                String ssrType = ssr.getType();
+
+                                if (mealCodeNameMap.containsKey(ssrType)) {
+
+                                    FreeMealsDetails freeMealsDetails = new FreeMealsDetails();
+
+                                    // Match segmentReferenceNumber with segmentRef
+                                    if (segmentReferenceNumber != null && segmentMap.containsKey(segmentReferenceNumber)) {
+                                        Map<String, String> segmentDetails = segmentMap.get(segmentReferenceNumber);
+                                        freeMealsDetails.setOrigin(segmentDetails.get("origin"));
+                                        freeMealsDetails.setDestination(segmentDetails.get("destination"));
+                                        freeMealsDetails.setAirlineCode(segmentDetails.get("airlineCode"));
+                                        freeMealsDetails.setFlightNumber(segmentDetails.get("flightNumber"));
+                                        freeMealsDetails.setAmadeusSegmentRef(segmentReferenceNumber);
+                                    }
+
+                                    freeMealsDetails.setMealCode(ssrType);
+                                    freeMealsDetails.setMealName(mealCodeNameMap.get(ssrType));
+                                    freeMealsDetails.setMealQuantity(ssr.getQuantity());
+                                    freeMealsDetails.setMealStatus(ssr.getStatus());
+
+                                    StringBuilder stringBuilder = new StringBuilder();
+                                    for (String text : ssr.getFreeText()) {
+                                        if (text != null && !text.trim().isEmpty()) {
+                                            if (stringBuilder.length() > 0) {
+                                                stringBuilder.append(". ");
+                                            }
+                                            stringBuilder.append(text.trim());
+                                        }
+                                    }
+                                    if (stringBuilder.length() > 0) {
+                                        stringBuilder.append(".");
+                                    }
+                                    freeMealsDetails.setComments(stringBuilder.toString());
+
+                                    if (passengerReferenceNumber != null) {
+                                        freeMealsDetails.setAmadeusPaxReference(passengerReferenceNumber);
+                                        freeMealsDetails.setPaxName(paxRefAndNameMap.get(passengerReferenceNumber));
+                                    }
+
+                                    freeMealsDetailsList.add(freeMealsDetails);
+                                }
+
+                            }
+
+                        }
+
+                    }
+                }
+            }
+
+            return freeMealsDetailsList;
+
+        } catch (Exception e) {
+            logger.debug("Error with getting free meals details from PNR {} : ", e.getMessage(), e);
+            return null;
+        }
+    }
+
+
+    public static List<FreeSeatDetails> getFreeSeatDetailsFromPnr(PNRReply pnrReply) {
+
+        List<FreeSeatDetails> freeSeatList = new ArrayList<>();
+
+        try {
+            // Get passenger reference and name map
+            List<TravellerInfo> travellerInfoList = pnrReply.getTravellerInfo();
+            Map<String, String> paxRefAndNameMap = AmadeusBookingHelper.getPaxRefAndNameMap(travellerInfoList);
+
+            // Get segment map
+            Map<String, Map<String, String>> segmentMap = getSegmentNameMapFromPnr(pnrReply);
+
+            // Process DataElementsIndiv for SSR
+            List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElementsIndivList = pnrReply.getDataElementsMaster().getDataElementsIndiv();
+
+            if (!dataElementsIndivList.isEmpty()) {
+                for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsIndiv : dataElementsIndivList) {
+                    String segmentReferenceNumber = null;
+                    String passengerReferenceNumber = null;
+
+                    // Extract segmentReferenceNumber and passengerReferenceNumber
+                    ReferenceInfoType referenceForDataElement = dataElementsIndiv.getReferenceForDataElement();
+                    if (referenceForDataElement != null) {
+                        List<ReferencingDetailsType111975C> reference = referenceForDataElement.getReference();
+                        if (reference != null) {
+                            for (ReferencingDetailsType111975C referencingDetailsType111975C : reference) {
+                                String qualifier = referencingDetailsType111975C.getQualifier();
+                                String referenceNumber = referencingDetailsType111975C.getNumber();
+                                if (qualifier.equalsIgnoreCase("PT")) {
+                                    passengerReferenceNumber = referenceNumber;
+                                } else if (qualifier.equalsIgnoreCase("ST")) {
+                                    segmentReferenceNumber = referenceNumber;
+                                }
+                            }
+                        }
+                    }
+
+                    if (dataElementsIndiv.getElementManagementData() != null) {
+                        com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType elementManagementData = dataElementsIndiv.getElementManagementData();
+                        String segmentName = elementManagementData.getSegmentName();
+
+                        if (segmentName != null && segmentName.equalsIgnoreCase("SSR")) {
+                            SpecialRequirementsDetailsTypeI serviceRequest = dataElementsIndiv.getServiceRequest();
+
+                            if (!dataElementsIndiv.getSeatPaxInfo().isEmpty() && serviceRequest != null && serviceRequest.getSsr() != null) {
+                                SpecialRequirementsTypeDetailsTypeI ssr = serviceRequest.getSsr();
+                                String ssrType = ssr.getType();
+
+                                FreeSeatDetails freeSeatDetails = new FreeSeatDetails();
+
+                                // Match segmentReferenceNumber with segmentRef
+                                if (segmentReferenceNumber != null && segmentMap.containsKey(segmentReferenceNumber)) {
+                                    Map<String, String> segmentDetails = segmentMap.get(segmentReferenceNumber);
+                                    freeSeatDetails.setOrigin(segmentDetails.get("origin"));
+                                    freeSeatDetails.setDestination(segmentDetails.get("destination"));
+                                    freeSeatDetails.setAirlineCode(segmentDetails.get("airlineCode"));
+                                    freeSeatDetails.setFlightNumber(segmentDetails.get("flightNumber"));
+                                    freeSeatDetails.setAmadeusSegmentRef(segmentReferenceNumber);
+                                }
+
+                                freeSeatDetails.setSeatStatus(ssr.getStatus());
+
+                                //NSST is seatType
+                                freeSeatDetails.setSeatType(ssrType);
+
+                                if (serviceRequest.getSsrb() != null && !serviceRequest.getSsrb().isEmpty()) {
+                                    SpecialRequirementsDataDetailsTypeI ssrb = serviceRequest.getSsrb().get(0);
+                                    freeSeatDetails.setSeatNumber(ssrb.getData());
+                                    if (ssrb.getSeatType() != null && !ssrb.getSeatType().isEmpty()) {
+                                        for (String seatType : ssrb.getSeatType()) {
+                                            if (seatType != null && (seatType.equals("W") || seatType.equals("A"))) {
+                                                // W/A is seatCode
+                                                freeSeatDetails.setSeatCode(seatType);
+                                                if (seatNameMap.containsKey(seatType)) {
+                                                    freeSeatDetails.setSeatName(seatNameMap.get(seatType));
+
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (passengerReferenceNumber != null) {
+                                    freeSeatDetails.setAmadeusPaxReference(passengerReferenceNumber);
+                                    freeSeatDetails.setPaxName(paxRefAndNameMap.get(passengerReferenceNumber));
+                                }
+
+                                freeSeatList.add(freeSeatDetails);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return freeSeatList;
+
+        } catch (Exception e) {
+            logger.debug("Error with getting free seat details from PNR {} : ", e.getMessage(), e);
+            return null;
+        }
+    }
+
+
+    private static Map<String, Map<String, String>> getSegmentNameMapFromPnr(PNRReply pnrReply) {
+
+        Map<String, Map<String, String>> segmentMap = new HashMap<>();
+
+        // Process itineraryInfo for all AIR segments dynamically
+        List<PNRReply.OriginDestinationDetails> originDestinationDetailsList = pnrReply.getOriginDestinationDetails();
+
+        if (!originDestinationDetailsList.isEmpty()) {
+            for (PNRReply.OriginDestinationDetails originDestinationDetails : originDestinationDetailsList) {
+                List<PNRReply.OriginDestinationDetails.ItineraryInfo> itineraryInfo = originDestinationDetails.getItineraryInfo();
+
+                for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo1 : itineraryInfo) {
+                    com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType elementManagementItinerary = itineraryInfo1.getElementManagementItinerary();
+                    if (elementManagementItinerary != null) {
+                        String segmentName = elementManagementItinerary.getSegmentName();
+
+                        if (segmentName != null && segmentName.equalsIgnoreCase("AIR")) {
+                            Map<String, String> segmentDetails = new HashMap<>();
+                            String segmentRef = null;
+
+                            // Extract segmentRef
+                            if (elementManagementItinerary.getReference() != null) {
+                                segmentRef = elementManagementItinerary.getReference().getNumber().toString();
+                            }
+
+                            // Extract origin, destination, airlineCode, flightNumber
+                            com.amadeus.xml.pnracc_11_3_1a.TravelProductInformationTypeI travelProduct = itineraryInfo1.getTravelProduct();
+                            if (travelProduct != null) {
+                                LocationTypeI2784C boardPointDetail = travelProduct.getBoardpointDetail();
+                                if (boardPointDetail != null) {
+                                    segmentDetails.put("origin", boardPointDetail.getCityCode());
+                                }
+
+                                LocationTypeI2784C offPointDetail = travelProduct.getOffpointDetail();
+                                if (offPointDetail != null) {
+                                    segmentDetails.put("destination", offPointDetail.getCityCode());
+                                }
+
+                                CompanyIdentificationTypeI2785C companyDetail = travelProduct.getCompanyDetail();
+                                if (companyDetail != null) {
+                                    segmentDetails.put("airlineCode", companyDetail.getIdentification());
+                                }
+
+                                ProductIdentificationDetailsTypeI2786C productDetails = travelProduct.getProductDetails();
+                                if (productDetails != null) {
+                                    segmentDetails.put("flightNumber", productDetails.getIdentification());
+                                }
+                            }
+
+                            // Store in segmentMap if segmentRef exists
+                            if (segmentRef != null) {
+                                segmentMap.put(segmentRef, segmentDetails);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return segmentMap;
     }
 
 }

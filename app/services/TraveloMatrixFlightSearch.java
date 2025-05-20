@@ -91,7 +91,7 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                 sr.getErrorMessageList().add(errorMessage);
             }
             if (response.getStatus()) {
-                travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
+                //travelomatrixLogger.debug("Converted Travelomatrix Reply:" + response.toString());
                 AirSolution airSolution = getAirSolution(response, searchParameters.getJourneyType().toString(), searchParameters.getJourneyList(), searchParameters.getDateType(), searchParameters.getTransit());
                 sr = new SearchResponse();
                 sr.setFlightSearchOffice(getOfficeList().get(0));
@@ -109,8 +109,8 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("Timed Out", ErrorMessage.ErrorType.ERROR, "TraveloMatrix");
             sr.getErrorMessageList().add(errorMessage);
         }
-        travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
-        logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################" + sr.toString());
+        //travelomatrixLogger.debug("TraveloMatrix SearchResponse created:" + sr.toString());
+        //logger.debug("#####################TraveloMatrixFlightSearch Search is completed ##################" + sr.toString());
         //      }
         return sr;
     }
@@ -195,7 +195,10 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                         flightItinerary.setPricingInformation(pricingInformation);
                         flightItinerary.setResultToken(onWardjourneyList.get(index).getResultToken());
                         flightItinerary.setReturnResultToken(returnJourneyList.get(index).getResultToken());
-
+                        if (onWardjourneyList.get(index).getAttr() != null) {
+                            flightItinerary.setFareType(onWardjourneyList.get(index).getAttr().getFareType());
+                            flightItinerary.setRefundable(onWardjourneyList.get(index).getAttr().getIsRefundable());
+                        }
                         flightItineraryHashMap.put(flightItinerary.hashCode(), flightItinerary);
                     } else {
                         //lcc carriers
@@ -208,10 +211,9 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
                         if (lcconWardjourneyList.size() > 0 && lccreturnJourneyList.size() > 0) {
                             for (int lccindex = 0; lccindex < lcconWardjourneyList.size() && lccindex < lccreturnJourneyList.size(); lccindex++) {
                                 onWardJourney = getOnwardJounery(lcconWardjourneyList.get(lccindex).getFlightDetails());
-                                onWardJourney.setRefundable(lcconWardjourneyList.get(index).getAttr().getIsRefundable());
-
+                                onWardJourney.setRefundable(lcconWardjourneyList.get(lccindex).getAttr().getIsRefundable());
                                 returnJourney = getReturnJounery(lccreturnJourneyList.get(lccindex).getFlightDetails());
-                                returnJourney.setRefundable(lccreturnJourneyList.get(index).getAttr().getIsRefundable());
+                                returnJourney.setRefundable(lccreturnJourneyList.get(lccindex).getAttr().getIsRefundable());
 
 
                                 consolidatedJourney.add(onWardJourney);

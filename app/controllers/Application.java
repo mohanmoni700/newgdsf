@@ -450,6 +450,31 @@ public class Application {
         return ok(Json.toJson(cancelPNRResponse));
     }
 
+    public Result cancelTimeLimitReachedPNR() {
+        logger.info("cancelTimeLimitReachedPNR called ");
+        JsonNode json = request().body().asJson();
+        logger.debug("json "+json.toString());
+        String pnr = Json.fromJson(json.findPath("gdsPNR"), String.class);
+        String provider = Json.fromJson(json.findPath("provider"), String.class);
+        String appRef = Json.fromJson(json.findPath("appRef"), String.class);
+        String bookingId = Json.fromJson(json.findPath("bookingId"), String.class);
+        Boolean fullPNR = Json.fromJson(json.findPath("fullPNR"), Boolean.class);
+        Boolean isFullCancellation = Json.fromJson(json.findPath("isFullCancellation"), Boolean.class);
+        JsonNode ticketsNode = json.get("tickets");
+        List<String> ticketList = new LinkedList<>();
+        if (ticketsNode != null && ticketsNode.isArray()) {
+            for (JsonNode ticketNode : ticketsNode) {
+                ticketList.add(ticketNode.asText());
+            }
+        }
+        logger.debug("cancelTimeLimitReachedPNR PNR called for PNR : " + pnr + " provider : " + provider);
+
+        CancelPNRResponse cancelPNRResponse = cancelService.cancelTimeLimitReachedPNR(pnr, provider, appRef, bookingId, fullPNR, ticketList, isFullCancellation);
+
+        logger.debug("cancelTimeLimitReachedPNR pnr response " + Json.toJson(cancelPNRResponse));
+        return ok(Json.toJson(cancelPNRResponse));
+    }
+
     public Result getQueueListInfo() {
         return ok(Json.toJson(queueListServiceWrapper.getQueueListResponse()));
     }
@@ -571,6 +596,7 @@ public class Application {
         String provider = Json.fromJson(jsonBody.findPath("provider"), String.class);
         String appRef = Json.fromJson(jsonBody.findPath("appRef"), String.class);
         String bookingId = Json.fromJson(jsonBody.findPath("bookingId"), String.class);
+        String ticketingOfficeId = jsonBody.get("ticketingOfficeId").asText();
 
         // Retrieve the 'numbers' array node
         ArrayNode ticketsNode = (ArrayNode) jsonBody.get("ticketId");
@@ -582,7 +608,7 @@ public class Application {
             ticketsList.add(ticketNode.asText());
         }
         logger.debug("Cancel ticket document called : " + pnr + " provider : " + provider);
-        TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr, ticketsList);
+        TicketCancelDocumentResponse ticketCancelDocumentResponse = amadeusTicketCancelDocumentServiceImpl.ticketCancelDocument(pnr, ticketsList, ticketingOfficeId);
 
         logger.debug("cancel ticket document response " + Json.toJson(ticketCancelDocumentResponse));
         return ok(Json.toJson(ticketCancelDocumentResponse));
@@ -625,7 +651,8 @@ public class Application {
         String provider = json.get("provider").asText();
         String gdspnr = json.get("gdsPnr").asText();
         String searchOfficeId = json.get("searchOffice").asText();
-        ticketCheckEligibilityRes = refundServiceWrapper.checkTicketEligibility(provider, gdspnr, searchOfficeId);
+        String ticketingOfficeId = json.get("ticketingOfficeId").asText();
+        ticketCheckEligibilityRes = refundServiceWrapper.checkTicketEligibility(provider, gdspnr, searchOfficeId, ticketingOfficeId);
         return ok(Json.toJson(ticketCheckEligibilityRes));
     }
 
@@ -636,7 +663,8 @@ public class Application {
         String provider = json.get("provider").asText();
         String gdspnr = json.get("gdsPnr").asText();
         String searchOfficeId = json.get("searchOffice").asText();
-        ticketProcessRefundRes = refundServiceWrapper.processFullRefund(provider, gdspnr, searchOfficeId);
+        String ticketingOfficeId = json.get("ticketingOfficeId").asText();
+        ticketProcessRefundRes = refundServiceWrapper.processFullRefund(provider, gdspnr, searchOfficeId, ticketingOfficeId);
         return ok(Json.toJson(ticketProcessRefundRes));
     }
 
@@ -648,13 +676,14 @@ public class Application {
         String gdspnr = json.get("gdsPnr").asText();
         String searchOfficeId = json.get("searchOffice").asText();
         JsonNode ticketsNode = json.get("tickets");
+        String ticketingOfficeId = json.get("ticketingOfficeId").asText();
         List<String> ticketList = new LinkedList<>();
         if (ticketsNode != null && ticketsNode.isArray()) {
             for (JsonNode ticketNode : ticketsNode) {
                 ticketList.add(ticketNode.asText());
             }
         }
-        ticketCheckEligibilityRes = refundServiceWrapper.checkPartRefundTicketEligibility(provider, gdspnr, ticketList, searchOfficeId);
+        ticketCheckEligibilityRes = refundServiceWrapper.checkPartRefundTicketEligibility(provider, gdspnr, ticketList, searchOfficeId, ticketingOfficeId);
         return ok(Json.toJson(ticketCheckEligibilityRes));
     }
 
@@ -666,13 +695,14 @@ public class Application {
         String gdspnr = json.get("gdsPnr").asText();
         String searchOfficeId = json.get("searchOffice").asText();
         JsonNode ticketsNode = json.get("tickets");
+        String ticketingOfficeId = json.get("ticketingOfficeId").asText();
         List<String> ticketList = new LinkedList<>();
         if (ticketsNode != null && ticketsNode.isArray()) {
             for (JsonNode ticketNode : ticketsNode) {
                 ticketList.add(ticketNode.asText());
             }
         }
-        ticketProcessRefundRes = refundServiceWrapper.processPartialRefund(provider, gdspnr, ticketList, searchOfficeId);
+        ticketProcessRefundRes = refundServiceWrapper.processPartialRefund(provider, gdspnr, ticketList, searchOfficeId, ticketingOfficeId);
         return ok(Json.toJson(ticketProcessRefundRes));
     }
 

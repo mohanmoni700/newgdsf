@@ -60,4 +60,9 @@ public class MystiflyCancelServiceImpl implements CancelService {
         }
         return cancelPNRResponse;
     }
+
+    @Override
+    public CancelPNRResponse cancelTimeLimitReachedPNR(String pnr, Boolean isFullPNR) {
+        return null;
+    }
 }

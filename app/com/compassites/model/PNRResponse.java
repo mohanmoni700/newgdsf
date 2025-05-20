@@ -54,6 +54,16 @@ public class PNRResponse implements Serializable  {
 
     private Map<String, String> segmentBaggageMap;
 
+    private Map<String,Double> carbonDioxide;
+
+    public Map<String, Double> getCarbonDioxide() {
+        return carbonDioxide;
+    }
+
+    public void setCarbonDioxide(Map<String, Double> carbonDioxide) {
+        this.carbonDioxide = carbonDioxide;
+    }
+
     private String bookedStatus;
 
     private boolean isChangedPriceLow;

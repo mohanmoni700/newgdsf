@@ -27,6 +27,8 @@ public class ReIssueConfirmationRequest {
 
     private boolean toSplit;
 
+    private String ticketingOfficeId;
+
     public Long getBookingId() {
         return bookingId;
     }
@@ -98,6 +100,15 @@ public class ReIssueConfirmationRequest {
     public void setToSplit(boolean toSplit) {
         this.toSplit = toSplit;
     }
+
+    public String getTicketingOfficeId() {
+        return ticketingOfficeId;
+    }
+
+    public void setTicketingOfficeId(String ticketingOfficeId) {
+        this.ticketingOfficeId = ticketingOfficeId;
+    }
+
 
     public BookingType getBookingType() {
         if (this.isSeaman()) {

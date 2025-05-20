@@ -411,7 +411,7 @@ public class ServiceHandler {
         amadeusLogger.debug("flightInfoReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfo));
         AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, amadeusSessionWrapper.getmSession());
 
-        amadeusLogger.debug("flightInfoRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfo));
+        amadeusLogger.debug("flightInfoRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfoReply));
         return airFlightInfoReply;
     }
 
