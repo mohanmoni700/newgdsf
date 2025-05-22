@@ -1562,6 +1562,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 }
 
             }
+
             if (isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM") || isTicketContainSet.contains("FHE")) {
                 issuanceResponse.setIssued(true);
             } else {
@@ -1599,6 +1600,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
 
             TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
+            amadeusBookingHelper.getTicketEligibilityFromTicketDisplayTSTReply(ticketDisplayTSTReply,masterInfo);
             PricingInformation pricingInformation = getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 
             List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
@@ -2184,6 +2186,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
             //todo -- added for segment wise pricing
             TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
+
 
 //			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
 //							paxTypeCount.get("adultCount"),	paxTypeCount.get("childCount"),	paxTypeCount.get("infantCount"));

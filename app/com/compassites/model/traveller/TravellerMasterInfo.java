@@ -83,6 +83,25 @@ public class TravellerMasterInfo {
 
     private String ticketingOfficeId;
 
+    private boolean isAutoReIssue;
+    private boolean isAutoReFund;
+
+    public boolean isAutoReIssue() {
+        return isAutoReIssue;
+    }
+
+    public void setAutoReIssue(boolean autoReIssue) {
+        isAutoReIssue = autoReIssue;
+    }
+
+    public boolean isAutoReFund() {
+        return isAutoReFund;
+    }
+
+    public void setAutoReFund(boolean autoReFund) {
+        isAutoReFund = autoReFund;
+    }
+
     public String getSearchResultToken() {
         return searchResultToken;
     }
