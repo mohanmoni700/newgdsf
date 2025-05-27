@@ -426,10 +426,12 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
         String updatedBagunits = updateBaggeUnits(baggage);
         issuanceResponse.setBaggage(updatedBagunits);
         //excessBaggage
-        if(excessBaggageList!= null && excessBaggageList.size() > 0)
-        issuanceResponse.setTmxBaggageDetails(excessBaggageList);
-        if(excessMealList!= null && excessMealList.size() > 0)
+        if(excessBaggageList!= null && excessBaggageList.size() > 0) {
+            issuanceResponse.setTmxBaggageDetails(excessBaggageList);
+        }
+        if(excessMealList!= null && excessMealList.size() > 0) {
             issuanceResponse.setTmxMealDetails(excessMealList);
+        }
         return issuanceResponse;
     }
 
