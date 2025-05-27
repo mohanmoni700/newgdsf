@@ -5,6 +5,7 @@ public class FreeSeatDetails {
     private String origin;
     private String destination;
     private String seatStatus;
+    private String seatStatusDescription;
     private String seatNumber;
     private String seatName;
     private String seatType;
@@ -12,7 +13,42 @@ public class FreeSeatDetails {
     private String amadeusPaxReference;
     private String paxName;
     private String comments;
+    private String airlineName;
+    private String airlineCode;
+    private String flightNumber;
+    private String amadeusSegmentRef;
 
+    public String getAmadeusSegmentRef() {
+        return amadeusSegmentRef;
+    }
+
+    public void setAmadeusSegmentRef(String amadeusSegmentRef) {
+        this.amadeusSegmentRef = amadeusSegmentRef;
+    }
+
+    public String getAirlineName() {
+        return airlineName;
+    }
+
+    public void setAirlineName(String airlineName) {
+        this.airlineName = airlineName;
+    }
+
+    public String getAirlineCode() {
+        return airlineCode;
+    }
+
+    public void setAirlineCode(String airlineCode) {
+        this.airlineCode = airlineCode;
+    }
+
+    public String getFlightNumber() {
+        return flightNumber;
+    }
+
+    public void setFlightNumber(String flightNumber) {
+        this.flightNumber = flightNumber;
+    }
 
     public String getOrigin() {
         return origin;
@@ -92,6 +128,14 @@ public class FreeSeatDetails {
 
     public void setComments(String comments) {
         this.comments = comments;
+    }
+
+    public String getSeatStatusDescription() {
+        return seatStatusDescription;
+    }
+
+    public void setSeatStatusDescription(String seatStatusDescription) {
+        this.seatStatusDescription = seatStatusDescription;
     }
 
 }

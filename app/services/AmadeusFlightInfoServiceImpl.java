@@ -35,6 +35,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Santhosh
@@ -395,22 +397,41 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 //			serviceHandler.logIn();
 			//serviceHandler.setSession(amadeusSessionWrapper.getmSession().value);
 			List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
+			Map<String,Double> carBonMap = new HashMap<>();
 			for(Journey journey : journeyList) {
 				for(AirSegmentInformation segment : journey.getAirSegmentList()) {
+					StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append(segment.getFromLocation());
+					stringBuilder.append(segment.getToLocation());
 					AirFlightInfoReply flightInfoReply = serviceHandler.getFlightInfo(segment, amadeusSessionWrapper);
 					List<String> amenities = new ArrayList<>();
+					Map<String,Double> carBon = new HashMap<>();
 					for(InteractiveFreeText freeText : flightInfoReply.getFlightScheduleDetails().getInteractiveFreeText()) {
 						amenities.add(freeText.getFreeText());
+						if (freeText.getFreeTextQualification().getTextSubjectQualifier().equalsIgnoreCase("ZZZ")) {
+							Pattern pattern = Pattern.compile("\\d+\\.\\d+");
+							Matcher matcher = pattern.matcher(freeText.getFreeText());
+							while (matcher.find()) {
+								carBon.put(stringBuilder.toString(),Double.parseDouble(matcher.group()));
+								carBonMap.put(stringBuilder.toString(),Double.parseDouble(matcher.group())); // kg to gm
+							}
+							break;
+						}
 					}
 					if (segment.getFlightInfo() != null) {
 						segment.getFlightInfo().setAmenities(amenities);
+						if(carBon.size()>0) {
+							segment.getFlightInfo().setCarbonDioxide(carBon);
+						}
 					} else {
 						FlightInfo flightInfo = new FlightInfo();
 						flightInfo.setAmenities(amenities);
+						flightInfo.setCarbonDioxide(carBon);
 						segment.setFlightInfo(flightInfo);
 					}
 				}
 			}
+			flightItinerary.setCarbonDioxide(carBonMap);
 		} catch (ServerSOAPFaultException ssf) {
 			ssf.printStackTrace();
 		} catch (Exception e) {

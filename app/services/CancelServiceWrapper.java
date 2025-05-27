@@ -43,4 +43,18 @@ public class CancelServiceWrapper {
 
         return result;
     }
+
+    public CancelPNRResponse cancelTimeLimitReachedPNR(String pnr, String provider, String appRef, String bookingId, Boolean isFullPNR, List<String> ticketList,Boolean isFullCancellation) {
+        CancelPNRResponse result = null;
+        if ("Amadeus".equalsIgnoreCase(provider)) {
+            result =  amadeusCancelService.cancelTimeLimitReachedPNR(pnr,false);
+        }else if("Travelport".equalsIgnoreCase(provider)){
+            result =  travelportCancelService.cancelPNR(pnr,isFullPNR);
+        }else if(PROVIDERS.TRAVELOMATRIX.toString().equalsIgnoreCase(provider)){
+            isFullPNR = isFullCancellation;
+            result = traveloMatrixCancelService.cancelPNR(pnr,appRef,bookingId,isFullPNR,ticketList);
+        }
+
+        return result;
+    }
 }

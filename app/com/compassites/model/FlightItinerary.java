@@ -15,6 +15,7 @@ import org.pojomatic.annotations.Property;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +44,16 @@ public class FlightItinerary implements Serializable{
     private String fromLocation;
 
     private String toLocation;
+
+    private Map<String,Double> carbonDioxide;
+
+    public Map<String, Double> getCarbonDioxide() {
+        return carbonDioxide;
+    }
+
+    public void setCarbonDioxide(Map<String, Double> carbonDioxide) {
+        this.carbonDioxide = carbonDioxide;
+    }
 
     public String getFromLocation() {
         return fromLocation;

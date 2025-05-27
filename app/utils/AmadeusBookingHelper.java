@@ -2227,6 +2227,50 @@ public class AmadeusBookingHelper {
     }
 
 
+    public static Map<String, AmadeusSegmentRefDTO> getSegmentRefMap(PNRReply pnrReply, String gdsPnr) {
+
+        Map<String, AmadeusSegmentRefDTO> segmetRefMap = new HashMap<>();
+
+        try {
+            List<OriginDestinationDetails> originDestinationDetailsList = pnrReply.getOriginDestinationDetails();
+            for (OriginDestinationDetails originDestinationDetails : originDestinationDetailsList) {
+
+                List<OriginDestinationDetails.ItineraryInfo> itineraryInfoList = originDestinationDetails.getItineraryInfo();
+                for (OriginDestinationDetails.ItineraryInfo itineraryInfo : itineraryInfoList) {
+
+                    AmadeusSegmentRefDTO amadeusSegmentRefDTO = new AmadeusSegmentRefDTO();
+
+                    ElementManagementSegmentType elementManagementSegmentType = itineraryInfo.getElementManagementItinerary();
+                    String segmentName = elementManagementSegmentType.getSegmentName();
+                    String lineNumber = String.valueOf(elementManagementSegmentType.getLineNumber());
+
+                    if (segmentName.equalsIgnoreCase("AIR")) {
+
+                        ReferencingDetailsType127526C referencingDetailsType127526C = elementManagementSegmentType.getReference();
+                        String segmentRefNo = String.valueOf(referencingDetailsType127526C.getNumber());
+
+                        com.amadeus.xml.pnracc_11_3_1a.TravelProductInformationTypeI travelProductInformationTypeI = itineraryInfo.getTravelProduct();
+                        String originCityCode = travelProductInformationTypeI.getBoardpointDetail().getCityCode();
+                        String destinationCityCode = travelProductInformationTypeI.getOffpointDetail().getCityCode();
+
+                        String key = originCityCode + destinationCityCode;
+
+                        amadeusSegmentRefDTO.setSegmentRefNo(segmentRefNo);
+                        amadeusSegmentRefDTO.setLineNumber(lineNumber);
+
+                        segmetRefMap.put(key, amadeusSegmentRefDTO);
+                    }
+                }
+            }
+
+            return segmetRefMap;
+        } catch (Exception e) {
+            logger.debug("Error getting segment Ref Map for PNR : {} --- {}", gdsPnr, e.getMessage(), e);
+            return segmetRefMap;
+        }
+    }
+
+
     public static List<FreeMealsDetails> getFreeMealsInfoFromPnr(PNRReply pnrReply) {
 
         List<FreeMealsDetails> freeMealsDetailsList = new ArrayList<>();
@@ -2503,49 +2547,6 @@ public class AmadeusBookingHelper {
             }
         }
         return segmentMap;
-    }
-
-    public static Map<String, AmadeusSegmentRefDTO> getSegmentRefMap(PNRReply pnrReply, String gdsPnr) {
-
-        Map<String, AmadeusSegmentRefDTO> segmetRefMap = new HashMap<>();
-
-        try {
-            List<OriginDestinationDetails> originDestinationDetailsList = pnrReply.getOriginDestinationDetails();
-            for (OriginDestinationDetails originDestinationDetails : originDestinationDetailsList) {
-
-                List<OriginDestinationDetails.ItineraryInfo> itineraryInfoList = originDestinationDetails.getItineraryInfo();
-                for (OriginDestinationDetails.ItineraryInfo itineraryInfo : itineraryInfoList) {
-
-                    AmadeusSegmentRefDTO amadeusSegmentRefDTO = new AmadeusSegmentRefDTO();
-
-                    ElementManagementSegmentType elementManagementSegmentType = itineraryInfo.getElementManagementItinerary();
-                    String segmentName = elementManagementSegmentType.getSegmentName();
-                    String lineNumber = String.valueOf(elementManagementSegmentType.getLineNumber());
-
-                    if (segmentName.equalsIgnoreCase("AIR")) {
-
-                        ReferencingDetailsType127526C referencingDetailsType127526C = elementManagementSegmentType.getReference();
-                        String segmentRefNo = String.valueOf(referencingDetailsType127526C.getNumber());
-
-                        com.amadeus.xml.pnracc_11_3_1a.TravelProductInformationTypeI travelProductInformationTypeI = itineraryInfo.getTravelProduct();
-                        String originCityCode = travelProductInformationTypeI.getBoardpointDetail().getCityCode();
-                        String destinationCityCode = travelProductInformationTypeI.getOffpointDetail().getCityCode();
-
-                        String key = originCityCode + destinationCityCode;
-
-                        amadeusSegmentRefDTO.setSegmentRefNo(segmentRefNo);
-                        amadeusSegmentRefDTO.setLineNumber(lineNumber);
-
-                        segmetRefMap.put(key, amadeusSegmentRefDTO);
-                    }
-                }
-            }
-
-            return segmetRefMap;
-        } catch (Exception e) {
-            logger.debug("Error getting segment Ref Map for PNR : {} --- {}", gdsPnr, e.getMessage(), e);
-            return segmetRefMap;
-        }
     }
 
 }
