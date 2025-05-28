@@ -991,15 +991,24 @@ public class PNRAddMultiElementsh {
         DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
 
         String issuanceCountryCode = NationalityDao.getCodeForCountry(traveller.getPassportDetails().getPlaceOfIssue());
-        String freeText = "P-" + issuanceCountryCode + "-" + passportDetails.getPassportNumber();
-        if (traveller.getPassportDetails().getNationality() != null) {
-            freeText = freeText + "-" + traveller.getPassportDetails().getNationality().getThreeLetterCode();
+        String freeText = "P//";
+        if(!issuanceCountryCode.equalsIgnoreCase("") && issuanceCountryCode !=null) {
+            freeText = freeText + issuanceCountryCode + "/" + passportDetails.getPassportNumber();
+        } else {
+            freeText = freeText + passportDetails.getPassportNumber();
         }
-        freeText = freeText + "-" + fmt.print(dob) + "-" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "-" + fmt.print(dateOfExpiry) + "-";
-        String name = traveller.getPersonalDetails().getLastName() + "-" + traveller.getPersonalDetails().getFirstName();
+        if (traveller.getPassportDetails().getNationality() != null) {
+            if(traveller.getPassportDetails().getNationality().getThreeLetterCode()!=null) {
+                freeText = freeText + "/" + traveller.getPassportDetails().getNationality().getThreeLetterCode();
+            } else {
+                freeText = freeText + "/" + traveller.getPassportDetails().getNationality().getNationality().substring(0, 3);
+            }
+        }
+        freeText = freeText + "/" + fmt.print(dob) + "/" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "/" + fmt.print(dateOfExpiry) + "/";
+        String name = traveller.getPersonalDetails().getLastName() + "/" + traveller.getPersonalDetails().getFirstName();
 
         if (freeText.length() + name.length() > 70) {
-            name = traveller.getPersonalDetails().getLastName() + "-" + traveller.getPersonalDetails().getFirstName().charAt(0);
+            name = traveller.getPersonalDetails().getLastName() + "/" + traveller.getPersonalDetails().getFirstName().charAt(0);
         }
         freeText = freeText + name;
         freeTextList.add(freeText);
