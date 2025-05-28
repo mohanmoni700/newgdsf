@@ -188,7 +188,6 @@ public class AmadeusRefundServiceImpl implements RefundService{
 
     @Override
     public TicketProcessRefundRes processFullRefund(String gdsPnr,String searchOfficeId, String ticketingOfficeId) {
-
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         AMATicketInitRefundRS amaTicketInitRefundRS;
         AMATicketProcessRefundRS amaTicketProcessRefundRS;
