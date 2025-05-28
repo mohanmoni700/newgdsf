@@ -1,15 +1,20 @@
 package com.compassites.model;
 
+import dto.refund.PerPaxRefundPricingInformation;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 public class TicketProcessRefundRes {
+
     private Boolean status;
     private List<String> refTicketsList;
     private String refundableAmount;
     private String currency;
 
     private ErrorMessage message;
+
+    List<PerPaxRefundPricingInformation> perPaxRefundPricingInformationList;
 
     public ErrorMessage getMessage() {
         return message;
@@ -50,4 +55,13 @@ public class TicketProcessRefundRes {
     public void setRefTicketsList(List<String> refTicketsList) {
         this.refTicketsList = refTicketsList;
     }
+
+    public List<PerPaxRefundPricingInformation> getPerPaxRefundPricingInformationList() {
+        return perPaxRefundPricingInformationList;
+    }
+
+    public void setPerPaxRefundPricingInformationList(List<PerPaxRefundPricingInformation> perPaxRefundPricingInformationList) {
+        this.perPaxRefundPricingInformationList = perPaxRefundPricingInformationList;
+    }
+
 }
