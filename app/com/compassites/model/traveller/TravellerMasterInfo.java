@@ -45,6 +45,26 @@ public class TravellerMasterInfo {
 
     private boolean isChangedPriceHigh;
 
+    private String accountName;
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    private String bookerDetails;
+
+    public String getBookerDetails() {
+        return bookerDetails;
+    }
+
+    public void setBookerDetails(String bookerDetails) {
+        this.bookerDetails = bookerDetails;
+    }
+
     public boolean isChangedPriceHigh() {
         return isChangedPriceHigh;
     }
