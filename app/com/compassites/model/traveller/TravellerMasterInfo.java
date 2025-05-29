@@ -103,6 +103,16 @@ public class TravellerMasterInfo {
 
     private String ticketingOfficeId;
 
+    private String approverName;
+
+    public String getApproverName() {
+        return approverName;
+    }
+
+    public void setApproverName(String approverName) {
+        this.approverName = approverName;
+    }
+
     public String getSearchResultToken() {
         return searchResultToken;
     }
