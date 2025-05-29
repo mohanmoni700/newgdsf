@@ -1,0 +1,57 @@
+name: Preprod CI
+
+on:
+  push:
+    branches: [ "qa-demo" ]
+  workflow_dispatch:
+  
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 8
+      uses: actions/setup-java@v3
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+        cache: 'sbt'
+    - name: Install sbt
+      run: |
+        echo "Installing sbt..."
+        echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | sudo tee /etc/apt/sources.list.d/sbt.list
+        curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x99e82a75642ac823 | gpg --dearmor | sudo tee /usr/share/keyrings/sbt-archive-keyring.gpg > /dev/null
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 99E82A75642AC823
+        sudo apt-get update
+        sudo apt-get install sbt -y
+    - name: compile code
+      run: sbt dist
+    - name: copy file via ssh key
+      uses: appleboy/scp-action@v0.1.4
+      env:
+        HOST: ${{ secrets.DEMO_HOST }}
+        USERNAME: ${{ secrets.DEMO_USER }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.DEMO_SSH }}
+      with:
+        source: "target/universal/gdsservice-1.0-SNAPSHOT.zip"
+        target: "deployments"
+        strip_components: 2
+    - name: Install Dependencies
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+          host: ${{ secrets.DEMO_HOST }}
+          username: ${{ secrets.DEMO_USER }}
+          key: ${{ secrets.DEMO_SSH }}
+          script_stop: true
+          script: |
+            sudo systemctl stop gdsapp.service
+            ~/deployments/scripts/gdsdeploy.sh
+            ls -al
+            sudo systemctl start gdsapp.service
