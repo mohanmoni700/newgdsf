@@ -1,4 +1,4 @@
-name: Preprod CI
+name: Demo CI
 
 on:
   push:
