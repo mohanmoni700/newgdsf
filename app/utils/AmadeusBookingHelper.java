@@ -2514,7 +2514,7 @@ public class AmadeusBookingHelper {
 
     public void getTicketEligibilityFromTicketDisplayTSTReply(TicketDisplayTSTReply ticketDisplayTSTReply, TravellerMasterInfo masterInfo) {
 
-        boolean isSameValidatingCarrier = true;
+        boolean isSameValidatingCarrier = false;
         String validatingCarrierCode = null;
 
         try {
@@ -2535,28 +2535,18 @@ public class AmadeusBookingHelper {
                                 String carrierCode = carrierInformation.getCarrierCode();
                                 if (i == 0) {
                                     validatingCarrierCode = carrierCode;
+                                    isSameValidatingCarrier = true;
                                 } else {
                                     if (!carrierCode.equals(validatingCarrierCode)) {
                                         isSameValidatingCarrier = false;
                                         break;
                                     }
                                 }
-                            } else {
-                                isSameValidatingCarrier = false;
-                                break;
                             }
-                        } else {
-                            isSameValidatingCarrier = false;
-                            break;
                         }
                     }
-                } else {
-                    isSameValidatingCarrier = false;
                 }
-            } else {
-                isSameValidatingCarrier = false;
             }
-
 
             if(isSameValidatingCarrier) {
 
