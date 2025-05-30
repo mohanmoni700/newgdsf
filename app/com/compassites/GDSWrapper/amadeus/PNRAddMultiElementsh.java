@@ -120,7 +120,7 @@ public class PNRAddMultiElementsh {
                 MiscellaneousRemarksType miscellaneousRemarksType2 = new MiscellaneousRemarksType();
                 MiscellaneousRemarkType remarks2 = new MiscellaneousRemarkType();
                 remarks2.setType("RC");
-                remarks2.setFreetext(travellerMasterInfo.getAccountName().toUpperCase());
+                remarks2.setFreetext(travellerMasterInfo.getApproverName().toUpperCase());
                 miscellaneousRemarksType2.setRemarks(remarks2);
                 de3.setMiscellaneousRemark(miscellaneousRemarksType2);
 

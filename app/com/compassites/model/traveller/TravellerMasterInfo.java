@@ -122,6 +122,16 @@ public class TravellerMasterInfo {
         isAutoReFund = autoReFund;
     }
 
+    private String approverName;
+
+    public String getApproverName() {
+        return approverName;
+    }
+
+    public void setApproverName(String approverName) {
+        this.approverName = approverName;
+    }
+
     public String getSearchResultToken() {
         return searchResultToken;
     }
