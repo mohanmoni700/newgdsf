@@ -51,7 +51,7 @@ public class IssuanceResponse implements Serializable{
 
     private boolean isIssued;
 
-    private FareCheckRulesResponse fareCheckRulesResponse;
+    private Map<String,FareCheckRulesResponse> fareCheckRulesResponseMap;
 
     private Map<String, String> airlinePNRMap;
 
@@ -268,11 +268,11 @@ public class IssuanceResponse implements Serializable{
         this.airlinePNRMap = airlinePNRMap;
     }
 
-    public FareCheckRulesResponse getFareCheckRulesResponse() {
-        return fareCheckRulesResponse;
+    public Map<String, FareCheckRulesResponse> getFareCheckRulesResponseMap() {
+        return fareCheckRulesResponseMap;
     }
 
-    public void setFareCheckRulesResponse(FareCheckRulesResponse fareCheckRulesResponse) {
-        this.fareCheckRulesResponse = fareCheckRulesResponse;
+    public void setFareCheckRulesResponseMap(Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap) {
+        this.fareCheckRulesResponseMap = fareCheckRulesResponseMap;
     }
 }

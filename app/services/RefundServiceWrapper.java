@@ -12,37 +12,37 @@ import java.util.List;
 public class RefundServiceWrapper {
 
     @Autowired
-    public AmadeusRefundServiceImpl amadeusRefundService;
+    public RefundService amadeusRefundService;
 
-    public TicketCheckEligibilityRes checkTicketEligibility(String provider, String gdsPNR,String searchOfficeId){
+    public TicketCheckEligibilityRes checkTicketEligibility(String provider, String gdsPNR,String searchOfficeId, String ticketingOfficeId){
         TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
       if(provider.equalsIgnoreCase("Amadeus")){
-          ticketCheckEligibilityRes =  amadeusRefundService.checkTicketEligibility(gdsPNR,searchOfficeId);
+          ticketCheckEligibilityRes =  amadeusRefundService.checkTicketEligibility(gdsPNR,searchOfficeId,ticketingOfficeId);
       }
       return ticketCheckEligibilityRes;
     }
 
-    public TicketProcessRefundRes processFullRefund(String provider, String gdsPNR,String searchOfficeId){
+    public TicketProcessRefundRes processFullRefund(String provider, String gdsPNR,String searchOfficeId, String ticketingOfficeId){
         TicketProcessRefundRes ticketProcessRefundRes = null;
         if(provider.equalsIgnoreCase("Amadeus")){
-            ticketProcessRefundRes =  amadeusRefundService.processFullRefund(gdsPNR,searchOfficeId);
+            ticketProcessRefundRes =  amadeusRefundService.processFullRefund(gdsPNR,searchOfficeId, ticketingOfficeId);
         }
         return ticketProcessRefundRes;
     }
 
-    public TicketCheckEligibilityRes checkPartRefundTicketEligibility(String provider, String gdsPNR, List<String> ticketList,String searchOfficeId){
+    public TicketCheckEligibilityRes checkPartRefundTicketEligibility(String provider, String gdsPNR, List<String> ticketList,String searchOfficeId, String ticketingOfficeId){
         TicketCheckEligibilityRes ticketCheckEligibilityRes = null;
 
         if(provider.equalsIgnoreCase("Amadeus")){
-            ticketCheckEligibilityRes =  amadeusRefundService.checkPartRefundTicketEligibility(ticketList,gdsPNR,searchOfficeId);
+            ticketCheckEligibilityRes =  amadeusRefundService.checkPartRefundTicketEligibility(ticketList,gdsPNR,searchOfficeId, ticketingOfficeId);
         }
         return ticketCheckEligibilityRes;
     }
 
-    public TicketProcessRefundRes processPartialRefund(String provider, String gdsPNR,List<String> ticketList,String searchOfficeId){
+    public TicketProcessRefundRes processPartialRefund(String provider, String gdsPNR,List<String> ticketList,String searchOfficeId, String ticketingOfficeId){
         TicketProcessRefundRes ticketProcessRefundRes = null;
         if(provider.equalsIgnoreCase("Amadeus")){
-            ticketProcessRefundRes =  amadeusRefundService.processPartialRefund(ticketList,gdsPNR,searchOfficeId);
+            ticketProcessRefundRes =  amadeusRefundService.processPartialRefund(ticketList,gdsPNR,searchOfficeId, ticketingOfficeId);
         }
         return ticketProcessRefundRes;
     }

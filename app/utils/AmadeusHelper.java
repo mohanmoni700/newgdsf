@@ -201,7 +201,7 @@ public class AmadeusHelper {
         List<String> yqYrRules = new ArrayList<>();
         index = 0;
         StringBuilder currentSentence = new StringBuilder();
-        boolean yqYrWithRefundFound = false;
+        boolean yqYrWithRefundFound =  false;
 
         while (index < fareRuleTextList.size()) {
             String text = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
@@ -245,7 +245,7 @@ public class AmadeusHelper {
             finalMap.put("Cancellation", cancelMap);
         }
         if (!changeMap.isEmpty()) {
-            finalMap.put("Change", changeMap);
+            finalMap.put("Changes", changeMap);
         }
         if (!noShowRules.isEmpty()) {
             noShowMap.put("Generic", noShowRules);

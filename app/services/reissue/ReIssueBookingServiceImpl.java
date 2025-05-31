@@ -1,4 +1,3 @@
-
 package services.reissue;
 
 import com.amadeus.xml._2010._06.fareinternaltypes_v2.PricingRecordType;
@@ -49,7 +48,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     static Logger logger = LoggerFactory.getLogger("gds");
 
     @Override
-    public PNRResponse confirmReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, FlightSearchOffice officeId, PNRResponse finalPnrResponse) {
+    public PNRResponse confirmReissue(ReIssueConfirmationRequest reIssueConfirmationRequest, String officeId, PNRResponse finalPnrResponse) {
 
         AmadeusSessionWrapper session;
         boolean isReissueSuccess = true;
@@ -65,10 +64,8 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
             //Getting SegmentWiseClassInfo
             PAXFareDetails paxFareDetailsForSegmentInfo = reIssueConfirmationRequest.getNewTravellerMasterInfo().getItinerary().getReIssuePricingInformation().getPaxWisePricing().get(0).getPaxFareDetails();
             List<String> segmentWiseClassInfo = getBookingClassForSegmentsToBeReissued(paxFareDetailsForSegmentInfo);
-          
 
             AMATicketRebookAndRepricePNRRS ticketRebookAndRepricePNRRS = reIssueConfirmationHandler.rebookAndRepricePNR(reIssueConfirmationRequest, pnrToBeReissued, segmentWiseClassInfo, session);
-
 
             //Handling Reissue failures here
             AMATicketRebookAndRepricePNRRS.Failure rebookAndRepricePNRRSFailure = ticketRebookAndRepricePNRRS.getFailure();
@@ -117,7 +114,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
         } catch (Exception e) {
             logger.debug("Error when trying to book the flight for reissue {}", e.getMessage(), e);
-        } 
+        }
 
         return null;
     }
@@ -139,7 +136,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     }
 
     //PNR Response for Reissued Bookings
-    private void createPNRResponseForReIssuedBooking(FlightSearchOffice officeId, ServiceHandler serviceHandler, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, AmadeusSessionManager amadeusSessionManager, AMATicketRebookAndRepricePNRRS.Success success) {
+    private void createPNRResponseForReIssuedBooking(String officeId, ServiceHandler serviceHandler, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, AmadeusSessionManager amadeusSessionManager, AMATicketRebookAndRepricePNRRS.Success success) {
 
         PNRReply gdsPNRReply = null;
         AmadeusSessionWrapper amadeusSession = null;
@@ -193,7 +190,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     }
 
     //Creates PNR Response for Split Success and Reissue Failed Scenarios
-    private void createPNRResponseForReIssueFailedBooking(FlightSearchOffice officeID, ServiceHandler serviceHandler, PNRResponse pnrResponse, AmadeusSessionManager amadeusSessionManager, boolean isSeamen) {
+    private void createPNRResponseForReIssueFailedBooking(String officeID, ServiceHandler serviceHandler, PNRResponse pnrResponse, AmadeusSessionManager amadeusSessionManager, boolean isSeamen) {
 
         PNRReply gdsPNRReply = null;
         AmadeusSessionWrapper amadeusSession = null;
@@ -314,7 +311,6 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
 
     //Creates PNR Response (Is this Needed?)
     private void createPNRResponseForReissuedPNR(PNRReply pnrReply, PNRResponse pnrResponse, AMATicketRebookAndRepricePNRRS.Success success) {
-
 
 
 

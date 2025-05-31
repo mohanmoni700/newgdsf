@@ -45,6 +45,26 @@ public class TravellerMasterInfo {
 
     private boolean isChangedPriceHigh;
 
+    private String accountName;
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    private String bookerDetails;
+
+    public String getBookerDetails() {
+        return bookerDetails;
+    }
+
+    public void setBookerDetails(String bookerDetails) {
+        this.bookerDetails = bookerDetails;
+    }
+
     public boolean isChangedPriceHigh() {
         return isChangedPriceHigh;
     }
@@ -80,6 +100,18 @@ public class TravellerMasterInfo {
     private String returnAppRef;
 
     private String searchResultToken;
+
+    private String ticketingOfficeId;
+
+    private String approverName;
+
+    public String getApproverName() {
+        return approverName;
+    }
+
+    public void setApproverName(String approverName) {
+        this.approverName = approverName;
+    }
 
     public String getSearchResultToken() {
         return searchResultToken;
@@ -308,6 +340,14 @@ public class TravellerMasterInfo {
 
     public String getVesselName() {
         return vesselName;
+    }
+
+    public String getTicketingOfficeId() {
+        return ticketingOfficeId;
+    }
+
+    public void setTicketingOfficeId(String ticketingOfficeId) {
+        this.ticketingOfficeId = ticketingOfficeId;
     }
 
 }

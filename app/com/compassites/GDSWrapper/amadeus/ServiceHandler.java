@@ -394,6 +394,16 @@ public class ServiceHandler {
         return  fareInformativePricingPNRReply;
     }
 
+    public com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply getFareInfo_32(List<Journey> journeys, boolean seamen, int adultCount, int childCount, int infantCount, List<PAXFareDetails> paxFareDetailsList, AmadeusSessionWrapper amadeusSessionWrapper) {
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        logger.debug("amadeus getFareInfo called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+        com.amadeus.xml.tipnrq_13_2_1a.FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation13_2().getPriceInfo(journeys,seamen, adultCount, childCount, infantCount, paxFareDetailsList);
+        amadeusLogger.debug("farePricingWithoutPNRReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(farePricingWithoutPNR));
+        com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply  = mPortType.fareInformativePricingWithoutPNR132(farePricingWithoutPNR, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("farePricingWithoutPNRRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareInformativePricingPNRReply));
+        return  fareInformativePricingPNRReply;
+    }
+
     public AirFlightInfoReply getFlightInfo(AirSegmentInformation airSegment, AmadeusSessionWrapper amadeusSessionWrapper) {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus getFlightInfo  called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
@@ -401,7 +411,7 @@ public class ServiceHandler {
         amadeusLogger.debug("flightInfoReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfo));
         AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, amadeusSessionWrapper.getmSession());
 
-        amadeusLogger.debug("flightInfoRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfo));
+        amadeusLogger.debug("flightInfoRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(airFlightInfoReply));
         return airFlightInfoReply;
     }
 
@@ -412,6 +422,16 @@ public class ServiceHandler {
         amadeusLogger.debug("fareRulesReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareCheckRules));
         FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, amadeusSessionWrapper.getmSession());
         amadeusLogger.debug("fareRulesRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareCheckRulesReply));
+        return fareCheckRulesReply;
+    }
+
+    public FareCheckRulesReply getFareRulesFromFareComponent(AmadeusSessionWrapper amadeusSessionWrapper, Map<String, String> fareComponentsMap){
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        logger.debug("amadeus getFareRulesFromFareComponent called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+        FareCheckRules fareCheckRules = new FareRules().getFareCheckRulesForFareComponents(fareComponentsMap);
+        amadeusLogger.debug("fareRulesFromFareComponentsReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareCheckRules));
+        FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, amadeusSessionWrapper.getmSession());
+        amadeusLogger.debug("fareRulesFromFareComponentsRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(fareCheckRulesReply));
         return fareCheckRulesReply;
     }
 

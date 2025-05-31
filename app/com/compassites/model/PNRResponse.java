@@ -2,6 +2,8 @@ package com.compassites.model;
 
 import com.compassites.model.amadeus.AmadeusPaxInformation;
 import dto.FareCheckRulesResponse;
+import dto.FreeMealsDetails;
+import dto.FreeSeatDetails;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -52,6 +54,16 @@ public class PNRResponse implements Serializable  {
 
     private Map<String, String> segmentBaggageMap;
 
+    private Map<String,Double> carbonDioxide;
+
+    public Map<String, Double> getCarbonDioxide() {
+        return carbonDioxide;
+    }
+
+    public void setCarbonDioxide(Map<String, Double> carbonDioxide) {
+        this.carbonDioxide = carbonDioxide;
+    }
+
     private String bookedStatus;
 
     private boolean isChangedPriceLow;
@@ -100,7 +112,13 @@ public class PNRResponse implements Serializable  {
 
     private Map<String, String> pnrMap;
 
-    private FareCheckRulesResponse fareCheckRulesResponse;
+    private List<FreeMealsDetails> freeMealsDetailsList;
+
+    private List<FreeSeatDetails> freeSeatList;
+
+    private Map<String,FareCheckRulesResponse> fareCheckRulesResponseMap;
+
+    private String status;
 
     private String status;
 
@@ -431,12 +449,12 @@ public class PNRResponse implements Serializable  {
         isPnrSplit = pnrSplit;
     }
 
-    public FareCheckRulesResponse getFareCheckRulesResponse() {
-        return fareCheckRulesResponse;
+    public Map<String, FareCheckRulesResponse> getFareCheckRulesResponseMap() {
+        return fareCheckRulesResponseMap;
     }
 
-    public void setFareCheckRulesResponse(FareCheckRulesResponse fareCheckRulesResponse) {
-        this.fareCheckRulesResponse = fareCheckRulesResponse;
+    public void setFareCheckRulesResponseMap(Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap) {
+        this.fareCheckRulesResponseMap = fareCheckRulesResponseMap;
     }
 
     public String getStatus() {
@@ -446,5 +464,22 @@ public class PNRResponse implements Serializable  {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public List<FreeMealsDetails> getFreeMealsList() {
+        return freeMealsDetailsList;
+    }
+
+    public void setFreeMealsList(List<FreeMealsDetails> freeMealsDetailsList) {
+        this.freeMealsDetailsList = freeMealsDetailsList;
+    }
+
+    public List<FreeSeatDetails> getFreeSeatList() {
+        return freeSeatList;
+    }
+
+    public void setFreeSeatList(List<FreeSeatDetails> freeSeatList) {
+        this.freeSeatList = freeSeatList;
+    }
+
 }
 
