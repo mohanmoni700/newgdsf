@@ -30,6 +30,7 @@ public class AmadeusTicketCancelDocumentServiceImpl implements TicketCancelDocum
 
 //    private static final String ticketingOfficeId = play.Play.application().configuration().getString("amadeus.ticketingOffice");
 
+
     @Override
     public TicketCancelDocumentResponse ticketCancelDocument(String pnr, List<String> ticketsList, String ticketingOfficeId) {
         logger.debug("ticketCancelDocument called for PNR : {} -- {} ",  pnr, Json.toJson(ticketsList));

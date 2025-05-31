@@ -2508,4 +2508,3 @@ public class AmadeusBookingHelper {
     }
 
 }
-
