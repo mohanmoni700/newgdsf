@@ -120,8 +120,6 @@ public class PNRResponse implements Serializable  {
 
     private String status;
 
-    private String status;
-
     public Map<String, String> getPnrMap() {
         return pnrMap;
     }
