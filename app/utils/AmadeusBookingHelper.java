@@ -2578,4 +2578,3 @@ public class AmadeusBookingHelper {
 
     }
 }
-
