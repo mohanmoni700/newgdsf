@@ -2187,7 +2187,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 //carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
             }
 //			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
-
             //todo -- added for segment wise pricing
             TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
 
@@ -2201,6 +2200,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 pnrResponse.setErrorMessage(errorMessage);
                 json.put("pnrResponse", pnrResponse);
                 return Json.toJson(json);
+            }
+            amadeusFlightInfoService.getInFlightDetails(flightItinerary, masterInfo.isSeamen());
+            if(flightItinerary.getCarbonDioxide()!=null && flightItinerary.getCarbonDioxide().size()>0) {
+                pnrResponse.setCarbonDioxide(flightItinerary.getCarbonDioxide());
             }
             List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
             validatingCarrierInSegment(fareList, flightItinerary, isSeamen, gdsPNRReply);
