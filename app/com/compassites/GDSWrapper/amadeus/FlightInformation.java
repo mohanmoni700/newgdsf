@@ -29,8 +29,13 @@ public class FlightInformation {
 		generalFlightInfo.setCompanyDetails(companyDetails);
 
 		FlightDate flightDate = new FlightDate();
-		flightDate.setDepartureDate(airSegment.getFromDate());
-		generalFlightInfo.setFlightDate(flightDate);
+		if (airSegment.getFromDate().length() >0) {
+			flightDate.setDepartureDate(airSegment.getFromDate().substring(0, 6));
+			generalFlightInfo.setFlightDate(flightDate);
+		} else {
+			flightDate.setDepartureDate(airSegment.getFromDate());
+			generalFlightInfo.setFlightDate(flightDate);
+		}
 
 		FlightIdentification flightId = new FlightIdentification();
 		flightId.setFlightNumber(airSegment.getFlightNumber());
