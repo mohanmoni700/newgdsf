@@ -2551,7 +2551,7 @@ public class AmadeusBookingHelper {
             if(isSameValidatingCarrier) {
 
                 String ticketingOfficeId = masterInfo.getTicketingOfficeId();
-
+              
                 if (ticketingOfficeId != null) {
 
                     if (amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
