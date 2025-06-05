@@ -2551,21 +2551,28 @@ public class AmadeusBookingHelper {
             if(isSameValidatingCarrier) {
 
                 String ticketingOfficeId = masterInfo.getTicketingOfficeId();
+              
+                if (ticketingOfficeId != null) {
 
-                if(amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
+                    if (amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
 
-                    BOMVS34C3Eligibility bomvs34C3Eligibility = BOMVS34C3Eligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
+                        BOMVS34C3Eligibility bomvs34C3Eligibility = BOMVS34C3Eligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
 
-                    masterInfo.setAutoReIssue(bomvs34C3Eligibility.isReissue());
-                    masterInfo.setAutoReFund(bomvs34C3Eligibility.isRefund());
+                        if (bomvs34C3Eligibility != null) {
+                            masterInfo.setAutoReIssue(bomvs34C3Eligibility.isReissue());
+                            masterInfo.setAutoReFund(bomvs34C3Eligibility.isRefund());
+                        }
 
-                } else if(amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
+                    } else if (amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
 
-                    DELVS38LFEligibility delvs38LFEligibility = DELVS38LFEligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
+                        DELVS38LFEligibility delvs38LFEligibility = DELVS38LFEligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
 
-                    masterInfo.setAutoReIssue(delvs38LFEligibility.isReissue());
-                    masterInfo.setAutoReFund(delvs38LFEligibility.isRefund());
+                        if (delvs38LFEligibility != null) {
+                            masterInfo.setAutoReIssue(delvs38LFEligibility.isReissue());
+                            masterInfo.setAutoReFund(delvs38LFEligibility.isRefund());
+                        }
 
+                    }
                 }
             } else {
                 masterInfo.setAutoReIssue(false);
