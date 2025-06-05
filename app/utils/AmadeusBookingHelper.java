@@ -2554,7 +2554,7 @@ public class AmadeusBookingHelper {
               
                 if (ticketingOfficeId != null) {
 
-                    if (amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
+                    if (amadeusSourceOfficeService!=null && amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
 
                         BOMVS34C3Eligibility bomvs34C3Eligibility = BOMVS34C3Eligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
 
@@ -2563,7 +2563,7 @@ public class AmadeusBookingHelper {
                             masterInfo.setAutoReFund(bomvs34C3Eligibility.isRefund());
                         }
 
-                    } else if (amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
+                    } else if (amadeusSourceOfficeService!=null && amadeusSourceOfficeService.getDelhiSourceOffice() != null && amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
 
                         DELVS38LFEligibility delvs38LFEligibility = DELVS38LFEligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
 
