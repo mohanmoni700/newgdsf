@@ -56,7 +56,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
         String pnrToBeReissued = finalPnrResponse.getPnrNumber();
         try {
 
-            session = serviceHandler.logIn(officeId);
+            session = serviceHandler.logIn("DELVS38LF");
 
             //Retrieving PNR here for stateful operation
             serviceHandler.retrivePNR(pnrToBeReissued, session);

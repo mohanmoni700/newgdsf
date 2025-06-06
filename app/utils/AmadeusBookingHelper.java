@@ -57,11 +57,11 @@ public class AmadeusBookingHelper {
     private static final String AIR_SEGMENT_QUALIFIER = "AIR";
 
     @Autowired
-    private  AmadeusSourceOfficeService amadeusSourceOfficeService;
+    private AmadeusSourceOfficeService amadeusSourceOfficeService;
 
-    private static final Map<String,String> mealCodeNameMap = new HashMap<>();
+    private static final Map<String, String> mealCodeNameMap = new HashMap<>();
 
-    private static final Map<String,String> seatNameMap = new HashMap<>();
+    private static final Map<String, String> seatNameMap = new HashMap<>();
 
     static {
         mealCodeNameMap.put("AVML", "VEGETARIAN HINDU MEAL");
@@ -95,7 +95,7 @@ public class AmadeusBookingHelper {
     }
 
     static {
-        seatNameMap.put("W" , "WINDOW");
+        seatNameMap.put("W", "WINDOW");
         seatNameMap.put("A", "ASILE");
     }
 
@@ -1279,7 +1279,13 @@ public class AmadeusBookingHelper {
             boolean equivalentFareAvailable = false;
             BigDecimal baseFare = new BigDecimal(0);
             for (MonetaryInformationDetailsTypeI211824C fareData : fare.getFareDataInformation().getFareDataSupInformation()) {
-                BigDecimal amount = new BigDecimal(fareData.getFareAmount());
+                BigDecimal amount = new BigDecimal(0);
+                try {
+                    amount = new BigDecimal(fareData.getFareAmount());
+                } catch (Exception e) {
+                    logger.debug("Fare Amount Not a Valid Decimal {} so taking the default value 0 as amount {} ", fareData.getFareAmount(), e.getMessage(), e);
+                }
+
                 if (AmadeusConstants.TOTAL_FARE_IDENTIFIER.equals(fareData.getFareDataQualifier())) {
                     paxTotalFare = amount;
                 }
@@ -1961,7 +1967,7 @@ public class AmadeusBookingHelper {
             }
             return actualJourneyList;
         } catch (Exception e) {
-            logger.debug("Error fetching journey wise booking {}",e.getMessage());
+            logger.debug("Error fetching journey wise booking {}", e.getMessage());
             return null;
         }
     }
@@ -2009,7 +2015,7 @@ public class AmadeusBookingHelper {
 
     }
 
-    public String getCabinClassFromFareCheckRulesReply (FareCheckRulesReply fareCheckRulesReply) {
+    public String getCabinClassFromFareCheckRulesReply(FareCheckRulesReply fareCheckRulesReply) {
 
         String designator = null;
 
@@ -2017,7 +2023,7 @@ public class AmadeusBookingHelper {
             List<FareCheckRulesReply.FlightDetails> flightDetails = fareCheckRulesReply.getFlightDetails();
 
             if (flightDetails != null) {
-                for ( FareCheckRulesReply.FlightDetails flightDetail : flightDetails) {
+                for (FareCheckRulesReply.FlightDetails flightDetail : flightDetails) {
 
                     List<FareCheckRulesReply.FlightDetails.ProductInfo> productInfo = flightDetail.getProductInfo();
 
@@ -2118,7 +2124,7 @@ public class AmadeusBookingHelper {
         }
     }
 
-    public static Map<String,String> getPaxRefAndNameMap(List<PNRReply.TravellerInfo> travellerInfoList) {
+    public static Map<String, String> getPaxRefAndNameMap(List<PNRReply.TravellerInfo> travellerInfoList) {
 
         Map<String, String> paxName = new LinkedHashMap<>();
 
@@ -2158,31 +2164,32 @@ public class AmadeusBookingHelper {
 
         } catch (Exception e) {
             logger.debug("Error with getting pax ref and name{} : ", e.getMessage(), e);
-            return null;        }
+            return null;
+        }
     }
 
-    public static Map<String, String> getFareComponentFromTst(TicketDisplayTSTReply ticketDisplayTSTReply ){
+    public static Map<String, String> getFareComponentFromTst(TicketDisplayTSTReply ticketDisplayTSTReply) {
 
         Map<String, String> fareComponentsMap = new LinkedHashMap<>();
         int itemNumber = 0;
 
-        try{
+        try {
 
-            if(ticketDisplayTSTReply != null && ticketDisplayTSTReply.getFareList() != null && ticketDisplayTSTReply.getErrorGroup() == null) {
+            if (ticketDisplayTSTReply != null && ticketDisplayTSTReply.getFareList() != null && ticketDisplayTSTReply.getErrorGroup() == null) {
 
                 List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
 
-                if(fareList != null && !fareList.isEmpty()){
+                if (fareList != null && !fareList.isEmpty()) {
 
-                    for(TicketDisplayTSTReply.FareList fare :fareList){
+                    for (TicketDisplayTSTReply.FareList fare : fareList) {
 
                         List<TicketDisplayTSTReply.FareList.FareComponentDetailsGroup> fareComponentDetailsGroupList = fare.getFareComponentDetailsGroup();
 
-                        if(fareComponentDetailsGroupList != null && !fareComponentDetailsGroupList.isEmpty()){
+                        if (fareComponentDetailsGroupList != null && !fareComponentDetailsGroupList.isEmpty()) {
 
-                            for(TicketDisplayTSTReply.FareList.FareComponentDetailsGroup fareComponentDetailsGroup: fareComponentDetailsGroupList){
+                            for (TicketDisplayTSTReply.FareList.FareComponentDetailsGroup fareComponentDetailsGroup : fareComponentDetailsGroupList) {
 
-                                if(fareComponentDetailsGroup != null) {
+                                if (fareComponentDetailsGroup != null) {
 
                                     com.amadeus.xml.ttstrr_13_1_1a.TravelProductInformationTypeI marketFareComponent = fareComponentDetailsGroup.getMarketFareComponent();
 
@@ -2226,8 +2233,8 @@ public class AmadeusBookingHelper {
             return fareComponentsMap;
 
         } catch (Exception e) {
-            logger.debug("Error fetching farecomponent from tst display {}",e.getMessage());
-            return  null;
+            logger.debug("Error fetching farecomponent from tst display {}", e.getMessage());
+            return null;
         }
 
 
@@ -2548,10 +2555,10 @@ public class AmadeusBookingHelper {
                 }
             }
 
-            if(isSameValidatingCarrier) {
+            if (isSameValidatingCarrier) {
 
                 String ticketingOfficeId = masterInfo.getTicketingOfficeId();
-              
+
                 if (ticketingOfficeId != null) {
 
                     if (amadeusSourceOfficeService!=null && amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
