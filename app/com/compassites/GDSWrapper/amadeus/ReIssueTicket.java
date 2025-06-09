@@ -820,11 +820,11 @@ public class ReIssueTicket {
             //Segments to be cancelled set here
             AssociationsType cancellation = new AssociationsType();
             List<AssociationsType.Ref> refList = new ArrayList<>();
-            List<Integer> segmentsToBeCancelled = reIssueConfirmationRequest.getSelectedSegmentList();
+            List<Integer> segmentsToBeCancelled = reIssueConfirmationRequest.getSegmentsToBeCancelledAndNewlyAdded();
             for (Integer segment : segmentsToBeCancelled) {
                 AssociationsType.Ref ref = new AssociationsType.Ref();
                 ref.setTattooType("ST");
-                ref.setTattooValue(segment.toString());
+                ref.setTattooValue(String.valueOf(segment));
                 refList.add(ref);
             }
             cancellation.getRef().addAll(refList);
@@ -836,18 +836,22 @@ public class ReIssueTicket {
             AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds bounds = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds();
             List<AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound> boundList = new ArrayList<>();
 
-            int segIdRefNum = segmentsToBeCancelled.get(0);
-            for (Journey journey : segmentsToBeAdded) {
+            List<Integer> selectedJourneyIndex = reIssueConfirmationRequest.getSelectedSegmentList();
+            for (Integer selectedJourney : selectedJourneyIndex) {
+
+                Journey journey = segmentsToBeAdded.get(selectedJourney - 1);
+
                 AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound bound = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound();
                 bound.setActionCode("NN");
                 bound.setNIP(String.valueOf(paxCount));  //Number of seats to Book/ pax Count
 
                 List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
                 List<AirSegmentType> segment = new ArrayList<>();
+
                 int segmentCounter = 0;
                 for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
+                    String segIdRefString = "SEG" + (segmentsToBeCancelled.remove(segmentCounter));
                     String bookingClass = segmentWiseBookingClassList.get(segmentCounter++);
-                    String segIdRefString = "SEG" + (segIdRefNum++);
                     AirSegmentType airSegmentType = getNewSegmentWiseInfo(airSegmentInformation, bookingClass, segIdRefString);
                     segment.add(airSegmentType);
                 }
