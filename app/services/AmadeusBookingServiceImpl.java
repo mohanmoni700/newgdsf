@@ -1306,7 +1306,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 PNRReply gdsPNRReplyBenzy = null;
                 FarePricePNRWithBookingClassReply pricePNRReplyBenzy = null;
                 pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
-                if (pricePNRReply.getApplicationError() == null) {
+
+                if (pricePNRReply.getApplicationError() == null && travellerMasterInfo.getAdditionalInfo() != null && travellerMasterInfo.getAdditionalInfo().getAddBooking() == null ) {
 
                     Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap;
 
@@ -1403,7 +1404,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap;
                     try {
 
-                        if(pricePNRReplyBenzy.getApplicationError() == null) {
+                        if (pricePNRReply.getApplicationError() == null && travellerMasterInfo.getAdditionalInfo() != null && travellerMasterInfo.getAdditionalInfo().getAddBooking() == null) {
                             Map<String, String> fareComponentsMap = AmadeusBookingHelper.getFareComponentMapFromPricePNRWithBookingClass(pricePNRReplyBenzy);
                             fareCheckRulesResponseMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(benzyAmadeusSessionWrapper, fareComponentsMap);
                             pnrResponse.setFareCheckRulesResponseMap(fareCheckRulesResponseMap);
@@ -1431,6 +1432,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                             List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
                             List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
                             FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, 1, 0, 0, paxFareDetailsList, amadeusSessionWrapper);
+
                             if (reply.getErrorGroup() != null) {
                                 amadeusLogger.debug("Not able to fetch FareInformativePricingWithoutPNRReply: " + reply.getErrorGroup().getErrorWarningDescription().getFreeText());
                             } else {
@@ -1439,9 +1441,11 @@ public class AmadeusBookingServiceImpl implements BookingService {
                                 String currency = reply.getMainGroup().getPricingGroupLevelGroup().get(0).getFareInfoGroup().getFareAmount().getOtherMonetaryDetails().get(0).getCurrency();
 
                                 try {
-                                    Map<String, String> fareComponentMap = AmadeusBookingHelper.getFareComponentMapFromFareInformativePricing(reply);
-                                    Map<String, FareCheckRulesResponse> fareCheckRuleMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(amadeusSessionWrapper, fareComponentMap);
-                                    pnrResponse.setFareCheckRulesResponseMap(fareCheckRuleMap);
+                                    if (travellerMasterInfo.getAdditionalInfo() != null && travellerMasterInfo.getAdditionalInfo().getAddBooking() == null ) {
+                                        Map<String, String> fareComponentMap = AmadeusBookingHelper.getFareComponentMapFromFareInformativePricing(reply);
+                                        Map<String, FareCheckRulesResponse> fareCheckRuleMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(amadeusSessionWrapper, fareComponentMap);
+                                        pnrResponse.setFareCheckRulesResponseMap(fareCheckRuleMap);
+                                    }
                                 } catch (Exception e) {
                                     logger.debug("Error with getting fare check rule response map {} ", e.getMessage(), e);
                                 }
@@ -1566,6 +1570,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 }
 
             }
+
             if (isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM") || isTicketContainSet.contains("FHE")) {
                 issuanceResponse.setIssued(true);
             } else {
@@ -1603,6 +1608,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
 
             TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
+            amadeusBookingHelper.getTicketEligibilityFromTicketDisplayTSTReply(ticketDisplayTSTReply,masterInfo);
             PricingInformation pricingInformation = getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
 
             List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
@@ -2185,9 +2191,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 //carrierCode = flightItinerary.getNonSeamenJourneyList().get(0).getAirSegmentList().get(0).getCarrierCode();
             }
 //			pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply);
-
             //todo -- added for segment wise pricing
             TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
+
 
 //			pricingInfo = AmadeusBookingHelper.getPricingInfo(pricePNRReply, totalFareIdentifier,
 //							paxTypeCount.get("adultCount"),	paxTypeCount.get("childCount"),	paxTypeCount.get("infantCount"));
@@ -2198,6 +2204,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 pnrResponse.setErrorMessage(errorMessage);
                 json.put("pnrResponse", pnrResponse);
                 return Json.toJson(json);
+            }
+            amadeusFlightInfoService.getInFlightDetails(flightItinerary, masterInfo.isSeamen());
+            if(flightItinerary.getCarbonDioxide()!=null && flightItinerary.getCarbonDioxide().size()>0) {
+                pnrResponse.setCarbonDioxide(flightItinerary.getCarbonDioxide());
             }
             List<TicketDisplayTSTReply.FareList> fareList = ticketDisplayTSTReply.getFareList();
             validatingCarrierInSegment(fareList, flightItinerary, isSeamen, gdsPNRReply);

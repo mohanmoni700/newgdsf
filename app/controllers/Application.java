@@ -407,9 +407,12 @@ public class Application {
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result commitBooking() {
+        logger.info("commitBooking called ");
         JsonNode json = request().body().asJson();
+        logger.info("commitBooking called json "+json.toString());
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
         IssuanceResponse issuanceResponse = traveloMatrixBookingService.commitBooking(issuanceRequest);
+        logger.info("commitBooking response " + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
     }
 

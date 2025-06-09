@@ -42,6 +42,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -774,6 +775,8 @@ public class ReIssueTicket {
         public static AMATicketRebookAndRepricePNRRQ createReIssueRebookAndRepriceReq(ReIssueConfirmationRequest reIssueConfirmationRequest, String newSplitPnr, List<String> cabinClassList) {
 
             AMATicketRebookAndRepricePNRRQ amaTicketRebookAndRepricePNRRQ = new AMATicketRebookAndRepricePNRRQ();
+            amaTicketRebookAndRepricePNRRQ.setVersion(new BigDecimal("3.0"));
+            amaTicketRebookAndRepricePNRRQ.getActions().add("");
 
             //Setting PNR here
             ReservationType reservation = new ReservationType();
@@ -958,6 +961,9 @@ public class ReIssueTicket {
 
             //Request ID is being set here
             airSegmentType.setRequestID(requestId);
+
+            //Setting Open Tickets as false all the time
+            airSegmentType.setIsOpenSegment(false);
 
             //Booking Class for the segment is being set here
             airSegmentType.setBkgClass(bookingClass);

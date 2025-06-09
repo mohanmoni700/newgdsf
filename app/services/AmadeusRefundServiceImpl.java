@@ -8,28 +8,24 @@ import com.amadeus.xml._2010._06.tickettypes_v2.MonetaryInformationType;
 import com.amadeus.xml._2010._06.tickettypes_v2.RefundDetailsLightType;
 import com.amadeus.xml._2010._06.tickettypes_v2.RefundDetailsType;
 import com.amadeus.xml._2010._06.types_v2.ErrorsType;
-import com.amadeus.xml.fatceq_13_1_1a.TicketCheckEligibility;
 import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
-import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
 import com.amadeus.xml.tatres_20_1_1a.CouponInformationDetailsTypeI;
 import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.compassites.GDSWrapper.amadeus.RefundServiceHandler;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.ErrorMessage;
-import com.compassites.model.PNRResponse;
 import com.compassites.model.TicketCheckEligibilityRes;
 import com.compassites.model.TicketProcessRefundRes;
+import dto.refund.PerPaxRefundPricingInformation;
 import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import play.Play;
+import utils.RefundHelper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +45,9 @@ public class AmadeusRefundServiceImpl implements RefundService{
 
     @Autowired
     private RefundServiceHandler refundServiceHandler;
+
+    @Autowired
+    private RefundHelper refundHelper;
 
     @Override
     public TicketCheckEligibilityRes checkTicketEligibility(String gdsPnr,String searchOfficeId, String ticketingOfficeId) {
@@ -80,6 +79,10 @@ public class AmadeusRefundServiceImpl implements RefundService{
                         //process initRefund.
                         amaTicketInitRefundRS = refundServiceHandler.ticketInitRefund(ticketList, amadeusSessionWrapper,searchOfficeId);
                         if (amaTicketInitRefundRS != null && amaTicketInitRefundRS.getGeneralReply().getErrors() == null) {
+
+                            List<PerPaxRefundPricingInformation> perPaxRefundPricingInformationList = refundHelper.getRefundedPerPaxPricingInformation(amaTicketInitRefundRS.getFunctionalData().getContractBundle());
+                            ticketCheckEligibilityRes.setPerPaxRefundPricingInformationList(perPaxRefundPricingInformationList);
+
                             List<AMATicketInitRefundRS.FunctionalData.ContractBundle> contractBundles = amaTicketInitRefundRS.getFunctionalData().getContractBundle();
                             for (AMATicketInitRefundRS.FunctionalData.ContractBundle contractBundle : contractBundles) {
                                 if (contractBundle.getErrors() == null) {
@@ -186,10 +189,11 @@ public class AmadeusRefundServiceImpl implements RefundService{
     @Override
     public TicketProcessRefundRes processFullRefund(String gdsPnr,String searchOfficeId, String ticketingOfficeId) {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
-        AMATicketInitRefundRS amaTicketInitRefundRS = null;
-        AMATicketProcessRefundRS amaTicketProcessRefundRS = null;
+        AMATicketInitRefundRS amaTicketInitRefundRS;
+        AMATicketProcessRefundRS amaTicketProcessRefundRS;
         TicketProcessRefundRes ticketProcessRefundRes = new TicketProcessRefundRes();
         List<String> refundedTickets = new ArrayList<>();
+
         try {
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
@@ -215,6 +219,10 @@ public class AmadeusRefundServiceImpl implements RefundService{
                             //Process Refund
                             amaTicketProcessRefundRS = refundServiceHandler.ticketProcessRefund(amadeusSessionWrapper);
                             if(amaTicketProcessRefundRS != null && amaTicketProcessRefundRS.getGeneralReply().getErrors() == null){
+
+                                List<PerPaxRefundPricingInformation> perPaxRefundPricingInformationList = refundHelper.getRefundedPerPaxPricingInformation(amaTicketInitRefundRS.getFunctionalData().getContractBundle());
+                                ticketProcessRefundRes.setPerPaxRefundPricingInformationList(perPaxRefundPricingInformationList);
+
                                 List<AMATicketProcessRefundRS.FunctionalData.ContractBundle> contractBundles = amaTicketProcessRefundRS.getFunctionalData().getContractBundle();
                                 for(AMATicketProcessRefundRS.FunctionalData.ContractBundle contractBundle:contractBundles){
                                     List<RefundDetailsLightType.Contracts.Contract> contracts = contractBundle.getRefundDetails().getContracts().getContract();
@@ -227,23 +235,29 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                         }
                                     }
                                 }
+
+                                // Write codes here to get the refund pricing info
+
+
+
                                 PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
-                                if(cancelFullPNR.getGeneralErrorInfo().size() == 0){
-                                    logger.debug("PNR Cancelled for PNR:",gdsPnr);
+                                if(cancelFullPNR.getGeneralErrorInfo().isEmpty()){
+                                    logger.debug("PNR Cancelled for PNR : {}",gdsPnr);
                                 }
+
                                 ticketProcessRefundRes.setStatus(Boolean.TRUE);
                                 ticketProcessRefundRes.setRefTicketsList(refundedTickets);
                             }
                         } else {
-                            AMATicketIgnoreRefundRS amaTicketIgnoreRefundRS = refundServiceHandler.ticketIgnoreRefundRQ(amadeusSessionWrapper);
-                            pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
+                            refundServiceHandler.ticketIgnoreRefundRQ(amadeusSessionWrapper);
+                            serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
                             ticketProcessRefundRes.setStatus(Boolean.FALSE);
                         }
                     }
 
                 }
             } else if (pnrReply != null && pnrReply.getGeneralErrorInfo().size() > 0) {
-                pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
+                serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
                 ticketProcessRefundRes.setStatus(Boolean.FALSE);
             }else if (pnrReply != null && pnrReply.getOriginDestinationDetails().size() ==0) {
                 ErrorMessage errorMessage = new ErrorMessage();
@@ -252,7 +266,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
                 errorMessage.setMessage("PNR not Active");
                 ticketProcessRefundRes.setMessage(errorMessage);
                 ticketProcessRefundRes.setStatus(Boolean.FALSE);
-                pnrReply = serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
+                serviceHandler.ignorePNRAddMultiElement(amadeusSessionWrapper);
             }
         } catch (Exception e) {
             logger.debug("An exception occured during CheckEligibility of TicketRefund"+ e.getMessage() );

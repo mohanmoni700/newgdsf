@@ -54,6 +54,7 @@ public class PNRAddMultiElementsh {
             dem.getDataElementsIndiv().add(addReceivedFrom(qualifierNumber));
             dem.getDataElementsIndiv().add(addTckArr(qualifierNumber));
             dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo, qualifierNumber));
+            dem.getDataElementsIndiv().addAll(addRCEntry(travellerMasterInfo,qualifierNumber));
         }
 
 
@@ -62,6 +63,107 @@ public class PNRAddMultiElementsh {
 
         element.setDataElementsMaster(dem);
         return element;
+    }
+
+    public List<DataElementsIndiv> addRCEntry(TravellerMasterInfo travellerMasterInfo,int qualifierNumber) {
+        List<DataElementsIndiv> dataElementsDivList = new ArrayList<>();
+        try {
+            DataElementsIndiv de1 = new DataElementsIndiv();
+
+            ElementManagementSegmentType elementManagementData1 = new ElementManagementSegmentType();
+            elementManagementData1.setSegmentName("RC");
+            ReferencingDetailsType rf1 = new ReferencingDetailsType();
+            rf1.setQualifier("OT");
+            //rf1.setNumber((++qualifierNumber) + "");
+            rf1.setNumber("13");
+            elementManagementData1.setReference(rf1);
+            de1.setElementManagementData(elementManagementData1);
+
+            MiscellaneousRemarksType miscellaneousRemarksType = new MiscellaneousRemarksType();
+            MiscellaneousRemarkType remarks = new MiscellaneousRemarkType();
+            remarks.setType("RC");
+            remarks.setFreetext(travellerMasterInfo.getAccountName().toUpperCase());
+            miscellaneousRemarksType.setRemarks(remarks);
+            de1.setMiscellaneousRemark(miscellaneousRemarksType);
+            dataElementsDivList.add(de1);
+
+            DataElementsIndiv de2 = new DataElementsIndiv();
+
+            ElementManagementSegmentType elementManagementData2 = new ElementManagementSegmentType();
+            elementManagementData2.setSegmentName("RC");
+            ReferencingDetailsType rf2 = new ReferencingDetailsType();
+            rf2.setQualifier("OT");
+            rf2.setNumber("13");
+            elementManagementData2.setReference(rf2);
+            de2.setElementManagementData(elementManagementData2);
+
+            MiscellaneousRemarksType miscellaneousRemarksType1 = new MiscellaneousRemarksType();
+            MiscellaneousRemarkType remarks1 = new MiscellaneousRemarkType();
+            remarks1.setType("RC");
+            remarks1.setFreetext(travellerMasterInfo.getBookerDetails().toUpperCase());
+            miscellaneousRemarksType1.setRemarks(remarks1);
+            de2.setMiscellaneousRemark(miscellaneousRemarksType1);
+
+            dataElementsDivList.add(de2);
+
+            if (travellerMasterInfo.getApprovers() != null && travellerMasterInfo.getApprovers().length() > 0) {
+                DataElementsIndiv de3 = new DataElementsIndiv();
+
+                ElementManagementSegmentType elementManagementData3 = new ElementManagementSegmentType();
+                elementManagementData3.setSegmentName("RC");
+                ReferencingDetailsType rf3 = new ReferencingDetailsType();
+                rf3.setQualifier("OT");
+                rf3.setNumber("13");
+                elementManagementData3.setReference(rf3);
+                de3.setElementManagementData(elementManagementData3);
+
+                MiscellaneousRemarksType miscellaneousRemarksType2 = new MiscellaneousRemarksType();
+                MiscellaneousRemarkType remarks2 = new MiscellaneousRemarkType();
+                remarks2.setType("RC");
+                remarks2.setFreetext(travellerMasterInfo.getApproverName().toUpperCase());
+                miscellaneousRemarksType2.setRemarks(remarks2);
+                de3.setMiscellaneousRemark(miscellaneousRemarksType2);
+
+                dataElementsDivList.add(de3);
+
+                DataElementsIndiv de4 = new DataElementsIndiv();
+                ElementManagementSegmentType elementManagementData4 = new ElementManagementSegmentType();
+                elementManagementData4.setSegmentName("RC");
+                ReferencingDetailsType rf4 = new ReferencingDetailsType();
+                rf4.setQualifier("OT");
+                rf4.setNumber("13");
+                elementManagementData4.setReference(rf4);
+                de4.setElementManagementData(elementManagementData4);
+
+                MiscellaneousRemarksType miscellaneousRemarksType3 = new MiscellaneousRemarksType();
+                MiscellaneousRemarkType remarks3 = new MiscellaneousRemarkType();
+                remarks3.setType("RC");
+                remarks3.setFreetext(travellerMasterInfo.getReasonForApproval());
+                miscellaneousRemarksType3.setRemarks(remarks3);
+                de4.setMiscellaneousRemark(miscellaneousRemarksType3);
+                dataElementsDivList.add(de4);
+            }
+            DataElementsIndiv de5 = new DataElementsIndiv();
+            ElementManagementSegmentType elementManagementData5 = new ElementManagementSegmentType();
+            elementManagementData5.setSegmentName("RC");
+            ReferencingDetailsType rf5 = new ReferencingDetailsType();
+            rf5.setQualifier("OT");
+            rf5.setNumber("13");
+            elementManagementData5.setReference(rf5);
+            de5.setElementManagementData(elementManagementData5);
+
+            MiscellaneousRemarksType miscellaneousRemarksType4 = new MiscellaneousRemarksType();
+            MiscellaneousRemarkType remarks4 = new MiscellaneousRemarkType();
+            remarks4.setType("RC");
+            remarks4.setFreetext(String.valueOf(travellerMasterInfo.getItinerary().getPricingInformation(travellerMasterInfo.isSeamen()).getTotalPrice()));
+            miscellaneousRemarksType4.setRemarks(remarks4);
+            de5.setMiscellaneousRemark(miscellaneousRemarksType4);
+            dataElementsDivList.add(de5);
+
+        } catch (Exception e ) {
+            e.printStackTrace();
+        }
+        return dataElementsDivList;
     }
 
     public void addLiveEntry(PNRAddMultiElements element, TravellerMasterInfo travellerMasterInfo) {
@@ -529,7 +631,7 @@ public class PNRAddMultiElementsh {
                     rf.setNumber("" + (passengerRefnumber));
                     referenceList.add(rf);
 
-                    de1.setReferenceForDataElement(referenceForDataElement);
+                    //de1.setReferenceForDataElement(referenceForDataElement);
 
                     dataElementsDivList.add(de1);
 
@@ -549,7 +651,7 @@ public class PNRAddMultiElementsh {
                     ftd2.setFreetextDetail(ftdt2);
                     ftd2.setLongFreetext(personalDetails.getMobileNumber());
                     de2.setFreetextData(ftd2);
-                    de2.setReferenceForDataElement(referenceForDataElement);
+                    //de2.setReferenceForDataElement(referenceForDataElement);
                     dataElementsDivList.add(de2);
                     //emergency contact number
                     if (StringUtils.hasText(personalDetails.getEmergencyContactNumber())) {
@@ -566,7 +668,7 @@ public class PNRAddMultiElementsh {
                         emergencyContactNo = emergencyContactNo.replaceAll("\\+", "");
                         ftd3.setLongFreetext("Emergency Contact Number " + emergencyContactNo);
                         de3.setFreetextData(ftd3);
-                        de3.setReferenceForDataElement(referenceForDataElement);
+                        //de3.setReferenceForDataElement(referenceForDataElement);
 
                         dataElementsDivList.add(de3);
                     }
@@ -583,7 +685,7 @@ public class PNRAddMultiElementsh {
                     ftd4.setFreetextDetail(ftdt4);
                     ftd4.setLongFreetext("FLY HI TRAVEL MUMBAI TEL 00 91 9619004000");
                     de4.setFreetextData(ftd4);
-                    de4.setReferenceForDataElement(referenceForDataElement);
+                    //de4.setReferenceForDataElement(referenceForDataElement);
                     dataElementsDivList.add(de4);
 
                     DataElementsIndiv de5 = new DataElementsIndiv();
@@ -598,7 +700,7 @@ public class PNRAddMultiElementsh {
                     ftd5.setFreetextDetail(ftdt5);
                     ftd5.setLongFreetext("FLY HI TRAVEL IATA CODE AGT 14308534");
                     de5.setFreetextData(ftd5);
-                    de5.setReferenceForDataElement(referenceForDataElement);
+                    //de5.setReferenceForDataElement(referenceForDataElement);
                     dataElementsDivList.add(de5);
 
                     if (StringUtils.hasText(personalDetails.getOfficeNumber())) {
@@ -617,7 +719,7 @@ public class PNRAddMultiElementsh {
                         businessNoLongFreeText.setFreetextDetail(freeTextQualificationType);
                         businessNoLongFreeText.setLongFreetext(personalDetails.getOfficeNoCode() + personalDetails.getOfficeNumber());
                         businessNoDiv.setFreetextData(businessNoLongFreeText);
-                        businessNoDiv.setReferenceForDataElement(referenceForDataElement);
+                        //businessNoDiv.setReferenceForDataElement(referenceForDataElement);
                         dataElementsDivList.add(businessNoDiv);
                     }
 
@@ -634,7 +736,7 @@ public class PNRAddMultiElementsh {
                         ftd6.setFreetextDetail(ftdt6);
                         ftd6.setLongFreetext("DS/SIN/IN366409");
                         de6.setFreetextData(ftd6);
-                        de6.setReferenceForDataElement(referenceForDataElement);
+                        //de6.setReferenceForDataElement(referenceForDataElement);
                         dataElementsDivList.add(de6);
                     }
 
@@ -651,7 +753,7 @@ public class PNRAddMultiElementsh {
                         ftd7.setFreetextDetail(ftdt7);
                         ftd7.setLongFreetext("OIN IN05073");
                         de7.setFreetextData(ftd7);
-                        de7.setReferenceForDataElement(referenceForDataElement);
+                        //de7.setReferenceForDataElement(referenceForDataElement);
                         dataElementsDivList.add(de7);
                     }
 
@@ -991,15 +1093,26 @@ public class PNRAddMultiElementsh {
         DateTime dateOfExpiry = new DateTime(passportDetails.getDateOfExpiry()).withZone(dateTimeZone);
 
         String issuanceCountryCode = NationalityDao.getCodeForCountry(traveller.getPassportDetails().getPlaceOfIssue());
-        String freeText = "P-" + issuanceCountryCode + "-" + passportDetails.getPassportNumber();
-        if (traveller.getPassportDetails().getNationality() != null) {
-            freeText = freeText + "-" + traveller.getPassportDetails().getNationality().getThreeLetterCode();
+        String freeText = "P//";
+        if(!issuanceCountryCode.equalsIgnoreCase("") && issuanceCountryCode !=null) {
+            freeText = freeText + issuanceCountryCode + "/" + passportDetails.getPassportNumber();
+        } else {
+            freeText = freeText + passportDetails.getPassportNumber();
         }
-        freeText = freeText + "-" + fmt.print(dob) + "-" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "-" + fmt.print(dateOfExpiry) + "-";
-        String name = traveller.getPersonalDetails().getLastName() + "-" + traveller.getPersonalDetails().getFirstName();
+        if (traveller.getPassportDetails().getNationality() != null) {
+            if(traveller.getPassportDetails().getNationality().getThreeLetterCode()!=null) {
+                freeText = freeText + "/" + traveller.getPassportDetails().getNationality().getThreeLetterCode();
+            } else {
+                freeText = freeText + "/" + traveller.getPassportDetails().getNationality().getNationality().substring(0, 3);
+            }
+        } else {
+            freeText = freeText + "/" + traveller.getPassportDetails().getPlaceOfIssue().substring(0, 3);
+        }
+        freeText = freeText + "/" + fmt.print(dob) + "/" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "/" + fmt.print(dateOfExpiry) + "/";
+        String name = traveller.getPersonalDetails().getLastName() + "/" + traveller.getPersonalDetails().getFirstName();
 
         if (freeText.length() + name.length() > 70) {
-            name = traveller.getPersonalDetails().getLastName() + "-" + traveller.getPersonalDetails().getFirstName().charAt(0);
+            name = traveller.getPersonalDetails().getLastName() + "/" + traveller.getPersonalDetails().getFirstName().charAt(0);
         }
         freeText = freeText + name;
         freeTextList.add(freeText);
