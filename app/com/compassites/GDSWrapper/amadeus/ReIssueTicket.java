@@ -39,6 +39,8 @@ import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchParameters;
 import dto.reissue.ReIssueSearchRequest;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -853,7 +855,7 @@ public class ReIssueTicket {
 
                 int segmentCounter = 0;
                 for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
-                    String segIdRefString = "SEG" + (segmentsToBeCancelled.remove(segmentCounter));
+                    String segIdRefString = "SEG" + (segmentsToBeCancelled.get(segmentCounter));
                     String bookingClass = segmentWiseBookingClassList.get(segmentCounter++);
                     AirSegmentType airSegmentType = getNewSegmentWiseInfo(airSegmentInformation, bookingClass, segIdRefString);
                     segment.add(airSegmentType);
@@ -981,13 +983,15 @@ public class ReIssueTicket {
             //Origin Details here
             AirSegmentType.Start start = new AirSegmentType.Start();
             start.setLocationCode(airSegmentInformation.getFromLocation());
-            start.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getDepartureTime()));
+//            start.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getDepartureTime()));
+            start.setDateTime(airportZoneSpecificDate(airSegmentInformation,true));
             airSegmentType.setStart(start);
 
             //Destination Details here
             AirSegmentType.End end = new AirSegmentType.End();
             end.setLocationCode(airSegmentInformation.getToLocation());
-            end.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getArrivalTime()));
+//            end.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getArrivalTime()));
+            end.setDateTime(airportZoneSpecificDate(airSegmentInformation,false));
             airSegmentType.setEnd(end);
 
             return airSegmentType;
@@ -1000,6 +1004,25 @@ public class ReIssueTicket {
             ZonedDateTime utcDateTime = zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
 
             return utcDateTime.toLocalDate().toString();
+        }
+
+        //Converts dates to Airport Specific Date
+        private static String airportZoneSpecificDate(AirSegmentInformation airSegmentInformation, boolean isDeparture) {
+
+            org.joda.time.format.DateTimeFormatter fmt = DateTimeFormat.forPattern("ddMMyy");
+
+            String dateString;
+            if(isDeparture) {
+                dateString = airSegmentInformation.getDepartureTime();
+            } else {
+                dateString = airSegmentInformation.getArrivalTime();
+            }
+
+            String airportZone = airSegmentInformation.getFromAirport().getTime_zone();
+            DateTimeZone dateTimeZone  = DateTimeZone.forID(airportZone);
+            DateTime airportZoneDateTime = new DateTime(dateString).withZone(dateTimeZone);
+
+            return fmt.print(airportZoneDateTime);
         }
 
     }
