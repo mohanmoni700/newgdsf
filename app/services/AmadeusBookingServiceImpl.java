@@ -136,6 +136,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
     @Override
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo) {
         logger.debug("generatePNR called ........");
+        System.out.println(" generatePNR");
         PNRResponse pnrResponse = new PNRResponse();
         PNRReply gdsPNRReply = null;
         FarePricePNRWithBookingClassReply pricePNRReply = null;
@@ -1327,6 +1328,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     pnrResponse.setOriginalPNR(tstRefNo);
                 }
                 logger.debug(" gdsPNRReply " + Json.toJson(gdsPNRReply));
+                //|| pnrResponse.isChangedPriceHigh()
                 if (pnrResponse.isOfficeIdPricingError() || isDelIdSeamen || pnrResponse.isChangedPriceHigh()) {
                     if (travellerMasterInfo.getAdditionalInfo() != null && travellerMasterInfo.getAdditionalInfo().getAddBooking() != null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
                         if (pricePNRReply.getApplicationError() != null) {
@@ -1356,6 +1358,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         error = Boolean.TRUE;
                     }
                     if (!error) {
+                        System.out.println(" ! error condition");
                         benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                         PNRReply pnrReply = serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
                         pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
@@ -1369,12 +1372,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
                             for (PNRReply.GeneralErrorInfo generalErrorInfo : generalErrorInfos) {
                                 String textMsg = generalErrorInfo.getMessageErrorText().getText().get(0).trim();
                                 if (textMsg.equals("SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE")) {
+                                    System.out.println(" SIMULTANEOUS CHANGES TO PNR - USE WRA/RT TO PRINT OR IGNORE");
                                     error = Boolean.TRUE;
                                 }
                             }
                         }
                     }
                     if (error) {
+                        System.out.println(" error condition");
                         PNRCancel pnrCancel = new PNRAddMultiElementsh().exitEsx(tstRefNo);
                         serviceHandler.exitESPnr(pnrCancel, amadeusSessionWrapper);
                         serviceHandler.logOut(benzyAmadeusSessionWrapper);

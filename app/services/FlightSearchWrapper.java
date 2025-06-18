@@ -178,6 +178,7 @@ public class FlightSearchWrapper {
                         logger.debug("\n\n----------- before MergeResults "+ counter +"--------"+ searchResponse.getFlightSearchOffice().getOfficeId());
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         mergeResults(hashMap, searchResponse);
+                        logger.debug("hashMap "+Json.toJson(hashMap));
                         logger.debug("----------- After MergeResults "+ counter +"--------" +searchResponse.getFlightSearchOffice().getOfficeId());
                         //AmadeusFlightSearch.printHashmap(hashMap,false);
                         errorMessageList.addAll(searchResponse.getErrorMessageList());
@@ -292,6 +293,8 @@ public class FlightSearchWrapper {
             //concurrentHashMap = airSolution.getGroupingKeyMap();
         } else if (provider.equalsIgnoreCase("Amadeus")) {
             System.out.println("Amadeus merge");
+        } else if (provider.equalsIgnoreCase("indigo")) {
+            System.out.println("Indigo merge");
         }
         concurrentHashMap = airSolution.getGroupingKeyMap();
         FlightSearchOffice office = searchResponse.getFlightSearchOffice();

@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import models.FlightSearchOffice;
 import okhttp3.*;
 import org.apache.http.HttpRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import services.FlightSearch;
@@ -24,9 +26,12 @@ import java.util.concurrent.*;
 public class IndigoFlightSearch implements FlightSearch {
 
     private static final OkHttpClient client = new OkHttpClient();
-    private static final String endPoint = "http://localhost:8086/indigo/search";
+    private static final String endPoint = "http://localhost:8086/indigo/flightSearch";
 
-    //@RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
+    static Logger logger = LoggerFactory.getLogger("gds");
+
+    static Logger indigoLogger = LoggerFactory.getLogger("indigo");
+    @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -34,10 +39,23 @@ public class IndigoFlightSearch implements FlightSearch {
             RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
             Request request = new Request.Builder().url(endPoint).post(requestBody).build();
             try (Response response = client.newCall(request).execute()) {
-                System.out.println("Indigo "+response.body().string());
+                //System.out.println("Indigo "+response.body().string());
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    SearchResponse searchResponse = objectMapper.readValue(responseBody, SearchResponse.class);
+                    indigoLogger.debug("Indigo Flight Search Response: " + responseBody);
+                    searchResponse.setFlightSearchOffice(office);
+                    searchResponse.setProvider("Indigo");
+                    return searchResponse;
+                } else {
+                    logger.error("Failed to fetch data from Indigo API: " + response.message() +
+                        " for search parameters: " + Json.toJson(searchParameters));
+                    throw new Exception("Failed to fetch data from Indigo API: " + response.message());
+                }
             }
-            return new SearchResponse();
         } catch (Exception e) {
+            logger.error("Error during Indigo flight search: " + e.getMessage() +
+                " for search parameters: " + Json.toJson(searchParameters), e);
             e.printStackTrace();
         }
         return new SearchResponse();

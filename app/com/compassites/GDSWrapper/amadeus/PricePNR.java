@@ -117,6 +117,27 @@ public class PricePNR {
             pricepnr.setPaxSegReference(paxSegReference);
         }
 
+        for(AirSegmentInformation airSegment : airSegmentList)  {
+            String key = airSegment.getFromLocation() + airSegment.getToLocation();
+            for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
+                for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
+                    String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                    if(segType.equalsIgnoreCase("AIR")) {
+                        String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
+                                + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                        if (segments.equals(key)) {
+                            refDetails = new ReferencingDetailsTypeI142222C();
+                            refDetails.setRefQualifier("S");
+                            refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
+                            paxSegReference.getRefDetails().add(refDetails);
+                        }
+                    }
+                }
+            }
+        }
+
+        pricepnr.setPaxSegReference(paxSegReference);
+
 
         CodedAttributeInformationType attributeDetails=new CodedAttributeInformationType();
         List<CodedAttributeInformationType> attributeList = new ArrayList<>();
