@@ -2091,6 +2091,7 @@ public class AmadeusBookingHelper {
 
                     if (qualificationFareDetailsList != null) {
                         for (FareCheckRulesReply.FlightDetails.QualificationFareDetails qualificationFareDetails : qualificationFareDetailsList) {
+
                             List<FareCheckRulesReply.FlightDetails.QualificationFareDetails.DiscountDetails> discountDetailsList = qualificationFareDetails.getDiscountDetails();
 
                             if (discountDetailsList != null) {
@@ -2102,6 +2103,15 @@ public class AmadeusBookingHelper {
                                             fareType.setFareFamily(rateCategory);
                                         }
                                     }
+                                }
+                            }
+
+                            // fareBasis
+                            FareCheckRulesReply.FlightDetails.QualificationFareDetails.AdditionalFareDetails additionalFareDetails = qualificationFareDetails.getAdditionalFareDetails();
+                            if (additionalFareDetails != null) {
+                                String rateClass = additionalFareDetails.getRateClass();
+                                if (rateClass != null && !rateClass.isEmpty()) {
+                                    fareType.setFareBasis(rateClass);
                                 }
                             }
                         }

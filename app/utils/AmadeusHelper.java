@@ -147,7 +147,7 @@ public class AmadeusHelper {
         Map<String, Map<String, List<String>>> finalMap = new LinkedHashMap<>();
         Map<String, List<String>> changeMap = new ConcurrentHashMap<>();
         Map<String, List<String>> cancelMap = new ConcurrentHashMap<>();
-        Map<String, List<String>> noteMap = new ConcurrentHashMap<>();
+        Map<String, List<String>> noteMap = new LinkedHashMap<>();
         Map<String, List<String>> noShowMap = new ConcurrentHashMap<>();
 
         int index = 0;
@@ -169,6 +169,7 @@ public class AmadeusHelper {
             }
         }
 
+        processChangesCancellations(fareRuleTextList, noteMap);
 
         if (changeMap.isEmpty() && cancelMap.isEmpty()) {
             index = 0;
@@ -213,8 +214,7 @@ public class AmadeusHelper {
 
             if (isLineSeparator(convertedText) || isSpecificCategory(convertedText)) {
                 if (currentSentence.length() > 0) {
-                    processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules,
-                            !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+                    processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules, !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
                     currentSentence.setLength(0);
                 }
                 index++;
@@ -225,8 +225,7 @@ public class AmadeusHelper {
 
             if (convertedText.endsWith(".")) {
                 String sentence = currentSentence.toString().trim();
-                processSentence(sentence, noShowRules, yqYrRules,
-                        !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+                processSentence(sentence, noShowRules, yqYrRules, !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
                 if (!yqYrWithRefundFound && containsYqYrAndRefundKeywords(sentence)) {
                     yqYrWithRefundFound = true;
                 }
@@ -236,8 +235,7 @@ public class AmadeusHelper {
         }
 
         if (currentSentence.length() > 0) {
-            processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules,
-                    !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+            processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules, !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
         }
 
         // Populate finalMap
@@ -251,20 +249,66 @@ public class AmadeusHelper {
             noShowMap.put("Generic", noShowRules);
             finalMap.put("No Show", noShowMap);
         }
-        if (!noteMap.isEmpty() || !yqYrRules.isEmpty()) {
-            List<String> combinedNote = new ArrayList<>();
-            if (!noteMap.isEmpty()) {
-                combinedNote.addAll(noteMap.values().iterator().next());
+
+        List<String> combinedNote = new ArrayList<>();
+        if (noteMap != null && !noteMap.isEmpty()) {
+            for (List<String> noteRules : noteMap.values()) {
+                if (noteRules != null) {
+                    for (String note : noteRules) {
+                        combinedNote.add(processNote(note));
+                    }
+                }
             }
-            if (!yqYrRules.isEmpty()) {
-                combinedNote.addAll(yqYrRules);
+        }
+        if (yqYrRules != null && !yqYrRules.isEmpty()) {
+            for (String note : yqYrRules) {
+                combinedNote.add(processNote(note));
             }
-            Map<String, List<String>> finalNoteMap = new ConcurrentHashMap<>();
+        }
+        Map<String, List<String>> finalNoteMap = new LinkedHashMap<>();
+        if (!combinedNote.isEmpty()) {
             finalNoteMap.put("Generic", combinedNote);
             finalMap.put("Note", finalNoteMap);
         }
 
         return finalMap;
+    }
+
+    private static String processNote(String note) {
+
+        if (note == null) return "";
+        String trimmed = note.trim();
+        return trimmed.startsWith("-") ? trimmed.substring(1) : trimmed;
+    }
+
+    private static void processChangesCancellations(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList, Map<String, List<String>> noteMap) {
+
+        int index = 0;
+        List<String> combinedRules = new ArrayList<>();
+
+        while (index < fareRuleTextList.size()) {
+            String text = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+            if (text.equalsIgnoreCase("CHANGES/CANCELLATIONS") || text.equalsIgnoreCase("CANCELLATIONS/CHANGES") || text.equalsIgnoreCase("CHANGES / CANCELLATIONS") || text.equalsIgnoreCase("CANCELLATIONS / CHANGES")) {
+                combinedRules.add(getCharacterConversion(text));
+                index++;
+                while (index < fareRuleTextList.size()) {
+                    String nextText = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+                    if (isNoteText(nextText) || isSeparatorLine(nextText)) {
+                        break;
+                    }
+                    if (!nextText.isEmpty() && !nextText.equals(" ")) {
+                        combinedRules.add(getCharacterConversion(nextText));
+                    }
+                    index++;
+                }
+                if (!combinedRules.isEmpty()) {
+                    noteMap.computeIfAbsent("Combined", k -> new ArrayList<>()).addAll(combinedRules);
+                }
+                break;
+            }
+            index++;
+        }
+
     }
 
     private static void processSentence(String fullSentence, List<String> noShowRules, List<String> yqYrRules, boolean checkYqYr, boolean checkYq, boolean checkYr) {
