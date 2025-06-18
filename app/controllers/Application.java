@@ -1,5 +1,7 @@
 package controllers;
 
+import com.compassites.GDSWrapper.indigo.IndigoLogin;
+import com.compassites.GDSWrapper.indigo.SessionHandler;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -9,6 +11,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.navitaire.schemas.webservices.*;
+import com.navitaire.schemas.webservices.datacontracts.session.LogonRequestData;
+import com.navitaire.schemas.webservices.datacontracts.session.ObjectFactory;
+import com.navitaire.schemas.webservices.servicecontracts.sessionservice.LogonRequest;
 import dto.FareCheckRulesResponse;
 import dto.OpenTicketDTO;
 import dto.OpenTicketResponse;
@@ -29,13 +35,16 @@ import services.*;
 import services.ancillary.AncillaryService;
 import services.reissue.ReIssueService;
 
-
 import java.io.IOException;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.*;
 
 import static com.compassites.constants.StaticConstatnts.*;
 import static play.mvc.Controller.request;
+import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 
 @org.springframework.stereotype.Controller

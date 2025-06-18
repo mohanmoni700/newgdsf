@@ -464,8 +464,6 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
         pricingInformation.setProvider(TraveloMatrixConstants.provider);
         return pricingInformation;
     }
-
-
     public List<Journey> getJourneyList(FlightDetails flightDetails, int flightHash, ConcurrentHashMap<String, List<Integer>> concurrentHashMap, String journyeType, List<SearchJourney> reqJourneyList, DateType dateType,Boolean isRefundable) {
         List<Journey> journeyList = new ArrayList<>();
         Boolean arrivalFlag = false;
