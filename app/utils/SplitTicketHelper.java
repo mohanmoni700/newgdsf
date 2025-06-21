@@ -103,7 +103,7 @@ public class SplitTicketHelper {
             searchJourney.setTravelDate(possibleRoutes.getArrivalDate());
 
             ZonedDateTime zonedDateTime = ZonedDateTime.parse(possibleRoutes.getArrivalTime());
-            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(24);
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(6);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedTime = midnightTime.format(formatter);
 
