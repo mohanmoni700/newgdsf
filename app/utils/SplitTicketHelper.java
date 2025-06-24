@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SplitTicketHelper {
 
+    private static final long connectionTime = play.Play.application().configuration().getLong("split.transitpoint.connectionTime");
+
     public List<SearchParameters> createSearchParameters(Map<String, PossibleRoutes> possibleRoutesMap, SearchParameters searchParameters, List<SplitTicketTransitAirports> splitTicketTransitAirports) {
         List<SearchParameters> searchParametersList = new ArrayList<>();
         for (Map.Entry<String, PossibleRoutes> possibleRoutesEntry : possibleRoutesMap.entrySet()) {
@@ -103,7 +105,7 @@ public class SplitTicketHelper {
             searchJourney.setTravelDate(possibleRoutes.getArrivalDate());
 
             ZonedDateTime zonedDateTime = ZonedDateTime.parse(possibleRoutes.getArrivalTime());
-            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(6);
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(connectionTime);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedTime = midnightTime.format(formatter);
 
