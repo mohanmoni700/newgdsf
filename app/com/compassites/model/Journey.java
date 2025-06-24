@@ -76,6 +76,15 @@ public class Journey implements Serializable
     private String fareDescription;
 
     private List<String> lastTktDate;
+    private boolean seamen;
+
+    public boolean isSeamen() {
+        return seamen;
+    }
+
+    public void setSeamen(boolean seamen) {
+        this.seamen = seamen;
+    }
 
     public List<String> getLastTktDate() {
         return lastTktDate;
