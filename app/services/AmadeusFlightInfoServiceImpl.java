@@ -148,7 +148,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
 				journeyList1.add(journey);
 				paxFareDetails1.setFareJourneyList(fareJourneyList);
 				paxFareDetails.add(paxFareDetails1);
-				FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, seamen, searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
+				FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, journey.isSeamen(), searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
 //				FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
 				addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
 				i++;
