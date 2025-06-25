@@ -855,7 +855,7 @@ public class ReIssueTicket {
 
                 int segmentCounter = 0;
                 for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
-                    String segIdRefString = "SEG" + (segmentsToBeCancelled.get(segmentCounter));
+                    String segIdRefString = "SEG" + (segmentsToBeCancelled.remove(segmentCounter));
                     String bookingClass = segmentWiseBookingClassList.get(segmentCounter++);
                     AirSegmentType airSegmentType = getNewSegmentWiseInfo(airSegmentInformation, bookingClass, segIdRefString);
                     segment.add(airSegmentType);

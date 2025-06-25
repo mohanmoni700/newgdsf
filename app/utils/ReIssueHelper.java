@@ -58,8 +58,9 @@ public class ReIssueHelper {
             String warningOrError = errorType.getType();
             String errorDescription = errorType.getValue();
             String code = errorType.getCode();
+//            String shortText =errorType.getShortText();
 
-            if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F")) {
+            if (warningOrError.equalsIgnoreCase("E") || warningOrError.equalsIgnoreCase("F") || warningOrError.equalsIgnoreCase("W")) {
 
                 errorMessage.setErrorCode("ReIssue Confirmation Error");
                 errorMessage.setType(ErrorMessage.ErrorType.ERROR);
