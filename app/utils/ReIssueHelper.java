@@ -114,6 +114,7 @@ public class ReIssueHelper {
 
             //Creating Amadeus Pax Reference and Line number here
             pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
+            pnrResponse.setSegmentRefMap(AmadeusBookingHelper.getSegmentRefMap(gdsPNRReply, pnr));
 //            pnrResponse.setSegmentRefMap(AmadeusBookingHelper.(gdsPNRReply, pnr));
 
             pnrResponse.setFlightAvailable(true);

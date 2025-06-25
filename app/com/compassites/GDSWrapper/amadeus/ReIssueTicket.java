@@ -1009,7 +1009,7 @@ public class ReIssueTicket {
         //Converts dates to Airport Specific Date
         private static String airportZoneSpecificDate(AirSegmentInformation airSegmentInformation, boolean isDeparture) {
 
-            org.joda.time.format.DateTimeFormatter fmt = DateTimeFormat.forPattern("ddMMyy");
+            org.joda.time.format.DateTimeFormatter outputFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
             String dateString;
             if(isDeparture) {
@@ -1022,7 +1022,7 @@ public class ReIssueTicket {
             DateTimeZone dateTimeZone  = DateTimeZone.forID(airportZone);
             DateTime airportZoneDateTime = new DateTime(dateString).withZone(dateTimeZone);
 
-            return fmt.print(airportZoneDateTime);
+            return outputFormatter.print(airportZoneDateTime);
         }
 
     }
