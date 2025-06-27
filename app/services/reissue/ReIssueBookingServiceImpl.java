@@ -44,6 +44,7 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
         String pnrToBeReissued = pnrResponse.getPnrNumber();
         try {
             amadeusSessionWrapper = commonServiceHandler.logIn("DELVS38LF");
+
             //Retrieving PNR here for stateful operation
             commonServiceHandler.retrivePNR(pnrToBeReissued, amadeusSessionWrapper);
             //Getting SegmentWiseClassInfo

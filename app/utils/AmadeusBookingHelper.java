@@ -2015,7 +2015,7 @@ public class AmadeusBookingHelper {
 
     }
 
-    public String getCabinClassFromFareCheckRulesReply (FareCheckRulesReply fareCheckRulesReply) {
+    public String getCabinClassFromFareCheckRulesReply(FareCheckRulesReply fareCheckRulesReply) {
 
         String designator = null;
 
