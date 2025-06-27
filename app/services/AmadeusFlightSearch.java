@@ -385,9 +385,19 @@ public class AmadeusFlightSearch implements FlightSearch {
     private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber) {
 
         try {
-            //System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
-            flightItinerary.setFareType(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getDescription());
+            String fareType = null;
+            if (fareMasterPricerTravelBoardSearchReply.getFamilyInformation() != null) {
+                List<FareFamilyType> familyInformation = fareMasterPricerTravelBoardSearchReply.getFamilyInformation();
+                if (familyInformation != null && !familyInformation.isEmpty()) {
+                    FareFamilyType fareFamilyType = familyInformation.get(refNumber.intValue() - 1);
+                    if (fareFamilyType != null) {
+                        fareType = fareFamilyType.getDescription();
+                    }
+                }
+            }
+            flightItinerary.setFareType(fareType);
         } catch (Exception e) {
+            logger.debug("Error Getting Fare Type for Reference Number {} \n{}", refNumber, e.getMessage(), e);
             e.printStackTrace();
         }
     }

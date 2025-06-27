@@ -108,8 +108,7 @@ public class BookFlights {
         String departureZone = airSegmentInformation.getFromAirport().getTime_zone();
         DateTimeZone dateTimeZone  = DateTimeZone.forID(departureZone);
         DateTime departureTime = new DateTime(departureDateStr).withZone(dateTimeZone);
-        logger.debug("Departure date =========>>>>>>>> " + departureTime + " : " + new DateTime(departureTime)
-            + " : " + fmt.print(new DateTime(departureTime)));
+        logger.debug("Departure date =========>>>>>>>> {} : {} : {}", departureTime, new DateTime(departureTime), fmt.print(new DateTime(departureTime)));
 
         String date = fmt.print(departureTime);
         //flightDate.setDepartureDate("300614");

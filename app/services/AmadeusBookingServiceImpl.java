@@ -35,7 +35,10 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.amadeus.AmadeusPaxInformation;
 import com.fasterxml.jackson.databind.JsonNode;
 //import com.sun.org.apache.xpath.internal.operations.Bool;
+import dto.AmadeusSegmentRefDTO;
 import dto.FareCheckRulesResponse;
+import dto.FreeMealsDetails;
+import dto.FreeSeatDetails;
 import dto.reissue.AmadeusPaxRefAndTicket;
 import models.AmadeusSessionWrapper;
 import models.CartAirSegmentDTO;
@@ -109,7 +112,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
 
-  
     @Autowired
     AmadeusFlightInfoServiceImpl amadeusFlightInfoService;
 
@@ -435,9 +437,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
             pricingInfo.setSegmentWisePricing(false);
             pnrResponse.setPricingInfo(pricingInfo);
             pnrResponse.setPnrNumber(childPNR);
-            pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
-            pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(gdsPNRReply));
-            pnrResponse.setFreeSeatList(AmadeusBookingHelper.getFreeSeatDetailsFromPnr(gdsPNRReply));
+            pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(childRetrive));
+            pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(childRetrive));
+            pnrResponse.setFreeSeatList(AmadeusBookingHelper.getFreeSeatDetailsFromPnr(childRetrive));
+            pnrResponse.setSegmentRefMap(AmadeusBookingHelper.getSegmentRefMap(childRetrive, childPNR));
             Date lastPNRAddMultiElements = new Date();
             PNRReply childGdsReply = readChildAirlinePNR(serviceHandler, childRetrive, lastPNRAddMultiElements, pnrResponse, amadeusSessionWrapper);
             if (pnrResponse.getAirlinePNR() != null) {
@@ -638,6 +641,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         Map<String, Object> travellerSegMap = createTravellerCountMap(gdsPNRReply, issuanceRequest.getBookingTravellerList());
         checkFarePrice(pricePNRReply, pnrResponse, travellerMasterInfo, travellerSegMap);
         readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
+
         return pricePNRReply;
     }
 
@@ -1103,8 +1107,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
         //Creating Amadeus Pax Reference and Line number here
         pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
 
-        pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(gdsPNRReply));
+        pnrResponse.setSegmentRefMap(AmadeusBookingHelper.getSegmentRefMap(gdsPNRReply, pnrResponse.getPnrNumber()));
 
+        pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(gdsPNRReply));
         pnrResponse.setFreeSeatList(AmadeusBookingHelper.getFreeSeatDetailsFromPnr(gdsPNRReply));
 
         if (pricePNRReply != null) {
@@ -1133,7 +1138,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
         Date lastTicketingDate = null;
-        if (pricePNRReply.getFareList() != null && pricePNRReply.getFareList().size() > 0 && pricePNRReply.getFareList().get(0) != null && pricePNRReply.getFareList().get(0).getLastTktDate() != null) {
+        if (pricePNRReply.getFareList() != null && !pricePNRReply.getFareList().isEmpty() && pricePNRReply.getFareList().get(0) != null && pricePNRReply.getFareList().get(0).getLastTktDate() != null) {
             StructuredDateTimeType dateTime = pricePNRReply
                     .getFareList().get(0).getLastTktDate().getDateTime();
             String day = ((dateTime.getDay().toString().length() == 1) ? "0"
@@ -1147,7 +1152,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 lastTicketingDate = sdf.parse(day + month + year);
             } catch (ParseException e) {
                 logger.debug("error in setLastTicketingDate", e);
-                e.printStackTrace();
             }
         }
 
@@ -2492,6 +2496,5 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
         return Boolean.FALSE;
     }
-  
-  
+
 }
