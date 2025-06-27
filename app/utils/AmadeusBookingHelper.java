@@ -760,13 +760,15 @@ public class AmadeusBookingHelper {
                         }
                         for (String segmentRef : segmentRefList1) {
                             PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo = (PNRReply.OriginDestinationDetails.ItineraryInfo) airSegmentRefMap.get(segmentRef);
-                            String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
-                            if (segType.equalsIgnoreCase("AIR")) {
-                                String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() +
-                                        itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
-                                        + segmentSequenceMap.get(segmentRef);
-                                ticketMap.put(key.toLowerCase(), ticketNumber);
-                                logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
+                            if (itineraryInfo != null) {
+                                String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+                                if (segType != null && segType.equalsIgnoreCase("AIR")) {
+                                    String key = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() +
+                                            itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + traveller1.getContactId()
+                                            + segmentSequenceMap.get(segmentRef);
+                                    ticketMap.put(key.toLowerCase(), ticketNumber);
+                                    logger.debug("created ticket for " + key + "ticket count " + ticketsCount);
+                                }
                             }
                         }
                         traveller1.setTicketNumberMap(ticketMap);
