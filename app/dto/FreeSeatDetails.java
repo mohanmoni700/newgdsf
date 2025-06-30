@@ -17,6 +17,15 @@ public class FreeSeatDetails {
     private String airlineCode;
     private String flightNumber;
     private String amadeusSegmentRef;
+    private String departureDate;
+
+    public String getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(String departureDate) {
+        this.departureDate = departureDate;
+    }
 
     public String getAmadeusSegmentRef() {
         return amadeusSegmentRef;
