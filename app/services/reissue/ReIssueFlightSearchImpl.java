@@ -81,8 +81,8 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         try {
             for (FlightSearchOffice office : reissueFlightSearch.getOfficeList()) {
 
-                logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
                 if (!office.getOfficeId().equalsIgnoreCase("BOMAK38SN")) {
+                    logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
 
                     futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                         public SearchResponse call() throws Exception {
@@ -904,7 +904,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
     }
 
     public static String onlyDateFormat(String localTimeWithOffset) {
-        return localTimeWithOffset.substring(0,10);
+        return localTimeWithOffset.substring(0, 10);
     }
 
 //    public SearchResponse reIssueFlightSearch(ReIssueTicketRequest reIssueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {

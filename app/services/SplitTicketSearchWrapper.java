@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class SplitTicketSearchWrapper {
@@ -260,21 +261,44 @@ public class SplitTicketSearchWrapper {
             SearchResponse searchResponse = null;
             List<SearchParameters> searchParameters1 = null;
             if(transitEnabled) {
+                List<SearchParameters> searchParametersTransit = null;
                 List<SplitTicketTransitAirports> splitTicketTransitAirports = isTransitAdded(searchParameters);
                 if (splitTicketTransitAirports.size() > 0) {
                     searchParameters1 = createTransitPointSearch(searchParameters, splitTicketTransitAirports);
                 } else {
                     searchParameters1 = createSearch(searchParameters);
                 }
+                System.out.println("searchParameters1 "+Json.toJson(searchParameters1));
+                searchParametersTransit = createNonSeamenSearchParameters(searchParameters1, splitTicketTransitAirports);
+                searchParameters1.add(searchParametersTransit.get(1));
+                System.out.println("after searchParameters1 "+Json.toJson(searchParameters1));
             } else {
                 searchParameters1 = createSearch(searchParameters);
             }
-            System.out.println(Json.toJson(searchParameters1));
             logger.debug("Possible search routes "+Json.toJson(searchParameters1));
             createSplitSearch(searchParameters1, searchParameters);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private List<SearchParameters> createNonSeamenSearchParameters(List<SearchParameters> searchParameters,List<SplitTicketTransitAirports> splitTicketTransitAirports) {
+        List<SearchParameters> searchParametersList = new ArrayList<>();
+        for (SearchParameters searchParametersItem: searchParameters) {
+            SearchParameters searchParameters1 = SerializationUtils.clone(searchParametersItem);
+            searchParameters1.setBookingType(BookingType.NON_MARINE);
+            if (splitTicketTransitAirports.size()>0) {
+                for (SplitTicketTransitAirports splitTicketTransitAirport : splitTicketTransitAirports) {
+                    if(splitTicketTransitAirport.getAirline()!=null) {
+                        List<String> preferredAirlines = Arrays.asList(splitTicketTransitAirport.getAirline().split(","));
+                        searchParameters1.setPreferredAirlinesList(preferredAirlines);
+                        //searchParameters1.setPreferredAirlines(splitTicketTransitAirport.getAirline());
+                    }
+                }
+            }
+            searchParametersList.add(searchParameters1);
+        }
+        return searchParametersList;
     }
 
     private List<SearchParameters> createSearchParameters(SearchResponse searchResponse, List<SplitTicketTransitAirports> splitTicketTransitAirports, SearchParameters searchParameters,String toAirport ) {
