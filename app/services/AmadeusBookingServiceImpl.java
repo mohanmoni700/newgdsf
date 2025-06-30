@@ -2283,7 +2283,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             Map<String, String> fareComponentFromTst = getFareComponentFromTst(ticketDisplayTSTReply);
             List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentFromTst, redisTemplate);
 
-            if (actualJourneyList.isEmpty()) {
+            if (actualJourneyList != null || actualJourneyList.isEmpty()) {
                 actualJourneyList = journeyList;
             }
 
