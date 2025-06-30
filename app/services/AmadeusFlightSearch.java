@@ -12,6 +12,7 @@ import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import dto.CabinDetails;
+
 import models.*;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

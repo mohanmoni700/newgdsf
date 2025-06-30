@@ -270,5 +270,4 @@ public class IssuanceRequest implements Serializable{
     public void setTicketingOfficeId(String ticketingOfficeId) {
         this.ticketingOfficeId = ticketingOfficeId;
     }
-
 }
