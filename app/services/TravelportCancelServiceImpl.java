@@ -71,4 +71,10 @@ public class TravelportCancelServiceImpl implements CancelService {
     public CancelPNRResponse cancelTimeLimitReachedPNR(String pnr, Boolean isFullPNR) {
         return null;
     }
+
+    @Override
+    public CancelPNRResponse cancelOnlyItineraryFromPNR(String pnr, Boolean isFullPNR) {
+        return null;
+    }
+
 }
