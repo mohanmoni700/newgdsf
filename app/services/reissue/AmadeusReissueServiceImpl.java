@@ -39,8 +39,6 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
     private final ServiceHandler serviceHandler;
     private final AmadeusSourceOfficeService amadeusSourceOfficeService;
 
-//    private static final String ticketingOfficeId = play.Play.application().configuration().getString("amadeus.ticketingOffice");
-
     @Autowired
     public AmadeusReissueServiceImpl(
             ReIssueFlightSearch reIssueFlightSearch,

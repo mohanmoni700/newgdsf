@@ -486,8 +486,11 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
 
     public PNRResponse createPNRResponse(PNRReply gdsPNRReply,
                                          FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
-        pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+
+        String pnr = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber();
+        pnrResponse.setPnrNumber(pnr);
         pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
+        pnrResponse.setSegmentRefMap(AmadeusBookingHelper.getSegmentRefMap(gdsPNRReply, pnr));
 
         if(pricePNRReply != null){
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);
