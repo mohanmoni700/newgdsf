@@ -31,7 +31,7 @@ public class CancelServiceWrapper {
     public CancelPNRResponse cancelPNR(String pnr, String provider, String appRef, String bookingId, Boolean isFullPNR, List<String> ticketList,Boolean isFullCancellation) {
         CancelPNRResponse result = null;
         if ("Amadeus".equalsIgnoreCase(provider)) {
-           result =  amadeusCancelService.cancelPNR(pnr,isFullPNR);
+           result =  amadeusCancelService.cancelOnlyItineraryFromPNR(pnr,false);
         }else if("Travelport".equalsIgnoreCase(provider)){
             result =  travelportCancelService.cancelPNR(pnr,isFullPNR);
         }else if(PROVIDERS.MYSTIFLY.toString().equalsIgnoreCase(provider)){

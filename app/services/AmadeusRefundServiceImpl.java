@@ -13,6 +13,7 @@ import com.amadeus.xml.tatres_20_1_1a.CouponInformationDetailsTypeI;
 import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.compassites.GDSWrapper.amadeus.RefundServiceHandler;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.model.CancelPNRResponse;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.TicketCheckEligibilityRes;
 import com.compassites.model.TicketProcessRefundRes;
@@ -42,6 +43,9 @@ public class AmadeusRefundServiceImpl implements RefundService{
 
     @Autowired
     private ServiceHandler serviceHandler;
+
+    @Autowired
+    private AmadeusCancelServiceImpl cancelService;
 
     @Autowired
     private RefundServiceHandler refundServiceHandler;
@@ -192,6 +196,7 @@ public class AmadeusRefundServiceImpl implements RefundService{
         AMATicketInitRefundRS amaTicketInitRefundRS;
         AMATicketProcessRefundRS amaTicketProcessRefundRS;
         TicketProcessRefundRes ticketProcessRefundRes = new TicketProcessRefundRes();
+        CancelPNRResponse cancelFullPNR = new CancelPNRResponse();
         List<String> refundedTickets = new ArrayList<>();
 
         try {
@@ -239,9 +244,10 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                 // Write codes here to get the refund pricing info
 
 
+//                                PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
+                                  cancelFullPNR = cancelService.cancelOnlyItineraryFromPNR(gdsPnr, false);
 
-                                PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
-                                if(cancelFullPNR.getGeneralErrorInfo().isEmpty()){
+                                if(cancelFullPNR.isSuccess() && cancelFullPNR.getErrorMessage() == null){
                                     logger.debug("PNR Cancelled for PNR : {}",gdsPnr);
                                 }
 

@@ -99,6 +99,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
     @Autowired
     private AmadeusBookingHelper amadeusBookingHelper;
 
+    @Autowired
+    private AmadeusCancelServiceImpl cancelService;
+
     static {
         baggageCodes.put("700", "KG");
         baggageCodes.put("K", "KG");
@@ -481,7 +484,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         } else if (type.equalsIgnoreCase(SPLIT_PNR)) {
                             cancelPNRResponse.setSuccess(true);
                         } else {
-                            cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
+                            cancelPNRResponse = cancelService.cancelOnlyItineraryFromPNR(childPNR, false);
                         }
                     } else {
                         if (type.equalsIgnoreCase(VOID_TICKET)) {
@@ -494,7 +497,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         } else if (type.equalsIgnoreCase(SPLIT_PNR)) {
                             cancelPNRResponse.setSuccess(true);
                         } else {
-                            cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
+                            cancelPNRResponse = cancelService.cancelOnlyItineraryFromPNR(childPNR, false);
                         }
                     }
                     if (!type.equalsIgnoreCase(REFUND_TICKET))
@@ -2280,7 +2283,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             Map<String, String> fareComponentFromTst = getFareComponentFromTst(ticketDisplayTSTReply);
             List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentFromTst, redisTemplate);
 
-            if (actualJourneyList.isEmpty()) {
+            if (actualJourneyList != null || actualJourneyList.isEmpty()) {
                 actualJourneyList = journeyList;
             }
 
