@@ -1,7 +1,5 @@
 package controllers;
 
-import com.compassites.GDSWrapper.indigo.IndigoLogin;
-import com.compassites.GDSWrapper.indigo.SessionHandler;
 import com.compassites.GDSWrapper.mystifly.AirMessageQueue;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -11,10 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.navitaire.schemas.webservices.*;
-import com.navitaire.schemas.webservices.datacontracts.session.LogonRequestData;
-import com.navitaire.schemas.webservices.datacontracts.session.ObjectFactory;
-import com.navitaire.schemas.webservices.servicecontracts.sessionservice.LogonRequest;
 import dto.FareCheckRulesResponse;
 import dto.OpenTicketDTO;
 import dto.OpenTicketResponse;
