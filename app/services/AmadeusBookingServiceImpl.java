@@ -1140,7 +1140,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
     public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
-
         try {
             Date lastTicketingDate = null;
             if (pricePNRReply.getFareList() != null && !pricePNRReply.getFareList().isEmpty() && pricePNRReply.getFareList().get(0) != null && pricePNRReply.getFareList().get(0).getLastTktDate() != null) {
@@ -1158,6 +1157,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 } catch (ParseException e) {
                     logger.debug("error in setLastTicketingDate", e);
                 }
+
             }
 
             if (lastTicketingDate == null) {
