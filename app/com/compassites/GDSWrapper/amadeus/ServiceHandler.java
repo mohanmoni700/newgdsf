@@ -248,13 +248,27 @@ public class ServiceHandler {
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
         logger.debug("amadeus pricePNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
-        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing,isAddBooking);
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing,isAddBooking, false, 0);
 
         amadeusLogger.debug("pricePNRWithBookingClassReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pricePNRWithBookingClass));
 
         FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply = mPortType.farePricePNRWithBookingClass(pricePNRWithBookingClass, amadeusSessionWrapper.getmSession());
 
         amadeusLogger.debug("pricePNRWithBookingClassRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pricePNRWithBookingClassReply));
+        return pricePNRWithBookingClassReply;
+    }
+
+    public FarePricePNRWithBookingClassReply priceSplitTicketPNR(String carrrierCode, PNRReply pnrReply, boolean isSeamen, boolean isDomesticFlight, FlightItinerary flightItinerary, List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing, AmadeusSessionWrapper amadeusSessionWrapper, boolean isAddBooking, int journeyIndex) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper);
+        logger.debug("amadeus priceSplitTicketPNR called at " + new Date() + "....................Session Id: " + amadeusSessionWrapper.getSessionId());
+        FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing,isAddBooking, true, journeyIndex);
+
+        amadeusLogger.debug("priceSplitTicketPNRWithBookingClassReq " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pricePNRWithBookingClass));
+
+        FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply = mPortType.farePricePNRWithBookingClass(pricePNRWithBookingClass, amadeusSessionWrapper.getmSession());
+
+        amadeusLogger.debug("priceSplitTicketPNRWithBookingClassRes " + new Date() + " SessionId: " + amadeusSessionWrapper.getSessionId()+ " ---->" + new XStream().toXML(pricePNRWithBookingClassReply));
         return pricePNRWithBookingClassReply;
     }
 
