@@ -32,14 +32,17 @@ import java.util.List;
 public class PricePNR {
     public FarePricePNRWithBookingClass getPNRPricingOption(String carrierCode, PNRReply pnrReply,boolean isSeamen,
                                                             boolean isDomesticFlight, FlightItinerary flightItinerary,
-                                                            List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing, boolean isAddBooking){
+                                                            List<AirSegmentInformation> airSegmentList, boolean isSegmentWisePricing, boolean isAddBooking, boolean isSplitTicket, int journeyIndex){
 
         FarePricePNRWithBookingClass pricepnr=new FarePricePNRWithBookingClass();
         CodedAttributeType overrideInformation = new CodedAttributeType();
         ReferenceInformationTypeI94605S paxSegReference = new ReferenceInformationTypeI94605S();
         ReferencingDetailsTypeI142222C refDetails = new ReferencingDetailsTypeI142222C();
         String airlineStr = play.Play.application().configuration().getString("vistara.airline.code");
-
+        if(isSplitTicket) {
+            isSeamen = flightItinerary.getJourneyList().get(journeyIndex).isSeamen();
+            System.out.println("isSeamen "+isSeamen);
+        }
         if(isSegmentWisePricing){
             for(AirSegmentInformation airSegment : airSegmentList)  {
                 String key = airSegment.getFromLocation() + airSegment.getToLocation();
@@ -168,7 +171,6 @@ public class PricePNR {
 
         if(isDomesticFlight && flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList() != null && !flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList().isEmpty()){
             List<FareJourney> fareJourneys = flightItinerary.getPricingInformation(isSeamen).getPaxFareDetailsList().get(0).getFareJourneyList();
-            int journeyIndex = 1;
             for(FareJourney fareJourney : fareJourneys){
                 FarePricePNRWithBookingClass.PricingFareBase pricingFareBase = new FarePricePNRWithBookingClass.PricingFareBase();
                 FareQualifierDetailsTypeI fareBasisOptions = new FareQualifierDetailsTypeI();
