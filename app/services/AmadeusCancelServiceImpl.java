@@ -133,4 +133,39 @@ public class AmadeusCancelServiceImpl implements CancelService {
             serviceHandler.logOut(amadeusSessionWrapper);
         }
     }
+
+    @Override
+    public CancelPNRResponse cancelOnlyItineraryFromPNR(String pnr, Boolean isFullPNR) {
+
+        logger.debug("cancelOnlyItineraryFromPNR called for PNR : " + pnr+ " isFullPNR "+isFullPNR);
+        CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        try {
+            amadeusSessionWrapper = serviceHandler.logIn();
+            PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+            if(!isFullPNR) {
+                pnrReply = serviceHandler.cancelPNR(pnr, pnrReply, amadeusSessionWrapper);
+                com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+                PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+                cancelPNRResponse.setSuccess(true);
+            } else {
+                logger.debug("Is isFullPNR is true : " + pnr);
+                ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("ticketIssuedError", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+                cancelPNRResponse.setErrorMessage(errorMessage);
+                cancelPNRResponse.setSuccess(false);
+            }
+            logger.debug("Succesfully Cancelled PNR " + pnr );
+            return cancelPNRResponse;
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(pnr + " : Error in PNR cancellation ", e);
+            cancelPNRResponse.setSuccess(false);
+            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("error", ErrorMessage.ErrorType.ERROR, PROVIDERS.AMADEUS.toString());
+            cancelPNRResponse.setErrorMessage(errorMessage);
+            return cancelPNRResponse;
+        }finally {
+            serviceHandler.logOut(amadeusSessionWrapper);
+        }
+    }
 }

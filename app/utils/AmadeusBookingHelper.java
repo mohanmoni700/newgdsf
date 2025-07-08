@@ -2091,6 +2091,7 @@ public class AmadeusBookingHelper {
 
                     if (qualificationFareDetailsList != null) {
                         for (FareCheckRulesReply.FlightDetails.QualificationFareDetails qualificationFareDetails : qualificationFareDetailsList) {
+
                             List<FareCheckRulesReply.FlightDetails.QualificationFareDetails.DiscountDetails> discountDetailsList = qualificationFareDetails.getDiscountDetails();
 
                             if (discountDetailsList != null) {
@@ -2102,6 +2103,15 @@ public class AmadeusBookingHelper {
                                             fareType.setFareFamily(rateCategory);
                                         }
                                     }
+                                }
+                            }
+
+                            // fareBasis
+                            FareCheckRulesReply.FlightDetails.QualificationFareDetails.AdditionalFareDetails additionalFareDetails = qualificationFareDetails.getAdditionalFareDetails();
+                            if (additionalFareDetails != null) {
+                                String rateClass = additionalFareDetails.getRateClass();
+                                if (rateClass != null && !rateClass.isEmpty()) {
+                                    fareType.setFareBasis(rateClass);
                                 }
                             }
                         }
@@ -2351,6 +2361,7 @@ public class AmadeusBookingHelper {
                                         freeMealsDetails.setDestination(segmentDetails.get("destination"));
                                         freeMealsDetails.setAirlineCode(segmentDetails.get("airlineCode"));
                                         freeMealsDetails.setFlightNumber(segmentDetails.get("flightNumber"));
+                                        freeMealsDetails.setDepartureDate(segmentDetails.get("departureDate"));
                                         freeMealsDetails.setAmadeusSegmentRef(segmentReferenceNumber);
                                     }
 
@@ -2455,6 +2466,7 @@ public class AmadeusBookingHelper {
                                     freeSeatDetails.setDestination(segmentDetails.get("destination"));
                                     freeSeatDetails.setAirlineCode(segmentDetails.get("airlineCode"));
                                     freeSeatDetails.setFlightNumber(segmentDetails.get("flightNumber"));
+                                    freeSeatDetails.setDepartureDate(segmentDetails.get("departureDate"));
                                     freeSeatDetails.setAmadeusSegmentRef(segmentReferenceNumber);
                                 }
 
@@ -2548,6 +2560,12 @@ public class AmadeusBookingHelper {
                                 ProductIdentificationDetailsTypeI2786C productDetails = travelProduct.getProductDetails();
                                 if (productDetails != null) {
                                     segmentDetails.put("flightNumber", productDetails.getIdentification());
+                                }
+
+                                ProductDateTimeTypeI171495C product = travelProduct.getProduct();
+                                if (product != null) {
+                                    String departureDate = product.getDepDate();
+                                    segmentDetails.put("departureDate",departureDate);
                                 }
                             }
 

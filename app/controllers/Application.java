@@ -445,7 +445,7 @@ public class Application {
                 ticketList.add(ticketNode.asText());
             }
         }
-        logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
+        logger.debug("Cancel PNR called for PNR : " + pnr + " provider : " + provider);
 
         CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider, appRef, bookingId, fullPNR, ticketList, isFullCancellation);
 
