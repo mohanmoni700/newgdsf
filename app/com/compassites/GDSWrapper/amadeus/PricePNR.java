@@ -74,6 +74,7 @@ public class PricePNR {
                 paxSegReference.getRefDetails().add(refDetails);
                 i = i + 1;*/
                 String key = airSegment.getFromLocation() + airSegment.getToLocation();
+                StringBuilder stringBuilder = new StringBuilder();
                 for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
                     for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
                         String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
@@ -124,7 +125,7 @@ public class PricePNR {
         //attributeDetails.setAttributeType("NOP");
         //attributeDetails.setAttributeDescription("XN");
         if(isSeamen) {
-            if(!carrierCode.equalsIgnoreCase(airlineStr)) {
+            if(carrierCode!=null && !carrierCode.equalsIgnoreCase(airlineStr)) {
                 attributeDetails.setAttributeType("ptc");
                 //overrideInformation.getAttributeDetails().add(attributeDetails);
                 attributeList.add(attributeDetails);
@@ -136,7 +137,7 @@ public class PricePNR {
             attributeDetails.setAttributeType("RU");
             attributeList.add(attributeDetails);
 
-            if(carrierCode.equalsIgnoreCase(airlineStr)) {
+            if(carrierCode!=null && carrierCode.equalsIgnoreCase(airlineStr)) {
                 attributeDetails=new CodedAttributeInformationType();
                 attributeDetails.setAttributeType("RW");
                 attributeDetails.setAttributeDescription("029608");
