@@ -1157,7 +1157,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 } catch (ParseException e) {
                     logger.debug("error in setLastTicketingDate", e);
                 }
-
             }
 
             if (lastTicketingDate == null) {
