@@ -10,6 +10,7 @@ import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
 import com.amadeus.xml.pnrxcl_11_3_1a.ReservationControlInformationType;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
 import com.compassites.model.PassengerTypeCode;
 import com.compassites.model.traveller.*;
@@ -271,6 +272,7 @@ public class PNRAddMultiElementsh {
         int passengerCount = 1;
         List<TravellerInfo> travellerInfoList = new ArrayList<>();
         boolean isSeamen = travellerMasterInfo.isSeamen();
+        boolean isSplitTicket = travellerMasterInfo.getItinerary().isSplitTicket();
 
         List<Traveller> travellers = new ArrayList<>();
         travellers.addAll(travellerMasterInfo.getTravellersList()); //copying travellers as the list would be modified
@@ -313,11 +315,20 @@ public class PNRAddMultiElementsh {
             passenger.setFirstName(name);
 
             String passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString();
-            if (travellerMasterInfo.isSeamen()) {
-                passenger.setType(PassengerTypeCode.SEA.toString());
-
+            if(isSplitTicket) {
+                FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
+                if (flightItinerary.getJourneyList().get(0).isSeamen()) {
+                    passenger.setType(PassengerTypeCode.SEA.toString());
+                } else {
+                    passenger.setType(passengerType);
+                }
             } else {
-                passenger.setType(passengerType);
+                if (travellerMasterInfo.isSeamen()) {
+                    passenger.setType(PassengerTypeCode.SEA.toString());
+
+                } else {
+                    passenger.setType(passengerType);
+                }
             }
 
             TravellerInfo.PassengerData infantPassengerData = null;

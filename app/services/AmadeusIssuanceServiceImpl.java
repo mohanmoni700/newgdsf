@@ -183,7 +183,7 @@ public class AmadeusIssuanceServiceImpl {
                         segmentsInfo.put(key, airSegmentInformation);
                     }
                 }
-
+                int journeyIndex = 0;
                 for (SegmentPricing segmentPricing : segmentPricingList) {
                     List<String> segmentKeysList = segmentPricing.getSegmentKeysList();
                     List<AirSegmentInformation> airSegment = new ArrayList<>();
@@ -291,6 +291,7 @@ public class AmadeusIssuanceServiceImpl {
                             return issuanceResponse;
                         }
                     }
+                    journeyIndex++;
                 }
 //is SegmentWisePricing ==false
             } else {
