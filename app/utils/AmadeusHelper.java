@@ -744,6 +744,35 @@ public class AmadeusHelper {
         return  detailedFareRulesList;
     }
 
+    public static List<String> getDetailedFareRulesList(FareCheckRulesReply fareCheckRulesReplies) {
+
+        List<String> detailedFareRulesList = new ArrayList<>();
+
+        if (fareCheckRulesReplies != null) {
+            List<FareCheckRulesReply.TariffInfo> tariffInfos = fareCheckRulesReplies.getTariffInfo();
+            if (tariffInfos != null && !tariffInfos.isEmpty()) {
+                for (FareCheckRulesReply.TariffInfo tariffInfo : tariffInfos) {
+                    if (tariffInfo != null) {
+                        List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList = tariffInfo.getFareRuleText();
+                        if (fareRuleTextList != null && !fareRuleTextList.isEmpty()) {
+                            for (FareCheckRulesReply.TariffInfo.FareRuleText fareRule : fareRuleTextList) {
+                                if (fareRule != null) {
+                                    List<String> freeText = fareRule.getFreeText();
+                                    if (freeText!=null) {
+                                        detailedFareRulesList.addAll(freeText);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return detailedFareRulesList;
+    }
+
+
     public static BigDecimal getCharges(String data){
         BigDecimal charge = new BigDecimal(0);
         if(data != null) {

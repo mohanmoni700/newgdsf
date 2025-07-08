@@ -623,7 +623,7 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
                     PNRReply gdsPNRReplyBenzy = null;
                     FarePricePNRWithBookingClassReply pricePNRReplyBenzy = null;
                     travellerMasterInfo.getItinerary().getPricingInformation().setSegmentWisePricing(true);
-                    pricePNRReply = checkPNRPricing(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
+                    pricePNRReply = checkPNRPricingForSplit(travellerMasterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
                     int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1 : getNumberOfTST(travellerMasterInfo.getTravellersList());
 
                     logger.debug(" gdsPNRReply " + Json.toJson(gdsPNRReply));
@@ -640,10 +640,11 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
                             Thread.sleep(20000);
                             error = Boolean.TRUE;
                         }
+                        System.out.println("error in savePNRES: " + error );
                         if (!error) {
                             benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                             PNRReply pnrReply = serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
-                            pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
+                            pricePNRReplyBenzy = checkPNRPricingForSplit(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
                             createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
                             setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
                             gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
@@ -673,7 +674,7 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
                                 }
                             }
                             //serviceHandler.retrivePNR(tstRefNo,benzyAmadeusSessionWrapper);
-                            pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
+                            pricePNRReplyBenzy = checkPNRPricingForSplit(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
                             createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
                             setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
                             gdsPNRReplyBenzy = serviceHandler.savePNR(benzyAmadeusSessionWrapper);
@@ -1190,6 +1191,59 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
             }
         }
         return false;
+    }
+
+    public FarePricePNRWithBookingClassReply checkPNRPricingForSplit(TravellerMasterInfo travellerMasterInfo,
+                                                             PNRReply gdsPNRReply, FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, AmadeusSessionWrapper amadeusSessionWrapper) {
+        String carrierCode = "";
+        List<Journey> journeys;
+        List<AirSegmentInformation> airSegmentList = new ArrayList<>();
+        boolean isSplitTicket = travellerMasterInfo.getItinerary().isSplitTicket();
+        boolean isSeaman = false;
+        if(isSplitTicket) {
+            isSeaman = travellerMasterInfo.getItinerary().getJourneyList().get(0).isSeamen();
+        }
+        if (isSeaman) {
+            int size = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList().size();
+            carrierCode = travellerMasterInfo.getItinerary().getJourneyList()
+                    .get(0).getAirSegmentList().get(size - 1).getValidatingCarrierCode();
+            journeys = travellerMasterInfo.getItinerary().getJourneyList();
+        } else {
+            int size = travellerMasterInfo.getItinerary().getNonSeamenJourneyList().get(0).getAirSegmentList().size();
+            carrierCode = travellerMasterInfo.getItinerary()
+                    .getNonSeamenJourneyList().get(0).getAirSegmentList()
+                    .get(size - 1).getValidatingCarrierCode();
+            journeys = travellerMasterInfo.getItinerary().getJourneyList();
+        }
+
+        for (Journey journey : journeys) {
+            for (AirSegmentInformation airSegmentInformation : journey.getAirSegmentList()) {
+                airSegmentList.add(airSegmentInformation);
+            }
+        }
+        boolean isDomestic = AmadeusHelper.checkAirportCountry("India", journeys);
+        boolean isSegmentWisePricing = false;
+        if (travellerMasterInfo.getItinerary().getPricingInformation() != null) {
+            isSegmentWisePricing = travellerMasterInfo.getItinerary().getPricingInformation().isSegmentWisePricing();
+        }
+        boolean isAddBooking = false;
+        if(travellerMasterInfo.getAdditionalInfo()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()!=null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
+            isAddBooking = true;
+        }
+        pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply, isSeaman, isDomestic, travellerMasterInfo.getItinerary(), airSegmentList, isSegmentWisePricing, amadeusSessionWrapper,isAddBooking);
+        if (pricePNRReply.getApplicationError() != null) {
+            if (pricePNRReply.getApplicationError().getErrorOrWarningCodeDetails().getErrorDetails().getErrorCode().equalsIgnoreCase("0")
+                    && pricePNRReply.getApplicationError().getErrorOrWarningCodeDetails().getErrorDetails().getErrorCategory().equalsIgnoreCase("EC")) {
+                pnrResponse.setOfficeIdPricingError(true);
+            } else {
+                pnrResponse.setFlightAvailable(false);
+            }
+            return pricePNRReply;
+        }
+        AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse, travellerMasterInfo);
+        readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
+//        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
+        return pricePNRReply;
     }
 
     public FarePricePNRWithBookingClassReply checkPNRPricing(TravellerMasterInfo travellerMasterInfo,

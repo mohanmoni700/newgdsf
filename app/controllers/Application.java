@@ -206,7 +206,7 @@ public class Application {
                 mapper.getTypeFactory().constructCollectionType(List.class, TravellerMasterInfo.class)
         );
         List<PNRResponse> pnrResponses = bookingService.checkSplitFareAvailability(travellerMasterInfos);
-        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponses));
+        logger.debug("-----------------checkSplitTicketFareAvailability Response: " + Json.toJson(pnrResponses));
         return Controller.ok(Json.toJson(pnrResponses));
     }
 
@@ -219,16 +219,16 @@ public class Application {
                 mapper.getTypeFactory().constructCollectionType(List.class, TravellerMasterInfo.class)
         );
         PNRResponse pnrResponses = bookingService.checkFareChangeAndAvailabilityForSplitTicket(travellerMasterInfos);
-        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponses));
+        logger.debug("-----------------checkSplitTicketFareAvailability PNR Response: " + Json.toJson(pnrResponses));
         return Controller.ok(Json.toJson(pnrResponses));
     }
 
     public Result generateSplitTicketWithSinglePNR() {
         JsonNode json = request().body().asJson();
-        logger.debug("----------------- generatePNR PNR Request: " + json);
+        logger.debug("----------------- generateSplitTicketWithSinglePNR PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.generateSplitTicketWithSinglePNR(travellerMasterInfo);
-        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        logger.debug("-----------------generateSplitTicketWithSinglePNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
 

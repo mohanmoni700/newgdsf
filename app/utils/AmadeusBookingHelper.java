@@ -1992,7 +1992,9 @@ public class AmadeusBookingHelper {
                 FareCheckRulesReply fareCheckRulesReply = entry.getValue();
 
                 Map<String, Map<String, List<String>>> fareRulesMap = AmadeusHelper.getFareCheckRulesBenzy(fareCheckRulesReply);
-                List<String> detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+//                List<String> detailedFareRuleList = AmadeusHelper.getDetailedFareDetailsList(fareCheckRulesReply.getTariffInfo().get(0).getFareRuleText());
+                List<String> detailedFareRuleList = AmadeusHelper.getDetailedFareRulesList(fareCheckRulesReply);
+
                 String cabinClass = getCabinClassFromFareCheckRulesReply(fareCheckRulesReply);
                 List<FareType> fareTypes = getCabinDetailsFromFareCheckRulesReply(fareCheckRulesReply);
                 FareCheckRulesResponse fareCheckRulesResponse = new FareCheckRulesResponse();
