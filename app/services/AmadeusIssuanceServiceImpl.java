@@ -214,8 +214,8 @@ public class AmadeusIssuanceServiceImpl {
                         isAddBooking = true;
                     }
                     //isSegmentWisePricing ==TRUE
-                    pricePNRReply = serviceHandler.pricePNR(carrierCode, gdsPNRReply,
-                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, amadeusSessionWrapper, isAddBooking);
+                    pricePNRReply = serviceHandler.priceSplitTicketPNR(carrierCode, gdsPNRReply,
+                            issuanceRequest.isSeamen(), isDomestic, issuanceRequest.getFlightItinerary(), airSegment, isSegmentWisePricing, amadeusSessionWrapper, isAddBooking,journeyIndex);
 
                     Map<String, String> fareComponentMap = AmadeusBookingHelper.getFareComponentMapFromPricePNRWithBookingClass(pricePNRReply);
                     Map<String, FareCheckRulesResponse> fareCheckRulesResponseMap = amadeusBookingHelper.getFareRuleTxtMapFromPricingAndFc(amadeusSessionWrapper, fareComponentMap);
