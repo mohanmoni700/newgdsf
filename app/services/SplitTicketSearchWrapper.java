@@ -59,9 +59,26 @@ public class SplitTicketSearchWrapper {
 
     public List<SearchParameters> createTransitPointSearch(SearchParameters searchParameters, List<SplitTicketTransitAirports> splitTicketTransitAirports) throws Exception {
         List<SearchParameters> searchParametersList = new ArrayList<>();
-        SearchParameters searchParameters1 = SerializationUtils.clone(searchParameters);
-        List<SearchJourney> journeyList = new ArrayList<>();
         List<SearchParameters> searchParameters2 = new ArrayList<>();
+
+        for (SplitTicketTransitAirports splitTicketTransitAirports1: splitTicketTransitAirports) {
+            SearchParameters searchParameters1 = SerializationUtils.clone(searchParameters);
+            List<SearchJourney> journeyList = new ArrayList<>();
+            for (SearchJourney searchJourneyItem: searchParameters.getJourneyList()) {
+                SearchJourney searchJourney = SerializationUtils.clone(searchJourneyItem);
+                searchJourney.setOrigin(searchParameters.getJourneyList().get(0).getOrigin());
+                searchJourney.setDestination(splitTicketTransitAirports1.getTransitAirport());
+                searchJourney.setTravelDate(searchParameters.getJourneyList().get(0).getTravelDate());
+                searchJourney.setTravelDateStr(searchParameters.getJourneyList().get(0).getTravelDateStr());
+                journeyList.add(searchJourney);
+            }
+            searchParameters1.setJourneyList(journeyList);
+            searchParameters2.add(searchParameters1);
+        }
+
+
+        /*SearchParameters searchParameters1 = SerializationUtils.clone(searchParameters);
+        List<SearchJourney> journeyList = new ArrayList<>();
         for (SearchJourney searchJourneyItem: searchParameters.getJourneyList()) {
             SearchJourney searchJourney = SerializationUtils.clone(searchJourneyItem);
             searchJourney.setOrigin(searchParameters.getJourneyList().get(0).getOrigin());
@@ -71,7 +88,9 @@ public class SplitTicketSearchWrapper {
             journeyList.add(searchJourney);
         }
         searchParameters1.setJourneyList(journeyList);
-        searchParameters2.add(searchParameters1);
+        searchParameters2.add(searchParameters1);*/
+
+
         ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap = new ConcurrentHashMap<>();
         List<SearchResponse> responses = this.splitSearch(searchParameters2,concurrentHashMap,true);
         logger.debug("responses "+Json.toJson(responses));
@@ -268,13 +287,22 @@ public class SplitTicketSearchWrapper {
                 } else {
                     searchParameters1 = createSearch(searchParameters);
                 }
-                System.out.println("searchParameters1 "+Json.toJson(searchParameters1));
+                System.out.println("searchParameters1 before "+Json.toJson(searchParameters1));
                 searchParametersTransit = createNonSeamenSearchParameters(searchParameters1, splitTicketTransitAirports);
-                searchParameters1.add(searchParametersTransit.get(1));
-                System.out.println("after searchParameters1 "+Json.toJson(searchParameters1));
+                if(splitTicketTransitAirports.size()>1) {
+                    for (int i=0; i<splitTicketTransitAirports.size()-1; i++) {
+                        searchParameters1.add(searchParametersTransit.get(splitTicketTransitAirports.size()+i));
+                    }
+                } else {
+                    searchParameters1.add(searchParametersTransit.get(1));
+                }
+
+                //searchParameters1.add(searchParametersTransit.get(1));
+                System.out.println("searchParameters1 searchParameters1 after "+Json.toJson(searchParameters1));
             } else {
                 searchParameters1 = createSearch(searchParameters);
             }
+            System.out.println("after searchParameters1 "+Json.toJson(searchParameters1));
             logger.debug("Possible search routes "+Json.toJson(searchParameters1));
             createSplitSearch(searchParameters1, searchParameters);
         } catch (Exception e) {
