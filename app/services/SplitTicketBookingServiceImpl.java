@@ -1205,14 +1205,19 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
         }
         if (isSeaman) {
             int size = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList().size();
+            System.out.println(" seamen size "+size);
             carrierCode = travellerMasterInfo.getItinerary().getJourneyList()
                     .get(0).getAirSegmentList().get(size - 1).getValidatingCarrierCode();
+            System.out.println(" seamen carrierCode "+carrierCode);
             journeys = travellerMasterInfo.getItinerary().getJourneyList();
         } else {
-            int size = travellerMasterInfo.getItinerary().getNonSeamenJourneyList().get(0).getAirSegmentList().size();
+            int size = travellerMasterInfo.getItinerary().getJourneyList().get(0).getAirSegmentList().size();
+            System.out.println("non seamen size "+size);
             carrierCode = travellerMasterInfo.getItinerary()
-                    .getNonSeamenJourneyList().get(0).getAirSegmentList()
+                    .getJourneyList().get(0).getAirSegmentList()
                     .get(size - 1).getValidatingCarrierCode();
+            System.out.println("non seamen carrierCode "+carrierCode);
+
             journeys = travellerMasterInfo.getItinerary().getJourneyList();
         }
 
