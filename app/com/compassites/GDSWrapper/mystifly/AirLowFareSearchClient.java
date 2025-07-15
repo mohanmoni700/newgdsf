@@ -131,7 +131,7 @@ public class AirLowFareSearchClient {
 		if (searchParams.getDirectFlights())
 			prefs.setMaxStopsQuantity(MaxStopsQuantity.DIRECT);
 		if (searchParams.getPreferredAirlinesList()!= null)
-			prefs.addNewVendorPreferenceCodes().setStringArray(StringUtils.toStringArray(searchParams.getPreferredAirlinesList()));
+//			prefs.addNewVendorPreferenceCodes().setStringArray(StringUtils.toStringArray(searchParams.getPreferredAirlinesList()));
 		prefs.setCabinPreference(Mystifly.CABIN_TYPE.get(searchParams
 				.getCabinClass()));
 		Enum journeyType = searchParams.getTransit() == null ? Mystifly.JOURNEY_TYPE
