@@ -9,9 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import dto.FareCheckRulesResponse;
-import dto.OpenTicketDTO;
-import dto.OpenTicketResponse;
+
+import dto.*;
 import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AncillaryServiceRequest;
@@ -293,6 +292,7 @@ public class Application {
         return Controller.ok(Json.toJson(fareCheckRulesJson));
     }
 
+
 //    @BodyParser.Of(BodyParser.Json.class)
 //    public Result getMiniRuleFromFlightItinerary(){
 //
@@ -543,7 +543,7 @@ public class Application {
             MessageItem messageItem = new MessageItem();
             messageItem.setBookingMode(items.getBookingMode());
             messageItem.setUniqueId(items.getUniqueID());
-            messageItem.setMessage(items.getMessages().getStringArray(0));
+            messageItem.setMessage(items.getMessages().toString());
             messageItem.setRph(items.getRPH());
             messageItem.setTkeTimeLimit(items.getTktTimeLimit().toString());
             messageItemList.add(messageItem);
@@ -749,6 +749,20 @@ public class Application {
         logger.debug("Ancillary - Meals response Standalone {} ", Json.toJson(mealsDetailsStandalone));
 
         return ok(Json.toJson(mealsDetailsStandalone));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getAncillaryBaggagePaymentConfirmation() {
+
+        JsonNode json = request().body().asJson();
+        AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ = Json.fromJson(json,AncillaryConfirmPaymentRQ.class);
+        logger.debug("Ancillary - Baggage Confirm Request {} ", Json.toJson(ancillaryConfirmPaymentRQ));
+
+        AncillaryConfirmPaymentRS ancillaryConfirmPaymentRS = ancillaryService.getAncillaryBaggageConfirm(ancillaryConfirmPaymentRQ);
+        logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryConfirmPaymentRS));
+
+        return ok(Json.toJson(ancillaryConfirmPaymentRS));
+
     }
 
     public Result ticketRebookAndRepricePNR() {

@@ -1,6 +1,6 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.pnradd_11_3_1a.*;
+import com.amadeus.xml.pnradd_14_1_1a.*;
 
 import java.math.BigInteger;
 

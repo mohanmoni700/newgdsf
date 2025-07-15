@@ -2,7 +2,7 @@ package services.reissue;
 
 import com.amadeus.xml.fatcer_13_1_1a.*;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.tarcpr_13_2_1a.TicketReissueConfirmedPricingReply;
 import com.amadeus.xml.taripr_19_1_1a.TicketRepricePNRWithBookingClassReply;
 import com.amadeus.xml.tatres_20_1_1a.CouponInformationDetailsTypeI;
@@ -66,10 +66,10 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
             String ticketingOfficeId = reIssueSearchRequest.getTicketingOfficeId();
 
-            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId, true);
 
             //1. Retrieving the PNR
-            PNRReply pnrReply = serviceHandler.retrivePNR(reIssueSearchRequest.getGdsPNR(), amadeusSessionWrapper);
+            PNRReply pnrReply = serviceHandler.retrievePNR(reIssueSearchRequest.getGdsPNR(), amadeusSessionWrapper);
 
             //2. Checking the status of the ticket here
             TicketProcessEDocReply reIssueCheckTicketStatus = serviceHandler.reIssueCheckTicketStatus(reIssueSearchRequest, amadeusSessionWrapper);
@@ -113,14 +113,14 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
     }
 
-
-    //TODO: Below logic for all pax and all ticket reissue hence checking the coupon eligibility for all pax and each segment (for date change), will make the necessary changes for new requirements
+    // Checks Status of tickets per pax per segment
+    // If one of the segments of a ticket is not "I" as status, the entire search will come out as status not I (Best practice as per doc)
+    // can change the above impl if needed for any new logic
     private static SearchResponse checkIfTicketStatusIsOpen(TicketProcessEDocReply reIssueCheckTicketStatus, String gdsPnr, List<String> ticketNumbers) {
 
         SearchResponse reissueSearchResponse = new SearchResponse();
 
         List<TicketProcessEDocReply.DocGroup> docGroupList = reIssueCheckTicketStatus.getDocGroup();
-
 
         for (TicketProcessEDocReply.DocGroup docGroup : docGroupList) {
             List<TicketProcessEDocReply.DocGroup.DocDetailsGroup> docDetailsGroupList = docGroup.getDocDetailsGroup();
@@ -138,7 +138,6 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
 
                             String couponStatus = couponDetails.getCpnStatus();
 
-                            //TODO: To handle Airport Control 24hrs status here as per new requirement.
                             //If the coupon status is not "I", the ticket is not open for reissue (I = Open Ticket)
                             if (!"I".equalsIgnoreCase(couponStatus)) {
                                 ErrorMessage errorMessage = new ErrorMessage();
@@ -179,7 +178,9 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
     }
 
 
-    //TODO: Below logic for all pax and all ticket reissue hence checking the coupon eligibility for all pax and each segment (for date change), will make the necessary changes for new requirements
+    // Checks Eligibility of tickets per pax per segment
+    // If one of the segments of a ticket is not Y as status for both CH and CHGEO, the entire search will come out as ineligible (Best practice as per doc)
+    // can change the above impl if needed for any new logic
     private static SearchResponse checkIfTicketIsAllowedForReIssuance(TicketCheckEligibilityReply checkEligibilityReply, String gdsPnr) {
 
         SearchResponse reissueSearchResponse = new SearchResponse();
@@ -270,15 +271,13 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
 
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+            amadeusSessionWrapper = serviceHandler.logIn(officeId, true);
 
             //Retrieving PNR here for stateful operation
-            serviceHandler.retrivePNR(reIssueConfirmationRequest.getOriginalGdsPnr(), amadeusSessionWrapper);
+            serviceHandler.retrievePNR(reIssueConfirmationRequest.getOriginalGdsPnr(), amadeusSessionWrapper);
 
             //Splitting the PNR
             PNRReply splitPnrResponse = serviceHandler.splitPNRForReissue(reIssueConfirmationRequest, amadeusSessionWrapper);
-
-            //TODO: PNR split errors
 
             //Saving the Original Booking after the Split
             serviceHandler.saveChildPNR("14", amadeusSessionWrapper);
@@ -315,11 +314,11 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
             if (officeId == null) {
                 if (travellerMasterInfo.isSeamen()) {
                     officeId = travellerMasterInfo.getItinerary().getSeamanPricingInformation().getPricingOfficeId();
-                    amadeusSessionWrapper = serviceHandler.logIn(officeId);
+                    amadeusSessionWrapper = serviceHandler.logIn(officeId, true);
                 }
             }
             //retrive PNR
-            PNRReply pnrReply = serviceHandler.retrivePNR(travellerMasterInfo.getGdsPNR(), amadeusSessionWrapper);
+            PNRReply pnrReply = serviceHandler.retrievePNR(travellerMasterInfo.getGdsPNR(), amadeusSessionWrapper);
             List<String> ticketList = getTicketList(pnrReply.getDataElementsMaster().getDataElementsIndiv());
 
             /*PNRReply cancelPNRReply  = serviceHandler.cancelFullPNR(travellerMasterInfo.getGdsPNR(), pnrReply, amadeusSessionWrapper,false);
@@ -344,7 +343,7 @@ public class AmadeusReissueServiceImpl implements AmadeusReissueService {
                                          FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
 //		PNRResponse pnrResponse = new PNRResponse();
         //for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
-        pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+        pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().get(0).getControlNumber());
         //}
         /*if(pricePNRReply != null){
             setLastTicketingDate(pricePNRReply, pnrResponse, travellerMasterInfo);

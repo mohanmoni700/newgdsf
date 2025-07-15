@@ -1,15 +1,11 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.itareq_05_2_ia.AirSellFromRecommendation;
-import com.amadeus.xml.pnracc_11_3_1a.OriginatorDetailsTypeI;
-import com.amadeus.xml.pnracc_11_3_1a.OriginatorIdentificationDetailsTypeI;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
-import com.amadeus.xml.pnracc_11_3_1a.POSGroupType;
+import com.amadeus.xml.pnracc_14_1_1a.*;
 import com.amadeus.xml.trcanq_14_1_1a.*;
-import com.compassites.model.FareJourney;
-import com.compassites.model.FlightItinerary;
-import com.compassites.model.Journey;
-import com.compassites.model.traveller.TravellerMasterInfo;
+import com.amadeus.xml.trcanq_14_1_1a.AdditionalBusinessSourceInformationType;
+import com.amadeus.xml.trcanq_14_1_1a.OriginatorIdentificationDetailsType;
+import com.amadeus.xml.trcanq_14_1_1a.TicketNumberDetailsTypeI;
+import com.amadeus.xml.trcanq_14_1_1a.TicketNumberTypeI;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -31,7 +27,7 @@ public class TicketCancelDocumentHandler {
 
         //set office id
         POSGroupType posGroupType = gdsPNRReply.getSbrCreationPosDetails();
-        OriginatorIdentificationDetailsTypeI originatorIdentificationDetails = posGroupType.getSbrUserIdentificationOwn().getOriginIdentification();
+        OriginatorIdentificationDetailsTypeI170735C originatorIdentificationDetails = posGroupType.getSbrUserIdentificationOwn().getOriginIdentification();
 
         AdditionalBusinessSourceInformationType additionalBusinessSourceInformationType = new AdditionalBusinessSourceInformationType();
         OriginatorIdentificationDetailsType originatorIdentificationDetailsType = new OriginatorIdentificationDetailsType();

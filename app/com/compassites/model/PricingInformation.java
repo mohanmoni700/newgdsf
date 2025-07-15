@@ -14,6 +14,7 @@ import java.util.Map;
 /**
  * Created by mahendra-singh on 23/5/14.
  */
+
 public class PricingInformation implements Serializable {
 
     private boolean isLCC;

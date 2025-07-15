@@ -1,6 +1,5 @@
 package com.compassites.model.amadeus;
 
-import javax.xml.bind.annotation.XmlElement;
 import java.io.Serializable;
 
 public class AmadeusSession implements Serializable{

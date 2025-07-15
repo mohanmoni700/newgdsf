@@ -1,10 +1,8 @@
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml._2010._06.ticketgtp_v3.AMATicketCancelTransactionRQ;
 import com.amadeus.xml._2010._06.ticketgtp_v3.AMATicketIgnoreRefundRQ;
 import com.amadeus.xml._2010._06.ticketgtp_v3.AMATicketInitRefundRQ;
 import com.amadeus.xml._2010._06.ticketgtp_v3.AMATicketProcessRefundRQ;
-import com.amadeus.xml.farqnq_07_1_1a.FareCheckRules;
 import com.amadeus.xml.tatreq_20_1_1a.*;
 
 import java.math.BigDecimal;

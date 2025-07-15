@@ -50,8 +50,7 @@ public class MessageFactory {  //todo rename
 		com.amadeus.xml.vlsslq_06_1_1a.ObjectFactory factory = new com.amadeus.xml.vlsslq_06_1_1a.ObjectFactory();
 
 		// authenticate request
-		SecurityAuthenticate authenticateRequest = factory
-				.createSecurityAuthenticate();
+		SecurityAuthenticate authenticateRequest = factory.createSecurityAuthenticate();
 
 		// userIdentifier
 		UserIdentifier userId = factory

@@ -11,7 +11,7 @@ import java.io.Serializable;
  * Created by mahendra-singh on 26/5/14.
  */
 public class AmadeusLogin implements Serializable{
-    public AmadeusSession login(){
+    public AmadeusSession login(boolean isStateful){
 
         ServiceHandler serviceHandler= null;
         try {
@@ -19,7 +19,7 @@ public class AmadeusLogin implements Serializable{
         } catch (Exception e) {
             e.printStackTrace();
         }
-        AmadeusSession amadeusSession=map(serviceHandler.logIn());
+        AmadeusSession amadeusSession=map(serviceHandler.logIn(isStateful));
         return amadeusSession;
     }
 

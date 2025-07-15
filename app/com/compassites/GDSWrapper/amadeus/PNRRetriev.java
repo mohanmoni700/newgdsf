@@ -6,9 +6,9 @@
 
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.pnrret_11_3_1a.*;
-import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve.RetrievalFacts;
-import com.amadeus.xml.pnrret_11_3_1a.PNRRetrieve.RetrievalFacts.PersonalFacts;
+import com.amadeus.xml.pnrret_14_1_1a.*;
+import com.amadeus.xml.pnrret_14_1_1a.PNRRetrieve.RetrievalFacts;
+import com.amadeus.xml.pnrret_14_1_1a.PNRRetrieve.RetrievalFacts.PersonalFacts;
 import com.amadeus.xml.tmrxrq_18_1_1a.ItemReferencesAndVersionsType;
 import com.amadeus.xml.tmrxrq_18_1_1a.MiniRuleGetFromRec;
 
@@ -47,9 +47,9 @@ public class PNRRetriev {
         rv.setOption1("A");
         rf.setRetrieve(rv);
         ReservationControlInformationType rid = new ReservationControlInformationType();
-        ReservationControlInformationDetailsTypeI rs=new ReservationControlInformationDetailsTypeI();
+        ReservationControlInformationDetailsType rs =new ReservationControlInformationDetailsType();
         rs.setControlNumber(cnum);
-        rid.setReservation(rs);
+        rid.getReservation().add(rs);
         rf.setReservationOrProfileIdentifier(rid);
         rtr.setRetrievalFacts(rf);
 

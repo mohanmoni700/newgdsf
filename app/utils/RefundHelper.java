@@ -48,7 +48,7 @@ public class RefundHelper {
                     if(segments!=null && !segments.getSegment().isEmpty()) {
                         List<RefundedItineraryType> refundedItineraryTypeList = segments.getSegment();
                         for (RefundedItineraryType refundedSegmentTattoo : refundedItineraryTypeList) {
-                            refundedSegmentTattoos.add(refundedSegmentTattoo.getTattoo());
+                            refundedSegmentTattoos.add(BigInteger.valueOf(refundedSegmentTattoo.getTattoo()));
                         }
                     }
                     perPaxRefundPricingInformation.setRefundedSegmentTattoos(refundedSegmentTattoos);
@@ -57,7 +57,7 @@ public class RefundHelper {
                     PassengerType passengerType = passengers.getPassenger().get(0);
 
                     String paxFullName = passengerType.getFullName();
-                    BigInteger paxTattoo = passengerType.getTattoo();
+                    BigInteger paxTattoo = BigInteger.valueOf(passengerType.getTattoo());
                     perPaxRefundPricingInformation.setFullName(paxFullName);
                     perPaxRefundPricingInformation.setPaxTattoo(paxTattoo);
 
@@ -71,7 +71,7 @@ public class RefundHelper {
 
                             BigDecimal amount = taxType.getAmount();
                             String currency = taxType.getCurrencyCode();
-                            BigInteger decimalPlaces = taxType.getDecimalPlaces();
+                            BigInteger decimalPlaces = BigInteger.valueOf(taxType.getDecimalPlaces());
                             String category = taxType.getCategory();
                             String isoCode = taxType.getISOCode();
 
@@ -99,7 +99,7 @@ public class RefundHelper {
                             BigDecimal percent = penalty.getPercent();
                             BigDecimal amount = penalty.getAmount();
                             String currency = penalty.getCurrencyCode();
-                            BigInteger decimalPlaces = penalty.getDecimalPlaces();
+                            BigInteger decimalPlaces = BigInteger.valueOf(penalty.getDecimalPlaces());
                             String penaltyType = penalty.getPenaltyType();
 
                             detailedPenaltyInformation.setPercent(percent);
@@ -126,7 +126,7 @@ public class RefundHelper {
                             CommissionType.CommissionPayableAmount commissionPayableAmount = commission.getCommissionPayableAmount();
                             BigDecimal amount = commissionPayableAmount.getAmount();
                             String currency = commissionPayableAmount.getCurrencyCode();
-                            BigInteger decimalPlaces = commissionPayableAmount.getDecimalPlaces();
+                            BigInteger decimalPlaces = BigInteger.valueOf(commissionPayableAmount.getDecimalPlaces());
 
                             detailedCommissionInformation.setPercent(percent);
                             detailedCommissionInformation.setAmount(amount);
@@ -150,7 +150,7 @@ public class RefundHelper {
                             String qualifier = monetaryInformation.getQualifier();
                             BigDecimal amount = monetaryInformation.getAmount();
                             String currency = monetaryInformation.getCurrencyCode();
-                            BigInteger decimalPlaces = monetaryInformation.getDecimalPlaces();
+                            BigInteger decimalPlaces = BigInteger.valueOf(monetaryInformation.getDecimalPlaces());
 
                             detailedMonetaryInformation.setQualifier(qualifier);
                             detailedMonetaryInformation.setAmount(amount);

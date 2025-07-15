@@ -1,6 +1,5 @@
 package services;
 
-import com.amadeus.xml.tatreq_20_1_1a.*;
 import com.amadeus.xml.tatres_20_1_1a.CouponInformationDetailsTypeI;
 import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
@@ -31,7 +30,7 @@ public class OpenTicketReportServiceImpl implements OpenTicketReportService {
         List<OpenTicketResponse> openTicketResponse = null;
         try {
             logger.debug("openTicketReport request "+ Json.toJson(ticketDTOList));
-            amadeusSessionWrapper = serviceHandler.logIn();
+            amadeusSessionWrapper = serviceHandler.logIn(true);
             ticketProcessEDocReply = serviceHandler.ticketProcessEDocReply(amadeusSessionWrapper, ticketDTOList);
             openTicketResponse = createOpenTicketResponse(ticketProcessEDocReply);
         } catch (Exception e) {
