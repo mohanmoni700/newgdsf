@@ -1351,18 +1351,27 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
                     String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
                     System.out.println(tstRefNo);
-                    logger.debug("checkFareChangeAndAvailability called..........." + pnrResponse);
+                    logger.debug("checkFareChangeAndAvailability called...........{}", pnrResponse);
+
+                    gdsPNRReplyBenzy = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
+
+                    //Fetching the creation office ID here and always logging in using the creation office ID to give ES entry to other office ID's (Avoids Secured PNR and Office ID not responsible error)
+                    String creationOfficeId = getCreationOfficeId(gdsPNRReplyBenzy);
+                    if (!creationOfficeId.equalsIgnoreCase(officeId)) {
+                        amadeusSessionWrapper = serviceHandler.logIn(creationOfficeId);
+                    }
+
                     gdsPNRReplyBenzy = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
                     //pnrResponse.setPnrNumber(tstRefNo);
                     Boolean error = Boolean.FALSE;
+
                     gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 
-                    boolean isSimultaneousChangeToPnr = checkForSimultaneousChange(gdsPNRReplyBenzy);
+                    boolean isSimultaneousChangeToPnr = checkForSimultaneousChange(gdsPNRReply);
 
                     if(isSimultaneousChangeToPnr) {
                         gdsPNRReply = handleSimultaneousChangeForEsEntry(amadeusSessionWrapper,amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                     }
-
 
                     if (!gdsPNRReply.getGeneralErrorInfo().isEmpty()) {
                         Thread.sleep(20000);
@@ -1499,6 +1508,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
         return pnrResponse;
     }
 
+    private static String getCreationOfficeId(PNRReply pnrReply) {
+        return pnrReply.getSecurityInformation().getResponsibilityInformation().getOfficeId();
+    }
 
     /**
      * Check for Airlines that has to be priced in DELHI Office ID
