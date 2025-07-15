@@ -1,15 +1,20 @@
 package com.compassites.GDSWrapper.amadeus;
 
+import com.amadeus.xml._2010._06.etr_types_v2.ProviderType;
+import com.amadeus.xml._2010._06.servicebookandprice_v1.AMAServiceBookPriceServiceRQ;
 import com.amadeus.xml.tpicgq_17_1_1a.AttributeInformationTypeU;
 import com.amadeus.xml.tpicgq_17_1_1a.AttributeType;
 import com.amadeus.xml.tpicgq_17_1_1a.PricingOptionKeyType;
 import com.amadeus.xml.tpicgq_17_1_1a.ServiceIntegratedCatalogue;
 import com.amadeus.xml.tpscgq_17_1_1a.*;
 import com.compassites.model.AirSegmentInformation;
+import com.compassites.model.BaggageDetails;
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.Journey;
+import dto.AncillaryConfirmPaymentRQ;
 import models.AncillaryServiceRequest;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -430,6 +435,54 @@ public class AncillaryServiceReq {
 
             return serviceStandaloneCatalogue;
 
+        }
+
+        //This Creates the request body for amadeus for ancillary payment confirmation
+        public static AMAServiceBookPriceServiceRQ getAncillaryPaymentConfirmationRequest ( AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ) {
+
+            AMAServiceBookPriceServiceRQ amaServiceBookPriceServiceRQ = new AMAServiceBookPriceServiceRQ();
+            amaServiceBookPriceServiceRQ.setVersion(BigDecimal.valueOf(1));
+
+            Map<String, BaggageDetails> confirmBaggageDetails =  ancillaryConfirmPaymentRQ.getConfirmBaggageDetails();
+
+            List<AMAServiceBookPriceServiceRQ.Product> productList = new ArrayList<>();
+            for(Map.Entry<String,BaggageDetails> entry : confirmBaggageDetails.entrySet() ) {
+
+                String customerRefId = entry.getKey();
+                BaggageDetails baggageDetails = entry.getValue();
+
+                String baggageCode = baggageDetails.getCode();
+                String bkm = baggageDetails.getBkm();
+                String rfic = baggageDetails.getRfic();
+                String rfisc = baggageDetails.getRfisc();
+                String airlineCode = baggageDetails.getCarrierCode();
+
+                AMAServiceBookPriceServiceRQ.Product product = new AMAServiceBookPriceServiceRQ.Product();
+
+                AMAServiceBookPriceServiceRQ.Product.Service service = new AMAServiceBookPriceServiceRQ.Product.Service();
+                service.getCustomerRefIDs().add(customerRefId);
+                service.setTID("1");
+
+                AMAServiceBookPriceServiceRQ.Product.Service.Identifier identifier = new AMAServiceBookPriceServiceRQ.Product.Service.Identifier();
+                identifier.setCode(baggageCode);
+                identifier.setRFIC(rfic);
+                identifier.setRFISC(rfisc);
+                identifier.setBookingMethod(new BigInteger(bkm));
+                service.setIdentifier(identifier);
+
+                ProviderType serviceProvider = new ProviderType();
+                serviceProvider.setCode(airlineCode);
+                service.setServiceProvider(serviceProvider);
+
+                product.setService(service);
+                productList.add(product);
+
+            }
+
+            amaServiceBookPriceServiceRQ.getProduct().addAll(productList);
+
+
+            return amaServiceBookPriceServiceRQ;
         }
 
 

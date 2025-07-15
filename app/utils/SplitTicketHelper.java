@@ -4,7 +4,6 @@ import com.compassites.model.*;
 import com.compassites.model.splitticket.PossibleRoutes;
 import models.SplitTicketTransitAirports;
 import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.beans.BeanUtils;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;

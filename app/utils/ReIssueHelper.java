@@ -2,7 +2,7 @@ package utils;
 
 import com.amadeus.xml._2010._06.retailing_types_v2.ErrorType;
 import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRS;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
@@ -89,8 +89,8 @@ public class ReIssueHelper {
         try {
 
             try {
-                amadeusSession = serviceHandler.logIn(officeId);
-                gdsPNRReply = serviceHandler.retrivePNR(gdsPnr, amadeusSession);
+                amadeusSession = serviceHandler.logIn(officeId, true);
+                gdsPNRReply = serviceHandler.retrievePNR(gdsPnr, amadeusSession);
             } catch (NullPointerException e) {
                 logger.error("Error in Retrieving Reissued PNR {}", e.getMessage());
             } catch (Exception ex) {
@@ -110,7 +110,7 @@ public class ReIssueHelper {
             checkSegmentStatus(gdsPNRReply);
 
 
-            String pnr = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber();
+            String pnr = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().get(0).getControlNumber();
             pnrResponse.setPnrNumber(pnr);
 
             //Creating Amadeus Pax Reference and Line number here
@@ -157,8 +157,8 @@ public class ReIssueHelper {
         try {
 
             try {
-                amadeusSession = serviceHandler.logIn(officeID);
-                gdsPNRReply = serviceHandler.retrivePNR(pnr, amadeusSession);
+                amadeusSession = serviceHandler.logIn(officeID, true);
+                gdsPNRReply = serviceHandler.retrievePNR(pnr, amadeusSession);
             } catch (NullPointerException e) {
                 logger.error("Error in Retrieving Failed Reissue PNR {}", e.getMessage());
             } catch (Exception ex) {
@@ -184,7 +184,7 @@ public class ReIssueHelper {
             Date lastPNRAddMultiElements = new Date();
             getAirlinePnr(gdsPNRReply, lastPNRAddMultiElements, pnrResponse, amadeusSession, serviceHandler);
 
-            pnr = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber();
+            pnr = gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().get(0).getControlNumber();
 
             pnrResponse.setPricingInfo(pricingInfo);
             pnrResponse.setCreationOfficeId(gdsPNRReply.getSecurityInformation().getSecondRpInformation().getCreationOfficeId());
@@ -240,7 +240,7 @@ public class ReIssueHelper {
 
                 pnrResponse.setAirlinePNRError(true);
                 for (PNRReply.PnrHeader pnrHeader : pnrReply.getPnrHeader()) {
-                    pnrResponse.setPnrNumber(pnrHeader.getReservationInfo().getReservation().getControlNumber());
+                    pnrResponse.setPnrNumber(pnrHeader.getReservationInfo().getReservation().get(0).getControlNumber());
                 }
                 throw new BaseCompassitesException("Simultaneous Changes Error");
             } else {

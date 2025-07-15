@@ -1,8 +1,7 @@
 package services;
 
-
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply.QueueView.Item;
 import com.compassites.GDSWrapper.amadeus.QueueListReq;
@@ -44,7 +43,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
+        AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(true);
 
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getWaitListConfirmRequest(), amadeusSessionWrapper);
 
@@ -58,7 +57,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
             PNRReply pnrReply = null;
             try {
 
-                pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+                pnrReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
                 for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()){
                     for(ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()){
                         String segmentStatus = itineraryInfo.getRelatedProduct().getStatus().get(0);
@@ -106,7 +105,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        amadeusSessionWrapper = serviceHandler.logIn();
+        amadeusSessionWrapper = serviceHandler.logIn(true);
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getSegmentWaitListConfirmReq(), amadeusSessionWrapper);
         if(queueListReply.getQueueView() == null){
             return null;
@@ -117,7 +116,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
             String pnr = item.getRecLoc().getReservation().getControlNumber();
             gdsLogger.debug("PNR Number returned =========>>> : " + pnr);
             try {
-                PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+                PNRReply pnrReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
                 EnumSet<AmadeusConstants.CONFIRMATION_SEGMENT_STATUS> segmentStatuses = EnumSet.allOf(AmadeusConstants.CONFIRMATION_SEGMENT_STATUS.class);
                 for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
                     for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
@@ -163,7 +162,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
+        AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(true);
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getScheduleChangesRequest(),amadeusSessionWrapper);
         if(queueListReply.getQueueView() == null){
             return null;
@@ -175,7 +174,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
             gdsLogger.debug("PNR Number returned =========>>> : " + pnr);
 
             try {
-                PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+                PNRReply pnrReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
 
                 for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
                     for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
@@ -225,7 +224,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        amadeusSessionWrapper = serviceHandler.logIn();
+        amadeusSessionWrapper = serviceHandler.logIn(true);
         QueueListReply queueListReply =  serviceHandler.queueListResponse(QueueListReq.getExpiryTimeRequest(), amadeusSessionWrapper);
         if(queueListReply.getQueueView() == null){
             return null;
@@ -236,7 +235,7 @@ public class AmadeusQueueListServiceImpl implements QueueListService {
             String pnr = item.getRecLoc().getReservation().getControlNumber();
             gdsLogger.debug("PNR Number returned =========>>> : " + pnr);
             try {
-                PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+                PNRReply pnrReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
 
                 for (PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
                     for (ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {

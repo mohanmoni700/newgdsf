@@ -1,8 +1,12 @@
 package services.ancillary;
 
+import com.amadeus.xml._2010._06.servicebookandprice_v1.AMAServiceBookPriceServiceRS;
 import com.amadeus.xml.tpscgr_17_1_1a.*;
+import com.compassites.GDSWrapper.amadeus.AncillaryPaymentConfirmation;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
+import dto.AncillaryConfirmPaymentRQ;
+import dto.AncillaryConfirmPaymentRS;
 import models.AmadeusSessionWrapper;
 import models.AncillaryServiceRequest;
 import org.slf4j.Logger;
@@ -31,7 +35,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
         try {
             serviceHandler = new ServiceHandler();
-            amadeusSessionWrapper = serviceHandler.logIn();
+            amadeusSessionWrapper = serviceHandler.logIn(false);
 
             //1. Getting the BaggageDetails here
             ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getAdditionalBaggageInfoStandalone(amadeusSessionWrapper, ancillaryServiceRequest);
@@ -40,8 +44,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
         } catch (Exception e) {
             logger.debug("Error getting additional baggage ancillary information Standalone{} ", e.getMessage(), e);
-        } finally {
-            serviceHandler.logOut(amadeusSessionWrapper);
         }
 
         return excessBaggageInfoStandalone;
@@ -750,7 +752,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
         try {
             serviceHandler = new ServiceHandler();
-            amadeusSessionWrapper = serviceHandler.logIn();
+            amadeusSessionWrapper = serviceHandler.logIn(false);
 
             //1. Getting the Meals here
             ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getMealsInfoStandalone(amadeusSessionWrapper, ancillaryServiceRequest);
@@ -759,8 +761,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
         } catch (Exception e) {
             logger.debug("Error getting meals information Standalone{} ", e.getMessage(), e);
-        } finally {
-            serviceHandler.logOut(amadeusSessionWrapper);
         }
 
         return mealsInfoStandalone;
@@ -894,6 +894,38 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             logger.debug("Error with add Meals information : {} ", e.getMessage(), e);
             mealsInfoStandalone.setSuccess(false);
         }
+    }
+
+    @Override
+    public AncillaryConfirmPaymentRS getpaymentConfirmAncillaryServices(AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ) {
+
+        AncillaryPaymentConfirmation ancillaryPaymentConfirmation = null;
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        AncillaryConfirmPaymentRS confirmPaymentRS = new AncillaryConfirmPaymentRS();
+        ServiceHandler serviceHandler = null;
+
+        try {
+            serviceHandler = new ServiceHandler();
+            ancillaryPaymentConfirmation = new AncillaryPaymentConfirmation();
+            amadeusSessionWrapper = serviceHandler.logIn(true);
+            serviceHandler.retrievePNR("QX89LI", amadeusSessionWrapper);
+            AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS = ancillaryPaymentConfirmation.bookAndPriceAncillary(amadeusSessionWrapper, ancillaryConfirmPaymentRQ);
+            serviceHandler.savePNRForAncillaryServices(amadeusSessionWrapper);
+            getPaymentConfirmationForAncillaryServices(amaServiceBookPriceServiceRS, confirmPaymentRS);
+
+
+        } catch (Exception e) {
+            logger.debug("Error getting payment confirmation{} ", e.getMessage(), e);
+        } finally {
+            serviceHandler.logOut(amadeusSessionWrapper);
+        }
+
+        return confirmPaymentRS;
+
+    }
+
+    private static void getPaymentConfirmationForAncillaryServices(AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS, AncillaryConfirmPaymentRS confirmPaymentRS) {
+        /// TODO: finish the response body
     }
 
 }

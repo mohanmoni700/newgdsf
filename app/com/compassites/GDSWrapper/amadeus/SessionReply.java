@@ -1,7 +1,7 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import com.amadeus.xml.vlsslr_06_1_1a.SecurityAuthenticateReply;
-import com.amadeus.xml.ws._2009._01.wbs_session_2_0.Session;
+import com.amadeus.xml._2010._06.session_v3.Session;
 
 /**
  * Created by mahendra-singh on 26/5/14.

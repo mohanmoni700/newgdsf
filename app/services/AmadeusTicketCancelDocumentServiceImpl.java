@@ -1,6 +1,6 @@
 package services;
 
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.trcanr_14_1_1a.TicketCancelDocumentReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.ErrorMessage;
@@ -9,7 +9,6 @@ import com.compassites.model.TicketCancelDocumentResponse;
 import models.AmadeusSessionWrapper;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.ErrorMessageHelper;
@@ -39,9 +38,9 @@ public class AmadeusTicketCancelDocumentServiceImpl implements TicketCancelDocum
         try {
             logger.debug("serviceHandler login for PNR : " + pnr);
 
-            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId, true);
 
-            PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+            PNRReply pnrReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
             logger.debug("retrieve PNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
                     + "\n" + Json.toJson(pnrReply));
 

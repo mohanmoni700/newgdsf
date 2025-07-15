@@ -81,8 +81,9 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         try {
             for (FlightSearchOffice office : reissueFlightSearch.getOfficeList()) {
 
-                if (!office.getOfficeId().equalsIgnoreCase("BOMAK38SN")) {
-                    logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
+                if (office.getOfficeId().equals(reIssueSearchRequest.getTicketingOfficeId())) {
+
+                    logger.debug("Searching with office ID : {}", Json.stringify(Json.toJson(office)));
 
                     futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                         public SearchResponse call() throws Exception {

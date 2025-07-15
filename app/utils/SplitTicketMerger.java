@@ -2,7 +2,6 @@ package utils;
 
 import com.compassites.constants.TraveloMatrixConstants;
 import com.compassites.model.*;
-import com.google.gson.Gson;
 import models.FlightSearchOffice;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.springframework.beans.BeanUtils;
 import play.libs.Json;
 
 
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
