@@ -37,10 +37,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.amadeus.AmadeusPaxInformation;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import dto.AmadeusSegmentRefDTO;
-import dto.FareCheckRulesResponse;
-import dto.FreeMealsDetails;
-import dto.FreeSeatDetails;
+import dto.*;
 import dto.reissue.AmadeusPaxRefAndTicket;
 import models.AmadeusSessionWrapper;
 import models.CartAirSegmentDTO;
@@ -2506,6 +2503,30 @@ public class AmadeusBookingServiceImpl implements BookingService {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean addJocoPnrToGdsPnr(AddElementsToPnrDTO addElementsToPnrDTO) {
+
+        try {
+            AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(true);
+
+            String gdsPnr = addElementsToPnrDTO.getGdsPnr();
+            String jocoPnr = addElementsToPnrDTO.getJocoPnr();
+
+            serviceHandler.retrievePNR(gdsPnr, amadeusSessionWrapper);
+
+            PNRReply pnrReply = serviceHandler.addJocoPnrBookingInfoToPNR(jocoPnr, amadeusSessionWrapper);
+
+            if (pnrReply != null && pnrReply.getGeneralErrorInfo() != null && pnrReply.getGeneralErrorInfo().isEmpty()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            logger.debug("Error While Adding Joco PNR to Gds Pnr {} ", e.getMessage(), e);
+            return false;
+        }
     }
 
 }

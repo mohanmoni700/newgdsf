@@ -1,5 +1,6 @@
 package services;
 
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.compassites.GDSWrapper.mystifly.*;
 import com.compassites.constants.CacheConstants;
 import com.compassites.model.*;
@@ -8,6 +9,8 @@ import com.compassites.model.traveller.PersonalDetails;
 import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
+import dto.AddElementsToPnrDTO;
+import models.AmadeusSessionWrapper;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.*;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.Error;
 import org.slf4j.Logger;
@@ -489,6 +492,11 @@ public class MystiflyBookingServiceImpl implements BookingService {
 		}
 		pnrResponse.setSegmentBaggageMap(map);
 		return pnrResponse;
+	}
+
+	@Override
+	public boolean addJocoPnrToGdsPnr(AddElementsToPnrDTO addElementsToPnrDTO) {
+		return false;
 	}
 
 }

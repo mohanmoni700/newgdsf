@@ -640,7 +640,8 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
                             Thread.sleep(20000);
                             error = Boolean.TRUE;
                         }
-                        System.out.println("error in savePNRES: " + error );
+                        System.out.println("error in savePNRES: " + error);
+
                         if (!error) {
                             benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId(), true);
                             PNRReply pnrReply = serviceHandler.retrievePNR(tstRefNo, benzyAmadeusSessionWrapper);
@@ -752,7 +753,8 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
                             System.out.println("PNR " + tstRefNo);
                             pnr = tstRefNo;
                             System.out.println(tstRefNo);
-                            if (!gdsPNRReply.getGeneralErrorInfo().isEmpty()) {
+                            if (gdsPNRReply.getGeneralErrorInfo().size() != 0) {
+
                                 boolean isWarning = isWarningPNR(gdsPNRReply);
                                 if (isWarning) {
                                     System.out.println("ERROR AT END OF TRANSACTION TIME");
@@ -827,7 +829,8 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
                 createSplitTST(pnrResponse, amadeusSessionWrapper, 1);
 
                 gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-                if (!gdsPNRReply.getGeneralErrorInfo().isEmpty()) {
+                if (gdsPNRReply.getGeneralErrorInfo().size() != 0) {
+
                     pnrResponse.setFlightAvailable(false);
                     ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage(
                             "simultaneousError", ErrorMessage.ErrorType.ERROR, "Amadeus");
@@ -1249,6 +1252,8 @@ public class SplitTicketBookingServiceImpl implements SplitTicketBookingService 
         }
         AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse, travellerMasterInfo);
         readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
+//        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
+
         return pricePNRReply;
     }
 

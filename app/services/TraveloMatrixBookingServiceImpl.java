@@ -23,6 +23,7 @@ import com.compassites.model.travelomatrix.ResponseModels.UpdatePNR.UpdatePNRRes
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.AddElementsToPnrDTO;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import utils.ErrorMessageHelper;
@@ -1037,4 +1038,10 @@ public class TraveloMatrixBookingServiceImpl implements BookingService  {
             }
         }
     }
+
+    @Override
+    public boolean addJocoPnrToGdsPnr(AddElementsToPnrDTO addElementsToPnrDTO) {
+        return false;
+    }
+
 }
