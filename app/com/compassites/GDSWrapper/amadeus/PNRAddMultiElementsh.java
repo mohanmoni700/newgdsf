@@ -51,12 +51,14 @@ public class PNRAddMultiElementsh {
             dem.getDataElementsIndiv().addAll(addContactInfo(travellerMasterInfo, qualifierNumber));
             dem.getDataElementsIndiv().addAll(addRCEntry(travellerMasterInfo));
 //            dem.getDataElementsIndiv().addAll(addSkEntry(travellerMasterInfo));
+
         }
 
 
         element.setDataElementsMaster(dem);
         return element;
     }
+
 
     public void addLiveEntry(PNRAddMultiElements element, TravellerMasterInfo travellerMasterInfo) {
 
@@ -208,6 +210,7 @@ public class PNRAddMultiElementsh {
 
             String passengerType = DateUtility.getPassengerTypeFromDOB(traveller.getPassportDetails().getDateOfBirth()).toString();
             if (isSplitTicket) {
+              
                 FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
                 if (flightItinerary.getJourneyList().get(0).isSeamen()) {
                     passenger.setType(PassengerTypeCode.SEA.toString());
@@ -225,6 +228,7 @@ public class PNRAddMultiElementsh {
 
             PNRAddMultiElements.TravellerInfo.PassengerData infantPassengerData = null;
             if (!isSeamen && "ADT".equalsIgnoreCase(passengerType) && !infantTravellerList.isEmpty()) {
+
                 passenger.setInfantIndicator("3");
                 infantPassengerData = addInfantAssociation(infantTravellerList.get(infantIndex));
                 infantTravellerList.remove(infantIndex);
@@ -244,6 +248,7 @@ public class PNRAddMultiElementsh {
     }
 
     public PNRAddMultiElements.TravellerInfo.PassengerData addInfantAssociation(Traveller traveller) {
+
 
         PNRAddMultiElements.TravellerInfo.PassengerData passengerData = new PNRAddMultiElements.TravellerInfo.PassengerData();
         TravellerInformationTypeI travellerInformation = new TravellerInformationTypeI();
@@ -797,6 +802,7 @@ public class PNRAddMultiElementsh {
 
     public PNRAddMultiElements.DataElementsMaster.DataElementsIndiv addMealPreference(com.compassites.model.traveller.Traveller traveller, int qualifierNumber,
                                                                                       int passengerRefNumber, List<String> segmentNumbers) {
+
 
         PNRAddMultiElements.DataElementsMaster.DataElementsIndiv de = new PNRAddMultiElements.DataElementsMaster.DataElementsIndiv();
         ElementManagementSegmentType elementManagementData = new ElementManagementSegmentType();
@@ -1410,6 +1416,7 @@ public class PNRAddMultiElementsh {
         return false;
     }
 
+
     public PNRAddMultiElements savePnrForAncillaryPayment() {
 
         PNRAddMultiElements element = new PNRAddMultiElements();
@@ -1615,6 +1622,5 @@ public class PNRAddMultiElementsh {
 
         return element;
     }
-
 
 }
