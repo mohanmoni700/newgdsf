@@ -944,4 +944,20 @@ public class ServiceHandler {
     }
 
 
+    //This method is used to add Joco Pnr post booking success PNR
+    public PNRReply addJocoPnrBookingInfoToPNR(String jocoPnr, AmadeusSessionWrapper amadeusSessionWrapper) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
+        logger.debug("Amadeus Add Joco PNR Info to PNR called   at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
+
+        PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().addJocoPnrNumberEntryToGdsPnr(jocoPnr);
+        amadeusLogger.debug("PNRAddMultiElements Request -- Add Joco PNR Info to PNR {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
+        PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
+        amadeusLogger.debug("PNRReply -- Add Joco PNR Info to PNR {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+
+        return pnrReply;
+    }
+
+
 }

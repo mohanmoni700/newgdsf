@@ -11,6 +11,7 @@ import com.travelport.schema.air_v26_0.*;
 import com.travelport.schema.common_v26_0.*;
 import com.travelport.schema.universal_v26_0.*;
 import com.travelport.service.air_v26_0.AirFaultMessage;
+import dto.AddElementsToPnrDTO;
 import org.apache.commons.lang3.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -523,4 +524,10 @@ public class TravelportBookingServiceImpl implements BookingService {
 
         return cancelFeeText.toString();
     }
+
+	@Override
+	public boolean addJocoPnrToGdsPnr(AddElementsToPnrDTO addElementsToPnrDTO) {
+		return false;
+	}
+
 }

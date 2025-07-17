@@ -29,10 +29,12 @@ public class ReIssueBookingServiceImpl implements ReIssueBookingService {
     @Autowired
     public ReIssueBookingServiceImpl(ReIssueConfirmationHandler reIssueConfirmationHandler, ServiceHandler commonServiceHandler,
                                      AmadeusSessionManager amadeusSessionManager, ReIssueHelper reIssueHelper) {
+
         this.reIssueConfirmationHandler = reIssueConfirmationHandler;
         this.commonServiceHandler = commonServiceHandler;
         this.amadeusSessionManager = amadeusSessionManager;
         this.reIssueHelper = reIssueHelper;
+
     }
 
     static Logger logger = LoggerFactory.getLogger("gds");

@@ -34,6 +34,7 @@ import java.util.*;
 
 import static com.compassites.constants.StaticConstatnts.*;
 import static play.mvc.Controller.request;
+import static play.mvc.Results.badRequest;
 import static play.mvc.Results.ok;
 
 @org.springframework.stereotype.Controller
@@ -817,6 +818,21 @@ public class Application {
             chunks.add((List<OpenTicketDTO>) new ArrayList<>(list.subList(i, end)));
         }
         return chunks;
+    }
+
+    public Result addElementsToPnrPostBookingSuccess() {
+
+        JsonNode json = request().body().asJson();
+
+        AddElementsToPnrDTO addElementsToPnrDTO = Json.fromJson(json, AddElementsToPnrDTO.class);
+
+        boolean isSuccess = bookingService.addJocoPnrToGdsPnr(addElementsToPnrDTO);
+
+        if (isSuccess) {
+            return ok("Success");
+        } else {
+            return badRequest("Fail");
+        }
     }
 
     public Result home() {
