@@ -1,6 +1,7 @@
 package services;
 
 import com.compassites.GDSWrapper.mystifly.Mystifly;
+import com.compassites.constants.IndigoConstants;
 import com.compassites.constants.TraveloMatrixConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import services.indigo.IndigoFlightService;
 import utils.PNRRequest;
 
 import java.io.IOException;
@@ -42,6 +44,8 @@ public class BookingServiceWrapper {
 
 	@Autowired
 	private SplitTicketBookingService splitTicketBookingService;
+	@Autowired
+	private IndigoFlightService indigoFlightService;
 
 	private LowestFareService amadeusLowestFareService;
 
@@ -82,6 +86,8 @@ public class BookingServiceWrapper {
 			}
 		} else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)) {
 			pnrResponse =	traveloMatrixBookingService.generatePNR(travellerMasterInfo);
+		} else if (IndigoConstants.provider.equalsIgnoreCase(provider)) {
+			pnrResponse = indigoFlightService.generatePNR(travellerMasterInfo);
 		}
 		return pnrResponse;
 	}
@@ -166,6 +172,8 @@ public class BookingServiceWrapper {
 					.checkFareChangeAndAvailability(travellerMasterInfo);
 		}else if (TraveloMatrixConstants.provider.equalsIgnoreCase(provider)){
 			pnrResponse =traveloMatrixBookingService.checkFareChangeAndAvailability(travellerMasterInfo);
+		} else if(IndigoConstants.provider.equalsIgnoreCase(provider)) {
+			pnrResponse = indigoFlightService.checkFareChangeAndAvailability(travellerMasterInfo);
 		}
 
 		return pnrResponse;

@@ -39,7 +39,6 @@ public class IndigoFlightSearch implements FlightSearch {
             RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
             Request request = new Request.Builder().url(endPoint).post(requestBody).build();
             try (Response response = client.newCall(request).execute()) {
-                //System.out.println("Indigo "+response.body().string());
                 if (response.isSuccessful()) {
                     String responseBody = response.body().string();
                     SearchResponse searchResponse = objectMapper.readValue(responseBody, SearchResponse.class);
