@@ -1981,7 +1981,6 @@ public class AmadeusBookingHelper {
         try {
 
             Map<String, FareCheckRulesReply> fareReplies = fareRules.processFareRulesJourneyWise(amadeusSessionWrapper, fareComponents);
-            logger.debug("Fare replies: {}", fareReplies);
 
             if (fareReplies.isEmpty()) {
                 logger.warn("No fare rules retrieved for components: {}", fareComponents);

@@ -147,6 +147,7 @@ public class AmadeusFlightSearch implements FlightSearch {
             searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
         } finally {
+            //Commenting this out because in Soap 4.0, FMPTBS is a stateless call and if any issues, make it a stateful call use getSession at login and uncomment the below line
 //            amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
         }
 

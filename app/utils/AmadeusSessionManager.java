@@ -69,42 +69,6 @@ public class AmadeusSessionManager {
         return getSession(office);
     }
 
-    public synchronized AmadeusSessionWrapper getSession(FlightSearchOffice office) throws InterruptedException {
-
-        logger.debug("AmadeusSessionManager getSession called");
-        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextListByOfficeId(office.getOfficeId());
-
-        int count = 0;
-        for (AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList) {
-            count++;
-            if (amadeusSessionWrapper.isQueryInProgress()) {
-                continue;
-            }
-            Period p = new Period(new DateTime(amadeusSessionWrapper.getLastQueryDate()), new DateTime(), PeriodType.minutes());
-            int inactivityTimeInMinutes = p.getMinutes();
-            if (inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT) {
-                amadeusSessionWrapper.delete();
-                continue;
-            }
-            amadeusSessionWrapper.setQueryInProgress(true);
-            amadeusSessionWrapper.setLastQueryDate(new Date());
-            amadeusSessionWrapper.save();
-            logger.debug("Returning existing session .........................................{}", amadeusSessionWrapper.getmSession().value.getSessionId());
-            System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
-            return amadeusSessionWrapper;
-        }
-
-        if (count >= AmadeusConstants.SESSION_POOL_SIZE) {
-            logger.debug("Amadeus session pooling max connection size reached waiting for connection...................");
-            Thread.sleep(2000);
-            getSession(office);
-        } else {
-            return createSession(office);
-        }
-
-        return null;
-    }
-
     public AmadeusSessionWrapper createSessionWrapper(Session session) {
         AmadeusSessionWrapper amadeusSessionWrapper = new AmadeusSessionWrapper();
         amadeusSessionWrapper.setActiveContext(false);
@@ -172,6 +136,66 @@ public class AmadeusSessionManager {
         amadeusSessionWrapper.setStateful(true);
         return amadeusSessionWrapper;
 
+    }
+
+    public synchronized AmadeusSessionWrapper getSession(FlightSearchOffice office) throws InterruptedException {
+        return getSession(office, 0);
+    }
+
+    private synchronized AmadeusSessionWrapper getSession(FlightSearchOffice office, int recursionDepth) throws InterruptedException {
+        logger.debug("AmadeusSessionManager getSession called, recursionDepth={}", recursionDepth);
+        List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextListByOfficeId(office.getOfficeId());
+
+        int count = 0;
+        for (AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList) {
+            count++;
+            if (amadeusSessionWrapper.isQueryInProgress()) {
+                continue;
+            }
+            Period p = new Period(new DateTime(amadeusSessionWrapper.getLastQueryDate()), new DateTime(), PeriodType.minutes());
+            int inactivityTimeInMinutes = p.getMinutes();
+            if (inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT) {
+                amadeusSessionWrapper.delete();
+                continue;
+            }
+            amadeusSessionWrapper.setQueryInProgress(true);
+            amadeusSessionWrapper.setLastQueryDate(new Date());
+            amadeusSessionWrapper.save();
+            logger.debug("Returning existing session .........................................{}", amadeusSessionWrapper.getmSession().value.getSessionId());
+            System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
+            return amadeusSessionWrapper;
+        }
+
+        if (count >= AmadeusConstants.SESSION_POOL_SIZE) {
+
+            if (recursionDepth >= 2) {
+
+                logger.error("Recursed Twice, Unsetting query In progress");
+                for (AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList) {
+
+                    Period p = new Period(new DateTime(amadeusSessionWrapper.getLastQueryDate()), new DateTime(), PeriodType.minutes());
+                    int inactivityTimeInMinutes = p.getMinutes();
+
+                    if (amadeusSessionWrapper.isQueryInProgress() && inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT) {
+                        amadeusSessionWrapper.delete();
+                        System.out.println("Unset Query In progress");
+                        logger.debug("Unset Query In Progress {} ", amadeusSessionWrapper.getmSession().value.getSessionId());
+                        continue;
+                    }
+
+                    amadeusSessionWrapper.setQueryInProgress(true);
+                    amadeusSessionWrapper.setLastQueryDate(new Date());
+                    amadeusSessionWrapper.save();
+                    System.out.println("Returning existing session after 2 recursions........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
+                    return amadeusSessionWrapper;
+                }
+            }
+            logger.debug("Amadeus session pooling max connection size reached, waiting for connection...");
+            Thread.sleep(2000);
+            return getSession(office, recursionDepth + 1);
+        } else {
+            return createSession(office);
+        }
     }
 
 }

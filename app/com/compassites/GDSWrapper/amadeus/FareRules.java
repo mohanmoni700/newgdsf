@@ -92,6 +92,7 @@ public class FareRules {
         itemNumberDetails.setNumber("1");
         itemNumber.getItemNumberDetails().add(itemNumberDetails);
 
+        //TODO: Comment this out when optimising this for single API call
         List<FareCheckRules.ItemNumber.ItemNumberDetails> fcItemNumberDetailsList = new ArrayList<>();
         for (Map.Entry<String, String> fcNumber : fareComponentAndJourneyMap.entrySet()) {
             FareCheckRules.ItemNumber.ItemNumberDetails fcItemNumberDetails = new FareCheckRules.ItemNumber.ItemNumberDetails();
@@ -105,7 +106,7 @@ public class FareRules {
 
         FareCheckRules.FareRule fareRule = new FareCheckRules.FareRule();
         FareCheckRules.FareRule.TarifFareRule tarifFareRule = new FareCheckRules.FareRule.TarifFareRule();
-        tarifFareRule.getRuleSectionId().add("16");
+        tarifFareRule.getRuleSectionId().add("PE");
         fareRule.setTarifFareRule(tarifFareRule);
         fareCheckRules.setFareRule(fareRule);
 
@@ -117,6 +118,7 @@ public class FareRules {
         Map<String, FareCheckRulesReply> resultMap = new LinkedHashMap<>();
         List<String> errorMessages = new ArrayList<>();
 
+        //TODO: Multiple API's being fired for each fare component, can be achieved with just one API call after commenting out the FC attribute (Logic Change needed)
         for (Map.Entry<String, String> entry : fareComponentsMap.entrySet()) {
             String itemNumber = entry.getKey();
             String originDestination = entry.getValue();
