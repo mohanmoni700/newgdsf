@@ -2267,8 +2267,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 }
             }
 
+            String segmentStatus = null;
 
-            if (!pnrResponse.getStatus().equalsIgnoreCase("GK")) {
+            if (pnrResponse.getStatus() != null) {
+                segmentStatus = pnrResponse.getStatus();
+            }
+
+            if (segmentStatus != null && !segmentStatus.equalsIgnoreCase("GK")) {
 
                 // fetch generic fare rule
                 pricePNRReply = checkPNRPricing(masterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
@@ -2517,6 +2522,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
             serviceHandler.retrievePNR(gdsPnr, amadeusSessionWrapper);
 
             PNRReply pnrReply = serviceHandler.addJocoPnrBookingInfoToPNR(jocoPnr, amadeusSessionWrapper);
+
+            serviceHandler.savePNR(amadeusSessionWrapper);
 
             if (pnrReply != null && pnrReply.getGeneralErrorInfo() != null && pnrReply.getGeneralErrorInfo().isEmpty()) {
                 return true;
