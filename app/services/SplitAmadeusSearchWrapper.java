@@ -6,6 +6,7 @@ import com.compassites.constants.CacheConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
@@ -36,6 +37,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
@@ -92,7 +94,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         return responses;
     }
 
-    public void splitTicketSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic) throws Exception {
+    public void splitTicketSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) throws Exception {
         final String redisKey = originalSearchRequest.redisKey();
         try {
             System.out.println("searchParameters "+Json.toJson(searchParameters));
@@ -180,7 +182,16 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
                                 }
                             }
                             System.out.println(fromLocation+"  -  "+toLocation);
-                            flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, concurrentHashMap, isSourceAirportDomestic);
+                            ObjectMapper mapper = new ObjectMapper();
+                            String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(concurrentHashMap);
+                            logger.debug("Before "+json);
+                            
+                             // Log the map before sorting
+                            //sorting the flight itineraries by first journey stops
+                            //flightItineraries = splitTicketMerger.connectingSegments(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic);
+                            flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
+
+                            //flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, concurrentHashMap, isSourceAirportDomestic);
                             logger.info("Split Search Result " + Json.toJson(flightItineraries));
                             AirSolution airSolution = new AirSolution();
                             airSolution.setReIssueSearch(false);
@@ -263,6 +274,29 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
             e.printStackTrace();
         }
     }
+
+    public static ConcurrentHashMap<String, List<FlightItinerary>> sortMapByFirstJourneyStops(
+            ConcurrentHashMap<String, List<FlightItinerary>> flightMap) {
+        logger.debug("Sorting flightMap by first journey stops...");
+        ConcurrentHashMap<String, List<FlightItinerary>> sortedMap = new ConcurrentHashMap<>();
+
+        for (Map.Entry<String, List<FlightItinerary>> entry : flightMap.entrySet()) {
+            String key = entry.getKey();
+            List<FlightItinerary> itineraries = entry.getValue();
+
+            List<FlightItinerary> sortedList = itineraries.stream()
+                    .sorted(Comparator.comparingInt(itinerary -> {
+                        List<Journey> journeys = itinerary.getJourneyList();
+                        return (journeys != null && !journeys.isEmpty()) ? journeys.get(0).getNoOfStops() : Integer.MAX_VALUE;
+                    }))
+                    .collect(Collectors.toList());
+
+            sortedMap.put(key, sortedList);
+        }
+
+        return sortedMap;
+    }
+
 
     private boolean validResponse(SearchResponse response){
         if ((response != null) && (response.getAirSolution() != null)){

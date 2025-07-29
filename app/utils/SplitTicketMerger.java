@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import play.libs.Json;
 
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -173,6 +174,58 @@ public class SplitTicketMerger {
         return searchResponse.getAirSolution().getSeamenHashMap().get(mapKey).getJourneyList();
     }
 
+    public List<FlightItinerary> mergingSplitTicket(String fromLocation,String toLocation, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+        List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+        List<FlightItinerary> mergedResult = new ArrayList<>();
+        if(flightItineraries!=null) {
+            int k=0;
+            for (FlightItinerary flightItinerary : flightItineraries) {
+                System.out.println("K "+k+" fromLocation "+fromLocation);
+                System.out.println("From Loc "+flightItinerary.getJourneyList().get(0).getAirSegmentList().get(0).getFromLocation()+"  size "+flightItinerary.getJourneyList().get(0).getAirSegmentList().size());
+                List<PricingInformation> spiltPrices = new ArrayList<>();
+                FlightItinerary flightItinerary1 = SerializationUtils.clone(flightItinerary);
+                flightItinerary1.setSplitTicket(true);
+                spiltPrices.add(flightItinerary.getPricingInformation());
+                if(isSourceAirportDomestic) {
+                    List<FlightItinerary> newFlightItineraries = createItinerariesJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
+                    if (newFlightItineraries.size() > 0) {
+                        for (FlightItinerary flightItinerary2 : newFlightItineraries) {
+                            List<PricingInformation> newSplitPrice = new ArrayList<>();
+                            FlightItinerary newFlightItinerary1 = SerializationUtils.clone(flightItinerary1);
+                            newSplitPrice.add(newFlightItinerary1.getPricingInformation());
+                            newSplitPrice.add(flightItinerary2.getPricingInformation());
+                            newFlightItinerary1.getJourneyList().addAll(flightItinerary2.getJourneyList());
+                            createTotalPricing(newSplitPrice, newFlightItinerary1);
+                            newFlightItinerary1.setSplitPricingInformationList(newSplitPrice);
+                            String toLoc = newFlightItinerary1.getJourneyList().get(newFlightItinerary1.getJourneyList().size() - 1).getToLocation();
+
+                            System.out.println("fromLocation " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                            logger.debug("fromLocation " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                            if (toLoc != null && isAllSegmentMerged(toLocation, newFlightItinerary1) && toLoc.equalsIgnoreCase(toLocation)) {
+                                mergedResult.add(newFlightItinerary1);
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("isDestinationAirportDomestic"+ isDestinationAirportDomestic);
+                    toLocation = "VXE";
+                    creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
+                    String toLoc = flightItinerary1.getJourneyList().get(flightItinerary1.getJourneyList().size() - 1).getToLocation();
+                    System.out.println("fromLocation else " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                    logger.debug("fromLocation else " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                    if (toLoc != null && isAllSegmentMerged(toLocation, flightItinerary1) && toLoc.equalsIgnoreCase(toLocation)) {
+                        createTotalPricing(spiltPrices, flightItinerary1);
+                        flightItinerary1.setSplitPricingInformationList(spiltPrices);
+                        mergedResult.add(flightItinerary1);
+                    }
+                }
+                k++;
+            }
+        }
+        return mergedResult;
+    }
+
+    /*
     public List<FlightItinerary> mergingSplitTicket(String fromLocation,String toLocation, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic) {
         List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
         List<FlightItinerary> mergedResult = new ArrayList<>();
@@ -228,7 +281,7 @@ public class SplitTicketMerger {
                             flightItinerary2.setSplitPricingInformationList(spiltPrices);
                             mergedResult.add(flightItinerary2);
                         }
-                    }*/
+                    }
                 }
                 /*creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
                 String toLoc = flightItinerary1.getJourneyList().get(flightItinerary1.getJourneyList().size() - 1).getToLocation();
@@ -255,12 +308,143 @@ public class SplitTicketMerger {
                         }
                     }
                 }
-                k++;*/
                 k++;
+                k++;
+                        }
+                        }
+                        return mergedResult;
+                        }
+    */
+    public List<FlightItinerary> connectingSegments(String fromLocation, String toLocation, ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic) {
+        List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+        List<FlightItinerary> mergedResult = new ArrayList<>();
+        if (flightItineraries != null) {
+            for (FlightItinerary flightItinerary : flightItineraries) {
+                List<PricingInformation> splitPrices = new ArrayList<>();
+                FlightItinerary clonedItinerary = SerializationUtils.clone(flightItinerary);
+                clonedItinerary.setSplitTicket(true);
+                splitPrices.add(flightItinerary.getPricingInformation());
+
+                if (flightItinerary.getJourneyList().get(0).getNoOfStops() == 1 || flightItinerary.getJourneyList().get(0).getNoOfStops() == 0) {
+                    for (FlightItinerary otherItinerary : flightItineraries) {
+                        if (!flightItinerary.equals(otherItinerary)) {
+                            FlightItinerary mergedItinerary = SerializationUtils.clone(clonedItinerary);
+                            mergedItinerary.getJourneyList().addAll(otherItinerary.getJourneyList());
+                            splitPrices.add(otherItinerary.getPricingInformation());
+                            createTotalPricing(splitPrices, mergedItinerary);
+                            mergedItinerary.setSplitPricingInformationList(splitPrices);
+                            mergedResult.add(mergedItinerary);
+
+                            // Limit the size of mergedResult to prevent memory overflow
+                            if (mergedResult.size() >= 80) {
+                                return mergedResult;
+                            }
+                        }
+                    }
+                } else {
+                    if (isSourceAirportDomestic) {
+                        List<FlightItinerary> newItineraries = createItinerariesJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        for (FlightItinerary newItinerary : newItineraries) {
+                            List<PricingInformation> newSplitPrices = new ArrayList<>(splitPrices);
+                            newSplitPrices.add(newItinerary.getPricingInformation());
+                            clonedItinerary.getJourneyList().addAll(newItinerary.getJourneyList());
+                            createTotalPricing(newSplitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(newSplitPrices);
+                            if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                                mergedResult.add(clonedItinerary);
+
+                                // Limit the size of mergedResult to prevent memory overflow
+                                if (mergedResult.size() >= 80) {
+                                    return mergedResult;
+                                }
+                            }
+                        }
+                    } else {
+                        creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                            createTotalPricing(splitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(splitPrices);
+                            mergedResult.add(clonedItinerary);
+
+                            // Limit the size of mergedResult to prevent memory overflow
+                            if (mergedResult.size() >= 80) {
+                                return mergedResult;
+                            }
+                        }
+                    }
+                }
             }
         }
         return mergedResult;
     }
+
+    /*
+    public List<FlightItinerary> connectingSegments(String fromLocation, String toLocation, ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic) {
+        List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+        List<FlightItinerary> mergedResult = new ArrayList<>();
+        if (flightItineraries != null) {
+            for (FlightItinerary flightItinerary : flightItineraries) {
+                List<PricingInformation> splitPrices = new ArrayList<>();
+                FlightItinerary clonedItinerary = SerializationUtils.clone(flightItinerary);
+                clonedItinerary.setSplitTicket(true);
+                splitPrices.add(flightItinerary.getPricingInformation());
+
+                if (flightItinerary.getJourneyList().size() == 1) { // Single leg check
+                    List<FlightItinerary> secondLegItineraries = concurrentHashMap.get(flightItinerary.getToLocation());
+                    if (secondLegItineraries != null) {
+                        for (FlightItinerary secondLeg : secondLegItineraries) {
+                            if (!flightItinerary.equals(secondLeg)) {
+                                FlightItinerary mergedItinerary = SerializationUtils.clone(clonedItinerary);
+                                mergedItinerary.getJourneyList().addAll(secondLeg.getJourneyList());
+                                splitPrices.add(secondLeg.getPricingInformation());
+                                createTotalPricing(splitPrices, mergedItinerary);
+                                mergedItinerary.setSplitPricingInformationList(splitPrices);
+                                mergedResult.add(mergedItinerary);
+                            }
+                        }
+                    }
+                } else {
+                    if (isSourceAirportDomestic) {
+                        List<FlightItinerary> newItineraries = createItinerariesJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        for (FlightItinerary newItinerary : newItineraries) {
+                            List<PricingInformation> newSplitPrices = new ArrayList<>(splitPrices);
+                            newSplitPrices.add(newItinerary.getPricingInformation());
+                            clonedItinerary.getJourneyList().addAll(newItinerary.getJourneyList());
+                            createTotalPricing(newSplitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(newSplitPrices);
+                            if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                                mergedResult.add(clonedItinerary);
+                            }
+                        }
+                    } else {
+                        creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                            createTotalPricing(splitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(splitPrices);
+                            mergedResult.add(clonedItinerary);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove null elements and handle null values in the comparator
+        mergedResult.removeIf(Objects::isNull);
+        mergedResult.sort(Comparator.comparing(itinerary -> {
+            PricingInformation pricingInfo = itinerary.getPricingInformation();
+            return pricingInfo != null && pricingInfo.getTotalPriceValue() != null ? pricingInfo.getTotalPriceValue() : BigDecimal.ZERO;
+        }));
+
+        // Limit the result to 150 entries
+        if (mergedResult.size() > 150) {
+            mergedResult = mergedResult.subList(0, 150);
+        }
+
+        return mergedResult;
+    }
+
+    */
+
 
     private List<FlightItinerary> createItinerariesJourney(String fromLocation, String toLocation, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, FlightItinerary flightItinerary, int count, List<PricingInformation> spiltPrices) {
         List<FlightItinerary> newFlightItineraries = new ArrayList<>();

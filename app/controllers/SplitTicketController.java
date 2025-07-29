@@ -48,7 +48,7 @@ public class SplitTicketController {
         ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap = new ConcurrentHashMap<>();
         List<SearchResponse> responses = splitTicketSearchWrapper.splitSearch(searchParameters1,concurrentHashMap,false);
         SplitTicketMerger splitTicketMerger = new SplitTicketMerger();
-        List<FlightItinerary> flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation,toLocation,concurrentHashMap, false);
+        List<FlightItinerary> flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation,toLocation,concurrentHashMap, false, false);
         ConcurrentHashMap<Integer,FlightItinerary> hashMap =  new ConcurrentHashMap<>();
         for (SearchResponse searchResponse2: responses) {
             splitTicketMerger.splitMergeResults(hashMap, searchResponse2);
