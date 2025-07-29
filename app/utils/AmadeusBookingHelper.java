@@ -210,7 +210,7 @@ public class AmadeusBookingHelper {
         String[] names = firstNameResponse.split("\\s");
         firstName = names[0];
 
-        if (names.length > 1) {
+        if (names.length > 0) {
             for (String name : names) {
                 if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms") || name.equalsIgnoreCase("Miss") || name.equalsIgnoreCase("Master") || name.equalsIgnoreCase("Mstr") || name.equalsIgnoreCase("Capt")) {
                     salutation = WordUtils.capitalizeFully(name);

@@ -2089,7 +2089,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 String[] names = firstNameResponse.split("\\s");
                 //personalDetails.setFirstName(names[0]);
 
-                if (names.length > 1) {
+                if (names.length > 0) {
                     //personalDetails.setSalutation(names[names.length-1]);
                     for (String name : names) {
                         if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms")
