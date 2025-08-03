@@ -274,8 +274,18 @@ public class BookingServiceWrapper {
 			issuanceResponse = travelportIssuanceService.priceBookedPNR(issuanceRequest);
 		}else if(PROVIDERS.AMADEUS.toString().equalsIgnoreCase(issuanceRequest.getProvider())){
 			issuanceResponse = amadeusIssuanceService.priceBookedPNR(issuanceRequest);
+		} else if (IndigoConstants.provider.equalsIgnoreCase(issuanceRequest.getProvider())) {
+			issuanceResponse = indigoFlightService.priceBookedPNR(issuanceRequest);
 		}
 
+		return issuanceResponse;
+	}
+
+	public IssuanceResponse issueIndigoTicket(IssuanceRequest issuanceRequest) {
+		IssuanceResponse issuanceResponse = null;
+		if (IndigoConstants.provider.equalsIgnoreCase(issuanceRequest.getProvider())) {
+			issuanceResponse = indigoFlightService.issueTicket(issuanceRequest);
+		}
 		return issuanceResponse;
 	}
 

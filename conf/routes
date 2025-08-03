@@ -73,3 +73,6 @@ POST /showMealsInfoStandalone             @controllers.Application.addMealsReque
 #Report
 POST    /openTicketReport   @controllers.Application.openTicketReport()
 
+#indigo
+POST    /saveBooking   @controllers.Application.saveIndigoBooking()
+

@@ -1,5 +1,7 @@
 package services.indigo;
 
+import com.compassites.model.IssuanceRequest;
+import com.compassites.model.IssuanceResponse;
 import com.compassites.model.PNRResponse;
 import com.compassites.model.SearchResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
@@ -69,5 +71,57 @@ public class IndigoFlightServiceImpl implements IndigoFlightService{
                     " for traveller info: " + Json.toJson(travellerMasterInfo), e);
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public IssuanceResponse priceBookedPNR(IssuanceRequest issuanceRequest) {
+        try {
+            logger.info("Indigo price booked PNR request: " + Json.toJson(issuanceRequest));
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(issuanceRequest);
+            RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
+            Request request = new Request.Builder().url(endPoint+"priceBookedPNR").post(requestBody).build();
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    indigoLogger.debug("Indigo Price Booked PNR Response: " + responseBody);
+                    return objectMapper.readValue(responseBody, IssuanceResponse.class);
+                } else {
+                    logger.error("Failed to fetch data from Indigo API: " + response.message() +
+                            " for traveller info: " + Json.toJson(issuanceRequest));
+                    throw new Exception("Failed to fetch data from Indigo API: " + response.message());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during Indigo price booked PNR: " + e.getMessage() +
+                    " for issuance request: " + Json.toJson(issuanceRequest), e);
+        }
+        return null;
+    }
+
+    @Override
+    public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest) {
+        logger.debug("Indigo issue ticket request: " + Json.toJson(issuanceRequest));
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(issuanceRequest);
+            RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
+            Request request = new Request.Builder().url(endPoint+"issueTicket").post(requestBody).build();
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    indigoLogger.debug("Indigo Issue Ticket Response: " + responseBody);
+                    return objectMapper.readValue(responseBody, IssuanceResponse.class);
+                } else {
+                    logger.error("Failed to fetch data from Indigo API: " + response.message() +
+                            " for issuance request: " + Json.toJson(issuanceRequest));
+                    throw new Exception("Failed to fetch data from Indigo API: " + response.message());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during Indigo issue ticket: " + e.getMessage() +
+                    " for issuance request: " + Json.toJson(issuanceRequest), e);
+        }
+        return null;
     }
 }

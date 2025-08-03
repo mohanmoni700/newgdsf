@@ -51,6 +51,16 @@ public class IssuanceResponse implements Serializable{
 
     private boolean isIssued;
 
+    private String expirationDate;
+
+    public String getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(String expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
     private Map<String,FareCheckRulesResponse> fareCheckRulesResponseMap;
 
     private Map<String, String> airlinePNRMap;

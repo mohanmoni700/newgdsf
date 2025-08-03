@@ -363,6 +363,16 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
+    public Result saveIndigoBooking() {
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        logger.debug("indigoIssueTicket request : " + json);
+        IssuanceResponse issuanceResponse = bookingService.issueIndigoTicket(issuanceRequest);
+        logger.debug("indigoIssueTicket response : " + Json.toJson(issuanceResponse));
+        return ok(Json.toJson(issuanceResponse));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
     public Result getPnrDetails() {
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
