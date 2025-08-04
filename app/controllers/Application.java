@@ -543,6 +543,16 @@ public class Application {
         return ok(Json.toJson(issuanceResponse));
     }
 
+    public Result getAvailableAncillaryServices() {
+        logger.info("getAvailableAncillaryServices called ");
+        JsonNode json = request().body().asJson();
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        logger.debug("ancillaryServiceRequest : " + Json.toJson(travellerMasterInfo));
+        AncillaryServicesResponse ancillaryServiceResponses = ancillaryService.getAvailableAncillaryServices(travellerMasterInfo);
+        logger.debug("ancillaryServiceResponses : " + Json.toJson(ancillaryServiceResponses));
+        return ok(Json.toJson(ancillaryServiceResponses));
+    }
+
     public Result getTicktedMessage() throws RemoteException {
         JsonNode json = request().body().asJson();
         AirMessageQueue airMessageQueue = new AirMessageQueue();

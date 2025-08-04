@@ -1,5 +1,6 @@
 package services.indigo;
 
+import com.compassites.model.AncillaryServicesResponse;
 import com.compassites.model.IssuanceRequest;
 import com.compassites.model.IssuanceResponse;
 import com.compassites.model.PNRResponse;
@@ -11,4 +12,5 @@ public interface IndigoFlightService {
     public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo);
     public IssuanceResponse priceBookedPNR(IssuanceRequest issuanceRequest);
     public IssuanceResponse issueTicket(IssuanceRequest issuanceRequest);
+    public AncillaryServicesResponse getAvailableAncillaryServices(TravellerMasterInfo travellerMasterInfo);
 }

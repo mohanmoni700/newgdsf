@@ -1,9 +1,6 @@
 package services.indigo;
 
-import com.compassites.model.IssuanceRequest;
-import com.compassites.model.IssuanceResponse;
-import com.compassites.model.PNRResponse;
-import com.compassites.model.SearchResponse;
+import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -121,6 +118,32 @@ public class IndigoFlightServiceImpl implements IndigoFlightService{
         } catch (Exception e) {
             logger.error("Error during Indigo issue ticket: " + e.getMessage() +
                     " for issuance request: " + Json.toJson(issuanceRequest), e);
+        }
+        return null;
+    }
+
+    @Override
+    public AncillaryServicesResponse getAvailableAncillaryServices(TravellerMasterInfo travellerMasterInfo) {
+        logger.info("Indigo get available ancillary services request: " + Json.toJson(travellerMasterInfo));
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(travellerMasterInfo);
+            RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
+            Request request = new Request.Builder().url(endPoint+"showAdditionalBaggageInfoStandalone").post(requestBody).build();
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    indigoLogger.debug("Indigo Issue Ticket Response: " + responseBody);
+                    return objectMapper.readValue(responseBody, AncillaryServicesResponse.class);
+                } else {
+                    logger.error("Failed to fetch data from Indigo API: " + response.message() +
+                            " for issuance request: " + Json.toJson(travellerMasterInfo));
+                    throw new Exception("Failed to fetch data from Indigo API: " + response.message());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during Indigo get available ancillary services: " + e.getMessage() +
+                    " for traveller info: " + Json.toJson(travellerMasterInfo), e);
         }
         return null;
     }

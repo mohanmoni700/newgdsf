@@ -1,6 +1,7 @@
 package services.ancillary;
 
 import com.compassites.model.AncillaryServicesResponse;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import models.AncillaryServiceRequest;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,6 @@ public interface AncillaryService {
     AncillaryServicesResponse getAdditionalBaggageInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest);
 
     AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest);
-
+    AncillaryServicesResponse getAvailableAncillaryServices(TravellerMasterInfo travellerMasterInfo);
 }
 
