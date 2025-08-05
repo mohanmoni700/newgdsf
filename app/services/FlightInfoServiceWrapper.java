@@ -32,6 +32,8 @@ public class FlightInfoServiceWrapper {
 	@Autowired
 	private TraveloMatrixFlightInfoService traveloMatrixFlightInfoServiceImpl;
 
+	@Autowired
+	private IndigoFlightInfoService indigoFlightInfoService;
 
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary,
 			SearchParameters searchParams, String provider, boolean seamen) {
@@ -47,6 +49,8 @@ public class FlightInfoServiceWrapper {
 					flightItinerary, searchParams, seamen);
 		}else if ("TraveloMatrix".equalsIgnoreCase(provider)) {
 			response = traveloMatrixFlightInfoServiceImpl.getFlightInfo(flightItinerary);
+		} else if("Indigo".equalsIgnoreCase(provider)) {
+			response = indigoFlightInfoService.getFlightInfo(flightItinerary);
 		}
 		return response;
 	}

@@ -1,0 +1,23 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:web="http://schemas.navitaire.com/WebServices"
+                  xmlns:ses="http://schemas.navitaire.com/WebServices/ServiceContracts/SessionService"
+                  xmlns:ses1="http://schemas.navitaire.com/WebServices/DataContracts/Session"
+                  xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+    <soapenv:Header>
+        <h:ContractVersion xmlns:h="http://schemas.navitaire.com/WebServices">452</h:ContractVersion>
+        <h:EnableExceptionStackTrace xmlns:h="http://schemas.navitaire.com/WebServices">true</h:EnableExceptionStackTrace>
+    </soapenv:Header>
+    <soapenv:Body>
+        <ses:LogonRequest>
+            <ses:logonRequestData>
+                <ses1:DomainCode>WWW</ses1:DomainCode>
+                <ses1:AgentName>IGW2171</ses1:AgentName>
+                <ses1:Password>Indigo$2211</ses1:Password>
+                <ses1:LocationCode i:nil="true" />
+                <ses1:RoleCode i:nil="true" />
+                <ses1:TerminalInfo i:nil="true" />
+                <ses1:ClientName i:nil="true" />
+            </ses:logonRequestData>
+        </ses:LogonRequest>
+    </soapenv:Body>
+</soapenv:Envelope>

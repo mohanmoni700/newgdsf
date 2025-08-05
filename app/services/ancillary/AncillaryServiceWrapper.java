@@ -1,6 +1,11 @@
 package services.ancillary;
 
 import com.compassites.model.AncillaryServicesResponse;
+import com.compassites.model.traveller.TravellerMasterInfo;
+import models.AncillaryServiceRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import services.indigo.IndigoFlightService;
 import dto.AncillaryConfirmPaymentRQ;
 import dto.AncillaryConfirmPaymentRS;
 import models.AncillaryServiceRequest;
@@ -16,6 +21,9 @@ public class AncillaryServiceWrapper implements AncillaryService {
 
     @Autowired
     TravelomatixExtraService travelomatixExtraService;
+
+    @Autowired
+    private IndigoFlightService indigoFlightService;
 
     @Override
     public AncillaryServicesResponse getAdditionalBaggageInfoStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
@@ -57,5 +65,11 @@ public class AncillaryServiceWrapper implements AncillaryService {
         return ancillaryServicesResponse;
     }
 
+    @Override
+    public AncillaryServicesResponse getAvailableAncillaryServices(TravellerMasterInfo travellerMasterInfo) {
+        AncillaryServicesResponse ancillaryServicesResponse = null;
+        ancillaryServicesResponse = indigoFlightService.getAvailableAncillaryServices(travellerMasterInfo);
+        return ancillaryServicesResponse;
+    }
 }
 

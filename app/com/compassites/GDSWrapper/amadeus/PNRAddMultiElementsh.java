@@ -920,10 +920,10 @@ public class PNRAddMultiElementsh {
             freeText = freeText + "/" + traveller.getPassportDetails().getPlaceOfIssue().substring(0, 3);
         }
         freeText = freeText + "/" + fmt.print(dob) + "/" + StringUtility.getGenderCode(traveller.getPersonalDetails().getGender()) + "/" + fmt.print(dateOfExpiry) + "/";
-        String name = traveller.getPersonalDetails().getLastName() + "/" + traveller.getPersonalDetails().getFirstName();
+        String name = traveller.getPersonalDetails().getLastName().replaceAll("\\s+", "") + "/" + traveller.getPersonalDetails().getFirstName().replaceAll("\\s+", "");
 
         if (freeText.length() + name.length() > 70) {
-            name = traveller.getPersonalDetails().getLastName() + "/" + traveller.getPersonalDetails().getFirstName().charAt(0);
+            name = traveller.getPersonalDetails().getLastName().replaceAll("\\s+", "") + "/" + traveller.getPersonalDetails().getFirstName().replaceAll("\\s+", "").charAt(0);
         }
         freeText = freeText + name;
         freeTextList.add(freeText);

@@ -66,6 +66,17 @@ public class IssuanceRequest implements Serializable{
 
     private String ticketingOfficeId;
 
+
+    private String expirationDate;
+
+    public String getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(String expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
     public List<AmadeusPaxRefAndTicket> getAmadeusPaxRefAndTicketList() {
         return amadeusPaxRefAndTicketList;
     }
