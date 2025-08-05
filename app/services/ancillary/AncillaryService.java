@@ -1,6 +1,7 @@
 package services.ancillary;
 
 import com.compassites.model.AncillaryServicesResponse;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import dto.AncillaryConfirmPaymentRQ;
 import dto.AncillaryConfirmPaymentRS;
 import models.AncillaryServiceRequest;
@@ -14,8 +15,8 @@ public interface AncillaryService {
     AncillaryServicesResponse getAdditionalBaggageInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest);
 
     AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest);
+    AncillaryServicesResponse getAvailableAncillaryServices(TravellerMasterInfo travellerMasterInfo);
 
     AncillaryConfirmPaymentRS getAncillaryBaggageConfirm(AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ);
-
 }
 

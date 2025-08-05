@@ -46,6 +46,15 @@ public class TravellerMasterInfo {
     private boolean isChangedPriceHigh;
 
     private String accountName;
+    private String expirationDate;
+
+    public String getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(String expirationDate) {
+        this.expirationDate = expirationDate;
+    }
 
     public String getAccountName() {
         return accountName;

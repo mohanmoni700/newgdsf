@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
@@ -105,6 +106,42 @@ public class AirSegmentInformation implements Serializable{
     private Long availbleSeats;
     private Long fatv;
     private Long fdtv;
+    private String fareSellKey;
+
+    public String getFareSellKey() {
+        return fareSellKey;
+    }
+
+    public void setFareSellKey(String fareSellKey) {
+        this.fareSellKey = fareSellKey;
+    }
+    private String segmentSellKey;
+
+    public String getSegmentSellKey() {
+        return segmentSellKey;
+    }
+
+    public void setSegmentSellKey(String segmentSellKey) {
+        this.segmentSellKey = segmentSellKey;
+    }
+
+    private XMLGregorianCalendar std;
+
+    private XMLGregorianCalendar sta;
+
+    public XMLGregorianCalendar getSTD() {
+        return this.std;
+    }
+
+    public void setSTD(XMLGregorianCalendar value) {
+        this.std = value;
+    }
+    public XMLGregorianCalendar getSTA() {
+        return this.sta;
+    }
+    public void setSTA(XMLGregorianCalendar value) {
+        this.sta = value;
+    }
 
     public Long getFatv() {
         return fatv;

@@ -29,12 +29,15 @@ import services.ancillary.AncillaryService;
 import services.reissue.ReIssueService;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.*;
 
 import static com.compassites.constants.StaticConstatnts.*;
 import static play.mvc.Controller.request;
-import static play.mvc.Results.badRequest;
+import static play.mvc.Results.internalServerError;
 import static play.mvc.Results.ok;
 
 @org.springframework.stereotype.Controller
@@ -86,6 +89,7 @@ public class Application {
     private OpenTicketReportService openTicketReportService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
+    static Logger indigoLogger = LoggerFactory.getLogger("indigo");
 
     public Result flightSearch() {
         logger.debug("Request recieved");
@@ -359,6 +363,16 @@ public class Application {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
+    public Result saveIndigoBooking() {
+        JsonNode json = request().body().asJson();
+        IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
+        logger.debug("indigoIssueTicket request : " + json);
+        IssuanceResponse issuanceResponse = bookingService.issueIndigoTicket(issuanceRequest);
+        logger.debug("indigoIssueTicket response : " + Json.toJson(issuanceResponse));
+        return ok(Json.toJson(issuanceResponse));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
     public Result getPnrDetails() {
         JsonNode json = request().body().asJson();
         IssuanceRequest issuanceRequest = Json.fromJson(json, IssuanceRequest.class);
@@ -527,6 +541,16 @@ public class Application {
         IssuanceResponse issuanceResponse = bookingService.priceBookedPNR(issuanceRequest);
         logger.debug("-----------------IssuanceResponse:\n" + Json.toJson(issuanceResponse));
         return ok(Json.toJson(issuanceResponse));
+    }
+
+    public Result getAvailableAncillaryServices() {
+        logger.info("getAvailableAncillaryServices called ");
+        JsonNode json = request().body().asJson();
+        TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
+        logger.debug("ancillaryServiceRequest : " + Json.toJson(travellerMasterInfo));
+        AncillaryServicesResponse ancillaryServiceResponses = ancillaryService.getAvailableAncillaryServices(travellerMasterInfo);
+        logger.debug("ancillaryServiceResponses : " + Json.toJson(ancillaryServiceResponses));
+        return ok(Json.toJson(ancillaryServiceResponses));
     }
 
     public Result getTicktedMessage() throws RemoteException {
