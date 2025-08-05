@@ -97,6 +97,10 @@ public class AirSegmentInformation implements Serializable{
 
     private String cabinClass;
 
+    private String amadeusSegmentRefNo;
+
+    private int segmentSequenceNumber;
+
     private String baggage;
     private String cabinBaggage;
     private Long availbleSeats;
@@ -544,6 +548,22 @@ public class AirSegmentInformation implements Serializable{
 
     public void setAmadeusSegmentRefNumber(BigInteger amadeusSegmentRefNumber) {
         this.amadeusSegmentRefNumber = amadeusSegmentRefNumber;
+    }
+
+    public String getAmadeusSegmentRefNo() {
+        return amadeusSegmentRefNo;
+    }
+
+    public void setAmadeusSegmentRefNo(String amadeusSegmentRefNo) {
+        this.amadeusSegmentRefNo = amadeusSegmentRefNo;
+    }
+
+    public int getSegmentSequenceNumber() {
+        return segmentSequenceNumber;
+    }
+
+    public void setSegmentSequenceNumber(int segmentSequenceNumber) {
+        this.segmentSequenceNumber = segmentSequenceNumber;
     }
 
 }

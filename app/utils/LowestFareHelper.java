@@ -1,12 +1,10 @@
 package utils;
 
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.tplprr_12_4_1a.BaggageDetailsTypeI;
-import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply.FareList.TaxInformation;
 import com.amadeus.xml.tplprr_12_4_1a.MonetaryInformationDetailsType223844C;
-import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
 import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.PassengerTax;
 import com.compassites.model.PricingInformation;

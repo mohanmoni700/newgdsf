@@ -6,8 +6,13 @@ import models.AncillaryServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import services.indigo.IndigoFlightService;
+import dto.AncillaryConfirmPaymentRQ;
+import dto.AncillaryConfirmPaymentRS;
+import models.AncillaryServiceRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class AncillaryServiceWrapper implements AncillaryService {
 
 
@@ -42,6 +47,14 @@ public class AncillaryServiceWrapper implements AncillaryService {
         }
 
         return ancillaryServicesResponse;
+    }
+
+    @Override
+    public AncillaryConfirmPaymentRS getAncillaryBaggageConfirm(AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ) {
+
+        AncillaryConfirmPaymentRS ancillaryConfirmPaymentRS = amadeusAncillaryService.getpaymentConfirmAncillaryServices(ancillaryConfirmPaymentRQ);
+
+        return ancillaryConfirmPaymentRS;
     }
 
 

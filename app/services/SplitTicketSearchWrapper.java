@@ -1,6 +1,5 @@
 package services;
 
-import com.compassites.constants.CacheConstants;
 import com.compassites.model.*;
 import com.compassites.model.splitticket.PossibleRoutes;
 import models.Airport;
@@ -22,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class SplitTicketSearchWrapper {
@@ -58,9 +58,26 @@ public class SplitTicketSearchWrapper {
 
     public List<SearchParameters> createTransitPointSearch(SearchParameters searchParameters, List<SplitTicketTransitAirports> splitTicketTransitAirports) throws Exception {
         List<SearchParameters> searchParametersList = new ArrayList<>();
-        SearchParameters searchParameters1 = SerializationUtils.clone(searchParameters);
-        List<SearchJourney> journeyList = new ArrayList<>();
         List<SearchParameters> searchParameters2 = new ArrayList<>();
+
+        for (SplitTicketTransitAirports splitTicketTransitAirports1: splitTicketTransitAirports) {
+            SearchParameters searchParameters1 = SerializationUtils.clone(searchParameters);
+            List<SearchJourney> journeyList = new ArrayList<>();
+            for (SearchJourney searchJourneyItem: searchParameters.getJourneyList()) {
+                SearchJourney searchJourney = SerializationUtils.clone(searchJourneyItem);
+                searchJourney.setOrigin(searchParameters.getJourneyList().get(0).getOrigin());
+                searchJourney.setDestination(splitTicketTransitAirports1.getTransitAirport());
+                searchJourney.setTravelDate(searchParameters.getJourneyList().get(0).getTravelDate());
+                searchJourney.setTravelDateStr(searchParameters.getJourneyList().get(0).getTravelDateStr());
+                journeyList.add(searchJourney);
+            }
+            searchParameters1.setJourneyList(journeyList);
+            searchParameters2.add(searchParameters1);
+        }
+
+
+        /*SearchParameters searchParameters1 = SerializationUtils.clone(searchParameters);
+        List<SearchJourney> journeyList = new ArrayList<>();
         for (SearchJourney searchJourneyItem: searchParameters.getJourneyList()) {
             SearchJourney searchJourney = SerializationUtils.clone(searchJourneyItem);
             searchJourney.setOrigin(searchParameters.getJourneyList().get(0).getOrigin());
@@ -70,7 +87,9 @@ public class SplitTicketSearchWrapper {
             journeyList.add(searchJourney);
         }
         searchParameters1.setJourneyList(journeyList);
-        searchParameters2.add(searchParameters1);
+        searchParameters2.add(searchParameters1);*/
+
+
         ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap = new ConcurrentHashMap<>();
         List<SearchResponse> responses = this.splitSearch(searchParameters2,concurrentHashMap,true);
         logger.debug("responses "+Json.toJson(responses));
@@ -260,21 +279,53 @@ public class SplitTicketSearchWrapper {
             SearchResponse searchResponse = null;
             List<SearchParameters> searchParameters1 = null;
             if(transitEnabled) {
+                List<SearchParameters> searchParametersTransit = null;
                 List<SplitTicketTransitAirports> splitTicketTransitAirports = isTransitAdded(searchParameters);
                 if (splitTicketTransitAirports.size() > 0) {
                     searchParameters1 = createTransitPointSearch(searchParameters, splitTicketTransitAirports);
                 } else {
                     searchParameters1 = createSearch(searchParameters);
                 }
+                System.out.println("searchParameters1 before "+Json.toJson(searchParameters1));
+                searchParametersTransit = createNonSeamenSearchParameters(searchParameters1, splitTicketTransitAirports);
+                if(splitTicketTransitAirports.size()>1) {
+                    for (int i=0; i<splitTicketTransitAirports.size()-1; i++) {
+                        searchParameters1.add(searchParametersTransit.get(splitTicketTransitAirports.size()+i));
+                    }
+                } else {
+                    searchParameters1.add(searchParametersTransit.get(1));
+                }
+
+                //searchParameters1.add(searchParametersTransit.get(1));
+                System.out.println("searchParameters1 searchParameters1 after "+Json.toJson(searchParameters1));
             } else {
                 searchParameters1 = createSearch(searchParameters);
             }
-            System.out.println(Json.toJson(searchParameters1));
+            System.out.println("after searchParameters1 "+Json.toJson(searchParameters1));
             logger.debug("Possible search routes "+Json.toJson(searchParameters1));
             createSplitSearch(searchParameters1, searchParameters);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private List<SearchParameters> createNonSeamenSearchParameters(List<SearchParameters> searchParameters,List<SplitTicketTransitAirports> splitTicketTransitAirports) {
+        List<SearchParameters> searchParametersList = new ArrayList<>();
+        for (SearchParameters searchParametersItem: searchParameters) {
+            SearchParameters searchParameters1 = SerializationUtils.clone(searchParametersItem);
+            searchParameters1.setBookingType(BookingType.NON_MARINE);
+            if (splitTicketTransitAirports.size()>0) {
+                for (SplitTicketTransitAirports splitTicketTransitAirport : splitTicketTransitAirports) {
+                    if(splitTicketTransitAirport.getAirline()!=null) {
+                        List<String> preferredAirlines = Arrays.asList(splitTicketTransitAirport.getAirline().split(","));
+                        searchParameters1.setPreferredAirlinesList(preferredAirlines);
+                        //searchParameters1.setPreferredAirlines(splitTicketTransitAirport.getAirline());
+                    }
+                }
+            }
+            searchParametersList.add(searchParameters1);
+        }
+        return searchParametersList;
     }
 
     private List<SearchParameters> createSearchParameters(SearchResponse searchResponse, List<SplitTicketTransitAirports> splitTicketTransitAirports, SearchParameters searchParameters,String toAirport ) {

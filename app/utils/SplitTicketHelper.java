@@ -4,7 +4,6 @@ import com.compassites.model.*;
 import com.compassites.model.splitticket.PossibleRoutes;
 import models.SplitTicketTransitAirports;
 import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.beans.BeanUtils;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,6 +11,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SplitTicketHelper {
+
+    private static final long connectionTime = play.Play.application().configuration().getLong("split.transitpoint.connectionTime");
 
     public List<SearchParameters> createSearchParameters(Map<String, PossibleRoutes> possibleRoutesMap, SearchParameters searchParameters, List<SplitTicketTransitAirports> splitTicketTransitAirports) {
         List<SearchParameters> searchParametersList = new ArrayList<>();
@@ -103,7 +104,7 @@ public class SplitTicketHelper {
             searchJourney.setTravelDate(possibleRoutes.getArrivalDate());
 
             ZonedDateTime zonedDateTime = ZonedDateTime.parse(possibleRoutes.getArrivalTime());
-            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(24);
+            ZonedDateTime midnightTime = zonedDateTime.withHour(0).withMinute(0).withSecond(0).withNano(0).plusHours(connectionTime);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedTime = midnightTime.format(formatter);
 

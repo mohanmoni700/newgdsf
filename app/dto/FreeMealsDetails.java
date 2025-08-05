@@ -18,6 +18,15 @@ public class FreeMealsDetails {
     private String amadeusSegmentRef;
     private String origin;
     private String destination;
+    private String departureDate;
+
+    public String getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(String departureDate) {
+        this.departureDate = departureDate;
+    }
 
     public String getAmadeusSegmentRef() {
         return amadeusSegmentRef;

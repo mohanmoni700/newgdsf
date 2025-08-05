@@ -96,6 +96,7 @@ public class Journey implements Serializable
     public void setFareSellKey(String fareSellKey) {
         this.fareSellKey = fareSellKey;
     }
+
     public boolean isSeamen() {
         return seamen;
     }

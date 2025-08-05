@@ -21,6 +21,8 @@ public class ReIssueConfirmationRequest {
 
     private List<Integer> selectedSegmentList;
 
+    private List<Integer> segmentsToBeCancelledAndNewlyAdded;
+
     private TravellerMasterInfo newTravellerMasterInfo;
 
     private TravellerMasterInfo originalTravellerMasterInfo;
@@ -75,6 +77,14 @@ public class ReIssueConfirmationRequest {
 
     public void setSelectedSegmentList(List<Integer> selectedSegmentList) {
         this.selectedSegmentList = selectedSegmentList;
+    }
+
+    public List<Integer> getSegmentsToBeCancelledAndNewlyAdded() {
+        return segmentsToBeCancelledAndNewlyAdded;
+    }
+
+    public void setSegmentsToBeCancelledAndNewlyAdded(List<Integer> segmentsToBeCancelledAndNewlyAdded) {
+        this.segmentsToBeCancelledAndNewlyAdded = segmentsToBeCancelledAndNewlyAdded;
     }
 
     public TravellerMasterInfo getNewTravellerMasterInfo() {

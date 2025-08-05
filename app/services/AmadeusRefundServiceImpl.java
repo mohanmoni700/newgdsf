@@ -8,11 +8,12 @@ import com.amadeus.xml._2010._06.tickettypes_v2.MonetaryInformationType;
 import com.amadeus.xml._2010._06.tickettypes_v2.RefundDetailsLightType;
 import com.amadeus.xml._2010._06.tickettypes_v2.RefundDetailsType;
 import com.amadeus.xml._2010._06.types_v2.ErrorsType;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.tatres_20_1_1a.CouponInformationDetailsTypeI;
 import com.amadeus.xml.tatres_20_1_1a.TicketProcessEDocReply;
 import com.compassites.GDSWrapper.amadeus.RefundServiceHandler;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
+import com.compassites.model.CancelPNRResponse;
 import com.compassites.model.ErrorMessage;
 import com.compassites.model.TicketCheckEligibilityRes;
 import com.compassites.model.TicketProcessRefundRes;
@@ -44,6 +45,9 @@ public class AmadeusRefundServiceImpl implements RefundService{
     private ServiceHandler serviceHandler;
 
     @Autowired
+    private AmadeusCancelServiceImpl cancelService;
+
+    @Autowired
     private RefundServiceHandler refundServiceHandler;
 
     @Autowired
@@ -59,11 +63,11 @@ public class AmadeusRefundServiceImpl implements RefundService{
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId, true);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr
-            pnrReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
+            pnrReply = serviceHandler.retrievePNR(gdsPnr, amadeusSessionWrapper);
             if (pnrReply != null && pnrReply.getGeneralErrorInfo().size() == 0 && isPNRActive(pnrReply.getOriginDestinationDetails())) {
                 List<String> ticketList = getTicketList(pnrReply.getDataElementsMaster().getDataElementsIndiv());
                 if (ticketList != null && ticketList.size() > 0) {
@@ -192,17 +196,18 @@ public class AmadeusRefundServiceImpl implements RefundService{
         AMATicketInitRefundRS amaTicketInitRefundRS;
         AMATicketProcessRefundRS amaTicketProcessRefundRS;
         TicketProcessRefundRes ticketProcessRefundRes = new TicketProcessRefundRes();
+        CancelPNRResponse cancelFullPNR = new CancelPNRResponse();
         List<String> refundedTickets = new ArrayList<>();
 
         try {
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId, true);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr
-            pnrReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
+            pnrReply = serviceHandler.retrievePNR(gdsPnr, amadeusSessionWrapper);
             if (pnrReply != null && pnrReply.getGeneralErrorInfo().size() == 0 && isPNRActive(pnrReply.getOriginDestinationDetails())) {
                 List<String> ticketList = getTicketList(pnrReply.getDataElementsMaster().getDataElementsIndiv());
                 if (ticketList != null && ticketList.size() > 0) {
@@ -239,9 +244,10 @@ public class AmadeusRefundServiceImpl implements RefundService{
                                 // Write codes here to get the refund pricing info
 
 
+//                                PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
+                                  cancelFullPNR = cancelService.cancelOnlyItineraryFromPNR(gdsPnr, false);
 
-                                PNRReply cancelFullPNR = serviceHandler.cancelFullPNR(gdsPnr,pnrReply,amadeusSessionWrapper,Boolean.TRUE);
-                                if(cancelFullPNR.getGeneralErrorInfo().isEmpty()){
+                                if(cancelFullPNR.isSuccess() && cancelFullPNR.getErrorMessage() == null){
                                     logger.debug("PNR Cancelled for PNR : {}",gdsPnr);
                                 }
 
@@ -294,11 +300,11 @@ public class AmadeusRefundServiceImpl implements RefundService{
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId, true);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr
-            pnrReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
+            pnrReply = serviceHandler.retrievePNR(gdsPnr, amadeusSessionWrapper);
             if (pnrReply != null && pnrReply.getGeneralErrorInfo().size() == 0 && isPNRActive(pnrReply.getOriginDestinationDetails())) {
                 List<String> pnrTicketList = getTicketList(pnrReply.getDataElementsMaster().getDataElementsIndiv());
                 boolean isTicketMatched = refundticketList.stream().allMatch(pnrTicketList::contains);
@@ -399,11 +405,11 @@ public class AmadeusRefundServiceImpl implements RefundService{
             //get Delhi officeId
             String officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             //securitySignin
-            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId);
+            amadeusSessionWrapper = serviceHandler.logIn(ticketingOfficeId, true);
             PNRReply pnrReply = null;
             BigDecimal totalRefundable = new BigDecimal(0);
             //retrievePnr
-            pnrReply = serviceHandler.retrivePNR(gdsPnr, amadeusSessionWrapper);
+            pnrReply = serviceHandler.retrievePNR(gdsPnr, amadeusSessionWrapper);
             if (pnrReply != null && pnrReply.getGeneralErrorInfo().size() == 0 && isPNRActive(pnrReply.getOriginDestinationDetails())) {
                 List<String> pnrTicketList = getTicketList(pnrReply.getDataElementsMaster().getDataElementsIndiv());
                 boolean isTicketMatched = refundticketList.stream().allMatch(pnrTicketList::contains);

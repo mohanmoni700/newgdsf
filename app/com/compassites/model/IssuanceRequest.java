@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.traveller.Traveller;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dto.reissue.AmadeusPaxRefAndTicket;
 import models.CartAirSegmentDTO;
 
@@ -10,6 +11,7 @@ import java.util.List;
 /**
  * Created by Yaseen on 04-12-2014.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class IssuanceRequest implements Serializable{
 
     private int adultCount;
@@ -281,5 +283,4 @@ public class IssuanceRequest implements Serializable{
     public void setTicketingOfficeId(String ticketingOfficeId) {
         this.ticketingOfficeId = ticketingOfficeId;
     }
-
 }

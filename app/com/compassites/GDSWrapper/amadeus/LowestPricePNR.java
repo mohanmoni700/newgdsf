@@ -1,7 +1,7 @@
 
 package com.compassites.GDSWrapper.amadeus;
 
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.tplprq_12_4_1a.*;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.FareJourney;

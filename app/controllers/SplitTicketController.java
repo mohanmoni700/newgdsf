@@ -1,30 +1,23 @@
 package controllers;
 
-import com.compassites.GDSWrapper.travelomatrix.SearchFlights;
 import com.compassites.model.*;
 import com.compassites.model.splitticket.PossibleRoutes;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import models.FlightSearchOffice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import services.PossibleRoutesService;
-import services.SplitAmadeusSearch;
 import services.SplitTicketSearchWrapper;
-import services.TraveloMatrixFlightSearch;
 import utils.SplitTicketHelper;
 import utils.SplitTicketMerger;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 import static play.mvc.Controller.request;
 

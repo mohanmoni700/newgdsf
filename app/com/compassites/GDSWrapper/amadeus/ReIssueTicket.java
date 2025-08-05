@@ -9,29 +9,23 @@ import com.amadeus.xml._2010._06.retailing_types_v2.CommitType;
 import com.amadeus.xml._2010._06.retailing_types_v2.ReservationType;
 import com.amadeus.xml._2010._06.ticket_rebookandrepricepnr_v1.AMATicketRebookAndRepricePNRRQ;
 import com.amadeus.xml.fatceq_13_1_1a.*;
-import com.amadeus.xml.fatceq_13_1_1a.NumberOfUnitDetailsTypeI;
-import com.amadeus.xml.fatceq_13_1_1a.NumberOfUnitsType;
-import com.amadeus.xml.fatceq_13_1_1a.PricingTicketingDetailsType;
-import com.amadeus.xml.fatceq_13_1_1a.PricingTicketingInformationType;
-import com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI;
-import com.amadeus.xml.fatceq_13_1_1a.TicketNumberTypeI;
-import com.amadeus.xml.fatceq_13_1_1a.TravellerDetailsType;
-import com.amadeus.xml.fatceq_13_1_1a.TravellerReferenceInformationType;
-import com.amadeus.xml.fmtctq_18_2_1a.*;
-import com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C;
-import com.amadeus.xml.pnrspl_11_3_1a.*;
-import com.amadeus.xml.pnrspl_11_3_1a.PNRSplit;
+import com.amadeus.xml.fmtctq_18_2_1a.NumberOfUnitDetailsType303181C;
+import com.amadeus.xml.fmtctq_18_2_1a.TicketATCShopperMasterPricerTravelBoardSearch;
+import com.amadeus.xml.fmtctq_18_2_1a.TravelFlightInformationType218017S;
+import com.amadeus.xml.fmtctq_18_2_1a.TravelFlightInformationType218018S;
+import com.amadeus.xml.pnrspl_14_1_1a.*;
+import com.amadeus.xml.pnrspl_14_1_1a.PNRSplit;
 import com.amadeus.xml.tarcpq_13_2_1a.TicketReissueConfirmedPricing;
 import com.amadeus.xml.taripq_19_1_1a.*;
 import com.amadeus.xml.taripq_19_1_1a.CompanyIdentificationTypeI;
 import com.amadeus.xml.taripq_19_1_1a.ItemNumberIdentificationType;
 import com.amadeus.xml.taripq_19_1_1a.ItemNumberType;
-import com.amadeus.xml.taripq_19_1_1a.ReferencingDetailsType;
 import com.amadeus.xml.taripq_19_1_1a.ReferenceInfoType;
-import com.amadeus.xml.fmtctq_18_2_1a.ProductTypeDetailsType120801C;
+import com.amadeus.xml.taripq_19_1_1a.ReferencingDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.MessageActionDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.MessageFunctionBusinessDetailsType;
 import com.amadeus.xml.tatreq_20_1_1a.TicketProcessEDoc;
+
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import dto.reissue.AmadeusPaxRefAndTicket;
@@ -39,6 +33,8 @@ import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchParameters;
 import dto.reissue.ReIssueSearchRequest;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,8 +176,8 @@ public class ReIssueTicket {
             List<TravellerDetailsType> seamenTravellerDetailsTypeList = new ArrayList<>();
 
             TicketCheckEligibility.TicketChangeInfo ticketChangeInfo = new TicketCheckEligibility.TicketChangeInfo();
-            TicketNumberTypeI ticketNumberDetails = new TicketNumberTypeI();
-            List<TicketNumberDetailsTypeI> documentDetails = new ArrayList<>();
+            com.amadeus.xml.fatceq_13_1_1a.TicketNumberTypeI ticketNumberDetails = new com.amadeus.xml.fatceq_13_1_1a.TicketNumberTypeI();
+            List<com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI> documentDetails = new ArrayList<>();
 
             int reference = 0;
             int infReference = 0;
@@ -194,7 +190,7 @@ public class ReIssueTicket {
                             TravellerDetailsType adultDetails = new TravellerDetailsType();
                             adultDetails.setRef(new BigInteger(Integer.toString(++reference)));
                             adtTravellerDetailsTypeList.add(adultDetails);
-                            TicketNumberDetailsTypeI ticketNumberDetailsTypeIAdt = new TicketNumberDetailsTypeI();
+                            com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI ticketNumberDetailsTypeIAdt = new com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI();
                             ticketNumberDetailsTypeIAdt.setNumber(passenger.getTicketNumber());
                             documentDetails.add(ticketNumberDetailsTypeIAdt);
                             break;
@@ -202,7 +198,7 @@ public class ReIssueTicket {
                             TravellerDetailsType childDetails = new TravellerDetailsType();
                             childDetails.setRef(new BigInteger(Integer.toString(++reference)));
                             chdTravellerDetailsTypeList.add(childDetails);
-                            TicketNumberDetailsTypeI ticketNumberDetailsTypeIChd = new TicketNumberDetailsTypeI();
+                            com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI ticketNumberDetailsTypeIChd = new com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI();
                             ticketNumberDetailsTypeIChd.setNumber(passenger.getTicketNumber());
                             documentDetails.add(ticketNumberDetailsTypeIChd);
                             break;
@@ -212,7 +208,7 @@ public class ReIssueTicket {
                             infantDetails.setRef(new BigInteger(Integer.toString(++infReference)));
                             infantDetails.setInfantIndicator(BigInteger.valueOf(++infIndicator));
                             infTravellerDetailsTypeList.add(infantDetails);
-                            TicketNumberDetailsTypeI ticketNumberDetailsTypeIInf = new TicketNumberDetailsTypeI();
+                            com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI ticketNumberDetailsTypeIInf = new com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI();
                             ticketNumberDetailsTypeIInf.setNumber(passenger.getTicketNumber());
                             documentDetails.add(ticketNumberDetailsTypeIInf);
                             break;
@@ -221,7 +217,7 @@ public class ReIssueTicket {
                     TravellerDetailsType seamanDetails = new TravellerDetailsType();
                     seamanDetails.setRef(new BigInteger(Integer.toString(++reference)));
                     seamenTravellerDetailsTypeList.add(seamanDetails);
-                    TicketNumberDetailsTypeI ticketNumberDetailsTypeISea = new TicketNumberDetailsTypeI();
+                    com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI ticketNumberDetailsTypeISea = new com.amadeus.xml.fatceq_13_1_1a.TicketNumberDetailsTypeI();
                     ticketNumberDetailsTypeISea.setNumber(passenger.getTicketNumber());
                     documentDetails.add(ticketNumberDetailsTypeISea);
                 }
@@ -623,11 +619,12 @@ public class ReIssueTicket {
 
                     //Adding transit points to segments if exists here
                     if (requestedItinerary.isTransitPointAdded() && !requestedItinerary.isNonStop()) {
-                        flightInfo.getInclusionDetail().addAll(getConnectPointDetailsType195492CS(requestedItinerary));
+                        List<com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C> transitPointsList = getConnectPointDetailsType195492CS(requestedItinerary);
+                        flightInfo.getInclusionDetail().addAll(transitPointsList);
                     }
 
                     if (requestedItinerary.isNonStop() && !requestedItinerary.isTransitPointAdded()) {
-                        ProductTypeDetailsType120801C flightDetail = new ProductTypeDetailsType120801C();
+                        com.amadeus.xml.fmtctq_18_2_1a.ProductTypeDetailsType120801C flightDetail = new com.amadeus.xml.fmtctq_18_2_1a.ProductTypeDetailsType120801C();
                         flightDetail.getFlightType().add("N");
                         flightDetail.getFlightType().add("D");
                         flightInfo.setFlightDetail(flightDetail);
@@ -644,12 +641,12 @@ public class ReIssueTicket {
         }
 
         //Method to add transit point for requested itinerary
-        private static List<ConnectPointDetailsType195492C> getConnectPointDetailsType195492CS(ReIssueSearchParameters requestedItinerary) {
-            List<ConnectPointDetailsType195492C> inclusionDetails = new ArrayList<>();
+        private static List<com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C> getConnectPointDetailsType195492CS(ReIssueSearchParameters requestedItinerary) {
+            List<com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C> inclusionDetails = new ArrayList<>();
             List<String> transitPoints = requestedItinerary.getTransitPointList();
 
             for (int i = 0; i < transitPoints.size(); i++) {
-                ConnectPointDetailsType195492C inclusionDetail = new ConnectPointDetailsType195492C();
+                com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C inclusionDetail = new com.amadeus.xml.fmtctq_18_2_1a.ConnectPointDetailsType195492C();
                 inclusionDetail.setInclusionIdentifier("M");
                 inclusionDetail.setLocationId(transitPoints.get(i));
                 inclusionDetails.add(inclusionDetail);
@@ -749,16 +746,16 @@ public class ReIssueTicket {
         public static PNRSplit splitPNRForReIssuedPax(ReIssueConfirmationRequest reIssueConfirmationRequest) {
 
             PNRSplit pnrSplit = new PNRSplit();
-
             //Setting PNR here
-            ReservationControlInformationType reservationInfo = new ReservationControlInformationType();
-            ReservationControlInformationDetailsTypeI reservation = new ReservationControlInformationDetailsTypeI();
+            ReservationControlInformationType reservationInfo = new com.amadeus.xml.pnrspl_14_1_1a.ReservationControlInformationType();
+            ReservationControlInformationDetailsTypeI reservation = new com.amadeus.xml.pnrspl_14_1_1a.ReservationControlInformationDetailsTypeI();
             reservation.setControlNumber(reIssueConfirmationRequest.getOriginalGdsPnr());
             reservationInfo.setReservation(reservation);
+
             pnrSplit.setReservationInfo(reservationInfo);
 
             //Setting Passenger Tattoos here
-            SplitPNRType splitDetails = new SplitPNRType();
+            SplitPNRType splitDetails = new com.amadeus.xml.pnrspl_14_1_1a.SplitPNRType();
             SplitPNRDetailsType passenger = new SplitPNRDetailsType();
             passenger.setType("PT"); //PT -> Passenger Tattoo
             List<AmadeusPaxRefAndTicket> amadeusPaxRefAndTicketList = reIssueConfirmationRequest.getPaxAndTicketList();
@@ -823,11 +820,11 @@ public class ReIssueTicket {
             //Segments to be cancelled set here
             AssociationsType cancellation = new AssociationsType();
             List<AssociationsType.Ref> refList = new ArrayList<>();
-            List<Integer> segmentsToBeCancelled = reIssueConfirmationRequest.getSelectedSegmentList();
+            List<Integer> segmentsToBeCancelled = reIssueConfirmationRequest.getSegmentsToBeCancelledAndNewlyAdded();
             for (Integer segment : segmentsToBeCancelled) {
                 AssociationsType.Ref ref = new AssociationsType.Ref();
                 ref.setTattooType("ST");
-                ref.setTattooValue(segment.toString());
+                ref.setTattooValue(String.valueOf(segment));
                 refList.add(ref);
             }
             cancellation.getRef().addAll(refList);
@@ -839,18 +836,22 @@ public class ReIssueTicket {
             AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds bounds = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds();
             List<AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound> boundList = new ArrayList<>();
 
-            int segIdRefNum = segmentsToBeCancelled.get(0);
-            for (Journey journey : segmentsToBeAdded) {
+            List<Integer> selectedJourneyIndex = reIssueConfirmationRequest.getSelectedSegmentList();
+            for (Integer selectedJourney : selectedJourneyIndex) {
+
+                Journey journey = segmentsToBeAdded.get(selectedJourney - 1);
+
                 AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound bound = new AMATicketRebookAndRepricePNRRQ.Rebooking.Bounds.Bound();
                 bound.setActionCode("NN");
                 bound.setNIP(String.valueOf(paxCount));  //Number of seats to Book/ pax Count
 
                 List<AirSegmentInformation> airSegmentInformationList = journey.getAirSegmentList();
                 List<AirSegmentType> segment = new ArrayList<>();
+
                 int segmentCounter = 0;
                 for (AirSegmentInformation airSegmentInformation : airSegmentInformationList) {
+                    String segIdRefString = "SEG" + (segmentsToBeCancelled.remove(segmentCounter));
                     String bookingClass = segmentWiseBookingClassList.get(segmentCounter++);
-                    String segIdRefString = "SEG" + (segIdRefNum++);
                     AirSegmentType airSegmentType = getNewSegmentWiseInfo(airSegmentInformation, bookingClass, segIdRefString);
                     segment.add(airSegmentType);
                 }
@@ -977,13 +978,15 @@ public class ReIssueTicket {
             //Origin Details here
             AirSegmentType.Start start = new AirSegmentType.Start();
             start.setLocationCode(airSegmentInformation.getFromLocation());
-            start.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getDepartureTime()));
+//            start.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getDepartureTime()));
+            start.setDateTime(airportZoneSpecificDate(airSegmentInformation,true));
             airSegmentType.setStart(start);
 
             //Destination Details here
             AirSegmentType.End end = new AirSegmentType.End();
             end.setLocationCode(airSegmentInformation.getToLocation());
-            end.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getArrivalTime()));
+//            end.setDateTime(mapDateTimeToUTCDate(airSegmentInformation.getArrivalTime()));
+            end.setDateTime(airportZoneSpecificDate(airSegmentInformation,false));
             airSegmentType.setEnd(end);
 
             return airSegmentType;
@@ -996,6 +999,25 @@ public class ReIssueTicket {
             ZonedDateTime utcDateTime = zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
 
             return utcDateTime.toLocalDate().toString();
+        }
+
+        //Converts dates to Airport Specific Date
+        private static String airportZoneSpecificDate(AirSegmentInformation airSegmentInformation, boolean isDeparture) {
+
+            org.joda.time.format.DateTimeFormatter outputFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+            String dateString;
+            if(isDeparture) {
+                dateString = airSegmentInformation.getDepartureTime();
+            } else {
+                dateString = airSegmentInformation.getArrivalTime();
+            }
+
+            String airportZone = airSegmentInformation.getFromAirport().getTime_zone();
+            DateTimeZone dateTimeZone  = DateTimeZone.forID(airportZone);
+            DateTime airportZoneDateTime = new DateTime(dateString).withZone(dateTimeZone);
+
+            return outputFormatter.print(airportZoneDateTime);
         }
 
     }

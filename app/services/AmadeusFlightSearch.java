@@ -12,6 +12,7 @@ import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import dto.CabinDetails;
+
 import models.*;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -97,7 +98,7 @@ public class AmadeusFlightSearch implements FlightSearch {
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         logger.debug("#####################AmadeusFlightSearch started  : ");
-        logger.debug("#####################SearchParameters: \n" + Json.toJson(searchParameters));
+        logger.debug("#####################SearchParameters: \n{}", Json.toJson(searchParameters));
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         searchResponse.setProvider("Amadeus");
@@ -106,56 +107,48 @@ public class AmadeusFlightSearch implements FlightSearch {
         FareMasterPricerTravelBoardSearchReply seamenReply = null;
 
         try {
+
             long startTime = System.currentTimeMillis();
-            amadeusSessionWrapper = amadeusSessionManager.getSession(office);
+            amadeusSessionWrapper = serviceHandler.logIn(office,false);
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
 
-            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
-            //System.out.println("Execution time in getting session: " + duration/1000 + " seconds");
-            logger.debug("Execution time in getting session:: " + duration / 1000 + " seconds");//to be removed
-//            serviceHandler.logIn();
+            logger.debug("...................................Amadeus Search Session used: {}", Json.toJson(amadeusSessionWrapper.getmSession().value));
+            logger.debug("Execution time in getting session:: {} seconds", duration / 1000);
+
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
                 seamenReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper, "Marine");
-//                logger.debug("#####################seamenReply: \n"+Json.toJson(seamenReply));
 
                 amadeusLogger.debug("AmadeusSearchRes Marine{} Office ID : {} ------->>{}", new Date(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(seamenReply));
 
                 searchParameters.setBookingType(BookingType.NON_MARINE);
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper, "Corporate");
-//                logger.debug("fareMasterPricerTravelBoardSearchReply: \n"+Json.toJson(fareMasterPricerTravelBoardSearchReply));
                 searchParameters.setBookingType(BookingType.SEAMEN);
-//                XMLFileUtility.createXMLFile(seamenReply, "AmadeusSeamenSearchRes.xml");
 
-//                amadeusLogger.debug("AmadeusSeamenSearchRes "+ new Date()+" ------->>"+ new XStream().toXML(seamenReply));
                 amadeusLogger.debug("AmadeusSearchRes Corporate {} Office ID : {} Corporate  ------->>{}", new Date(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
-//                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
             } else {
                 fareMasterPricerTravelBoardSearchReply = serviceHandler.searchAirlines(searchParameters, amadeusSessionWrapper, "Corporate");
 
-//                XMLFileUtility.createXMLFile(fareMasterPricerTravelBoardSearchReply, "AmadeusSearchRes.xml");
                 amadeusLogger.debug("AmadeusSearchRes Corp{} Office ID : {} ------->>{}", new Date(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(fareMasterPricerTravelBoardSearchReply));
             }
 
-//            serviceHandler.logOut();
         } catch (ServerSOAPFaultException soapFaultException) {
 
             soapFaultException.printStackTrace();
             throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
         } catch (ClientTransportException clientTransportException) {
-            //throw new IncompleteDetailsMessage(soapFaultException.getMessage(), soapFaultException.getCause());
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
             searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
         } catch (Exception e) {
             e.printStackTrace();
-            //throw new IncompleteDetailsMessage(e.getMessage(), e.getCause());
 
             ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.ERROR, "Amadeus");
             searchResponse.getErrorMessageList().add(errorMessage);
             return searchResponse;
         } finally {
-            amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
+            //Commenting this out because in Soap 4.0, FMPTBS is a stateless call and if any issues, make it a stateful call use getSession at login and uncomment the below line
+//            amadeusSessionManager.updateAmadeusSession(amadeusSessionWrapper);
         }
 
         // logger.debug("AmadeusFlightSearch search reponse at : " + new Date());
@@ -385,9 +378,19 @@ public class AmadeusFlightSearch implements FlightSearch {
     private void getFareType(FlightItinerary flightItinerary, FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, BigInteger refNumber) {
 
         try {
-            //System.out.println(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getFareFamilyname());
-            flightItinerary.setFareType(fareMasterPricerTravelBoardSearchReply.getFamilyInformation().get(refNumber.intValue() - 1).getDescription());
+            String fareType = null;
+            if (fareMasterPricerTravelBoardSearchReply.getFamilyInformation() != null) {
+                List<FareFamilyType> familyInformation = fareMasterPricerTravelBoardSearchReply.getFamilyInformation();
+                if (familyInformation != null && !familyInformation.isEmpty()) {
+                    FareFamilyType fareFamilyType = familyInformation.get(refNumber.intValue() - 1);
+                    if (fareFamilyType != null) {
+                        fareType = fareFamilyType.getDescription();
+                    }
+                }
+            }
+            flightItinerary.setFareType(fareType);
         } catch (Exception e) {
+            logger.debug("Error Getting Fare Type for Reference Number {} \n{}", refNumber, e.getMessage(), e);
             e.printStackTrace();
         }
     }

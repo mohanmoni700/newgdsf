@@ -1,6 +1,6 @@
 package services;
 
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
@@ -38,8 +38,8 @@ public class AmadeusLowestFareServiceImpl implements LowestFareService{
         try {
 
             serviceHandler = new ServiceHandler();
-            amadeusSessionWrapper = serviceHandler.logIn();
-            PNRReply gdsPNRReply = serviceHandler.retrivePNR(issuanceRequest.getGdsPNR(), amadeusSessionWrapper);
+            amadeusSessionWrapper = serviceHandler.logIn(true);
+            PNRReply gdsPNRReply = serviceHandler.retrievePNR(issuanceRequest.getGdsPNR(), amadeusSessionWrapper);
 
 
             String carrierCode = "";

@@ -8,6 +8,7 @@ import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import dto.AddElementsToPnrDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import services.indigo.IndigoFlightService;
@@ -281,12 +282,24 @@ public class BookingServiceWrapper {
 		return issuanceResponse;
 	}
 
+
 	public IssuanceResponse issueIndigoTicket(IssuanceRequest issuanceRequest) {
 		IssuanceResponse issuanceResponse = null;
 		if (IndigoConstants.provider.equalsIgnoreCase(issuanceRequest.getProvider())) {
 			issuanceResponse = indigoFlightService.issueTicket(issuanceRequest);
 		}
 		return issuanceResponse;
+  }
+  
+	public boolean addJocoPnrToGdsPnr(AddElementsToPnrDTO addElementsToPnrDTO) {
+
+		String provider = addElementsToPnrDTO.getProvider();
+
+		if (provider.equalsIgnoreCase("Amadeus")) {
+			return amadeusBookingService.addJocoPnrToGdsPnr(addElementsToPnrDTO);
+		} else {
+			return false;
+		}
 	}
 
 	/*public IssuanceResponse readTripDetails(IssuanceRequest issuanceRequest) {

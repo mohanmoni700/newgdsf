@@ -1,13 +1,10 @@
 package com.compassites.GDSWrapper.amadeus;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import com.amadeus.xml.farqiq_08_2_1a.CorporateFareIdentifiers;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.MessageDetails;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.MessageDetails.MessageFunctionDetails;
@@ -16,8 +13,6 @@ import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.Passenger
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.PassengersGroup.PtcGroup.DiscountPtc;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.PassengersGroup.SegmentRepetitionControl;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.PassengersGroup.SegmentRepetitionControl.SegmentControlDetails;
-import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.PassengersGroup.TravellersID;
-import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.PassengersGroup.TravellersID.TravellerDetails;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.OriginDestination;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR.TripsGroup.SegmentGroup;

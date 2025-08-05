@@ -2,14 +2,15 @@ package services;
 
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.itares_05_2_ia.AirSellFromRecommendationReply;
-import com.amadeus.xml.pnracc_11_3_1a.*;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply.TravellerInfo.PassengerData;
-import com.amadeus.xml.pnrspl_11_3_1a.*;
-import com.amadeus.xml.pnrspl_11_3_1a.ReservationControlInformationDetailsTypeI;
-import com.amadeus.xml.pnrxcl_11_3_1a.PNRCancel;
+import com.amadeus.xml.pnracc_14_1_1a.*;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply.DataElementsMaster.DataElementsIndiv;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply.OriginDestinationDetails.ItineraryInfo;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply.TravellerInfo;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply.TravellerInfo.PassengerData;
+import com.amadeus.xml.pnrspl_14_1_1a.*;
+import com.amadeus.xml.pnrspl_14_1_1a.ReservationControlInformationDetailsTypeI;
+import com.amadeus.xml.pnrspl_14_1_1a.ReservationControlInformationType;
+import com.amadeus.xml.pnrxcl_14_1_1a.PNRCancel;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
 import com.amadeus.xml.tmrxrr_18_1_1a.*;
@@ -22,6 +23,7 @@ import com.amadeus.xml.tpcbrr_12_4_1a.StructuredDateTimeType;
 import com.amadeus.xml.ttstrr_13_1_1a.MonetaryInformationDetailsTypeI211824C;
 import com.amadeus.xml.ttstrr_13_1_1a.ReferencingDetailsTypeI;
 import com.amadeus.xml.ttstrr_13_1_1a.TicketDisplayTSTReply;
+
 import com.compassites.GDSWrapper.amadeus.PNRAddMultiElementsh;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.constants.AmadeusConstants;
@@ -34,8 +36,8 @@ import com.compassites.model.traveller.Traveller;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.amadeus.AmadeusPaxInformation;
 import com.fasterxml.jackson.databind.JsonNode;
-//import com.sun.org.apache.xpath.internal.operations.Bool;
-import dto.FareCheckRulesResponse;
+
+import dto.*;
 import dto.reissue.AmadeusPaxRefAndTicket;
 import models.AmadeusSessionWrapper;
 import models.CartAirSegmentDTO;
@@ -96,6 +98,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
     @Autowired
     private AmadeusBookingHelper amadeusBookingHelper;
 
+    @Autowired
+    private AmadeusCancelServiceImpl cancelService;
+
     static {
         baggageCodes.put("700", "KG");
         baggageCodes.put("K", "KG");
@@ -109,7 +114,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
     }
 
 
-  
     @Autowired
     AmadeusFlightInfoServiceImpl amadeusFlightInfoService;
 
@@ -151,8 +155,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             amadeusSessionWrapper = amadeusSessionManager.getActiveSessionByRef(travellerMasterInfo.getSessionIdRef());
             logger.debug("generatePNR called........" + Json.stringify(Json.toJson(amadeusSessionWrapper)));
             int numberOfTst = (travellerMasterInfo.isSeamen()) ? 1 : getNumberOfTST(travellerMasterInfo.getTravellersList());
-//			gdsPNRReply = serviceHandler.retrivePNR(tstRefNo,amadeusSessionWrapper);
-//			tstRefNo = getPNRNoFromResponse(gdsPNRReply);
+
             if (travellerMasterInfo.getGdsPNR() == null && !travellerMasterInfo.isChangedPriceHigh()) {
                 createTST(pnrResponse, amadeusSessionWrapper, numberOfTst);
                 gdsPNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
@@ -169,7 +172,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 isAddBooking = true;
             }
             try {
-                gdsPNRReply = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
+                gdsPNRReply = serviceHandler.retrievePNR(tstRefNo, amadeusSessionWrapper);
                 if (isAddBooking) {
                     TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
                     createSegmentPricing(gdsPNRReply, pnrResponse, ticketDisplayTSTReply);
@@ -205,7 +208,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
             addSSRDetailsToPNR(travellerMasterInfo, 1, lastPNRAddMultiElements, segmentNumbers, travellerMap, amadeusSessionWrapper);
             Thread.sleep(5000);
-            gdsPNRReply = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
+            gdsPNRReply = serviceHandler.retrievePNR(tstRefNo, amadeusSessionWrapper);
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, travellerMasterInfo);
             //logger.debug("todo generatePNR called 8........gdsPNRReply:"+ Json.stringify(Json.toJson(gdsPNRReply)) + "   ***** pricePNRReply:");
         } catch (Exception e) {
@@ -374,14 +377,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
         PricingInformation pricingInfo = null;
         List<Journey> journeyList = null;
         AmadeusCancelServiceImpl amadeusCancelService = new AmadeusCancelServiceImpl();
-        com.amadeus.xml.pnrspl_11_3_1a.PNRSplit pnrSplit = new com.amadeus.xml.pnrspl_11_3_1a.PNRSplit();
+        PNRSplit pnrSplit = new PNRSplit();
         ReservationControlInformationType reservationInfo = new ReservationControlInformationType();
         ReservationControlInformationDetailsTypeI reservationControlInformationDetailsTypeI = new ReservationControlInformationDetailsTypeI();
         String gdsPNR = issuanceRequest.getGdsPNR();
         PNRReply gdsPNRReply = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         SplitPNRType splitPNRType = null;
-
 //		PartialCancellationRequest partialCancellationRequest = new PartialCancellationRequest();
 //		partialCancellationRequest.setOriginalGdsPnr(gdsPNR);
 //		if (issuanceRequest.getAmadeusPaxRefAndTicketList() != null) {
@@ -391,8 +393,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 //			partialCancellationRequest.setPaxAndTicketList(new ArrayList<>());
 //		}
         try {
-            amadeusSessionWrapper = serviceHandler.logIn();
-            gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
+            amadeusSessionWrapper = serviceHandler.logIn(true);
+            gdsPNRReply = serviceHandler.retrievePNR(gdsPNR, amadeusSessionWrapper);
 
             String paxType = gdsPNRReply.getTravellerInfo().get(0).getPassengerData().get(0).getTravellerInformation().getPassenger().get(0).getType();
             boolean isSeamen = false;
@@ -400,7 +402,6 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 isSeamen = true;
 
 //			Map<String, Object> travellerSegMap = createTravellerSegmentMap(gdsPNRReply);
-
             String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
             reservationControlInformationDetailsTypeI.setControlNumber(tstRefNo);
             reservationInfo.setReservation(reservationControlInformationDetailsTypeI);
@@ -421,9 +422,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
             String childPNR = createChildPNR(childPNRReply);
             serviceHandler.saveChildPNR("20", amadeusSessionWrapper);
             Thread.sleep(4000);
-            PNRReply childRetrive = serviceHandler.retrivePNR(childPNR, amadeusSessionWrapper);
+            PNRReply childRetrive = serviceHandler.retrievePNR(childPNR, amadeusSessionWrapper);
 
-            journeyList = getJourneyListFromPNRResponse(childRetrive, redisTemplate);
+            journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(childRetrive, redisTemplate);
 
             TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
 
@@ -432,19 +433,19 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 pnrResponse.setErrorMessage(errorMessage);
             }
 
-            pricingInfo = getPricingInfoFromTST(childRetrive, ticketDisplayTSTReply, isSeamen, journeyList);
+            pricingInfo = AmadeusBookingHelper.getPricingInfoFromTST(childRetrive, ticketDisplayTSTReply, isSeamen, journeyList);
             pricingInfo.setSegmentWisePricing(false);
             pnrResponse.setPricingInfo(pricingInfo);
             pnrResponse.setPnrNumber(childPNR);
-            pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
-            pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(gdsPNRReply));
-            pnrResponse.setFreeSeatList(AmadeusBookingHelper.getFreeSeatDetailsFromPnr(gdsPNRReply));
+            pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(childRetrive));
+            pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(childRetrive));
+            pnrResponse.setFreeSeatList(AmadeusBookingHelper.getFreeSeatDetailsFromPnr(childRetrive));
+            pnrResponse.setSegmentRefMap(AmadeusBookingHelper.getSegmentRefMap(childRetrive, childPNR));
             Date lastPNRAddMultiElements = new Date();
             PNRReply childGdsReply = readChildAirlinePNR(serviceHandler, childRetrive, lastPNRAddMultiElements, pnrResponse, amadeusSessionWrapper);
             if (pnrResponse.getAirlinePNR() != null) {
                 try {
                     if (issuanceRequest.getCtSegmentDtoList() != null && !issuanceRequest.getCtSegmentDtoList().isEmpty()) {
-
 
 
 //						Map<BigInteger, String> segmentMap = new HashMap<>();
@@ -479,7 +480,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         } else if (type.equalsIgnoreCase(SPLIT_PNR)) {
                             cancelPNRResponse.setSuccess(true);
                         } else {
-                            cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
+                            cancelPNRResponse = cancelService.cancelOnlyItineraryFromPNR(childPNR, false);
                         }
                     } else {
                         if (type.equalsIgnoreCase(VOID_TICKET)) {
@@ -492,7 +493,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         } else if (type.equalsIgnoreCase(SPLIT_PNR)) {
                             cancelPNRResponse.setSuccess(true);
                         } else {
-                            cancelPNRResponse = cancelPNR(childPNR, false, amadeusSessionWrapper);
+                            cancelPNRResponse = cancelService.cancelOnlyItineraryFromPNR(childPNR, false);
                         }
                     }
                     if (!type.equalsIgnoreCase(REFUND_TICKET))
@@ -562,7 +563,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
         try {
 
-            PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+            PNRReply pnrReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
             if (!isFullPNR) {
                 //pnrReply = serviceHandler.partialCancelPNR(pnr, pnrReply, segmentMap, amadeusSessionWrapper);
                 pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper, false);
@@ -571,8 +572,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 logger.debug("Cancel full pnr called: " + pnr);
                 pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper, false);
             }
-            com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-            PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+            PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+            PNRReply retrievePNRReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
 
             //todo check for origindestinationDetails in retrievePNRReply to confirm cancellation
             cancelPNRResponse.setSuccess(true);
@@ -592,7 +593,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
     private FarePricePNRWithBookingClassReply checkPNRPrice(IssuanceRequest issuanceRequest, String tstRefNo, FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, AmadeusSessionWrapper amadeusSessionWrapper) {
         TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
         travellerMasterInfo = allPNRDetails(issuanceRequest, tstRefNo);
-        PNRReply gdsPNRReply = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
+        PNRReply gdsPNRReply = serviceHandler.retrievePNR(tstRefNo, amadeusSessionWrapper);
         logger.debug("gdsPNRReply after cancel..." + Json.toJson(gdsPNRReply));
         String carrierCode = "";
         List<Journey> journeys;
@@ -637,8 +638,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
         }
         Map<String, Object> travellerSegMap = createTravellerCountMap(gdsPNRReply, issuanceRequest.getBookingTravellerList());
-        checkFarePrice(pricePNRReply, pnrResponse, travellerMasterInfo, travellerSegMap);
+        AmadeusBookingHelper.checkFarePrice(pricePNRReply, pnrResponse, travellerMasterInfo, travellerSegMap);
         readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
+
         return pricePNRReply;
     }
 
@@ -647,7 +649,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         CancelPNRResponse cancelPNRResponse = new CancelPNRResponse();
         try {
 
-            PNRReply pnrReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+            PNRReply pnrReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
             for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsDiv : pnrReply.getDataElementsMaster().getDataElementsIndiv()) {
                 logger.debug("dataElementsDiv.getElementManagementData().getSegmentName() called for PNR : " + dataElementsDiv.getElementManagementData().getSegmentName());
 
@@ -673,8 +675,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
             logger.debug("Cancel pnr called: " + pnr);
             pnrReply = serviceHandler.cancelFullPNR(pnr, pnrReply, amadeusSessionWrapper, false);
-            com.amadeus.xml.pnracc_11_3_1a.PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
-            PNRReply retrievePNRReply = serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+            PNRReply savePNRReply = serviceHandler.savePNR(amadeusSessionWrapper);
+            PNRReply retrievePNRReply = serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
 
             //todo check for origindestinationDetails in retrievePNRReply to confirm cancellation
             cancelPNRResponse.setSuccess(true);
@@ -864,7 +866,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 pnrResponse.setAirlinePNRError(true);
                 for (PNRReply.PnrHeader pnrHeader : pnrReply.getPnrHeader()) {
                     pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
-                            .getReservation().getControlNumber());
+                            .getReservation().get(0).getControlNumber());
                 }
                 throw new BaseCompassitesException("Simultaneous changes Error");
             } else {
@@ -923,7 +925,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 pnrResponse.setAirlinePNRError(true);
                 for (PNRReply.PnrHeader pnrHeader : pnrReply.getPnrHeader()) {
                     pnrResponse.setPnrNumber(pnrHeader.getReservationInfo()
-                            .getReservation().getControlNumber());
+                            .getReservation().get(0).getControlNumber());
                 }
                 throw new BaseCompassitesException("Simultaneeous changes Error");
             } else {
@@ -955,7 +957,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                                           Date lastPNRAddMultiElements, TravellerMasterInfo travellerMasterInfo, int iteration,
                                           List<String> segmentNumbers, Map<String, String> travellerMap, AmadeusSessionWrapper amadeusSessionWrapper) throws InterruptedException, BaseCompassitesException {
 
-        boolean simultaneousChangeToPNR = checkForSimultaneousChange(addSSRResponse);
+        boolean simultaneousChangeToPNR = AmadeusBookingHelper.checkForSimultaneousChange(addSSRResponse);
         if (simultaneousChangeToPNR) {
             Period p = new Period(new DateTime(lastPNRAddMultiElements), new DateTime(), PeriodType.seconds());
             if (p.getSeconds() >= 12) {
@@ -1016,8 +1018,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     "error", ErrorMessage.ErrorType.ERROR, "Amadeus");
             pnrResponse.setErrorMessage(errorMessage);
         }
-        boolean flightAvailable = validateFlightAvailability(sellFromRecommendation,
-                AmadeusConstants.AMADEUS_FLIGHT_AVAILIBILITY_CODE);
+        boolean flightAvailable = AmadeusBookingHelper
+                .validateFlightAvailability(sellFromRecommendation,
+                        AmadeusConstants.AMADEUS_FLIGHT_AVAILIBILITY_CODE);
         /*if(!flightAvailable){
             serviceHandler.logOut();
         }*/
@@ -1070,7 +1073,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             }
             return pricePNRReply;
         }
-        checkFare(pricePNRReply, pnrResponse, travellerMasterInfo);
+        AmadeusBookingHelper.checkFare(pricePNRReply, pnrResponse, travellerMasterInfo);
         readBaggageInfoFromPnrReply(gdsPNRReply, pricePNRReply, pnrResponse);
 
 //        AmadeusBookingHelper.setTaxBreakup(pnrResponse, travellerMasterInfo, pricePNRReply);
@@ -1085,7 +1088,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
     public String getPNRNoFromResponse(PNRReply gdsPNRReply) {
         String pnrNumber = null;
         for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
-            pnrNumber = pnrHeader.getReservationInfo().getReservation()
+            pnrNumber = pnrHeader.getReservationInfo().getReservation().get(0)
                     .getControlNumber();
             if (Objects.nonNull(pnrHeader))
                 break;
@@ -1098,11 +1101,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
                                          FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
 //		PNRResponse pnrResponse = new PNRResponse();
         //for (PNRReply.PnrHeader pnrHeader : gdsPNRReply.getPnrHeader()) {
-        pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().getControlNumber());
+        pnrResponse.setPnrNumber(gdsPNRReply.getPnrHeader().get(0).getReservationInfo().getReservation().get(0).getControlNumber());
         //}
 
         //Creating Amadeus Pax Reference and Line number here
         pnrResponse.setAmadeusPaxReference(createAmadeusPaxRefInfo(gdsPNRReply));
+
+        pnrResponse.setSegmentRefMap(AmadeusBookingHelper.getSegmentRefMap(gdsPNRReply, pnrResponse.getPnrNumber()));
 
         pnrResponse.setFreeMealsList(AmadeusBookingHelper.getFreeMealsInfoFromPnr(gdsPNRReply));
 
@@ -1126,41 +1131,46 @@ public class AmadeusBookingServiceImpl implements BookingService {
         List<TravellerInfo> travellerInfoList = gdsPNRReply.getTravellerInfo();
 
         for (PNRReply.TravellerInfo travellerInfo : travellerInfoList) {
-            amadeusPaxInformationList.add(extractPassengerData(travellerInfo));
+            amadeusPaxInformationList.add(AmadeusBookingHelper.extractPassengerData(travellerInfo));
         }
 
         return amadeusPaxInformationList;
     }
 
     public void setLastTicketingDate(FarePricePNRWithBookingClassReply pricePNRReply, PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo) {
-        Date lastTicketingDate = null;
-        if (pricePNRReply.getFareList() != null && pricePNRReply.getFareList().size() > 0 && pricePNRReply.getFareList().get(0) != null && pricePNRReply.getFareList().get(0).getLastTktDate() != null) {
-            StructuredDateTimeType dateTime = pricePNRReply
-                    .getFareList().get(0).getLastTktDate().getDateTime();
-            String day = ((dateTime.getDay().toString().length() == 1) ? "0"
-                    + dateTime.getDay() : dateTime.getDay().toString());
-            String month = ((dateTime.getMonth().toString().length() == 1) ? "0"
-                    + dateTime.getMonth() : dateTime.getMonth().toString());
-            String year = dateTime.getYear().toString();
-            SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
+        try {
+            Date lastTicketingDate = null;
+            if (pricePNRReply.getFareList() != null && !pricePNRReply.getFareList().isEmpty() && pricePNRReply.getFareList().get(0) != null && pricePNRReply.getFareList().get(0).getLastTktDate() != null) {
+                StructuredDateTimeType dateTime = pricePNRReply
+                        .getFareList().get(0).getLastTktDate().getDateTime();
+                String day = ((dateTime.getDay().toString().length() == 1) ? "0"
+                        + dateTime.getDay() : dateTime.getDay().toString());
+                String month = ((dateTime.getMonth().toString().length() == 1) ? "0"
+                        + dateTime.getMonth() : dateTime.getMonth().toString());
+                String year = dateTime.getYear().toString();
+                SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyy");
 
-            try {
-                lastTicketingDate = sdf.parse(day + month + year);
-            } catch (ParseException e) {
-                logger.debug("error in setLastTicketingDate", e);
-                e.printStackTrace();
+                try {
+                    lastTicketingDate = sdf.parse(day + month + year);
+                } catch (ParseException e) {
+                    logger.debug("error in setLastTicketingDate", e);
+                }
+
             }
-        }
 
-        if (lastTicketingDate == null) {
-            Calendar calendar = Calendar.getInstance();
-            Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
-            calendar.setTime(holdDate);
-            lastTicketingDate = calendar.getTime();
-            pnrResponse.setHoldTime(true);
+            if (lastTicketingDate == null) {
+                Calendar calendar = Calendar.getInstance();
+                Date holdDate = HoldTimeUtility.getHoldTime(travellerMasterInfo);
+                calendar.setTime(holdDate);
+                lastTicketingDate = calendar.getTime();
+                pnrResponse.setHoldTime(true);
+            }
+            pnrResponse.setHoldTime(false);
+            pnrResponse.setValidTillDate(lastTicketingDate);
+
+        } catch (Exception e) {
+            logger.debug("Error getting last ticketing date {} ", e.getMessage(), e);
         }
-        pnrResponse.setHoldTime(false);
-        pnrResponse.setValidTillDate(lastTicketingDate);
 
     }
 
@@ -1208,7 +1218,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         PNRReply gdsPNRReply = null;
         try {
 
-            amadeusSessionWrapper = serviceHandler.logIn();
+            amadeusSessionWrapper = serviceHandler.logIn(true);
 
             checkFlightAvailibility(travellerMasterInfo, pnrResponse, amadeusSessionWrapper);
             serviceHandler.addTravellerInfoToPNR(travellerMasterInfo, amadeusSessionWrapper);
@@ -1216,7 +1226,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             tstRefNo = getPNRNoFromResponse(gdsPNRReply);
             System.out.println(tstRefNo);
             Thread.sleep(10000);
-            gdsPNRReply = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
+            gdsPNRReply = serviceHandler.retrievePNR(tstRefNo, amadeusSessionWrapper);
             createPNRResponse(gdsPNRReply, pricePNRReply, pnrResponse, travellerMasterInfo);
         } catch (Exception e) {
             logger.error("todo error in generating tmp PNR" + e.getMessage());
@@ -1274,10 +1284,10 @@ public class AmadeusBookingServiceImpl implements BookingService {
             if (officeId.equals(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId()) && !isBATK(travellerMasterInfo)) {
                 officeId = amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId();
             }
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
+            amadeusSessionWrapper = serviceHandler.logIn(officeId, true);
             PNRReply gdsPNRReply = null;
             if (travellerMasterInfo.getAdditionalInfo() != null && travellerMasterInfo.getAdditionalInfo().getAddBooking() != null && travellerMasterInfo.getAdditionalInfo().getAddBooking()) {
-                gdsPNRReply = serviceHandler.retrivePNR(travellerMasterInfo.getAdditionalInfo().getOriginalPNR(), amadeusSessionWrapper);
+                gdsPNRReply = serviceHandler.retrievePNR(travellerMasterInfo.getAdditionalInfo().getOriginalPNR(), amadeusSessionWrapper);
             }
             checkFlightAvailibility(travellerMasterInfo, pnrResponse, amadeusSessionWrapper);
 
@@ -1341,26 +1351,33 @@ public class AmadeusBookingServiceImpl implements BookingService {
                     String tstRefNo = getPNRNoFromResponse(gdsPNRReply);
                     System.out.println(tstRefNo);
                     logger.debug("checkFareChangeAndAvailability called..........." + pnrResponse);
-                    gdsPNRReplyBenzy = serviceHandler.retrivePNR(tstRefNo, amadeusSessionWrapper);
+                    gdsPNRReplyBenzy = serviceHandler.retrievePNR(tstRefNo, amadeusSessionWrapper);
+
+                    //Fetching the creation office ID here and always logging in using the creation office ID to give ES entry to other office ID's (Avoids Secured PNR and Office ID not responsible error)
+                    String creationOfficeId = getCreationOfficeId(gdsPNRReplyBenzy);
+                    if (!creationOfficeId.equalsIgnoreCase(officeId)) {
+                        amadeusSessionWrapper = serviceHandler.logIn(creationOfficeId, true);
+                    }
+
+                    gdsPNRReplyBenzy = serviceHandler.retrievePNR(tstRefNo, amadeusSessionWrapper);
                     //pnrResponse.setPnrNumber(tstRefNo);
                     Boolean error = Boolean.FALSE;
+
                     gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
 
-                    boolean isSimultaneousChangeToPnr = checkForSimultaneousChange(gdsPNRReplyBenzy);
+                    boolean isSimultaneousChangeToPnr = checkForSimultaneousChange(gdsPNRReply);
 
                     if(isSimultaneousChangeToPnr) {
                         gdsPNRReply = handleSimultaneousChangeForEsEntry(amadeusSessionWrapper,amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
                     }
-
 
                     if (!gdsPNRReply.getGeneralErrorInfo().isEmpty()) {
                         Thread.sleep(20000);
                         error = Boolean.TRUE;
                     }
                     if (!error) {
-                        System.out.println(" ! error condition");
-                        benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-                        PNRReply pnrReply = serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
+                        benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId(), true);
+                        PNRReply pnrReply = serviceHandler.retrievePNR(tstRefNo, benzyAmadeusSessionWrapper);
                         pricePNRReplyBenzy = checkPNRPricing(travellerMasterInfo, gdsPNRReplyBenzy, pricePNRReplyBenzy, pnrResponse, benzyAmadeusSessionWrapper);
                         createTST(pnrResponse, benzyAmadeusSessionWrapper, numberOfTst);
                         setLastTicketingDate(pricePNRReplyBenzy, pnrResponse, travellerMasterInfo);
@@ -1384,9 +1401,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         serviceHandler.exitESPnr(pnrCancel, amadeusSessionWrapper);
                         serviceHandler.logOut(benzyAmadeusSessionWrapper);
                         gdsPNRReply = serviceHandler.savePNRES(amadeusSessionWrapper, amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
-                        benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId());
+                        benzyAmadeusSessionWrapper = serviceHandler.logIn(amadeusSourceOfficeService.getBenzySourceOffice().getOfficeId(), true);
                         try {
-                            serviceHandler.retrivePNR(tstRefNo, benzyAmadeusSessionWrapper);
+                            serviceHandler.retrievePNR(tstRefNo, benzyAmadeusSessionWrapper);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                             if (ex != null && ex.getMessage() != null && ex.getMessage().toString().contains("IGNORE")) {
@@ -1429,7 +1446,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                         List<HashMap> miniRule = new ArrayList<>();
                         FlightItinerary flightItinerary = travellerMasterInfo.getItinerary();
                         try {
-                            AmadeusSessionWrapper benzyamadeusSessionWrapper = serviceHandler.logIn(benzyOfficeId);
+                            AmadeusSessionWrapper benzyamadeusSessionWrapper = serviceHandler.logIn(benzyOfficeId, true);
                             List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
                             List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
                             FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList, seamen, 1, 0, 0, paxFareDetailsList, amadeusSessionWrapper);
@@ -1491,6 +1508,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
         return pnrResponse;
     }
 
+    private static String getCreationOfficeId(PNRReply pnrReply) {
+        return pnrReply.getSecurityInformation().getResponsibilityInformation().getOfficeId();
+    }
 
     /**
      * Check for Airlines that has to be priced in DELHI Office ID
@@ -1543,6 +1563,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
     }
 
+    //Does a pnr retrieve and gets information related to the PNR
     public TravellerMasterInfo allPNRDetails(IssuanceRequest issuanceRequest, String gdsPNR) {
 
         TravellerMasterInfo masterInfo = new TravellerMasterInfo();
@@ -1551,13 +1572,13 @@ public class AmadeusBookingServiceImpl implements BookingService {
         IssuanceResponse issuanceResponse = new IssuanceResponse();
         masterInfo.setSeamen(isSeamen);
 
-        //ServiceHandler serviceHandler = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
-            //serviceHandler = new ServiceHandler();
-            //// serviceHandler.logIn();
-            amadeusSessionWrapper = serviceHandler.logIn(officeId);
-            PNRReply gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
+
+            amadeusSessionWrapper = serviceHandler.logIn(officeId, true);
+
+            //For Stateful sessions the Start is from here
+            PNRReply gdsPNRReply = serviceHandler.retrievePNR(gdsPNR, amadeusSessionWrapper);
             Set<String> isTicketContainSet = new HashSet<String>();
             for (DataElementsIndiv isticket : gdsPNRReply.getDataElementsMaster().getDataElementsIndiv()) {
                 String isTicketIssued = isticket.getElementManagementData().getSegmentName();
@@ -1572,35 +1593,26 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
             }
 
-            if (isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM") || isTicketContainSet.contains("FHE")) {
-                issuanceResponse.setIssued(true);
-            } else {
-                issuanceResponse.setIssued(false);
-            }
-            /*logger.debug("SET>>>>>>>>>>>>>>>>>>>"+Json.toJson(isTicketContainSet));*/
+            issuanceResponse.setIssued(isTicketContainSet.contains("FA") || isTicketContainSet.contains("FHM") || isTicketContainSet.contains("FHE"));
+
             for (String isFA : isTicketContainSet) {
                 if (isFA.equalsIgnoreCase("FA")) {
-                    createTickets(issuanceResponse,
-                            issuanceRequest, gdsPNRReply);
-                    //break;
+                    AmadeusBookingHelper.createTickets(issuanceResponse, issuanceRequest, gdsPNRReply);
                 }
                 if (isFA.equalsIgnoreCase("FHM")) {
-                    createOfflineTickets(issuanceResponse,
-                            issuanceRequest, gdsPNRReply);
-                    //break;
+                    AmadeusBookingHelper.createOfflineTickets(issuanceResponse, issuanceRequest, gdsPNRReply);
                 }
                 if (isFA.equalsIgnoreCase("FHE")) {
-                    createOfflineTicketsinFHE(issuanceResponse,
-                            issuanceRequest, gdsPNRReply);
-                    //break;
+                    AmadeusBookingHelper.createOfflineTicketsinFHE(issuanceResponse, issuanceRequest, gdsPNRReply);
                 }
             }
+
             masterInfo.setTravellersList(issuanceResponse.getTravellerList());
-			/*System.out
-					.println("retrivePNR ===================================>>>>>>>>>>>>>>>>>>>>>>>>>"
-							+ "\n" + Json.toJson(gdsPNRReply));*/
+
             FlightItinerary flightItinerary = new FlightItinerary();
-            List<Journey> journeyList = getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
+
+            //Consolidates Journey From a PNR response
+            List<Journey> journeyList = AmadeusBookingHelper.getJourneyListFromPNRResponse(gdsPNRReply, redisTemplate);
 
             if (isSeamen) {
                 flightItinerary.setJourneyList(journeyList);
@@ -1608,6 +1620,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 flightItinerary.setNonSeamenJourneyList(journeyList);
             }
 
+            //To get Pricing Information
             TicketDisplayTSTReply ticketDisplayTSTReply = serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
             amadeusBookingHelper.getTicketEligibilityFromTicketDisplayTSTReply(ticketDisplayTSTReply,masterInfo);
             PricingInformation pricingInformation = getPricingInfoFromTST(gdsPNRReply, ticketDisplayTSTReply, isSeamen, journeyList);
@@ -1623,12 +1636,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
             masterInfo.setItinerary(flightItinerary);
 
-
-//          getCancellationFee(issuanceRequest,issuanceResponse,serviceHandler);
             masterInfo.setCancellationFeeText(issuanceResponse.getCancellationFeeText());
-            // logger.debug("=========================AMADEUS RESPONSE================================================\n"+Json.toJson(gdsPNRReply));
-            // logger.debug("====== masterInfo details =========="+
-            // Json.toJson(masterInfo));
+
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Error in allPNRDetails", e);
@@ -1671,9 +1680,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         List<HashMap> miniRules = new ArrayList<>();
         try {
-            amadeusSessionWrapper = serviceHandler.logIn();
-            gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
-            miniRuleGetFromPricingRecReply = serviceHandler.retriveMiniRuleFromPNR(amadeusSessionWrapper, gdsPNR);
+            amadeusSessionWrapper = serviceHandler.logIn(true);
+            gdsPNRReply = serviceHandler.retrievePNR(gdsPNR, amadeusSessionWrapper);
+            miniRuleGetFromPricingRecReply = serviceHandler.retrieveMiniRuleFromPNR(amadeusSessionWrapper, gdsPNR);
             Map<String, String> segmentRefMap = new HashMap<>();
 
             //origin Destination map
@@ -1728,9 +1737,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
         ServiceHandler serviceHandler = null;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
-            amadeusSessionWrapper = serviceHandler.logIn();
-            gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
-            miniRuleGetFromETicketReply = serviceHandler.retriveMiniRuleFromPricing(amadeusSessionWrapper);
+            amadeusSessionWrapper = serviceHandler.logIn(true);
+            gdsPNRReply = serviceHandler.retrievePNR(gdsPNR, amadeusSessionWrapper);
+            miniRuleGetFromETicketReply = serviceHandler.retrieveMiniRuleFromPricing(amadeusSessionWrapper);
             List<MonetaryInformationDetailsType> MonetaryInformationDetailsType = miniRuleGetFromETicketReply.getMnrByPricingRecord().get(0).getMnrRulesInfoGrp().get(3).getMnrMonInfoGrp().get(0).getMonetaryInfo().getMonetaryDetails();
             addMiniFareRulesFromEticket(MonetaryInformationDetailsType, miniRule);
         } catch (Exception e) {
@@ -2028,14 +2037,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
 
     public JsonNode getBookingDetails(String gdsPNR) {
         logger.info("Amadeus getBookingDetails called for PNR: " + gdsPNR);
-        AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn();
+        AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(true);
         return getBookingDetail(gdsPNR, amadeusSessionWrapper);
     }
 
 
     public JsonNode getBookingDetailsByOfficeId(String gdsPNR, String officeId) {
         logger.info("Amadeus getBookingDetailsByOfficeId called for PNR: " + gdsPNR + "--OfficeID: " + officeId);
-        AmadeusSessionWrapper sessionWrapper = serviceHandler.logIn(officeId);
+        AmadeusSessionWrapper sessionWrapper = serviceHandler.logIn(officeId, true);
         return getBookingDetail(gdsPNR, sessionWrapper);
     }
 
@@ -2048,12 +2057,14 @@ public class AmadeusBookingServiceImpl implements BookingService {
         FarePricePNRWithBookingClassReply pricePNRReply = null;
         PricingInformation pricingInfo = null;
         List<Journey> journeyList = null;
+
         int adtCount = 0;
         int childCount = 0;
         int infactCount = 0;
+
         Map<String, Object> json = new HashMap<>();
         try {
-            gdsPNRReply = serviceHandler.retrivePNR(gdsPNR, amadeusSessionWrapper);
+            gdsPNRReply = serviceHandler.retrievePNR(gdsPNR, amadeusSessionWrapper);
             List<Traveller> travellersList = new ArrayList<>();
             List<Traveller> childTravellersList = new ArrayList<>();
             List<Traveller> infantTravellersList = new ArrayList<>();
@@ -2062,7 +2073,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             for (TravellerInfo travellerInfo : travellerinfoList) {
                 Traveller traveller = new Traveller();
 
-                com.amadeus.xml.pnracc_11_3_1a.ElementManagementSegmentType elementManagementPassenger = travellerInfo.getElementManagementPassenger();
+                com.amadeus.xml.pnracc_14_1_1a.ElementManagementSegmentType elementManagementPassenger = travellerInfo.getElementManagementPassenger();
                 ReferencingDetailsType127526C reference = elementManagementPassenger.getReference();
                 traveller.setAmadeusPaxRefQualifier(reference.getQualifier());
                 traveller.setAmadeusPaxRefNumber(reference.getNumber());
@@ -2082,7 +2093,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 String[] names = firstNameResponse.split("\\s");
                 //personalDetails.setFirstName(names[0]);
 
-                if (names.length > 1) {
+                if (names.length > 0) {
                     //personalDetails.setSalutation(names[names.length-1]);
                     for (String name : names) {
                         if (name.equalsIgnoreCase("Mr") || name.equalsIgnoreCase("Mrs") || name.equalsIgnoreCase("Ms")
@@ -2247,21 +2258,26 @@ public class AmadeusBookingServiceImpl implements BookingService {
             pnrResponse.setPricingInfo(pricingInfo);
 
             List<ItineraryInfo> itineraryInfos = null;
-            if (gdsPNRReply.getOriginDestinationDetails() != null && gdsPNRReply.getOriginDestinationDetails().size() > 0) {
+            if (gdsPNRReply.getOriginDestinationDetails() != null && !gdsPNRReply.getOriginDestinationDetails().isEmpty()) {
                 itineraryInfos = gdsPNRReply.getOriginDestinationDetails().get(0).getItineraryInfo();
-                if (itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getItineraryReservationInfo() != null) {
+                if (itineraryInfos != null && !itineraryInfos.isEmpty() && itineraryInfos.get(0).getItineraryReservationInfo() != null) {
                     String airlinePnr = itineraryInfos.get(0).getItineraryReservationInfo().getReservation().getControlNumber();
                     pnrResponse.setAirlinePNR(airlinePnr);
                 }
-                if (itineraryInfos != null && itineraryInfos.size() > 0 && itineraryInfos.get(0).getRelatedProduct().getStatus() != null) {
+                if (itineraryInfos != null && !itineraryInfos.isEmpty() && itineraryInfos.get(0).getRelatedProduct().getStatus() != null) {
                     List<String> statusList = itineraryInfos.get(0).getRelatedProduct().getStatus();
                     String status = statusList.get(0);
                     pnrResponse.setStatus(status);
                 }
             }
 
+            String segmentStatus = null;
 
-            if (!pnrResponse.getStatus().equalsIgnoreCase("GK")) {
+            if (pnrResponse.getStatus() != null) {
+                segmentStatus = pnrResponse.getStatus();
+            }
+
+            if (segmentStatus != null && !segmentStatus.equalsIgnoreCase("GK")) {
 
                 // fetch generic fare rule
                 pricePNRReply = checkPNRPricing(masterInfo, gdsPNRReply, pricePNRReply, pnrResponse, amadeusSessionWrapper);
@@ -2281,7 +2297,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             Map<String, String> fareComponentFromTst = getFareComponentFromTst(ticketDisplayTSTReply);
             List<Journey> actualJourneyList = getJourneyDetails(journeyList, fareComponentFromTst, redisTemplate);
 
-            if (actualJourneyList.isEmpty()) {
+            if (actualJourneyList == null || actualJourneyList.isEmpty()) {
                 actualJourneyList = journeyList;
             }
 
@@ -2365,8 +2381,8 @@ public class AmadeusBookingServiceImpl implements BookingService {
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
             //serviceHandler = new ServiceHandler();
-            amadeusSessionWrapper = serviceHandler.logIn();
-            serviceHandler.retrivePNR(pnr, amadeusSessionWrapper);
+            amadeusSessionWrapper = serviceHandler.logIn(true);
+            serviceHandler.retrievePNR(pnr, amadeusSessionWrapper);
 
             serviceHandler.ticketDisplayTST(amadeusSessionWrapper);
         } catch (Exception e) {
@@ -2497,6 +2513,31 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
         return Boolean.FALSE;
     }
-  
-  
+
+    @Override
+    public boolean addJocoPnrToGdsPnr(AddElementsToPnrDTO addElementsToPnrDTO) {
+
+        try {
+            AmadeusSessionWrapper amadeusSessionWrapper = serviceHandler.logIn(true);
+
+            String gdsPnr = addElementsToPnrDTO.getGdsPnr();
+            String jocoPnr = addElementsToPnrDTO.getJocoPnr();
+
+            serviceHandler.retrievePNR(gdsPnr, amadeusSessionWrapper);
+
+            PNRReply pnrReply = serviceHandler.addJocoPnrBookingInfoToPNR(jocoPnr, amadeusSessionWrapper);
+
+            serviceHandler.savePNR(amadeusSessionWrapper);
+
+            if (pnrReply != null && pnrReply.getGeneralErrorInfo() != null && pnrReply.getGeneralErrorInfo().isEmpty()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            logger.debug("Error While Adding Joco PNR to Gds Pnr {} ", e.getMessage(), e);
+            return false;
+        }
+    }
+
 }

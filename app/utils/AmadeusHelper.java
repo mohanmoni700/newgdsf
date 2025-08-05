@@ -1,19 +1,17 @@
 package utils;
 
 import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply;
-import com.amadeus.xml.pnracc_11_3_1a.PNRReply.OriginDestinationDetails;
-import com.amadeus.xml.pnracc_11_3_1a.ReservationControlInformationTypeI115879S;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
+import com.amadeus.xml.pnracc_14_1_1a.PNRReply.OriginDestinationDetails;
+import com.amadeus.xml.pnracc_14_1_1a.ReservationControlInformationTypeI132902S;
 import com.compassites.model.AirSegmentInformation;
 import com.compassites.model.Journey;
 import models.Airport;
-import models.AmadeusSessionWrapper;
 import models.MiniRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -46,7 +44,7 @@ public class AmadeusHelper {
         for (OriginDestinationDetails originDestinationDetails : gdsPNRReply.getOriginDestinationDetails()) {
 
             for (OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
-                ReservationControlInformationTypeI115879S itineraryReservationInfo = itineraryInfo.getItineraryReservationInfo();
+                ReservationControlInformationTypeI132902S itineraryReservationInfo = itineraryInfo.getItineraryReservationInfo();
                 if (itineraryReservationInfo != null && itineraryReservationInfo.getReservation() != null) {
                     String airlinePNR = itineraryInfo.getItineraryReservationInfo().getReservation().getControlNumber();
                     String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode() + segmentSequence;
@@ -147,28 +145,31 @@ public class AmadeusHelper {
         Map<String, Map<String, List<String>>> finalMap = new LinkedHashMap<>();
         Map<String, List<String>> changeMap = new ConcurrentHashMap<>();
         Map<String, List<String>> cancelMap = new ConcurrentHashMap<>();
-        Map<String, List<String>> noteMap = new ConcurrentHashMap<>();
+        Map<String, List<String>> noteMap = new LinkedHashMap<>();
         Map<String, List<String>> noShowMap = new ConcurrentHashMap<>();
 
         int index = 0;
         boolean changesProcessed = false;
         boolean cancellationsProcessed = false;
 
+        List<String> cancellationList = Arrays.asList("CANCELLATIONS", "CANCELLATION", "CANCELLATIONS-", "CANCELLATION-");
+        List<String> changeList = Arrays.asList("CHANGES", "CHANGE", "CHANGES-", "CHANGE-");
         while (index < fareRuleTextList.size()) {
             String trimmedValue = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
-            if (trimmedValue.equals("CHANGES") && !changesProcessed) {
+            if ((changeList.contains(trimmedValue) && !changesProcessed)) {
                 changesProcessed = true;
                 index++;
-                index = processRules(fareRuleTextList, index, changeMap, "CANCELLATIONS");
-            } else if (trimmedValue.equals("CANCELLATIONS") && !cancellationsProcessed) {
+                index = processRules(fareRuleTextList, index, changeMap, cancellationList);
+            } else if (cancellationList.contains(trimmedValue) && !cancellationsProcessed) {
                 cancellationsProcessed = true;
                 index++;
-                index = processRules(fareRuleTextList, index, cancelMap, "CHANGES");
+                index = processRules(fareRuleTextList, index, cancelMap, changeList);
             } else {
                 index++;
             }
         }
 
+        processChangesCancellations(fareRuleTextList, noteMap);
 
         if (changeMap.isEmpty() && cancelMap.isEmpty()) {
             index = 0;
@@ -213,8 +214,7 @@ public class AmadeusHelper {
 
             if (isLineSeparator(convertedText) || isSpecificCategory(convertedText)) {
                 if (currentSentence.length() > 0) {
-                    processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules,
-                            !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+                    processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules, !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
                     currentSentence.setLength(0);
                 }
                 index++;
@@ -225,8 +225,7 @@ public class AmadeusHelper {
 
             if (convertedText.endsWith(".")) {
                 String sentence = currentSentence.toString().trim();
-                processSentence(sentence, noShowRules, yqYrRules,
-                        !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+                processSentence(sentence, noShowRules, yqYrRules, !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
                 if (!yqYrWithRefundFound && containsYqYrAndRefundKeywords(sentence)) {
                     yqYrWithRefundFound = true;
                 }
@@ -236,8 +235,7 @@ public class AmadeusHelper {
         }
 
         if (currentSentence.length() > 0) {
-            processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules,
-                    !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
+            processSentence(currentSentence.toString().trim(), noShowRules, yqYrRules, !yqYrWithRefundFound, !yqYrWithRefundFound, !yqYrWithRefundFound);
         }
 
         // Populate finalMap
@@ -251,20 +249,66 @@ public class AmadeusHelper {
             noShowMap.put("Generic", noShowRules);
             finalMap.put("No Show", noShowMap);
         }
-        if (!noteMap.isEmpty() || !yqYrRules.isEmpty()) {
-            List<String> combinedNote = new ArrayList<>();
-            if (!noteMap.isEmpty()) {
-                combinedNote.addAll(noteMap.values().iterator().next());
+
+        List<String> combinedNote = new ArrayList<>();
+        if (noteMap != null && !noteMap.isEmpty()) {
+            for (List<String> noteRules : noteMap.values()) {
+                if (noteRules != null) {
+                    for (String note : noteRules) {
+                        combinedNote.add(processNote(note));
+                    }
+                }
             }
-            if (!yqYrRules.isEmpty()) {
-                combinedNote.addAll(yqYrRules);
+        }
+        if (yqYrRules != null && !yqYrRules.isEmpty()) {
+            for (String note : yqYrRules) {
+                combinedNote.add(processNote(note));
             }
-            Map<String, List<String>> finalNoteMap = new ConcurrentHashMap<>();
+        }
+        Map<String, List<String>> finalNoteMap = new LinkedHashMap<>();
+        if (!combinedNote.isEmpty()) {
             finalNoteMap.put("Generic", combinedNote);
             finalMap.put("Note", finalNoteMap);
         }
 
         return finalMap;
+    }
+
+    private static String processNote(String note) {
+
+        if (note == null) return "";
+        String trimmed = note.trim();
+        return trimmed.startsWith("-") ? trimmed.substring(1) : trimmed;
+    }
+
+    private static void processChangesCancellations(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList, Map<String, List<String>> noteMap) {
+
+        int index = 0;
+        List<String> combinedRules = new ArrayList<>();
+
+        while (index < fareRuleTextList.size()) {
+            String text = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+            if (text.equalsIgnoreCase("CHANGES/CANCELLATIONS") || text.equalsIgnoreCase("CANCELLATIONS/CHANGES") || text.equalsIgnoreCase("CHANGES / CANCELLATIONS") || text.equalsIgnoreCase("CANCELLATIONS / CHANGES")) {
+                combinedRules.add(getCharacterConversion(text));
+                index++;
+                while (index < fareRuleTextList.size()) {
+                    String nextText = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
+                    if (isNoteText(nextText) || isSeparatorLine(nextText)) {
+                        break;
+                    }
+                    if (!nextText.isEmpty() && !nextText.equals(" ")) {
+                        combinedRules.add(getCharacterConversion(nextText));
+                    }
+                    index++;
+                }
+                if (!combinedRules.isEmpty()) {
+                    noteMap.computeIfAbsent("Combined", k -> new ArrayList<>()).addAll(combinedRules);
+                }
+                break;
+            }
+            index++;
+        }
+
     }
 
     private static void processSentence(String fullSentence, List<String> noShowRules, List<String> yqYrRules, boolean checkYqYr, boolean checkYq, boolean checkYr) {
@@ -366,7 +410,7 @@ public class AmadeusHelper {
         return hasYr && hasRefund;
     }
 
-    private static int processRules(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList, int startIndex, Map<String, List<String>> rulesMap, String breakSection) {
+    private static int processRules(List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList, int startIndex, Map<String, List<String>> rulesMap, List<String> breakSectionList) {
 
         int index = startIndex;
         String currentCategory = null;
@@ -376,7 +420,7 @@ public class AmadeusHelper {
         while (index < fareRuleTextList.size()) {
             String text = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
 
-            if (text.equals(breakSection)) {
+            if (breakSectionList.contains(text)) {
                 if (currentCategory != null && !rules.isEmpty() && !rulesMap.containsKey(currentCategory)) {
                     rulesMap.put(currentCategory, new ArrayList<>(rules));
                 }
@@ -402,7 +446,7 @@ public class AmadeusHelper {
                 index++;
                 while (index < fareRuleTextList.size()) {
                     String nextText = fareRuleTextList.get(index).getFreeText().toString().replaceAll("\\[|\\]", "").trim();
-                    if (isSpecificCategory(nextText) || nextText.equals(breakSection)) {
+                    if (isSpecificCategory(nextText) || breakSectionList.contains(nextText)) {
                         break;
                     }
                     index++;
@@ -442,7 +486,11 @@ public class AmadeusHelper {
     }
 
     private static boolean isSpecificCategory(String line) {
-        return line.equalsIgnoreCase("ANY TIME") || line.equalsIgnoreCase("BEFORE DEPARTURE") || line.equalsIgnoreCase("AFTER DEPARTURE");
+        List<String> specificCategoryStringList = Arrays.asList("ANY TIME", "ANY TIME-", "BEFORE DEPARTURE", "BEFORE DEPARTURE-", "AFTER DEPARTURE", "AFTER DEPARTURE-");
+//        return line.equalsIgnoreCase("ANY TIME") || line.equalsIgnoreCase("BEFORE DEPARTURE") || line.equalsIgnoreCase("AFTER DEPARTURE")
+//        || line.equalsIgnoreCase("ANY TIME-") || line.equalsIgnoreCase("BEFORE DEPARTURE-") || line.equalsIgnoreCase("AFTER DEPARTURE-");
+//
+        return specificCategoryStringList.contains(line);
     }
 
 
@@ -699,6 +747,35 @@ public class AmadeusHelper {
 
         return  detailedFareRulesList;
     }
+
+    public static List<String> getDetailedFareRulesList(FareCheckRulesReply fareCheckRulesReplies) {
+
+        List<String> detailedFareRulesList = new ArrayList<>();
+
+        if (fareCheckRulesReplies != null) {
+            List<FareCheckRulesReply.TariffInfo> tariffInfos = fareCheckRulesReplies.getTariffInfo();
+            if (tariffInfos != null && !tariffInfos.isEmpty()) {
+                for (FareCheckRulesReply.TariffInfo tariffInfo : tariffInfos) {
+                    if (tariffInfo != null) {
+                        List<FareCheckRulesReply.TariffInfo.FareRuleText> fareRuleTextList = tariffInfo.getFareRuleText();
+                        if (fareRuleTextList != null && !fareRuleTextList.isEmpty()) {
+                            for (FareCheckRulesReply.TariffInfo.FareRuleText fareRule : fareRuleTextList) {
+                                if (fareRule != null) {
+                                    List<String> freeText = fareRule.getFreeText();
+                                    if (freeText!=null) {
+                                        detailedFareRulesList.addAll(freeText);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return detailedFareRulesList;
+    }
+
 
     public static BigDecimal getCharges(String data){
         BigDecimal charge = new BigDecimal(0);

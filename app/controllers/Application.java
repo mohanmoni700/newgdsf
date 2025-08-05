@@ -9,9 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import dto.FareCheckRulesResponse;
-import dto.OpenTicketDTO;
-import dto.OpenTicketResponse;
+
+import dto.*;
 import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AncillaryServiceRequest;
@@ -211,7 +210,7 @@ public class Application {
                 mapper.getTypeFactory().constructCollectionType(List.class, TravellerMasterInfo.class)
         );
         List<PNRResponse> pnrResponses = bookingService.checkSplitFareAvailability(travellerMasterInfos);
-        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponses));
+        logger.debug("-----------------checkSplitTicketFareAvailability Response: " + Json.toJson(pnrResponses));
         return Controller.ok(Json.toJson(pnrResponses));
     }
 
@@ -224,16 +223,16 @@ public class Application {
                 mapper.getTypeFactory().constructCollectionType(List.class, TravellerMasterInfo.class)
         );
         PNRResponse pnrResponses = bookingService.checkFareChangeAndAvailabilityForSplitTicket(travellerMasterInfos);
-        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponses));
+        logger.debug("-----------------checkSplitTicketFareAvailability PNR Response: " + Json.toJson(pnrResponses));
         return Controller.ok(Json.toJson(pnrResponses));
     }
 
     public Result generateSplitTicketWithSinglePNR() {
         JsonNode json = request().body().asJson();
-        logger.debug("----------------- generatePNR PNR Request: " + json);
+        logger.debug("----------------- generateSplitTicketWithSinglePNR PNR Request: " + json);
         TravellerMasterInfo travellerMasterInfo = Json.fromJson(json, TravellerMasterInfo.class);
         PNRResponse pnrResponse = bookingService.generateSplitTicketWithSinglePNR(travellerMasterInfo);
-        logger.debug("-----------------PNR Response: " + Json.toJson(pnrResponse));
+        logger.debug("-----------------generateSplitTicketWithSinglePNR Response: " + Json.toJson(pnrResponse));
         return Controller.ok(Json.toJson(pnrResponse));
     }
 
@@ -297,6 +296,7 @@ public class Application {
 
         return Controller.ok(Json.toJson(fareCheckRulesJson));
     }
+
 
 //    @BodyParser.Of(BodyParser.Json.class)
 //    public Result getMiniRuleFromFlightItinerary(){
@@ -460,7 +460,7 @@ public class Application {
                 ticketList.add(ticketNode.asText());
             }
         }
-        logger.debug("Cacnel PNR called for PNR : " + pnr + " provider : " + provider);
+        logger.debug("Cancel PNR called for PNR : " + pnr + " provider : " + provider);
 
         CancelPNRResponse cancelPNRResponse = cancelService.cancelPNR(pnr, provider, appRef, bookingId, fullPNR, ticketList, isFullCancellation);
 
@@ -568,7 +568,7 @@ public class Application {
             MessageItem messageItem = new MessageItem();
             messageItem.setBookingMode(items.getBookingMode());
             messageItem.setUniqueId(items.getUniqueID());
-            messageItem.setMessage(items.getMessages().getStringArray(0));
+            messageItem.setMessage(items.getMessages().toString());
             messageItem.setRph(items.getRPH());
             messageItem.setTkeTimeLimit(items.getTktTimeLimit().toString());
             messageItemList.add(messageItem);
@@ -776,6 +776,20 @@ public class Application {
         return ok(Json.toJson(mealsDetailsStandalone));
     }
 
+    @BodyParser.Of(BodyParser.Json.class)
+    public Result getAncillaryBaggagePaymentConfirmation() {
+
+        JsonNode json = request().body().asJson();
+        AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ = Json.fromJson(json,AncillaryConfirmPaymentRQ.class);
+        logger.debug("Ancillary - Baggage Confirm Request {} ", Json.toJson(ancillaryConfirmPaymentRQ));
+
+        AncillaryConfirmPaymentRS ancillaryConfirmPaymentRS = ancillaryService.getAncillaryBaggageConfirm(ancillaryConfirmPaymentRQ);
+        logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryConfirmPaymentRS));
+
+        return ok(Json.toJson(ancillaryConfirmPaymentRS));
+
+    }
+
     public Result ticketRebookAndRepricePNR() {
         JsonNode json = request().body().asJson();
         logger.debug("----------------- ticketRebookAndRepricePNR PNR Request: " + json);
@@ -828,6 +842,21 @@ public class Application {
             chunks.add((List<OpenTicketDTO>) new ArrayList<>(list.subList(i, end)));
         }
         return chunks;
+    }
+
+    public Result addElementsToPnrPostBookingSuccess() {
+
+        JsonNode json = request().body().asJson();
+
+        AddElementsToPnrDTO addElementsToPnrDTO = Json.fromJson(json, AddElementsToPnrDTO.class);
+
+        boolean isSuccess = bookingService.addJocoPnrToGdsPnr(addElementsToPnrDTO);
+
+        if (isSuccess) {
+            return ok("Success");
+        } else {
+            return badRequest("Fail");
+        }
     }
 
     public Result home() {

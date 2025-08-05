@@ -2,7 +2,6 @@ package services;
 
 import com.compassites.model.*;
 import com.compassites.model.travelomatrix.ResponseModels.TraveloMatrixFaruleReply;
-import com.fasterxml.jackson.databind.JsonNode;
 import dto.FareCheckRulesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

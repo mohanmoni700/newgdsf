@@ -260,6 +260,7 @@ public class SearchFlights {
 
 
     private void createSeamenFareOptions(PricingTicketingInformationType pit, String officeId) {
+
         pit.getPriceType().add("TAC");
         pit.getPriceType().add("RU");
         pit.getPriceType().add("RP");

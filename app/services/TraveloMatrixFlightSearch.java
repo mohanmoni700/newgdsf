@@ -324,7 +324,9 @@ public class TraveloMatrixFlightSearch implements FlightSearch {
             pricingInformation.setInfTotalPrice(new BigDecimal(journeyDetails.getPrice().getPassengerBreakup().getiNF().getTotalPrice()-agentCommission+agentTds));
         pricingInformation.setTotalTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
         pricingInformation.setTax(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getTax()));
-        pricingInformation.setTotalBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare()-agentCommission+agentTds));
+        pricingInformation.setTotalBasePrice(new BigDecimal(journeyDetails.getPrice().getPriceBreakup().getBasicFare() - agentCommission + agentTds));
+        pricingInformation.setAdtTotalPrice(new BigDecimal((journeyDetails.getPrice().getPassengerBreakup().getADT()).getTotalPrice() - agentCommission + agentTds));
+
 
         BigDecimal totalFare = getTotalFare(journeyDetails.getPrice());
         pricingInformation.setTotalPrice(totalFare);

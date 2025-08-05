@@ -81,8 +81,9 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         try {
             for (FlightSearchOffice office : reissueFlightSearch.getOfficeList()) {
 
-                logger.debug("**** Office: " + Json.stringify(Json.toJson(office)));
-                if (!office.getOfficeId().equalsIgnoreCase("BOMAK38SN")) {
+                if (office.getOfficeId().equals(reIssueSearchRequest.getTicketingOfficeId())) {
+
+                    logger.debug("Searching with office ID : {}", Json.stringify(Json.toJson(office)));
 
                     futureSearchResponseList.add(newExecutor.submit(new Callable<SearchResponse>() {
                         public SearchResponse call() throws Exception {
@@ -545,10 +546,10 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
         airSegmentInformation.setDepartureDate(departureDate.toDate());
         airSegmentInformation.setDepartureTime(departureDate.toString());
-        airSegmentInformation.setOnlyDepartureDate(onlyDateFormat(departureDate.toString()));
+        airSegmentInformation.setOnlyDepartureDate(getOnlyDateFormat(departureDate.toString()));
         airSegmentInformation.setArrivalTime(arrivalDate.toString());
         airSegmentInformation.setArrivalDate(arrivalDate.toDate());
-        airSegmentInformation.setOnlyArrivalDate(onlyDateFormat(arrivalDate.toString()));
+        airSegmentInformation.setOnlyArrivalDate(getOnlyDateFormat(arrivalDate.toString()));
 
         airSegmentInformation.setFromAirport(fromAirport);
         airSegmentInformation.setToAirport(toAirport);
@@ -611,22 +612,6 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         }
         return null;
     }
-
-    private Duration setTravelDuraion(String totalElapsedTime) {
-        String strHours = totalElapsedTime.substring(0, 2);
-        String strMinutes = totalElapsedTime.substring(2);
-        Duration duration = null;
-        Integer hours = new Integer(strHours);
-        int days = hours / 24;
-        int dayHours = hours - (days * 24);
-        try {
-            duration = DatatypeFactory.newInstance().newDuration(true, 0, 0, days, dayHours, new Integer(strMinutes), 0);
-        } catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
-        }
-        return duration;
-    }
-
 
     private ReIssuePricingInformation getReIssuePricingInformation(ReIssueSearchRequest reIssueSearchRequest, TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation, String officeId, String gdsCurrency, ReferenceInfoType segmentRef, List<TicketATCShopperMasterPricerTravelBoardSearchReply.ServiceFeesGrp> baggageList) {
 
@@ -725,6 +710,50 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
         return reIssuePricingInformation;
     }
 
+    private Duration setTravelDuraion(String totalElapsedTime) {
+        String strHours = totalElapsedTime.substring(0, 2);
+        String strMinutes = totalElapsedTime.substring(2);
+        Duration duration = null;
+        Integer hours = new Integer(strHours);
+        int days = hours / 24;
+        int dayHours = hours - (days * 24);
+        try {
+            duration = DatatypeFactory.newInstance().newDuration(true, 0, 0, days, dayHours, new Integer(strMinutes), 0);
+        } catch (DatatypeConfigurationException e) {
+            e.printStackTrace();
+        }
+        return duration;
+    }
+
+
+    private List<PAXFareDetails> createFareDetails(TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation) {
+        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
+
+        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
+            PAXFareDetails paxFareDetails = new PAXFareDetails();
+
+            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails : paxFareProduct.getFareDetails()) {
+                FareJourney fareJourney = new FareJourney();
+
+                PassengerTypeCode passengerTypeCode = PassengerTypeCode.valueOf(fareDetails.getGroupOfFares().get(0).getProductInformation().getFareProductDetail().getPassengerType());
+                paxFareDetails.setPassengerTypeCode(passengerTypeCode);
+
+                for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares : fareDetails.getGroupOfFares()) {
+                    FareSegment fareSegment = new FareSegment();
+                    fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
+                    fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
+                    fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
+
+                    fareJourney.getFareSegmentList().add(fareSegment);
+                }
+                paxFareDetails.getFareJourneyList().add(fareJourney);
+            }
+            paxFareDetailsList.add(paxFareDetails);
+        }
+
+        return paxFareDetailsList;
+    }
+
     private static ReIssuePerPaxPricingInfo paxWisePricing(int paxCount, PassengerTypeCode paxType, PricingTicketingSubsequentType216944S paxFareDetail,
                                                            List<TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails> fareDetailsList) {
 
@@ -785,34 +814,6 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             logger.debug("Error Creating Per Pax Reissue Pricing Information {} ", e.getMessage(), e);
             return null;
         }
-    }
-
-    private List<PAXFareDetails> createFareDetails(TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation recommendation) {
-        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
-
-        for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
-            PAXFareDetails paxFareDetails = new PAXFareDetails();
-
-            for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails : paxFareProduct.getFareDetails()) {
-                FareJourney fareJourney = new FareJourney();
-
-                PassengerTypeCode passengerTypeCode = PassengerTypeCode.valueOf(fareDetails.getGroupOfFares().get(0).getProductInformation().getFareProductDetail().getPassengerType());
-                paxFareDetails.setPassengerTypeCode(passengerTypeCode);
-
-                for (TicketATCShopperMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares : fareDetails.getGroupOfFares()) {
-                    FareSegment fareSegment = new FareSegment();
-                    fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
-                    fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
-                    fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
-
-                    fareJourney.getFareSegmentList().add(fareSegment);
-                }
-                paxFareDetails.getFareJourneyList().add(fareJourney);
-            }
-            paxFareDetailsList.add(paxFareDetails);
-        }
-
-        return paxFareDetailsList;
     }
 
     private void mergeResults(ConcurrentHashMap<Integer, FlightItinerary> allFlightItineraries, SearchResponse searchResponse) {
@@ -903,10 +904,9 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
 
     }
 
-    public static String onlyDateFormat(String localTimeWithOffset) {
-        return localTimeWithOffset.substring(0,10);
+    public static String getOnlyDateFormat(String localTimeWithOffset) {
+        return localTimeWithOffset.substring(0, 10);
     }
-
 //    public SearchResponse reIssueFlightSearch(ReIssueTicketRequest reIssueTicketRequest, TravelFlightInformationType allowedCarriers, AmadeusSessionWrapper amadeusSessionWrapper) {
 //        List<FlightSearchOffice> officeList = getOfficeList();
 //        ConcurrentHashMap<Integer, FlightItinerary> hashMap = new ConcurrentHashMap<>();

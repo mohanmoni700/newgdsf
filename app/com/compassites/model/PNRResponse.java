@@ -1,6 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.amadeus.AmadeusPaxInformation;
+import dto.AmadeusSegmentRefDTO;
 import dto.FareCheckRulesResponse;
 import dto.FreeMealsDetails;
 import dto.FreeSeatDetails;
@@ -53,6 +54,8 @@ public class PNRResponse implements Serializable  {
     private Map<String, FlightInfo> flightInfoMap;
 
     private Map<String, String> segmentBaggageMap;
+
+    private Map<String, AmadeusSegmentRefDTO> segmentRefMap;
 
     private Map<String,Double> carbonDioxide;
     private String expirationDate;
@@ -486,6 +489,15 @@ public class PNRResponse implements Serializable  {
 
     public void setFreeSeatList(List<FreeSeatDetails> freeSeatList) {
         this.freeSeatList = freeSeatList;
+    }
+
+
+    public Map<String, AmadeusSegmentRefDTO> getSegmentRefMap() {
+        return segmentRefMap;
+    }
+
+    public void setSegmentRefMap(Map<String, AmadeusSegmentRefDTO> segmentRefMap) {
+        this.segmentRefMap = segmentRefMap;
     }
 
 }
