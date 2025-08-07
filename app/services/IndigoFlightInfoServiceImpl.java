@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import okhttp3.*;
+import play.Play;
 import play.libs.Json;
 
 @Service
@@ -16,7 +17,8 @@ public class IndigoFlightInfoServiceImpl implements IndigoFlightInfoService{
 
     private static final OkHttpClient client = new OkHttpClient();
     static Logger indigoLogger = LoggerFactory.getLogger("indigo");
-    private static final String endPoint = "http://localhost:8086/indigo/baggage";
+    //private static final String endPoint = "http://localhost:8086/indigo/baggage";
+    private static final String endPoint = Play.application().configuration().getString("indigo.service.endPoint");
     @Override
     public FlightItinerary getFlightInfo(FlightItinerary flightItinerary) {
         // Implement the logic to fetch flight information for Indigo flights
@@ -25,7 +27,7 @@ public class IndigoFlightInfoServiceImpl implements IndigoFlightInfoService{
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(flightItinerary);
             RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
-            Request request = new Request.Builder().url(endPoint).post(requestBody).build();
+            Request request = new Request.Builder().url(endPoint+"baggage").post(requestBody).build();
             try (Response response = client.newCall(request).execute()) {
                 //System.out.println("Indigo "+response.body().string());
                 if (response.isSuccessful()) {

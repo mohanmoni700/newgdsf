@@ -12,6 +12,7 @@ import org.apache.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import play.Play;
 import play.libs.Json;
 import services.FlightSearch;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.*;
 public class IndigoFlightSearch implements FlightSearch {
 
     private static final OkHttpClient client = new OkHttpClient();
-    private static final String endPoint = "http://localhost:8086/indigo/flightSearch";
+    private static final String endPoint = Play.application().configuration().getString("indigo.service.endPoint");
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
@@ -37,7 +38,7 @@ public class IndigoFlightSearch implements FlightSearch {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = objectMapper.writeValueAsString(searchParameters);
             RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
-            Request request = new Request.Builder().url(endPoint).post(requestBody).build();
+            Request request = new Request.Builder().url(endPoint+"flightSearch").post(requestBody).build();
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful()) {
                     String responseBody = response.body().string();

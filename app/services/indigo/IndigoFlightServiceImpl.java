@@ -8,6 +8,7 @@ import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import play.Play;
 import play.libs.Json;
 
 @Service
@@ -18,7 +19,7 @@ public class IndigoFlightServiceImpl implements IndigoFlightService{
     static Logger indigoLogger = LoggerFactory.getLogger("indigo");
 
     private static final OkHttpClient client = new OkHttpClient();
-    private static final String endPoint = "http://localhost:8086/indigo/";
+    private static final String endPoint = Play.application().configuration().getString("indigo.service.endPoint");
 
     @Override
     public PNRResponse checkFareChangeAndAvailability(TravellerMasterInfo travellerMasterInfo) {
