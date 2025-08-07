@@ -49,15 +49,22 @@ public class IndigoFlightSearch implements FlightSearch {
                 } else {
                     logger.error("Failed to fetch data from Indigo API: " + response.message() +
                         " for search parameters: " + Json.toJson(searchParameters));
-                    throw new Exception("Failed to fetch data from Indigo API: " + response.message());
+                    SearchResponse searchResponse = new SearchResponse();
+                    searchResponse.setFlightSearchOffice(office);
+                    searchResponse.setProvider("Indigo");
+                    return searchResponse;
+                    //throw new Exception("Failed to fetch data from Indigo API: " + response.message());
                 }
             }
         } catch (Exception e) {
             logger.error("Error during Indigo flight search: " + e.getMessage() +
                 " for search parameters: " + Json.toJson(searchParameters), e);
-            e.printStackTrace();
+            //e.printStackTrace();
+            SearchResponse searchResponse = new SearchResponse();
+            searchResponse.setFlightSearchOffice(office);
+            searchResponse.setProvider("Indigo");
+            return searchResponse;
         }
-        return new SearchResponse();
     }
 
     @Override
