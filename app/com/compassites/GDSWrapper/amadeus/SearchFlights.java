@@ -60,22 +60,27 @@ public class SearchFlights {
 
     //search flights with 2 cities- faremasterpricertravelboardsearch service
     public FareMasterPricerTravelBoardSearch createSearchQuery(SearchParameters searchParameters, String officeId) {
-        FareMasterPricerTravelBoardSearch se = new FareMasterPricerTravelBoardSearch();
+
+        FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new FareMasterPricerTravelBoardSearch();
+
         if(searchParameters.getBookingType() == BookingType.SEAMEN){
-            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount() + searchParameters.getInfantCount()));
+            fareMasterPricerTravelBoardSearch.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount() + searchParameters.getInfantCount()));
         }else {
-            se.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
+            fareMasterPricerTravelBoardSearch.setNumberOfUnit(createNumberOfUnits(searchParameters.getChildCount() + searchParameters.getAdultCount()));
         }
 
-        createSeamenPassengers(se, searchParameters);
+        //Setting Pax info here
+        createSeamenPassengers(fareMasterPricerTravelBoardSearch, searchParameters);
 
-        se.getItinerary().addAll(createItinerary(searchParameters));
+        //Setting Itinerary details here
+        fareMasterPricerTravelBoardSearch.getItinerary().addAll(createItinerary(searchParameters));
 
+        //Setting Cabin Class, Preferred Airlines, Direct flights here
         TravelFlightInformationType165052S travelFlightInfo = new TravelFlightInformationType165052S();
 
         setCabinClass(searchParameters.getCabinClass(),travelFlightInfo);
 
-        if (searchParameters.getPreferredAirlinesList() != null &&searchParameters.getPreferredAirlinesList().size()>0) {
+        if (searchParameters.getPreferredAirlinesList() != null && !searchParameters.getPreferredAirlinesList().isEmpty()) {
             setPreferredAirlines(travelFlightInfo,searchParameters.getPreferredAirlinesList());
         }
 
@@ -83,19 +88,16 @@ public class SearchFlights {
             setDirectFlights(travelFlightInfo);
         }
 
-        se.setTravelFlightInfo(travelFlightInfo);
+        fareMasterPricerTravelBoardSearch.setTravelFlightInfo(travelFlightInfo);
 
-//        if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-//            se.setTravelFlightInfo(travelFlightInfo);
-//        } else {
-//            se.setTravelFlightInfo(travelFlightInfo);
-//        }
 
-        FareMasterPricerTravelBoardSearch.FareOptions fe = new FareMasterPricerTravelBoardSearch.FareOptions();
-        PricingTicketingDetailsType pdt = new PricingTicketingDetailsType();
-        PricingTicketingInformationType pit = new PricingTicketingInformationType();
-        pdt.setPricingTicketing(pit);
-        fe.setPricingTickInfo(pdt);
+        //Setting Fare Options here
+        FareMasterPricerTravelBoardSearch.FareOptions fareOptions = new FareMasterPricerTravelBoardSearch.FareOptions();
+
+        PricingTicketingDetailsType pricingTicketingDetailsType = new PricingTicketingDetailsType();
+        PricingTicketingInformationType pricingTicketingInformationType = new PricingTicketingInformationType();
+        pricingTicketingDetailsType.setPricingTicketing(pricingTicketingInformationType);
+        fareOptions.setPricingTickInfo(pricingTicketingDetailsType);
 
         if (searchParameters.getBookingType() !=BookingType.SEAMEN && officeId.equalsIgnoreCase("BOMVS34C3")) {
             CodedAttributeType codedAttributeType = new CodedAttributeType();
@@ -109,36 +111,37 @@ public class SearchFlights {
             codedAttributeInformationType247829C1.setFeeIdNumber("3");
             codedAttributeType.getFeeId().add(codedAttributeInformationType247829C1);
 
-            fe.setFeeIdDescription(codedAttributeType);
+            fareOptions.setFeeIdDescription(codedAttributeType);
         }
 
         if (searchParameters.getRefundableFlights()) {
-            setRefundableFlights(pit);
+            setRefundableFlights(pricingTicketingInformationType);
         }
 
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-            createSeamenFareOptions(pit,officeId);
+            createSeamenFareOptions(pricingTicketingInformationType,officeId);
         } else {
-            createFareOptions(pit,officeId);
+            createFareOptions(pricingTicketingInformationType,officeId);
         }
 
         if(searchParameters.getBookingType() != BookingType.SEAMEN && !officeId.equalsIgnoreCase("BOMVS34C3")) {
-            CorporateIdentificationType corporateIdentificationType = createCorporateCode(pit, searchParameters);
-            fe.setCorporate(corporateIdentificationType);
+            CorporateIdentificationType corporateIdentificationType = createCorporateCode(pricingTicketingInformationType, searchParameters);
+            fareOptions.setCorporate(corporateIdentificationType);
         }
 
 
         if (searchParameters.getBookingType() == BookingType.SEAMEN) {
-            CorporateIdentificationType corporateIdentificationType = createCorporateCode(pit, searchParameters);
-            fe.setCorporate(corporateIdentificationType);
-            pit.getPriceType().add("PTC");
+            CorporateIdentificationType corporateIdentificationType = createCorporateCode(pricingTicketingInformationType, searchParameters);
+            fareOptions.setCorporate(corporateIdentificationType);
+            pricingTicketingInformationType.getPriceType().add("PTC");
         }
 
-        se.setFareOptions(fe);
+        fareMasterPricerTravelBoardSearch.setFareOptions(fareOptions);
 
 
-        return se;
+
+        return fareMasterPricerTravelBoardSearch;
     }
 
     private CorporateIdentificationType createCorporateCode(PricingTicketingInformationType pricingTicketingInformationType,SearchParameters searchParameters){

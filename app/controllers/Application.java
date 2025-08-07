@@ -89,6 +89,9 @@ public class Application {
     @Autowired
     private OpenTicketReportService openTicketReportService;
 
+    @Autowired
+    private UtilService utilService;
+
     static Logger logger = LoggerFactory.getLogger("gds");
     static Logger indigoLogger = LoggerFactory.getLogger("indigo");
 
@@ -858,6 +861,18 @@ public class Application {
         } else {
             return badRequest("Fail");
         }
+    }
+
+    //This API is called when you need Amadeus Exchange rates (BSR && ICH)
+    public Result getAmadeusExchangeRates() {
+
+        JsonNode jsonNode = request().body().asJson();
+
+        AmadeusConvertCurrencyRQ amadeusConvertCurrencyRQ = Json.fromJson(jsonNode, AmadeusConvertCurrencyRQ.class);
+
+        Map<String, AmadeusConvertCurrencyRS> amadeusExchangeRatesMap = utilService.getAmadeusExchangeInfo(amadeusConvertCurrencyRQ);
+
+        return ok(Json.toJson(amadeusExchangeRatesMap));
     }
 
     public Result home() {

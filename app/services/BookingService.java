@@ -11,11 +11,11 @@ import dto.AddElementsToPnrDTO;
  */
 public interface BookingService {
 
-    public PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo);
+    PNRResponse generatePNR(TravellerMasterInfo travellerMasterInfo);
 
-    public PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo);
+    PNRResponse priceChangePNR(TravellerMasterInfo travellerMasterInfo);
 
-    public SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest, String type);
+    SplitPNRResponse splitPNR(IssuanceRequest issuanceRequest, String type);
 
     boolean addJocoPnrToGdsPnr(AddElementsToPnrDTO addElementsToPnrDTO);
 
