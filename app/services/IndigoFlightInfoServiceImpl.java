@@ -47,4 +47,31 @@ public class IndigoFlightInfoServiceImpl implements IndigoFlightInfoService{
             return null; // or handle the error as needed
         }
     }
+
+    @Override
+    public String getCancellationFee(FlightItinerary flightItinerary) {
+        try {
+            logger.info("Fetching cancellation fee for Indigo flight itinerary: " + Json.toJson(flightItinerary));
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(flightItinerary);
+            RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
+            Request request = new Request.Builder().url(endPoint+"farerule").post(requestBody).build();
+            try (Response response = client.newCall(request).execute()) {
+                //System.out.println("Indigo "+response.body().string());
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    indigoLogger.debug("Indigo Flight Info Response: " + responseBody);
+                    return responseBody;
+                } else {
+                    logger.error("Failed to fetch data from Indigo API: " + response.message() +
+                            " for flight itinerary: " + Json.toJson(flightItinerary));
+                    throw new Exception("Failed to fetch data from Indigo API: " + response.message());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during Indigo flight info retrieval: " + e.getMessage(), e);
+            e.printStackTrace();
+            return null; // or handle the error as needed
+        }
+    }
 }
