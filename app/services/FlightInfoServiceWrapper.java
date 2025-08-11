@@ -77,6 +77,8 @@ public class FlightInfoServiceWrapper {
 					flightItinerary, searchParams, seamen);
 		} else if (Mystifly.PROVIDER.equalsIgnoreCase(provider)) {
 			fareRules = mystiflyFlightInfoService.getMystiflyFareRules(flightItinerary, searchParams, seamen);
+		} else if("Indigo".equalsIgnoreCase(provider)) {
+			fareRules = indigoFlightInfoService.getCancellationFee(flightItinerary);
 		}
 		return fareRules;
 	}
