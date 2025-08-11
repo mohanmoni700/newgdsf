@@ -639,6 +639,7 @@ public class AmadeusFlightSearch implements FlightSearch {
         pricingInformation.setTax(totalTax);
         pricingInformation.setTotalPrice(totalFare);
         pricingInformation.setTotalPriceValue(totalFare);
+        pricingInformation.setTotalTax(totalTax);
         List<PassengerTax> passengerTaxes = new ArrayList<>();
         for (Recommendation.PaxFareProduct paxFareProduct : recommendation.getPaxFareProduct()) {
             PassengerTax passengerTax = new PassengerTax();
