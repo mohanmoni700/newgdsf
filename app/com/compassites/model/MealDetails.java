@@ -1,36 +1,63 @@
 package com.compassites.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MealDetails {
+
     private Long contactMasterId;
+
     private String segment;
+
     private Long ticketId;
+
     private String tmxTicketNumber;
+
     private Boolean returnDetails;
-    private String segmentNumber;
+
+    private List<String> segmentNumber;
+
     private String mealId;
+
     private String mealType;
+
     private String origin;
+
     private String destination;
+
     private String mealCode;
+
     private String mealDesc;
+
     private BigDecimal mealPrice;
+
     private BigInteger availability;
+
     private String rfic;
+
     private String rfisc;
+
     private boolean isRefundable;
+
     private boolean isMIF;
+
     private String bkm;
+
     private String serviceId;
+
     private String carrierCode;
+
     private boolean isFMT;
+
     private boolean isFTXT;
+
+    private String amadeusPaxRef;
+
+    private String segmentTattoo;
 
     public BigInteger getAvailability() {
         return availability;
@@ -208,11 +235,28 @@ public class MealDetails {
         this.mealType = mealType;
     }
 
-    public String getSegmentNumber() {
+    public List<String> getSegmentNumber() {
         return segmentNumber;
     }
 
-    public void setSegmentNumber(String segmentNumber) {
+    public void setSegmentNumber(List<String> segmentNumber) {
         this.segmentNumber = segmentNumber;
     }
+
+    public String getAmadeusPaxRef() {
+        return amadeusPaxRef;
+    }
+
+    public void setAmadeusPaxRef(String amadeusPaxRef) {
+        this.amadeusPaxRef = amadeusPaxRef;
+    }
+
+    public String getSegmentTattoo() {
+        return segmentTattoo;
+    }
+
+    public void setSegmentTattoo(String segmentTattoo) {
+        this.segmentTattoo = segmentTattoo;
+    }
+
 }

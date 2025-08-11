@@ -1,11 +1,10 @@
 package services.ancillary;
 
 import com.compassites.model.AncillaryServicesResponse;
+import dto.ancillary.AncillaryBookingRequest;
+import dto.ancillary.AncillaryBookingResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
-import dto.AncillaryConfirmPaymentRQ;
-import dto.AncillaryConfirmPaymentRS;
 import models.AncillaryServiceRequest;
-import org.springframework.stereotype.Service;
 
 public interface AncillaryService {
 
@@ -17,6 +16,7 @@ public interface AncillaryService {
     AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest);
     AncillaryServicesResponse getAvailableAncillaryServices(TravellerMasterInfo travellerMasterInfo);
 
-    AncillaryConfirmPaymentRS getAncillaryBaggageConfirm(AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ);
+    AncillaryBookingResponse getAncillaryBaggageConfirm(AncillaryBookingRequest ancillaryBookingRequest);
+
 }
 

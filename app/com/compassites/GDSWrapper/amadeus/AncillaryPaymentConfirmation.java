@@ -5,7 +5,7 @@ import com.amadeus.wsdl.servicebookandprice_v1_v4.ServiceBookAndPriceService;
 import com.amadeus.xml._2010._06.servicebookandprice_v1.AMAServiceBookPriceServiceRQ;
 import com.amadeus.xml._2010._06.servicebookandprice_v1.AMAServiceBookPriceServiceRS;
 import com.thoughtworks.xstream.XStream;
-import dto.AncillaryConfirmPaymentRQ;
+import dto.ancillary.AncillaryBookingRequest;
 import models.AmadeusSessionWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,12 +64,14 @@ public class AncillaryPaymentConfirmation {
 
     }
 
-    public AMAServiceBookPriceServiceRS bookAndPriceAncillary(AmadeusSessionWrapper amadeusSessionWrapper, AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ) {
+    public AMAServiceBookPriceServiceRS bookAndPriceAncillary(AmadeusSessionWrapper amadeusSessionWrapper, AncillaryBookingRequest ancillaryBookingRequest) {
 
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
+        logger.debug("Amadeus AMAServiceBookPriceService called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
-        AMAServiceBookPriceServiceRQ serviceBookPriceServiceRQ = AncillaryServiceReq.AdditionalPaidBaggage.getAncillaryPaymentConfirmationRequest(ancillaryConfirmPaymentRQ);
+        AMAServiceBookPriceServiceRQ serviceBookPriceServiceRQ = AncillaryServiceReq.AdditionalPaidBaggage.getAncillaryPaymentConfirmationRequest(ancillaryBookingRequest);
         amadeusLogger.debug("Ancillary Payment Confirmation AMAServiceBookPriceServiceRQ Request Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceBookPriceServiceRQ));
+
         AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS = serviceBookAndPricePT.serviceBookPriceService(serviceBookPriceServiceRQ, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.debug("Ancillary Payment Confirmation AMAServiceBookPriceServiceRS Response Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(amaServiceBookPriceServiceRS));
 

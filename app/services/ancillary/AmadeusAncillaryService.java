@@ -1,8 +1,8 @@
 package services.ancillary;
 
 import com.compassites.model.AncillaryServicesResponse;
-import dto.AncillaryConfirmPaymentRQ;
-import dto.AncillaryConfirmPaymentRS;
+import dto.ancillary.AncillaryBookingRequest;
+import dto.ancillary.AncillaryBookingResponse;
 import models.AncillaryServiceRequest;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +13,6 @@ public interface AmadeusAncillaryService {
 
     AncillaryServicesResponse additionalMealsInformationStandalone ( AncillaryServiceRequest ancillaryServiceRequest);
 
-    AncillaryConfirmPaymentRS getpaymentConfirmAncillaryServices (AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ);
+    AncillaryBookingResponse getpaymentConfirmAncillaryServices (AncillaryBookingRequest ancillaryBookingRequest);
 
 }

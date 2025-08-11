@@ -50,7 +50,9 @@ public class IssuanceRequest implements Serializable{
 
     private String reGdsPNR;
 
-    private List<BaggageDetails> baggageDetails;
+    private List<BaggageDetails> baggageDetailsList;
+
+    private List<MealDetails> mealDetailsList;
 
     private List<Traveller> bookingTravellerList;
 
@@ -252,12 +254,12 @@ public class IssuanceRequest implements Serializable{
         this.ctSegmentDtoList = ctSegmentDtoList;
     }
 
-    public List<BaggageDetails> getBaggageDetails() {
-        return baggageDetails;
+    public List<BaggageDetails> getBaggageDetailsList() {
+        return baggageDetailsList;
     }
 
-    public void setBaggageDetails(List<BaggageDetails> baggageDetails) {
-        this.baggageDetails = baggageDetails;
+    public void setBaggageDetailsList(List<BaggageDetails> baggageDetailsList) {
+        this.baggageDetailsList = baggageDetailsList;
     }
 
     public List<String> getTicketsList() {
@@ -283,4 +285,13 @@ public class IssuanceRequest implements Serializable{
     public void setTicketingOfficeId(String ticketingOfficeId) {
         this.ticketingOfficeId = ticketingOfficeId;
     }
+
+    public List<MealDetails> getMealDetailsList() {
+        return mealDetailsList;
+    }
+
+    public void setMealDetailsList(List<MealDetails> mealDetailsList) {
+        this.mealDetailsList = mealDetailsList;
+    }
+
 }

@@ -1,6 +1,10 @@
-package dto;
+package dto.ancillary;
 
-public class AncillaryConfirmPaymentRS {
+public class AncillaryBookingResponse {
+
+    private String code;
+
+
 
     public String getCode() {
         return code;
@@ -10,9 +14,7 @@ public class AncillaryConfirmPaymentRS {
         this.code = code;
     }
 
-    private String code;
 
-    /// TODO: Complete it
 
 
 }

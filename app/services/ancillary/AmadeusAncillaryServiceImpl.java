@@ -5,8 +5,9 @@ import com.amadeus.xml.tpscgr_17_1_1a.*;
 import com.compassites.GDSWrapper.amadeus.AncillaryPaymentConfirmation;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
-import dto.AncillaryConfirmPaymentRQ;
-import dto.AncillaryConfirmPaymentRS;
+import dto.ancillary.AncillaryBookingRequest;
+import dto.ancillary.AncillaryBookingResponse;
+import dto.ancillary.AncillarySegmentElementsDto;
 import models.AmadeusSessionWrapper;
 import models.AncillaryServiceRequest;
 import org.slf4j.Logger;
@@ -28,8 +29,8 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
     @Override
     public AncillaryServicesResponse additionalBaggageInformationStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
 
-        ServiceHandler serviceHandler = null;
-        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        ServiceHandler serviceHandler;
+        AmadeusSessionWrapper amadeusSessionWrapper;
         AncillaryServicesResponse excessBaggageInfoStandalone = new AncillaryServicesResponse();
         excessBaggageInfoStandalone.setProvider(AMADEUS.toString());
 
@@ -40,7 +41,10 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             //1. Getting the BaggageDetails here
             ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getAdditionalBaggageInfoStandalone(amadeusSessionWrapper, ancillaryServiceRequest);
 
-            getAdditionalBaggageInformationStandalone(serviceStandaloneCatalogueReply, excessBaggageInfoStandalone, ancillaryServiceRequest.getFlightItinerary().getJourneyList());
+            FlightItinerary flightItinerary = ancillaryServiceRequest.getFlightItinerary();
+            List<Journey> journeyList = flightItinerary.getJourneys(ancillaryServiceRequest.isSeamen());
+
+            getAdditionalBaggageInformationStandalone(serviceStandaloneCatalogueReply, excessBaggageInfoStandalone, journeyList);
 
         } catch (Exception e) {
             logger.debug("Error getting additional baggage ancillary information Standalone{} ", e.getMessage(), e);
@@ -49,13 +53,79 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         return excessBaggageInfoStandalone;
     }
 
+    @Override
+    public AncillaryServicesResponse additionalMealsInformationStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
+
+        ServiceHandler serviceHandler = null;
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        AncillaryServicesResponse mealsInfoStandalone = new AncillaryServicesResponse();
+        mealsInfoStandalone.setProvider(AMADEUS.toString());
+
+        try {
+            serviceHandler = new ServiceHandler();
+            amadeusSessionWrapper = serviceHandler.logIn(false);
+
+            //1. Getting the Meals here
+            ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getMealsInfoStandalone(amadeusSessionWrapper, ancillaryServiceRequest);
+
+            FlightItinerary flightItinerary = ancillaryServiceRequest.getFlightItinerary();
+            List<Journey> journeyList = flightItinerary.getJourneys(ancillaryServiceRequest.isSeamen());
+
+            getMealsInformationStandalone(serviceStandaloneCatalogueReply, mealsInfoStandalone, journeyList);
+
+        } catch (Exception e) {
+            logger.debug("Error getting meals information Standalone{} ", e.getMessage(), e);
+        }
+
+        return mealsInfoStandalone;
+    }
+
+    @Override
+    public AncillaryBookingResponse getpaymentConfirmAncillaryServices(AncillaryBookingRequest ancillaryBookingRequest) {
+
+        AncillaryPaymentConfirmation ancillaryPaymentConfirmation;
+        AmadeusSessionWrapper amadeusSessionWrapper = null;
+        AncillaryBookingResponse confirmPaymentRS = new AncillaryBookingResponse();
+        ServiceHandler serviceHandler = null;
+
+        try {
+            serviceHandler = new ServiceHandler();
+            ancillaryPaymentConfirmation = new AncillaryPaymentConfirmation();
+
+            //Stateful Login
+            amadeusSessionWrapper = serviceHandler.logIn(true);
+
+            //Pnr retrieve for context
+            serviceHandler.retrievePNR(ancillaryBookingRequest.getGdsPnr(), amadeusSessionWrapper);
+
+            //Booking Confirmation of services
+            AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS = ancillaryPaymentConfirmation.bookAndPriceAncillary(amadeusSessionWrapper, ancillaryBookingRequest);
+
+            //Saving the response here
+            serviceHandler.savePNRForAncillaryServices(amadeusSessionWrapper);
+
+            //Mapping amaServiceBookPriceServiceRS here to send to JOCO
+            getPaymentConfirmationForAncillaryServices(amaServiceBookPriceServiceRS, confirmPaymentRS);
+
+
+        } catch (Exception e) {
+            logger.debug("Error getting payment confirmation{} ", e.getMessage(), e);
+        } finally {
+            if (amadeusSessionWrapper != null) {
+                serviceHandler.logOut(amadeusSessionWrapper);
+            }
+        }
+
+        return confirmPaymentRS;
+    }
+
+    //Baggage for only F type is being retrieved here (Uses Standalone Catalogue) -> Journey Wise Baggage Response
     private static void getAdditionalBaggageInformationStandalone(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse excessBaggageInfoStandalone, List<Journey> journeyList) {
 
         LinkedHashMap<String, List<BaggageDetails>> baggageMap = new LinkedHashMap<>();
 
-
         try {
-            Map<String, List<Integer>> journeySegmentRef = new LinkedHashMap<>();
+            Map<String, AncillarySegmentElementsDto> journeySegmentRef = new LinkedHashMap<>();
 
             int segmentNumber = 0;
             for (Journey journey : journeyList) {
@@ -67,20 +137,28 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                 String originDestinationKey = origin + " - " + destination;
 
                 List<Integer> segmentNumbers = new LinkedList<>();
+                List<String> segmentTattooList = new LinkedList<>();
 
-                for (AirSegmentInformation ignored : airSegmentList) {
+                AncillarySegmentElementsDto ancillarySegmentElementsDto = new AncillarySegmentElementsDto();
+                for (AirSegmentInformation airSegmentInformation : airSegmentList) {
                     segmentNumbers.add(++segmentNumber);
+                    segmentTattooList.add(airSegmentInformation.getAmadeusSegmentRefNo());
                 }
+                ancillarySegmentElementsDto.setSegmentNumbers(segmentNumbers);
+                ancillarySegmentElementsDto.setSegmentTattooList(segmentTattooList);
 
-                journeySegmentRef.put(originDestinationKey, segmentNumbers);
+                journeySegmentRef.put(originDestinationKey, ancillarySegmentElementsDto);
             }
 
             List<ServiceStandaloneCatalogueReply.SsrInformation> ssrInformation = serviceStandaloneCatalogueReply.getSsrInformation();
             List<ServiceStandaloneCatalogueReply.ServiceGroup> serviceGroupList = serviceStandaloneCatalogueReply.getServiceGroup();
 
-            for (Map.Entry<String, List<Integer>> entry : journeySegmentRef.entrySet()) {
+            for (Map.Entry<String, AncillarySegmentElementsDto> entry : journeySegmentRef.entrySet()) {
 
-                List<Integer> segmentNumbers = entry.getValue();
+                AncillarySegmentElementsDto ancillarySegmentElementsDto = entry.getValue();
+                List<Integer> segmentNumbers = ancillarySegmentElementsDto.getSegmentNumbers();
+                List<String> segmentTattooList = ancillarySegmentElementsDto.getSegmentTattooList();
+
                 String segmentKey = entry.getKey();
                 List<String> origin0Destination1 = getOrigin0Destination1(segmentKey);
 
@@ -88,7 +166,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                 String destination = origin0Destination1.get(1);
 
                 List<BaggageDetails> baggageList = new ArrayList<>();
-
 
                 outerForLoop:
                 for (ServiceStandaloneCatalogueReply.ServiceGroup serviceGroup : serviceGroupList) {
@@ -101,10 +178,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                     //Type F
                     if (serviceType.equalsIgnoreCase("SR")) {
 
-                        BaggageDetails baggageDetails = new BaggageDetails();
-
-                        baggageDetails.setServiceId(serviceNumber);
-
                         boolean canIssue = false;
 
                         List<ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup> quotaGroups = serviceGroup.getQuotaGroup();
@@ -113,7 +186,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                         int segmentSize = segmentNumbers.size();
                         int okStatusCounter = 0;
                         for (Integer currentSegmentNumber : segmentNumbers) {
-
 
                             for (ServiceStandaloneCatalogueReply.ServiceGroup.QuotaGroup quotaGroup : quotaGroups) {
 
@@ -127,7 +199,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                         okStatusCounter++;
                                     }
                                 }
-
                             }
                         }
 
@@ -135,14 +206,16 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                             canIssue = true;
                         }
 
-
                         if (canIssue) {
+
+                            BaggageDetails baggageDetails = new BaggageDetails();
+
+                            baggageDetails.setServiceId(serviceNumber);
 
                             //Setting Service Codes here
                             com.amadeus.xml.tpscgr_17_1_1a.PricingOrTicketingSubsequentType serviceCodes = serviceGroup.getServiceCodes();
                             baggageDetails.setRfic(serviceCodes.getSpecialCondition());
                             baggageDetails.setRfisc(serviceCodes.getOtherSpecialCondition());
-
 
                             //Setting Booking Method, MIF and Refundable here
                             List<com.amadeus.xml.tpscgr_17_1_1a.AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
@@ -194,7 +267,6 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
                                 baggageDetails.setCarrierCode(specialRequirementsInfo.getAirlineCode());
 
                                 //Setting excess baggage value here with respect to airline filing
-
                                 ServiceStandaloneCatalogueReply.ServiceGroup.BaggageDescriptionGroup baggageDescriptionGroup;
                                 switch (ssrCode) {
 
@@ -314,13 +386,11 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
 
                             }
 
-
+                            baggageDetails.setSegmentTattooList(segmentTattooList);
                             baggageDetails.setOrigin(origin);
                             baggageDetails.setDestination(destination);
                             baggageList.add(baggageDetails);
                         }
-
-
                     }
                 }
 
@@ -337,6 +407,149 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             logger.debug("Error with add Baggage information : {} ", e.getMessage(), e);
             excessBaggageInfoStandalone.setSuccess(false);
         }
+    }
+
+    //Meals for only F type is being retrieved here (Uses Standalone Catalogue) -> Segment Wise Meals Response
+    private static void getMealsInformationStandalone(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse mealsInfoStandalone, List<Journey> journeyList) {
+
+        Map<String, List<MealDetails>> mealsMap = new LinkedHashMap<>();
+        try {
+
+            List<ServiceStandaloneCatalogueReply.ServiceGroup> serviceGroupList = serviceStandaloneCatalogueReply.getServiceGroup();
+            List<ServiceStandaloneCatalogueReply.FlightInfo> flightInfos = serviceStandaloneCatalogueReply.getFlightInfo();
+
+            List<MealDetails> mealList = new ArrayList<>();
+            Map<String, String> segmentMap = new HashMap<>();
+
+            Map<String, String> segmentWiseTattooMap = new HashMap<>();
+
+            //This gets the Segment wise amadeus segment tattoo
+            getSegmentWiseTattooMap(journeyList, segmentWiseTattooMap);
+
+            try {
+                getSegmentWiseFlightMap(flightInfos, segmentMap);
+            } catch (Exception e) {
+                logger.debug("Error Getting segment wise flight map for meals : {} ", e.getMessage(), e);
+            }
+
+            for (ServiceStandaloneCatalogueReply.ServiceGroup serviceGroup : serviceGroupList) {
+
+                ItemNumberType serviceId = serviceGroup.getServiceId();
+
+                String serviceType = serviceId.getItemNumberDetails().get(0).getType();
+                String serviceNumber = serviceId.getItemNumberDetails().get(0).getNumber();
+
+                //Type F Meals handled here
+                if (serviceType.equalsIgnoreCase("SR")) {
+
+                    MealDetails mealDetails = new MealDetails();
+                    Map<String, String> segmentStatusMap = new HashMap<>();
+
+                    try {
+                        getFightStatusMapMeals(serviceGroup, segmentStatusMap);
+                    } catch (Exception e) {
+                        logger.debug("Error With Standalone Meals - Is can Issue - : {}", e.getMessage(), e);
+                    }
+                    mealDetails.setServiceId(serviceNumber);
+
+                    //Setting Service Codes here
+                    PricingOrTicketingSubsequentType serviceCodes = serviceGroup.getServiceCodes();
+                    mealDetails.setRfic(serviceCodes.getSpecialCondition());
+                    mealDetails.setRfisc(serviceCodes.getOtherSpecialCondition());
+
+                    //Setting Booking Method, MIF and Refundable here
+                    List<AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
+
+                    try {
+                        getServiceAttributes(serviceAttributes, null, mealDetails);
+                    } catch (Exception e) {
+                        logger.debug("Error With Standalone meals - Get Service Attributes - : {}", e.getMessage(), e);
+                    }
+
+                    //Service Details here
+                    List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup> serviceDetailsGroupList = serviceGroup.getServiceDetailsGroup();
+                    try {
+                        getMealValues(serviceGroup, serviceDetailsGroupList, mealDetails);
+                    } catch (Exception e) {
+                        logger.debug("Error With Standalone meals - Get meals Values - : {}", e.getMessage(), e);
+                    }
+
+                    //Setting price here
+                    ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup pricingGroup = serviceGroup.getPricingGroup().get(0);
+
+                    for (Map.Entry<String, String> entry : segmentStatusMap.entrySet()) {
+
+                        String flightRef = entry.getKey();
+                        String flightStatus = entry.getValue();
+
+                        if (flightStatus != null && (flightStatus.equalsIgnoreCase("OK") || flightStatus.equalsIgnoreCase("FM"))) {
+
+                            MealDetails segmentMeals = new MealDetails();
+                            BeanUtils.copyProperties(mealDetails, segmentMeals);
+
+                            //Pricing info per segment is set here
+                            if (flightStatus.equalsIgnoreCase("OK")) {
+                                try {
+                                    getPricingInfo(pricingGroup, null, flightRef, segmentMeals);
+                                } catch (Exception e) {
+                                    logger.debug("Error With Standalone Meals - Get Meals Pricing - : {}", e.getMessage(), e);
+                                }
+                            } else if (flightStatus.equalsIgnoreCase("FM")) {
+
+                                List<ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup.CouponInfoGroup> couponInfoGroupList = serviceGroup.getPricingGroup().get(0).getCouponInfoGroup();
+                                ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup.CouponInfoGroup couponInfoGroup = couponInfoGroupList.get(0);
+                                ReferencingDetailsType referenceDetails = couponInfoGroup.getSegmentCouponReference().getReferenceDetails().get(0);
+                                String segmentRef = referenceDetails.getValue();
+
+                                if (flightRef.equalsIgnoreCase(segmentRef)) {
+                                    MonetaryInformationType monetaryInfo = serviceGroup.getPricingGroup().get(0).getCouponInfoGroup().get(0).getMonetaryInfo();
+                                    BigDecimal mealPrice = monetaryInfo.getMonetaryDetails().getAmount();
+                                    segmentMeals.setMealPrice(mealPrice);
+                                }
+                            }
+
+                            List<String> flightRefList = new ArrayList<>();
+                            String segmentName = segmentMap.get(flightRef);
+                            String amadeusSegmentRefNo = segmentWiseTattooMap.get(segmentName);
+                            flightRefList.add(flightRef);
+                            segmentMeals.setSegmentNumber(flightRefList);
+                            segmentMeals.setSegmentTattoo(amadeusSegmentRefNo);
+
+                            //Converting the origin-destination string
+                            List<String> origin0Destination1 = getOrigin0Destination1(segmentName);
+                            segmentMeals.setOrigin(origin0Destination1.get(0));
+                            segmentMeals.setDestination(origin0Destination1.get(1));
+
+                            mealList.add(segmentMeals);
+                        }
+                    }
+                }
+            }
+
+            for (Map.Entry<String, String> entry : segmentMap.entrySet()) {
+                String segmentKey = entry.getValue();
+                String refNo = entry.getKey();
+                List<MealDetails> segmentWiseMealList = new ArrayList<>();
+                for (MealDetails mealDetails : mealList) {
+                    if (refNo.equalsIgnoreCase(mealDetails.getSegmentNumber().get(0))) {
+                        segmentWiseMealList.add(mealDetails);
+                    }
+                }
+                mealsMap.put(segmentKey, segmentWiseMealList);
+            }
+
+            mealsInfoStandalone.setMealDetailsMap(mealsMap);
+            mealsInfoStandalone.setSuccess(true);
+
+        } catch (Exception e) {
+            logger.debug("Error with add Meals information : {} ", e.getMessage(), e);
+            mealsInfoStandalone.setSuccess(false);
+        }
+    }
+
+    //Ancillary Services (Meal And Baggage) Booking confirmation is done here
+    private static void getPaymentConfirmationForAncillaryServices(AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS, AncillaryBookingResponse confirmPaymentRS) {
+        /// TODO: finish the response body
     }
 
     private static void getAdditionalBaggageInformationStandaloneSegmentWise(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse excessBaggageInfoStandalone) {
@@ -741,191 +954,16 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
         return Arrays.asList(segmentName.split("-"));
     }
 
+    private static void getSegmentWiseTattooMap(List<Journey> journeyList, Map<String, String> segmentWiseTattooMap) {
 
-    @Override
-    public AncillaryServicesResponse additionalMealsInformationStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
+        for (Journey journey : journeyList) {
 
-        ServiceHandler serviceHandler = null;
-        AmadeusSessionWrapper amadeusSessionWrapper = null;
-        AncillaryServicesResponse mealsInfoStandalone = new AncillaryServicesResponse();
-        mealsInfoStandalone.setProvider(AMADEUS.toString());
-
-        try {
-            serviceHandler = new ServiceHandler();
-            amadeusSessionWrapper = serviceHandler.logIn(false);
-
-            //1. Getting the Meals here
-            ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = serviceHandler.getMealsInfoStandalone(amadeusSessionWrapper, ancillaryServiceRequest);
-
-            getMealsInformationStandalone(serviceStandaloneCatalogueReply, mealsInfoStandalone);
-
-        } catch (Exception e) {
-            logger.debug("Error getting meals information Standalone{} ", e.getMessage(), e);
-        }
-
-        return mealsInfoStandalone;
-    }
-
-    private static void getMealsInformationStandalone(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse mealsInfoStandalone) {
-
-        Map<String, List<MealDetails>> mealsMap = new LinkedHashMap<>();
-        try {
-
-            List<ServiceStandaloneCatalogueReply.ServiceGroup> serviceGroupList = serviceStandaloneCatalogueReply.getServiceGroup();
-            List<ServiceStandaloneCatalogueReply.FlightInfo> flightInfos = serviceStandaloneCatalogueReply.getFlightInfo();
-
-            List<MealDetails> mealList = new ArrayList<>();
-            Map<String, String> segmentMap = new HashMap<>();
-
-            try {
-                getSegmentWiseFlightMap(flightInfos, segmentMap);
-            } catch (Exception e) {
-                logger.debug("Error Getting segment wise flight map for meals : {} ", e.getMessage(), e);
+            List<AirSegmentInformation> airSegmentList = journey.getAirSegmentList();
+            for (AirSegmentInformation airSegmentInformation : airSegmentList) {
+                String key = airSegmentInformation.getFromLocation() + "-" + airSegmentInformation.getToLocation();
+                segmentWiseTattooMap.put(key, airSegmentInformation.getAmadeusSegmentRefNo());
             }
-
-            for (ServiceStandaloneCatalogueReply.ServiceGroup serviceGroup : serviceGroupList) {
-
-                ItemNumberType serviceId = serviceGroup.getServiceId();
-
-                String serviceType = serviceId.getItemNumberDetails().get(0).getType();
-                String serviceNumber = serviceId.getItemNumberDetails().get(0).getNumber();
-
-
-                //Type F Meals handled here
-                if (serviceType.equalsIgnoreCase("SR")) {
-
-                    MealDetails mealDetails = new MealDetails();
-                    Map<String, String> segmentStatusMap = new HashMap<>();
-
-                    try {
-                        getFightStatusMapMeals(serviceGroup, segmentStatusMap);
-                    } catch (Exception e) {
-                        logger.debug("Error With Standalone Meals - Is can Issue - : {}", e.getMessage(), e);
-                    }
-                    mealDetails.setServiceId(serviceNumber);
-
-                    //Setting Service Codes here
-                    PricingOrTicketingSubsequentType serviceCodes = serviceGroup.getServiceCodes();
-                    mealDetails.setRfic(serviceCodes.getSpecialCondition());
-                    mealDetails.setRfisc(serviceCodes.getOtherSpecialCondition());
-
-                    //Setting Booking Method, MIF and Refundable here
-                    List<AttributeType> serviceAttributes = serviceGroup.getServiceAttributes();
-
-                    try {
-                        getServiceAttributes(serviceAttributes, null, mealDetails);
-                    } catch (Exception e) {
-                        logger.debug("Error With Standalone meals - Get Service Attributes - : {}", e.getMessage(), e);
-                    }
-
-                    //Service Details here
-                    List<ServiceStandaloneCatalogueReply.ServiceGroup.ServiceDetailsGroup> serviceDetailsGroupList = serviceGroup.getServiceDetailsGroup();
-                    try {
-                        getMealValues(serviceGroup, serviceDetailsGroupList, mealDetails);
-                    } catch (Exception e) {
-                        logger.debug("Error With Standalone meals - Get meals Values - : {}", e.getMessage(), e);
-                    }
-
-                    //Setting price here
-                    ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup pricingGroup = serviceGroup.getPricingGroup().get(0);
-
-                    for (Map.Entry<String, String> entry : segmentStatusMap.entrySet()) {
-
-                        String flightRef = entry.getKey();
-                        String flightStatus = entry.getValue();
-
-                        if (flightStatus != null && (flightStatus.equalsIgnoreCase("OK") || flightStatus.equalsIgnoreCase("FM"))) {
-
-                            MealDetails segmentMeals = new MealDetails();
-                            BeanUtils.copyProperties(mealDetails, segmentMeals);
-
-                            //Pricing info per segment is set here
-                            if (flightStatus.equalsIgnoreCase("OK")) {
-                                try {
-                                    getPricingInfo(pricingGroup, null, flightRef, segmentMeals);
-                                } catch (Exception e) {
-                                    logger.debug("Error With Standalone Meals - Get Meals Pricing - : {}", e.getMessage(), e);
-                                }
-                            } else if (flightStatus.equalsIgnoreCase("FM")) {
-
-                                List<ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup.CouponInfoGroup> couponInfoGroupList = serviceGroup.getPricingGroup().get(0).getCouponInfoGroup();
-                                ServiceStandaloneCatalogueReply.ServiceGroup.PricingGroup.CouponInfoGroup couponInfoGroup = couponInfoGroupList.get(0);
-                                ReferencingDetailsType referenceDetails = couponInfoGroup.getSegmentCouponReference().getReferenceDetails().get(0);
-                                String segmentRef = referenceDetails.getValue();
-
-                                if (flightRef.equalsIgnoreCase(segmentRef)) {
-                                    MonetaryInformationType monetaryInfo = serviceGroup.getPricingGroup().get(0).getCouponInfoGroup().get(0).getMonetaryInfo();
-                                    BigDecimal mealPrice = monetaryInfo.getMonetaryDetails().getAmount();
-                                    segmentMeals.setMealPrice(mealPrice);
-                                }
-                            }
-
-                            String segmentName = segmentMap.get(flightRef);
-                            segmentMeals.setSegmentNumber(flightRef);
-
-                            //Converting the origin-destination string
-                            List<String> origin0Destination1 = getOrigin0Destination1(segmentName);
-                            segmentMeals.setOrigin(origin0Destination1.get(0));
-                            segmentMeals.setDestination(origin0Destination1.get(1));
-
-                            mealList.add(segmentMeals);
-                        }
-                    }
-                }
-            }
-
-            for (Map.Entry<String, String> entry : segmentMap.entrySet()) {
-                String segmentKey = entry.getValue();
-                String refNo = entry.getKey();
-
-                List<MealDetails> segmentWiseMealList = new ArrayList<>();
-                for (MealDetails mealDetails : mealList) {
-                    if (refNo.equalsIgnoreCase(mealDetails.getSegmentNumber())) {
-                        segmentWiseMealList.add(mealDetails);
-                    }
-                }
-                mealsMap.put(segmentKey, segmentWiseMealList);
-            }
-
-            mealsInfoStandalone.setMealDetailsMap(mealsMap);
-            mealsInfoStandalone.setSuccess(true);
-
-        } catch (Exception e) {
-            logger.debug("Error with add Meals information : {} ", e.getMessage(), e);
-            mealsInfoStandalone.setSuccess(false);
         }
-    }
-
-    @Override
-    public AncillaryConfirmPaymentRS getpaymentConfirmAncillaryServices(AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ) {
-
-        AncillaryPaymentConfirmation ancillaryPaymentConfirmation = null;
-        AmadeusSessionWrapper amadeusSessionWrapper = null;
-        AncillaryConfirmPaymentRS confirmPaymentRS = new AncillaryConfirmPaymentRS();
-        ServiceHandler serviceHandler = null;
-
-        try {
-            serviceHandler = new ServiceHandler();
-            ancillaryPaymentConfirmation = new AncillaryPaymentConfirmation();
-            amadeusSessionWrapper = serviceHandler.logIn(true);
-            serviceHandler.retrievePNR("QX89LI", amadeusSessionWrapper);
-            AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS = ancillaryPaymentConfirmation.bookAndPriceAncillary(amadeusSessionWrapper, ancillaryConfirmPaymentRQ);
-            serviceHandler.savePNRForAncillaryServices(amadeusSessionWrapper);
-            getPaymentConfirmationForAncillaryServices(amaServiceBookPriceServiceRS, confirmPaymentRS);
-
-
-        } catch (Exception e) {
-            logger.debug("Error getting payment confirmation{} ", e.getMessage(), e);
-        } finally {
-            serviceHandler.logOut(amadeusSessionWrapper);
-        }
-
-        return confirmPaymentRS;
-
-    }
-
-    private static void getPaymentConfirmationForAncillaryServices(AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS, AncillaryConfirmPaymentRS confirmPaymentRS) {
-        /// TODO: finish the response body
     }
 
 }

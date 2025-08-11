@@ -71,7 +71,7 @@ public class RefundHelper {
 
                             BigDecimal amount = taxType.getAmount();
                             String currency = taxType.getCurrencyCode();
-                            BigInteger decimalPlaces = taxType.getDecimalPlaces();
+                            BigInteger decimalPlaces = BigInteger.valueOf(taxType.getDecimalPlaces().longValue());
                             String category = taxType.getCategory();
                             String isoCode = taxType.getISOCode();
 
@@ -99,7 +99,7 @@ public class RefundHelper {
                             BigDecimal percent = penalty.getPercent();
                             BigDecimal amount = penalty.getAmount();
                             String currency = penalty.getCurrencyCode();
-                            BigInteger decimalPlaces = penalty.getDecimalPlaces();
+                            BigInteger decimalPlaces = BigInteger.valueOf(penalty.getDecimalPlaces().longValue());
                             String penaltyType = penalty.getPenaltyType();
 
                             detailedPenaltyInformation.setPercent(percent);
@@ -126,7 +126,7 @@ public class RefundHelper {
                             CommissionType.CommissionPayableAmount commissionPayableAmount = commission.getCommissionPayableAmount();
                             BigDecimal amount = commissionPayableAmount.getAmount();
                             String currency = commissionPayableAmount.getCurrencyCode();
-                            BigInteger decimalPlaces = commissionPayableAmount.getDecimalPlaces();
+                            BigInteger decimalPlaces = BigInteger.valueOf(commissionPayableAmount.getDecimalPlaces().longValue());
 
                             detailedCommissionInformation.setPercent(percent);
                             detailedCommissionInformation.setAmount(amount);
@@ -150,7 +150,8 @@ public class RefundHelper {
                             String qualifier = monetaryInformation.getQualifier();
                             BigDecimal amount = monetaryInformation.getAmount();
                             String currency = monetaryInformation.getCurrencyCode();
-                            BigInteger decimalPlaces = monetaryInformation.getDecimalPlaces();
+                            //Weirdest error ever!!
+                            BigInteger decimalPlaces = BigInteger.valueOf(monetaryInformation.getDecimalPlaces().longValue());
 
                             detailedMonetaryInformation.setQualifier(qualifier);
                             detailedMonetaryInformation.setAmount(amount);

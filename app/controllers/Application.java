@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 import dto.*;
+import dto.ancillary.AncillaryBookingRequest;
+import dto.ancillary.AncillaryBookingResponse;
 import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AncillaryServiceRequest;
@@ -784,13 +786,13 @@ public class Application {
     public Result getAncillaryBaggagePaymentConfirmation() {
 
         JsonNode json = request().body().asJson();
-        AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ = Json.fromJson(json,AncillaryConfirmPaymentRQ.class);
-        logger.debug("Ancillary - Baggage Confirm Request {} ", Json.toJson(ancillaryConfirmPaymentRQ));
+        AncillaryBookingRequest ancillaryBookingRequest = Json.fromJson(json, AncillaryBookingRequest.class);
+        logger.debug("Ancillary - Baggage Confirm Request {} ", Json.toJson(ancillaryBookingRequest));
 
-        AncillaryConfirmPaymentRS ancillaryConfirmPaymentRS = ancillaryService.getAncillaryBaggageConfirm(ancillaryConfirmPaymentRQ);
-        logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryConfirmPaymentRS));
+        AncillaryBookingResponse ancillaryBookingResponse = ancillaryService.getAncillaryBaggageConfirm(ancillaryBookingRequest);
+        logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryBookingResponse));
 
-        return ok(Json.toJson(ancillaryConfirmPaymentRS));
+        return ok(Json.toJson(ancillaryBookingResponse));
 
     }
 
