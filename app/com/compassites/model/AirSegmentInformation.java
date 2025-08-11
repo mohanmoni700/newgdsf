@@ -92,6 +92,15 @@ public class AirSegmentInformation implements Serializable{
     private String contextType;
 
     private String validatingCarrierCode;
+    private String ruleNumber;
+
+    public String getRuleNumber() {
+        return ruleNumber;
+    }
+
+    public void setRuleNumber(String ruleNumber) {
+        this.ruleNumber = ruleNumber;
+    }
 
     private String airLinePnr;
 

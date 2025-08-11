@@ -1,14 +1,13 @@
 package services.ancillary;
 
 import com.compassites.model.AncillaryServicesResponse;
+import dto.ancillary.AncillaryBookingRequest;
+import dto.ancillary.AncillaryBookingResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import models.AncillaryServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import services.indigo.IndigoFlightService;
-import dto.AncillaryConfirmPaymentRQ;
-import dto.AncillaryConfirmPaymentRS;
-import models.AncillaryServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +37,7 @@ public class AncillaryServiceWrapper implements AncillaryService {
     }
 
     @Override
-    public AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest) {
+    public AncillaryServicesResponse getMealsInfoStandalone(AncillaryServiceRequest ancillaryServiceRequest) {
 
         AncillaryServicesResponse ancillaryServicesResponse = null;
 
@@ -50,13 +49,17 @@ public class AncillaryServiceWrapper implements AncillaryService {
     }
 
     @Override
-    public AncillaryConfirmPaymentRS getAncillaryBaggageConfirm(AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ) {
+    public AncillaryBookingResponse getAncillaryBaggageConfirm(AncillaryBookingRequest ancillaryBookingRequest) {
 
-        AncillaryConfirmPaymentRS ancillaryConfirmPaymentRS = amadeusAncillaryService.getpaymentConfirmAncillaryServices(ancillaryConfirmPaymentRQ);
+        String provider = ancillaryBookingRequest.getProvider();
 
-        return ancillaryConfirmPaymentRS;
+        AncillaryBookingResponse ancillaryBookingResponse = null;
+        if (provider.equalsIgnoreCase("Amadeus")) {
+            ancillaryBookingResponse = amadeusAncillaryService.getpaymentConfirmAncillaryServices(ancillaryBookingRequest);
+        }
+
+        return ancillaryBookingResponse;
     }
-
 
     @Override
     public AncillaryServicesResponse getTmxExtraServices(String resultToken, String reResulttoken, String journeyType, Boolean isLCC) {

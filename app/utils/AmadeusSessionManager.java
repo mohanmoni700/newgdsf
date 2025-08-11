@@ -161,8 +161,10 @@ public class AmadeusSessionManager {
             amadeusSessionWrapper.setQueryInProgress(true);
             amadeusSessionWrapper.setLastQueryDate(new Date());
             amadeusSessionWrapper.save();
-            logger.debug("Returning existing session .........................................{}", amadeusSessionWrapper.getmSession().value.getSessionId());
-            System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
+            if (amadeusSessionWrapper.getmSession() != null) {
+                logger.debug("Returning existing session .........................................{}", amadeusSessionWrapper.getmSession().value.getSessionId());
+                System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
+            }
             return amadeusSessionWrapper;
         }
 

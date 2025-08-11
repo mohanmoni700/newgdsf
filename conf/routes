@@ -81,3 +81,7 @@ POST    /openTicketReport   @controllers.Application.openTicketReport()
 #indigo
 POST    /saveBooking   @controllers.Application.saveIndigoBooking()
 
+
+#Exchange Rates
+POST    /getAmadeusExchangeRates   @controllers.Application.getAmadeusExchangeRates()
+

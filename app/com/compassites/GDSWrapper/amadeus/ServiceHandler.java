@@ -10,6 +10,8 @@ import com.amadeus.xml.farqnr_07_1_1a.FareCheckRulesReply;
 import com.amadeus.xml.fatceq_13_1_1a.TicketCheckEligibility;
 import com.amadeus.xml.fatcer_13_1_1a.TicketCheckEligibilityReply;
 import com.amadeus.xml.fatcer_13_1_1a.TravelFlightInformationType;
+import com.amadeus.xml.fcuqcq_08_1_1a.FareConvertCurrency;
+import com.amadeus.xml.fcuqcr_08_1_1a.FareConvertCurrencyReply;
 import com.amadeus.xml.flireq_07_1_1a.AirFlightInfo;
 import com.amadeus.xml.flires_07_1_1a.AirFlightInfoReply;
 import com.amadeus.xml.fmptbq_14_2_1a.FareMasterPricerTravelBoardSearch;
@@ -24,6 +26,8 @@ import com.amadeus.xml.pnrret_14_1_1a.PNRRetrieve;
 import com.amadeus.xml.pnrxcl_14_1_1a.*;
 import com.amadeus.xml.qdqlrq_11_1_1a.QueueList;
 import com.amadeus.xml.qdqlrr_11_1_1a.QueueListReply;
+import com.amadeus.xml.satrqt_19_1_1a.AirMultiAvailability;
+import com.amadeus.xml.satrsp_19_1_1a.AirMultiAvailabilityReply;
 import com.amadeus.xml.tarcpq_13_2_1a.TicketReissueConfirmedPricing;
 import com.amadeus.xml.tarcpr_13_2_1a.TicketReissueConfirmedPricingReply;
 import com.amadeus.xml.taripq_19_1_1a.TicketRepricePNRWithBookingClass;
@@ -34,6 +38,8 @@ import com.amadeus.xml.tautcq_04_1_1a.TicketCreateTSTFromPricing;
 import com.amadeus.xml.tautcr_04_1_1a.TicketCreateTSTFromPricingReply;
 import com.amadeus.xml.tipnrq_12_4_1a.FareInformativePricingWithoutPNR;
 import com.amadeus.xml.tipnrr_12_4_1a.FareInformativePricingWithoutPNRReply;
+import com.amadeus.xml.tiunrq_23_1_1a.FarePriceUpsellWithoutPNR;
+import com.amadeus.xml.tiunrr_23_1_1a.FarePriceUpsellWithoutPNRReply;
 import com.amadeus.xml.tmrxrq_18_1_1a.MiniRuleGetFromRec;
 import com.amadeus.xml.tmrxrr_18_1_1a.MiniRuleGetFromRecReply;
 import com.amadeus.xml.tpcbrq_12_4_1a.FarePricePNRWithBookingClass;
@@ -44,6 +50,8 @@ import com.amadeus.xml.tplprq_12_4_1a.FarePricePNRWithLowestFare;
 import com.amadeus.xml.tplprr_12_4_1a.FarePricePNRWithLowestFareReply;
 import com.amadeus.xml.tpscgq_17_1_1a.ServiceStandaloneCatalogue;
 import com.amadeus.xml.tpscgr_17_1_1a.ServiceStandaloneCatalogueReply;
+import com.amadeus.xml.tpuprq_18_1_1a.FarePriceUpsellPNR;
+import com.amadeus.xml.tpuprr_18_1_1a.FarePriceUpsellPNRReply;
 import com.amadeus.xml.trcanq_14_1_1a.TicketCancelDocument;
 import com.amadeus.xml.trcanr_14_1_1a.TicketCancelDocumentReply;
 import com.amadeus.xml.ttktiq_09_1_1a.DocIssuanceIssueTicket;
@@ -58,6 +66,7 @@ import com.compassites.constants.AmadeusConstants;
 import com.compassites.model.*;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import com.thoughtworks.xstream.XStream;
+import dto.AmadeusConvertCurrencyRQ;
 import dto.OpenTicketDTO;
 import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
@@ -94,7 +103,7 @@ public class ServiceHandler {
         URL url = null;
         try {
             endPoint = play.Play.application().configuration().getString("amadeus.endPointURL");
-            url = ServiceHandler.class.getResource("/META-INF/wsdl/amadeus4/1ASIWFLYFYH_PDT_20250121_070055.wsdl");
+            url = ServiceHandler.class.getResource("/META-INF/wsdl/amadeus4/amadeus.wsdl");
         } catch (Exception e) {
             logger.debug("Error in loading Amadeus URL : ", e);
         }
@@ -178,8 +187,9 @@ public class ServiceHandler {
             amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
 
             logger.debug("Amadeus Logout Request called at : {} {}", new Date(), amadeusSessionWrapper.getSessionId());
+
             signOutReply = mPortType.securitySignOut(new SecuritySignOut(), amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-            amadeusLogger.debug("Amadeus Logout Response {} ---->{}", new Date(), new XStream().toXML(signOutReply));
+            amadeusLogger.debug("Amadeus Logout Response {} ---->\n{}", new Date(), new XStream().toXML(signOutReply));
 
             amadeusSessionWrapper.resetSession();
             return signOutReply;
@@ -196,8 +206,8 @@ public class ServiceHandler {
 
         FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId());
 
-        amadeusLogger.debug("Amadeus Search request {} SessionId: {} Office Id: {} {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), searchType, new XStream().toXML(fareMasterPricerTravelBoardSearch));
-        FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
+        amadeusLogger.debug("Amadeus Search request {} SessionId: {} Office Id: {} {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), searchType, new XStream().toXML(fareMasterPricerTravelBoardSearch));
+        FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch142(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
 
         if (Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN)) {
             loggerTemp.debug("\nAmadeusSearchReq {} :AmadeusFlightSearch response returned  at : {}session: {} ---->\n{}", amadeusSessionWrapper.getOfficeId(), new Date(), amadeusSessionWrapper.printSession(), new XStream().toXML(SearchReply));
@@ -216,9 +226,9 @@ public class ServiceHandler {
         logger.debug("AmadeusFlightSearch Split called at : {} {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         FareMasterPricerTravelBoardSearch fareMasterPricerTravelBoardSearch = new SplitTicketSearchFlights().createSearchQuery(searchParameters, amadeusSessionWrapper.getOfficeId(), isDestinationDomestic);
-        amadeusLogger.debug("AmadeusSearchReq Split {} SessionId: {} Office Id: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(fareMasterPricerTravelBoardSearch));
-        FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
+        amadeusLogger.debug("AmadeusSearchReq Split {} SessionId: {} Office Id: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(fareMasterPricerTravelBoardSearch));
 
+        FareMasterPricerTravelBoardSearchReply SearchReply = mPortType.fareMasterPricerTravelBoardSearch142(fareMasterPricerTravelBoardSearch, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         if (Play.application().configuration().getBoolean("amadeus.DEBUG_SEARCH_LOG") && searchParameters.getBookingType().equals(BookingType.SEAMEN))
             loggerTemp.debug("\nAmadeusSearchReq split {} :AmadeusFlightSearch response returned  at : {}session: {} ---->\n{}", amadeusSessionWrapper.getOfficeId(), new Date(), amadeusSessionWrapper.printSession(), new XStream().toXML(SearchReply));
         logger.debug("AmadeusFlightSearch split response returned  at : {}", new Date());
@@ -234,9 +244,10 @@ public class ServiceHandler {
         logger.debug("Amadeus Check Flight Availability called at : {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         AirSellFromRecommendation sellFromRecommendation = new BookFlights().sellFromRecommendation(travellerMasterInfo);
-        amadeusLogger.debug("AirSellFromRecommendation Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(sellFromRecommendation));
+        amadeusLogger.debug("AirSellFromRecommendation Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(sellFromRecommendation));
+
         AirSellFromRecommendationReply sellFromRecommendationReply = mPortType.airSellFromRecommendation(sellFromRecommendation, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("AirSellFromRecommendationReply Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(sellFromRecommendationReply));
+        amadeusLogger.debug("AirSellFromRecommendationReply Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(sellFromRecommendationReply));
 
         amadeusSessionWrapper.updateSessionFromResponse(amadeusSessionWrapper.getmSession());
 
@@ -250,9 +261,10 @@ public class ServiceHandler {
         logger.debug("Amadeus Add Traveller Infor to PNR called   at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().getMultiElements(travellerMasterInfo);
-        amadeusLogger.debug("PNRAddMultiElements Request -- Add Traveller to PNR {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("PNRAddMultiElements Request -- Add Traveller to PNR {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("PNRReply -- Add Traveller to PNR {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("PNRReply -- Add Traveller to PNR {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -264,9 +276,10 @@ public class ServiceHandler {
         logger.debug("Amadeus pricePNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing, isAddBooking, false, 0);
-        amadeusLogger.debug("FarePricePNRWithBookingClass Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClass));
+        amadeusLogger.debug("FarePricePNRWithBookingClass Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClass));
+
         FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply = mPortType.farePricePNRWithBookingClass124(pricePNRWithBookingClass, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("FarePricePNRWithBookingClass response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClassReply));
+        amadeusLogger.debug("FarePricePNRWithBookingClass response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClassReply));
 
         return pricePNRWithBookingClassReply;
     }
@@ -278,9 +291,10 @@ public class ServiceHandler {
         logger.debug("Amadeus createTST called at {}...................Session Id:. {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createTSTReq(numberOfTST);
-        amadeusLogger.debug("TicketCreateTSTFromPricing Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCreateTSTFromPricing));
+        amadeusLogger.debug("TicketCreateTSTFromPricing Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCreateTSTFromPricing));
+
         TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("TicketCreateTSTFromPricingReply Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(createTSTFromPricingReply));
+        amadeusLogger.debug("TicketCreateTSTFromPricingReply Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(createTSTFromPricingReply));
 
         return createTSTFromPricingReply;
     }
@@ -292,9 +306,10 @@ public class ServiceHandler {
         logger.debug("Amadeus createSplitTST called at {}...................Session Id:. {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         TicketCreateTSTFromPricing ticketCreateTSTFromPricing = new CreateTST().createSplitTSTReq(numberOfTST);
-        amadeusLogger.debug("TicketCreateTSTFromPricing - Split TST - Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCreateTSTFromPricing));
+        amadeusLogger.debug("TicketCreateTSTFromPricing - Split TST - Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCreateTSTFromPricing));
+
         TicketCreateTSTFromPricingReply createTSTFromPricingReply = mPortType.ticketCreateTSTFromPricing(ticketCreateTSTFromPricing, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("TicketCreateTSTFromPricingReply - Split TST - Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(createTSTFromPricingReply));
+        amadeusLogger.debug("TicketCreateTSTFromPricingReply - Split TST - Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(createTSTFromPricingReply));
 
         return createTSTFromPricingReply;
     }
@@ -306,9 +321,10 @@ public class ServiceHandler {
         logger.debug("Amadeus savePNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().savePnr();
-        amadeusLogger.debug("Save PNR request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("Save PNR request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Save PNR Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Save PNR Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
 
         return pnrReply;
@@ -322,9 +338,10 @@ public class ServiceHandler {
         logger.debug("Amadeus savePNRES -ESX Entry- called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().esxEntry(officeId);
-        amadeusLogger.debug("Amadeus savePNRES -ESX Entry- Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("Amadeus savePNRES -ESX Entry- Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Amadeus savePNRES -ESX Entry- Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Amadeus savePNRES -ESX Entry- Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -336,9 +353,10 @@ public class ServiceHandler {
         logger.debug("amadeus savePNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().savePnr();
 
-        amadeusLogger.debug("savePNRReq {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("savePNRReq {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnr(), amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("savePNRRes {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("savePNRRes {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -350,9 +368,10 @@ public class ServiceHandler {
         logger.debug("Amadeus saveChildPNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new com.compassites.GDSWrapper.amadeus.PNRSplit().saveChildPnr(optionCode);
-        amadeusLogger.debug("Save Child PNR Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("Save Child PNR Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(new com.compassites.GDSWrapper.amadeus.PNRSplit().saveChildPnr(optionCode), amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Save Child PNR Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Save Child PNR Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -364,9 +383,10 @@ public class ServiceHandler {
         logger.debug("Amadeus retrievePNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRRetrieve pnrRetrieve = new PNRRetriev().retrieve(num);
-        amadeusLogger.debug("PNRRetrieve request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrRetrieve));
+        amadeusLogger.debug("PNRRetrieve request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrRetrieve));
+
         PNRReply pnrReply = mPortType.pnrRetrieve(pnrRetrieve, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("PNRRetrieve Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("PNRRetrieve Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         amadeusSessionWrapper.updateSessionFromResponse(amadeusSessionWrapper.getmSession());
 
@@ -380,9 +400,10 @@ public class ServiceHandler {
         logger.debug("Amadeus ignoreAndRetrievePNR called at {}..................Session Id {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().ignoreAndRetrievePNR();
-        amadeusLogger.debug("Ignore And Retrieve PNR Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("Ignore And Retrieve PNR Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Ignore And Retrieve PNR Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Ignore And Retrieve PNR Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         amadeusSessionWrapper.updateSessionFromResponse(amadeusSessionWrapper.getmSession());
 
@@ -396,9 +417,10 @@ public class ServiceHandler {
         logger.debug("Amadeus ignorePNRAddMultiElement called at {}..................Session Id {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().ignorePNRAddMultiElement();
-        amadeusLogger.debug("Ignore PNR Add MultiElements Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("Ignore PNR Add MultiElements Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Ignore PNR Add MultiElements Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Ignore PNR Add MultiElements Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -410,9 +432,10 @@ public class ServiceHandler {
         logger.debug("amadeus addSSRDetailsToPNR called   at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().addSSRDetails(travellerMasterInfo, segmentNumbers, travellerMap);
-        amadeusLogger.debug("Add SSR Details To PNR Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("Add SSR Details To PNR Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Add SSR Details To PNR Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Add SSR Details To PNR Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -424,9 +447,10 @@ public class ServiceHandler {
         logger.debug("Amadeus issueTicket called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         DocIssuanceIssueTicket docIssuanceIssueTicket = new IssueTicket().issue(sendTSTDataForIssuance, tstReferenceList);
-        amadeusLogger.debug("DocIssuanceIssueTicket Request - Issue Ticket -  {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(docIssuanceIssueTicket));
+        amadeusLogger.debug("DocIssuanceIssueTicket Request - Issue Ticket -  {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(docIssuanceIssueTicket));
+
         DocIssuanceIssueTicketReply docIssuanceIssueTicketReply = mPortType.docIssuanceIssueTicket(docIssuanceIssueTicket, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("DocIssuanceIssueTicket Response - Issue Ticket -  {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(docIssuanceIssueTicketReply));
+        amadeusLogger.debug("DocIssuanceIssueTicket Response - Issue Ticket -  {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(docIssuanceIssueTicketReply));
 
         return docIssuanceIssueTicketReply;
     }
@@ -438,9 +462,10 @@ public class ServiceHandler {
         logger.debug("Amadeus getFareInfo called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation().getFareInfo(journeys, seamen, adultCount, childCount, infantCount, paxFareDetailsList);
-        amadeusLogger.debug("FareInformativePricingWithoutPNR -Get Fare Info- Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricingWithoutPNR));
+        amadeusLogger.debug("FareInformativePricingWithoutPNR -Get Fare Info- Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricingWithoutPNR));
+
         FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply = mPortType.fareInformativePricingWithoutPNR124(farePricingWithoutPNR, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("FareInformativePricingWithoutPNR -Get Fare Info- Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareInformativePricingPNRReply));
+        amadeusLogger.debug("FareInformativePricingWithoutPNR -Get Fare Info- Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareInformativePricingPNRReply));
 
         return fareInformativePricingPNRReply;
     }
@@ -452,9 +477,10 @@ public class ServiceHandler {
         logger.debug("Amadeus getFlightInfo  called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         AirFlightInfo airFlightInfo = new FlightInformation().getAirFlightInfo(airSegment);
-        amadeusLogger.debug("AirFlightInfo Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(airFlightInfo));
+        amadeusLogger.debug("AirFlightInfo Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(airFlightInfo));
+
         AirFlightInfoReply airFlightInfoReply = mPortType.airFlightInfo(airFlightInfo, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("AirFlightInfo Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(airFlightInfo));
+        amadeusLogger.debug("AirFlightInfo Response {} SessionId: {} ----> \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(airFlightInfoReply));
 
         return airFlightInfoReply;
     }
@@ -466,9 +492,10 @@ public class ServiceHandler {
         logger.debug("Amadeus getFareRules called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         FareCheckRules fareCheckRules = new FareRules().createFareRules();
-        amadeusLogger.debug("FareCheckRules Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRules));
+        amadeusLogger.debug("FareCheckRules Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRules));
+
         FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("FareCheckRules Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRulesReply));
+        amadeusLogger.debug("FareCheckRules Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRulesReply));
 
         return fareCheckRulesReply;
     }
@@ -481,9 +508,10 @@ public class ServiceHandler {
         logger.debug("amadeus getFareRulesFromFareComponent called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         FareCheckRules fareCheckRules = new FareRules().getFareCheckRulesForFareComponents(fareComponentsMap);
-        amadeusLogger.debug("fareRulesFromFareComponentsReq {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRules));
+        amadeusLogger.debug("fareRulesFromFareComponentsReq {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRules));
+
         FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("fareRulesFromFareComponentsRes {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRulesReply));
+        amadeusLogger.debug("fareRulesFromFareComponentsRes {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRulesReply));
 
         return fareCheckRulesReply;
     }
@@ -495,9 +523,10 @@ public class ServiceHandler {
         logger.debug("Amadeus getFareRulesForFCType called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         FareCheckRules fareCheckRules = new FareRules().getFareInfoForFCType(fcNumber);
-        amadeusLogger.debug("FareCheckRules -FareRulesForFCType- Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRules));
+        amadeusLogger.debug("FareCheckRules -FareRulesForFCType- Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRules));
+
         FareCheckRulesReply fareCheckRulesReply = mPortType.fareCheckRules(fareCheckRules, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("FareCheckRules -FareRulesForFCType- Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRulesReply));
+        amadeusLogger.debug("FareCheckRules -FareRulesForFCType- Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareCheckRulesReply));
 
         return fareCheckRulesReply;
     }
@@ -521,9 +550,10 @@ public class ServiceHandler {
             }
         }
 
-        amadeusLogger.debug("FarePricePNRWithLowestFare Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricePNRWithLowestFare));
+        amadeusLogger.debug("FarePricePNRWithLowestFare Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricePNRWithLowestFare));
+
         FarePricePNRWithLowestFareReply farePricePNRWithLowestFareReply = mPortType.farePricePNRWithLowestFare124(farePricePNRWithLowestFare, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("FarePricePNRWithLowestFare Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricePNRWithLowestFareReply));
+        amadeusLogger.debug("FarePricePNRWithLowestFare Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricePNRWithLowestFareReply));
 
         return farePricePNRWithLowestFareReply;
     }
@@ -534,9 +564,10 @@ public class ServiceHandler {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
         logger.debug("Amadeus exitESPNR called  at {}................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
-        amadeusLogger.debug("Exit ESX Entry Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+        amadeusLogger.debug("Exit ESX Entry Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Exit ESX Entry Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Exit ESX Entry Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -570,9 +601,10 @@ public class ServiceHandler {
         cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ELEMENT_TYPE);
         pnrCancel.getCancelElements().add(cancelPNRElementType);
 
-        amadeusLogger.debug("Cancel PNR Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+        amadeusLogger.debug("Cancel PNR Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Cancel PNR Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Cancel PNR Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
 
@@ -583,9 +615,10 @@ public class ServiceHandler {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
         logger.debug("Amadeus queueListResponse called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
-        amadeusLogger.debug("QueueList Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(queueListReq));
+        amadeusLogger.debug("QueueList Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(queueListReq));
+
         QueueListReply queueListReply = mPortType.queueList(queueListReq, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("QueueList Response{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(queueListReply));
+        amadeusLogger.debug("QueueList Response{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(queueListReply));
 
         return queueListReply;
     }
@@ -597,9 +630,10 @@ public class ServiceHandler {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
 
         TicketDisplayTST ticketDisplayTST = new CreateTST().createTicketDisplayTSTReq();
-        amadeusLogger.debug("TicketDisplayTST Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketDisplayTST));
+        amadeusLogger.debug("TicketDisplayTST Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketDisplayTST));
+
         TicketDisplayTSTReply ticketDisplayTSTReply = mPortType.ticketDisplayTST(ticketDisplayTST, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("TicketDisplayTST Response{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketDisplayTSTReply));
+        amadeusLogger.debug("TicketDisplayTST Response{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketDisplayTSTReply));
 
         return ticketDisplayTSTReply;
     }
@@ -610,9 +644,10 @@ public class ServiceHandler {
         logger.debug("Amadeus splitPNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
 
-        amadeusLogger.debug("Split PNR Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrSplit));
+        amadeusLogger.debug("Split PNR Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrSplit));
+
         PNRReply pnrReply = mPortType.pnrSplit(pnrSplit, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Split PNR Response{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Split PNR Response{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -625,9 +660,10 @@ public class ServiceHandler {
             amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
 
             MiniRuleGetFromRec miniRuleGetFromPricingRec = new PNRRetriev().miniRuleGetFromPNR(pnr);
-            amadeusLogger.debug("MiniRuleGetFromRec Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricingRec));
+            amadeusLogger.debug("MiniRuleGetFromRec Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricingRec));
+
             MiniRuleGetFromRecReply miniRuleGetFromPricingRecReply = mPortType.miniRuleGetFromRec(miniRuleGetFromPricingRec, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-            amadeusLogger.debug("MiniRuleGetFromRec Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricingRecReply));
+            amadeusLogger.debug("MiniRuleGetFromRec Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricingRecReply));
 
             return miniRuleGetFromPricingRecReply;
         } catch (Exception e) {
@@ -643,9 +679,10 @@ public class ServiceHandler {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
 
         MiniRuleGetFromRec miniRuleGetFromPricing = new PNRRetriev().miniRuleGetFromPricing();
-        amadeusLogger.debug("MiniRuleGetFromRec - From Pricing - Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricing));
+        amadeusLogger.debug("MiniRuleGetFromRec - From Pricing - Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricing));
+
         MiniRuleGetFromRecReply miniRuleGetFromPricingReply = mPortType.miniRuleGetFromRec(miniRuleGetFromPricing, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("MiniRuleGetFromRec - From Pricing - Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricingReply));
+        amadeusLogger.debug("MiniRuleGetFromRec - From Pricing - Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(miniRuleGetFromPricingReply));
 
         return miniRuleGetFromPricingReply;
     }
@@ -674,9 +711,10 @@ public class ServiceHandler {
         pnrCancel.getCancelElements().add(cancelPNRElementType);
 
 
-        amadeusLogger.debug("PNRCancel -Full Cancel - Request{} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+        amadeusLogger.debug("PNRCancel -Full Cancel - Request{} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("PNRCancel -Full Cancel - Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("PNRCancel -Full Cancel - Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -688,9 +726,10 @@ public class ServiceHandler {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
 
         TicketProcessEDoc ticketProcessEDocRQ = new RefundTicket().getTicketProcessEdocRQ(tickets);
-        amadeusLogger.debug("TicketProcessEDoc - Refund - Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocRQ));
+        amadeusLogger.debug("TicketProcessEDoc - Refund - Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocRQ));
+
         TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDocRQ, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("TicketProcessEDoc - Refund - Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
+        amadeusLogger.debug("TicketProcessEDoc - Refund - Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
 
         return ticketProcessEDocReply;
     }
@@ -703,9 +742,10 @@ public class ServiceHandler {
 
         // Creating XML request for ticket cancel document
         TicketCancelDocument ticketCancelDocument = new TicketCancelDocumentHandler().ticketCancelDocument(ticketsList, gdsPNRReply, delOficID);
-        amadeusLogger.debug("TicketCancelDocument Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCancelDocument));
+        amadeusLogger.debug("TicketCancelDocument Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCancelDocument));
+
         TicketCancelDocumentReply ticketCancelDocumentReply = mPortType.ticketCancelDocument(ticketCancelDocument, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("TicketCancelDocument Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCancelDocumentReply));
+        amadeusLogger.debug("TicketCancelDocument Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCancelDocumentReply));
 
         return ticketCancelDocumentReply;
 
@@ -719,6 +759,7 @@ public class ServiceHandler {
 
         TicketProcessEDoc ticketProcessEDocReq = ReIssueTicket.ReIssueCheckTicketStatus.createReissueTicketStatusCheck(reIssueSearchRequest);
         amadeusLogger.info("ReIssue Ticket Status Check(TicketProcessEDoc) Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReq));
+
         TicketProcessEDocReply ticketProcessEDocReply = mPortType.ticketProcessEDoc(ticketProcessEDocReq, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.info("ReIssue Ticket Status Check(TicketProcessEDoc) Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketProcessEDocReply));
 
@@ -734,6 +775,7 @@ public class ServiceHandler {
 
         TicketCheckEligibility ticketCheckEligibility = ReIssueTicket.ReIssueCheckEligibility.createCheckEligibilityRequest(reIssueSearchRequest, amadeusSessionWrapper.getOfficeId());
         amadeusLogger.debug("ReIssue TicketCheckEligibility Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCheckEligibility));
+
         TicketCheckEligibilityReply ticketCheckEligibilityReply = mPortType.ticketCheckEligibility(ticketCheckEligibility, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.debug("ReIssue TicketCheckEligibility Response {} SessionId: {}  \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(ticketCheckEligibilityReply));
 
@@ -748,6 +790,7 @@ public class ServiceHandler {
 
         TicketATCShopperMasterPricerTravelBoardSearch reIssueATCSearchRequest = ReIssueTicket.ReIssueATCSearch.createReissueATCSearchRequest(reissueSearchRequest, allowedCarriers, amadeusSessionWrapper.getOfficeId());
         amadeusLogger.debug("ReIssueATCSearch Request on {}, SessionId: {}, Office ID: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(reIssueATCSearchRequest));
+
         TicketATCShopperMasterPricerTravelBoardSearchReply reIssueATCSearchReply = mPortType.ticketATCShopperMasterPricerTravelBoardSearch(reIssueATCSearchRequest, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.debug("ReIssueATCSearch Response {} SessionId: {}, Office ID: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), amadeusSessionWrapper.getOfficeId(), new XStream().toXML(reIssueATCSearchReply));
 
@@ -762,6 +805,7 @@ public class ServiceHandler {
         ServiceIntegratedCatalogue serviceIntegratedCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowAdditionalBaggageInformationRequest();
 
         amadeusLogger.debug("ServiceIntegratedCatalogue Additional Baggage Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceIntegratedCatalogue));
+
         ServiceIntegratedCatalogueReply serviceIntegratedCatalogueReply = mPortType.serviceIntegratedCatalogue(serviceIntegratedCatalogue, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.debug("ServiceIntegratedCatalogue Additional Baggage Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceIntegratedCatalogueReply));
 
@@ -777,6 +821,7 @@ public class ServiceHandler {
 
         ServiceStandaloneCatalogue serviceStandaloneCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowAdditionalBaggageInformationRequestStandalone(ancillaryServiceRequest);
         amadeusLogger.debug("ServiceStandaloneCatalogue Additional Baggage Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogue));
+
         ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = mPortType.serviceStandaloneCatalogue(serviceStandaloneCatalogue, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.debug("ServiceStandaloneCatalogue Additional Baggage Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogueReply));
 
@@ -792,6 +837,7 @@ public class ServiceHandler {
 
         ServiceStandaloneCatalogue serviceStandaloneCatalogue = AncillaryServiceReq.AdditionalPaidBaggage.createShowMealsInformationRequestStandalone(ancillaryServiceRequest);
         amadeusLogger.debug("ServiceStandaloneCatalogue Meals Request {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogue));
+
         ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply = mPortType.serviceStandaloneCatalogue(serviceStandaloneCatalogue, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.debug("ServiceStandaloneCatalogue Meals Response {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(serviceStandaloneCatalogueReply));
 
@@ -839,9 +885,10 @@ public class ServiceHandler {
         cancelPNRElementType.setEntryType(AmadeusConstants.CANCEL_PNR_ELEMENT_TYPE);
         pnrCancel.getCancelElements().add(cancelPNRElementType);
 
-        amadeusLogger.debug("Partial cancellation Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+        amadeusLogger.debug("Partial cancellation Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrCancel));
+
         PNRReply pnrReply = mPortType.pnrCancel(pnrCancel, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Partial cancellation Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Partial cancellation Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
 
@@ -895,6 +942,7 @@ public class ServiceHandler {
 
         PNRSplit pnrSplit = ReIssueTicket.ReIssueConfirmation.splitPNRForReIssuedPax(reIssueConfirmationRequest);
         amadeusLogger.debug("Splitting PNR for ReIssue Request Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrSplit));
+
         PNRReply pnrReply = mPortType.pnrSplit(pnrSplit, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
         amadeusLogger.debug("Splitting PNR for ReIssue Response Body {} SessionId: {} \n {}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
@@ -908,9 +956,10 @@ public class ServiceHandler {
         amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
 
         com.amadeus.xml.tipnrq_13_2_1a.FareInformativePricingWithoutPNR farePricingWithoutPNR = new FareInformation13_2().getPriceInfo(journeys, seamen, adultCount, childCount, infantCount, paxFareDetailsList);
-        amadeusLogger.debug("farePricingWithoutPNRReq  13.2 {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricingWithoutPNR));
+        amadeusLogger.debug("farePricingWithoutPNRReq  13.2 {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePricingWithoutPNR));
+
         com.amadeus.xml.tipnrr_13_2_1a.FareInformativePricingWithoutPNRReply fareInformativePricingPNRReply = mPortType.fareInformativePricingWithoutPNR(farePricingWithoutPNR, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("farePricingWithoutPNRRes 13.2 {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareInformativePricingPNRReply));
+        amadeusLogger.debug("farePricingWithoutPNRRes 13.2 {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareInformativePricingPNRReply));
         return fareInformativePricingPNRReply;
     }
 
@@ -921,9 +970,10 @@ public class ServiceHandler {
         logger.debug("Amadeus savePNR for Ancillary Payment called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().savePnrForAncillaryPayment();
-        amadeusLogger.debug("Save PNR request for Ancillary Payment {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("Save PNR request for Ancillary Payment {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+
         PNRReply pnrReply = mPortType.pnrAddMultiElements(new PNRAddMultiElementsh().savePnrForAncillaryPayment(), amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Save PNR Response for Ancillary Payment {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("Save PNR Response for Ancillary Payment {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
     }
@@ -935,14 +985,13 @@ public class ServiceHandler {
         logger.debug("Amadeus priceSplitTicketPNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         FarePricePNRWithBookingClass pricePNRWithBookingClass = new PricePNR().getPNRPricingOption(carrierCode, pnrReply, isSeamen, isDomesticFlight, flightItinerary, airSegmentList, isSegmentWisePricing, isAddBooking, true, journeyIndex);
-        amadeusLogger.debug("Amadeus price SplitTicket PNR WithBookingClass Request {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClass));
+        amadeusLogger.debug("Amadeus price SplitTicket PNR WithBookingClass Request {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClass));
 
         FarePricePNRWithBookingClassReply pricePNRWithBookingClassReply = mPortType.farePricePNRWithBookingClass124(pricePNRWithBookingClass, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("Amadeus price SplitTicket PNR WithBookingClass Response {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClassReply));
+        amadeusLogger.debug("Amadeus price SplitTicket PNR WithBookingClass Response {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pricePNRWithBookingClassReply));
 
         return pricePNRWithBookingClassReply;
     }
-
 
     //This method is used to add Joco Pnr post booking success PNR
     public PNRReply addJocoPnrBookingInfoToPNR(String jocoPnr, AmadeusSessionWrapper amadeusSessionWrapper) {
@@ -951,12 +1000,74 @@ public class ServiceHandler {
         logger.debug("Amadeus Add Joco PNR Info to PNR called   at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
 
         PNRAddMultiElements pnrAddMultiElements = new PNRAddMultiElementsh().addJocoPnrNumberEntryToGdsPnr(jocoPnr);
-        amadeusLogger.debug("PNRAddMultiElements Request -- Add Joco PNR Info to PNR {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
+        amadeusLogger.debug("PNRAddMultiElements Request -- Add Joco PNR Info to PNR {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrAddMultiElements));
 
         PNRReply pnrReply = mPortType.pnrAddMultiElements(pnrAddMultiElements, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
-        amadeusLogger.debug("PNRReply -- Add Joco PNR Info to PNR {} SessionId: {} ---->{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
+        amadeusLogger.debug("PNRReply -- Add Joco PNR Info to PNR {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(pnrReply));
 
         return pnrReply;
+    }
+
+
+    public AirMultiAvailabilityReply getAirMultiAvailability(AmadeusSessionWrapper amadeusSessionWrapper) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
+        logger.debug("Amadeus Air MultiAvailability called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
+
+        //Create Your request body here
+        AirMultiAvailability airMultiAvailability = new AirMultiAvailability();
+        amadeusLogger.debug("AirMultiAvailability Request : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(airMultiAvailability));
+
+        AirMultiAvailabilityReply airMultiAvailabilityReply = mPortType.airMultiAvailability(airMultiAvailability, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
+        amadeusLogger.debug("AirMultiAvailability Response : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(airMultiAvailabilityReply));
+
+        return airMultiAvailabilityReply;
+    }
+
+    //Uses Amadeus Forex System and gets the Forex rates
+    public FareConvertCurrencyReply getFareConvertCurrencyReply(AmadeusSessionWrapper amadeusSessionWrapper, AmadeusConvertCurrencyRQ amadeusConvertCurrencyRQ) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
+        logger.debug("Amadeus FareConvertCurrency called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
+
+        FareConvertCurrency fareConvertCurrency = FareConvertCurrencyReqBuilder.buildFareConvertCurrencyQuery(amadeusConvertCurrencyRQ);
+        amadeusLogger.debug("FareConvertCurrency Request : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareConvertCurrency));
+
+        FareConvertCurrencyReply fareConvertCurrencyReply = mPortType.fareConvertCurrency(fareConvertCurrency, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
+        amadeusLogger.debug("FareConvertCurrency Response : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(fareConvertCurrencyReply));
+
+        return fareConvertCurrencyReply;
+    }
+
+    public FarePriceUpsellWithoutPNRReply upsellWithoutPNR(AmadeusSessionWrapper amadeusSessionWrapper) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
+        logger.debug("Amadeus FarePriceUpsellWithoutPNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
+
+        //Create Your request body here
+        FarePriceUpsellWithoutPNR farePriceUpsellWithoutPNR = new FarePriceUpsellWithoutPNR();
+        amadeusLogger.debug("FarePriceUpsellWithoutPNR Request : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePriceUpsellWithoutPNR));
+
+        FarePriceUpsellWithoutPNRReply farePriceUpsellWithoutPNRReply = mPortType.farePriceUpsellWithoutPNR(farePriceUpsellWithoutPNR, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
+        amadeusLogger.debug("FarePriceUpsellWithoutPNR Response : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePriceUpsellWithoutPNRReply));
+
+        return farePriceUpsellWithoutPNRReply;
+    }
+
+
+    public FarePriceUpsellPNRReply upsellWithPNR(AmadeusSessionWrapper amadeusSessionWrapper) {
+
+        amadeusSessionWrapper.incrementSequenceNumber(amadeusSessionWrapper, bindingProvider);
+        logger.debug("Amadeus FarePriceUpsellPNR called at {}....................Session Id: {}", new Date(), amadeusSessionWrapper.getSessionId());
+
+        //Create Your request body here
+        FarePriceUpsellPNR farePriceUpsellPNR = new FarePriceUpsellPNR();
+        amadeusLogger.debug("FarePriceUpsellPNR Request : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePriceUpsellPNR));
+
+        FarePriceUpsellPNRReply farePriceUpsellPNRReply = mPortType.farePriceUpsellPNR(farePriceUpsellPNR, amadeusSessionWrapper.getmSession(), amadeusSessionWrapper.getTransactionFlowLinkTypeHolder(), amadeusSessionWrapper.getAmaSecurityHostedUser());
+        amadeusLogger.debug("FarePriceUpsellPNR Response : {} SessionId: {} ---->\n{}", new Date(), amadeusSessionWrapper.getSessionId(), new XStream().toXML(farePriceUpsellPNRReply));
+
+        return farePriceUpsellPNRReply;
     }
 
 

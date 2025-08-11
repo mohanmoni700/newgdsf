@@ -199,8 +199,7 @@ public class ReIssueFlightSearchImpl implements ReIssueFlightSearch {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
 
-//            logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
-            logger.debug("Execution time in getting session:: " + duration / 1000 + " seconds");
+            logger.debug("Execution time in getting session:: {} seconds", duration / 1000);
 
             if (reIssueSearchRequest.isSeaman()) {
                 seamenReply = serviceHandler.reIssueATCAirlineSearch(reIssueSearchRequest, allowedCarriers, amadeusSessionWrapper);

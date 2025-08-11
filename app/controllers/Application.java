@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 import dto.*;
+import dto.ancillary.AncillaryBookingRequest;
+import dto.ancillary.AncillaryBookingResponse;
 import dto.reissue.ReIssueConfirmationRequest;
 import dto.reissue.ReIssueSearchRequest;
 import models.AncillaryServiceRequest;
@@ -88,6 +90,9 @@ public class Application {
 
     @Autowired
     private OpenTicketReportService openTicketReportService;
+
+    @Autowired
+    private UtilService utilService;
 
     static Logger logger = LoggerFactory.getLogger("gds");
     static Logger indigoLogger = LoggerFactory.getLogger("indigo");
@@ -781,13 +786,13 @@ public class Application {
     public Result getAncillaryBaggagePaymentConfirmation() {
 
         JsonNode json = request().body().asJson();
-        AncillaryConfirmPaymentRQ ancillaryConfirmPaymentRQ = Json.fromJson(json,AncillaryConfirmPaymentRQ.class);
-        logger.debug("Ancillary - Baggage Confirm Request {} ", Json.toJson(ancillaryConfirmPaymentRQ));
+        AncillaryBookingRequest ancillaryBookingRequest = Json.fromJson(json, AncillaryBookingRequest.class);
+        logger.debug("Ancillary - Baggage Confirm Request {} ", Json.toJson(ancillaryBookingRequest));
 
-        AncillaryConfirmPaymentRS ancillaryConfirmPaymentRS = ancillaryService.getAncillaryBaggageConfirm(ancillaryConfirmPaymentRQ);
-        logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryConfirmPaymentRS));
+        AncillaryBookingResponse ancillaryBookingResponse = ancillaryService.getAncillaryBaggageConfirm(ancillaryBookingRequest);
+        logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryBookingResponse));
 
-        return ok(Json.toJson(ancillaryConfirmPaymentRS));
+        return ok(Json.toJson(ancillaryBookingResponse));
 
     }
 
@@ -858,6 +863,18 @@ public class Application {
         } else {
             return badRequest("Fail");
         }
+    }
+
+    //This API is called when you need Amadeus Exchange rates (BSR && ICH)
+    public Result getAmadeusExchangeRates() {
+
+        JsonNode jsonNode = request().body().asJson();
+
+        AmadeusConvertCurrencyRQ amadeusConvertCurrencyRQ = Json.fromJson(jsonNode, AmadeusConvertCurrencyRQ.class);
+
+        Map<String, AmadeusConvertCurrencyRS> amadeusExchangeRatesMap = utilService.getAmadeusExchangeInfo(amadeusConvertCurrencyRQ);
+
+        return ok(Json.toJson(amadeusExchangeRatesMap));
     }
 
     public Result home() {
