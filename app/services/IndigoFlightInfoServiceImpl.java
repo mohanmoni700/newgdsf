@@ -2,6 +2,7 @@ package services;
 
 import com.compassites.model.FlightItinerary;
 import com.compassites.model.SearchResponse;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +21,14 @@ public class IndigoFlightInfoServiceImpl implements IndigoFlightInfoService{
     //private static final String endPoint = "http://localhost:8086/indigo/baggage";
     private static final String endPoint = Play.application().configuration().getString("indigo.service.endPoint");
     @Override
-    public FlightItinerary getFlightInfo(FlightItinerary flightItinerary) {
+    public FlightItinerary getFlightInfo(FlightItinerary flightItinerary, TravellerMasterInfo travellerMasterInfo) {
         // Implement the logic to fetch flight information for Indigo flights
         // This is a placeholder implementation
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            String jsonString = objectMapper.writeValueAsString(flightItinerary);
+            travellerMasterInfo.setItinerary(flightItinerary);
+            String jsonString = objectMapper.writeValueAsString(travellerMasterInfo);
+            indigoLogger.debug("Indigo Flight Info Request: " + jsonString);
             RequestBody requestBody = RequestBody.create(jsonString, MediaType.get("application/json; charset=utf-8"));
             Request request = new Request.Builder().url(endPoint+"baggage").post(requestBody).build();
             try (Response response = client.newCall(request).execute()) {

@@ -114,6 +114,33 @@ public class TravellerMasterInfo {
 
     private boolean isAutoReIssue;
     private boolean isAutoReFund;
+    private int adtultCount;
+    private int childCount;
+    private int infantCount;
+
+    public int getAdtultCount() {
+        return adtultCount;
+    }
+
+    public void setAdtultCount(int adtultCount) {
+        this.adtultCount = adtultCount;
+    }
+
+    public int getChildCount() {
+        return childCount;
+    }
+
+    public void setChildCount(int childCount) {
+        this.childCount = childCount;
+    }
+
+    public int getInfantCount() {
+        return infantCount;
+    }
+
+    public void setInfantCount(int infantCount) {
+        this.infantCount = infantCount;
+    }
 
     public boolean isAutoReIssue() {
         return isAutoReIssue;
