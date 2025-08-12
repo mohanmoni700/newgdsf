@@ -1,6 +1,7 @@
 package services;
 
 import com.compassites.model.*;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import com.compassites.model.travelomatrix.ResponseModels.TraveloMatrixFaruleReply;
 import dto.FareCheckRulesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class FlightInfoServiceWrapper {
 	private IndigoFlightInfoService indigoFlightInfoService;
 
 	public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary,
-			SearchParameters searchParams, String provider, boolean seamen) {
+			SearchParameters searchParams, String provider, boolean seamen, TravellerMasterInfo travellerMasterInfo) {
 		FlightItinerary response = null;
 		if ("Travelport".equalsIgnoreCase(provider)) {
 			response = flightItinerary;
@@ -50,7 +51,7 @@ public class FlightInfoServiceWrapper {
 		}else if ("TraveloMatrix".equalsIgnoreCase(provider)) {
 			response = traveloMatrixFlightInfoServiceImpl.getFlightInfo(flightItinerary);
 		} else if("Indigo".equalsIgnoreCase(provider)) {
-			response = indigoFlightInfoService.getFlightInfo(flightItinerary);
+			response = indigoFlightInfoService.getFlightInfo(flightItinerary,travellerMasterInfo);
 		}
 		return response;
 	}

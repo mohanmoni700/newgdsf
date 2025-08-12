@@ -257,10 +257,18 @@ public class Application {
     	FlightItinerary flightItinerary = Json.fromJson(json.findPath("flightItinerary"), FlightItinerary.class);
     	String provider = json.get("provider").asText();
     	Boolean seamen = Json.fromJson(json.findPath("travellerInfo").findPath("seamen"), Boolean.class);
+        int adultCount = Json.fromJson(json.findPath("travellerInfo").findPath("adultCount"), Integer.class);
+        int childCount = Json.fromJson(json.findPath("travellerInfo").findPath("childCount"), Integer.class);
+        int infantCount = Json.fromJson(json.findPath("travellerInfo").findPath("infantCount"), Integer.class);
+
+        TravellerMasterInfo travellerMasterInfo = new TravellerMasterInfo();
+        travellerMasterInfo.setAdtultCount(adultCount);
+        travellerMasterInfo.setChildCount(childCount);
+        travellerMasterInfo.setInfantCount(infantCount);
     	FlightItinerary response = null;
     	try {
             logger.info("Baggage info "+Json.toJson(flightItinerary));
-    		response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen);
+    		response = flightInfoService.getBaggageInfo(flightItinerary, searchParams, provider, seamen,travellerMasterInfo);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
