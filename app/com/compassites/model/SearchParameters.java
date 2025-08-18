@@ -62,6 +62,24 @@ public class SearchParameters implements Serializable,Cloneable{
     private Boolean addBooking;
     private String originalPNR;
     private boolean isDomestic;
+    private long accountId;
+    private long crewOpId;
+
+    public long getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(long accountId) {
+        this.accountId = accountId;
+    }
+
+    public long getCrewOpId() {
+        return crewOpId;
+    }
+
+    public void setCrewOpId(long crewOpId) {
+        this.crewOpId = crewOpId;
+    }
     public Boolean getAddBooking() {
         return addBooking;
     }
