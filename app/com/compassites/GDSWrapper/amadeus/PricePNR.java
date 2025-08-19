@@ -6,6 +6,7 @@
 
 package com.compassites.GDSWrapper.amadeus;
 
+import com.amadeus.xml.pnracc_14_1_1a.ElementManagementSegmentType;
 import com.amadeus.xml.pnracc_14_1_1a.PNRReply;
 import com.amadeus.xml.tpcbrq_12_4_1a.*;
 import com.compassites.model.AirSegmentInformation;
@@ -56,36 +57,36 @@ public class PricePNR {
         }
 
 
-        if(isDomesticFlight && !isSegmentWisePricing){
-            //int i = 1;
-//            for(Journey journey : flightItinerary.getJourneys(isSeamen))  {
-            for(AirSegmentInformation airSegment : airSegmentList)  {
-                /*refDetails = new ReferencingDetailsTypeI142222C();
-                refDetails.setRefQualifier("S");
-                refDetails.setRefNumber(BigInteger.valueOf(i));
-                paxSegReference.getRefDetails().add(refDetails);
-                i = i + 1;*/
-                String key = airSegment.getFromLocation() + airSegment.getToLocation();
-                StringBuilder stringBuilder = new StringBuilder();
-                for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
-                    for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
-                        String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
-                        if(segType.equalsIgnoreCase("AIR")) {
-                            String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
-                                    + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
-                            if (segments.equals(key)) {
-                                refDetails = new ReferencingDetailsTypeI142222C();
-                                refDetails.setRefQualifier("S");
-                                refDetails.setRefNumber(itineraryInfo.getElementManagementItinerary().getReference().getNumber());
-                                paxSegReference.getRefDetails().add(refDetails);
-                            }
-                        }
-                    }
-                }
-            }
-
-            pricepnr.setPaxSegReference(paxSegReference);
-        }
+//        if(isDomesticFlight && !isSegmentWisePricing){
+//            //int i = 1;
+////            for(Journey journey : flightItinerary.getJourneys(isSeamen))  {
+//            for(AirSegmentInformation airSegment : airSegmentList)  {
+//                /*refDetails = new ReferencingDetailsTypeI142222C();
+//                refDetails.setRefQualifier("S");
+//                refDetails.setRefNumber(BigInteger.valueOf(i));
+//                paxSegReference.getRefDetails().add(refDetails);
+//                i = i + 1;*/
+//                String key = airSegment.getFromLocation() + airSegment.getToLocation();
+//                StringBuilder stringBuilder = new StringBuilder();
+//                for(PNRReply.OriginDestinationDetails originDestinationDetails : pnrReply.getOriginDestinationDetails()) {
+//                    for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
+//                        String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
+//                        ElementManagementSegmentType elementManagementItinerary = itineraryInfo.getElementManagementItinerary();
+//                        if(segType.equalsIgnoreCase("AIR")) {
+//                            String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
+//                                    + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+//                            if (segments.equals(key)) {
+//                                refDetails = new ReferencingDetailsTypeI142222C();
+//                                refDetails.setRefQualifier("S");
+//                                refDetails.setRefNumber(elementManagementItinerary.getReference().getNumber());
+//                                paxSegReference.getRefDetails().add(refDetails);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            pricepnr.setPaxSegReference(paxSegReference);
+//        }
 
         if(isAddBooking && !isDomesticFlight && !isSegmentWisePricing) {
             for(AirSegmentInformation airSegment : airSegmentList)  {
@@ -116,8 +117,7 @@ public class PricePNR {
                 for (PNRReply.OriginDestinationDetails.ItineraryInfo itineraryInfo : originDestinationDetails.getItineraryInfo()) {
                     String segType = itineraryInfo.getElementManagementItinerary().getSegmentName();
                     if(segType.equalsIgnoreCase("AIR")) {
-                        String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode()
-                                + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
+                        String segments = itineraryInfo.getTravelProduct().getBoardpointDetail().getCityCode() + itineraryInfo.getTravelProduct().getOffpointDetail().getCityCode();
                         if (segments.equals(key)) {
                             refDetails = new ReferencingDetailsTypeI142222C();
                             refDetails.setRefQualifier("S");

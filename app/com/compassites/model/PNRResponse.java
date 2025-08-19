@@ -1,10 +1,7 @@
 package com.compassites.model;
 
 import com.compassites.model.amadeus.AmadeusPaxInformation;
-import dto.AmadeusSegmentRefDTO;
-import dto.FareCheckRulesResponse;
-import dto.FreeMealsDetails;
-import dto.FreeSeatDetails;
+import dto.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -58,7 +55,10 @@ public class PNRResponse implements Serializable  {
     private Map<String, AmadeusSegmentRefDTO> segmentRefMap;
 
     private Map<String,Double> carbonDioxide;
+
     private String expirationDate;
+
+    private List<AirlineSpecificQueueAndTimeLimitDetails> airlineSpecificQueueAndTimeLimitDetailsList;
 
     public String getExpirationDate() {
         return expirationDate;
@@ -498,6 +498,14 @@ public class PNRResponse implements Serializable  {
 
     public void setSegmentRefMap(Map<String, AmadeusSegmentRefDTO> segmentRefMap) {
         this.segmentRefMap = segmentRefMap;
+    }
+
+    public List<AirlineSpecificQueueAndTimeLimitDetails> getAirlineSpecificQueueAndTimeLimitDetailsList() {
+        return airlineSpecificQueueAndTimeLimitDetailsList;
+    }
+
+    public void setAirlineSpecificQueueAndTimeLimitDetailsList(List<AirlineSpecificQueueAndTimeLimitDetails> airlineSpecificQueueAndTimeLimitDetailsList) {
+        this.airlineSpecificQueueAndTimeLimitDetailsList = airlineSpecificQueueAndTimeLimitDetailsList;
     }
 
 }
