@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 import services.AmadeusSourceOfficeService;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -2567,7 +2568,7 @@ public class AmadeusBookingHelper {
                                 ProductDateTimeTypeI260466C product = travelProduct.getProduct();
                                 if (product != null) {
                                     String departureDate = product.getDepDate();
-                                    segmentDetails.put("departureDate",departureDate);
+                                    segmentDetails.put("departureDate", departureDate);
                                 }
                             }
 
@@ -2625,7 +2626,7 @@ public class AmadeusBookingHelper {
 
                 if (ticketingOfficeId != null) {
 
-                    if (amadeusSourceOfficeService!=null && amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
+                    if (amadeusSourceOfficeService != null && amadeusSourceOfficeService.getPrioritySourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
 
                         BOMVS34C3Eligibility bomvs34C3Eligibility = BOMVS34C3Eligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
 
@@ -2634,7 +2635,7 @@ public class AmadeusBookingHelper {
                             masterInfo.setAutoReFund(bomvs34C3Eligibility.isRefund());
                         }
 
-                    } else if (amadeusSourceOfficeService!=null && amadeusSourceOfficeService.getDelhiSourceOffice() != null && amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
+                    } else if (amadeusSourceOfficeService != null && amadeusSourceOfficeService.getDelhiSourceOffice() != null && amadeusSourceOfficeService.getDelhiSourceOffice().getOfficeId().equalsIgnoreCase(ticketingOfficeId)) {
 
                         DELVS38LFEligibility delvs38LFEligibility = DELVS38LFEligibility.getEligibleAirlineCodeByValidatingCarrier(validatingCarrierCode);
 
@@ -2653,6 +2654,82 @@ public class AmadeusBookingHelper {
         } catch (Exception e) {
             logger.debug("Error with getTicketEligibilityFromTicketDisplayTSTReply {} : ", e.getMessage(), e);
         }
-
     }
+
+    public static List<AirlineSpecificQueueAndTimeLimitDetails> getAirlineSpecificTicketingTimeLimit(PNRReply pnrReply) {
+
+        PNRReply.DataElementsMaster dataElementsMaster = pnrReply.getDataElementsMaster();
+
+        List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElementsIndivList = dataElementsMaster.getDataElementsIndiv();
+
+        List<AirlineSpecificQueueAndTimeLimitDetails> airlineSpecificQueueAndTimeLimitDetailsList = new ArrayList<>();
+        for (PNRReply.DataElementsMaster.DataElementsIndiv dataElementsIndiv : dataElementsIndivList) {
+
+            com.amadeus.xml.pnracc_14_1_1a.ElementManagementSegmentType elementManagementData = dataElementsIndiv.getElementManagementData();
+
+            String segmentName = elementManagementData.getSegmentName();
+
+
+            switch (segmentName) {
+
+                case "OPC":
+
+                    //Add more keywords if identified here
+                    List<String> expectedOPCIdentificationKeyWords = Arrays.asList("CANCELLATION DUE TO NO TICKET");
+
+                    OptionElementType optionElement = dataElementsIndiv.getOptionElement();
+                    OptionElementInformationType optionElementInfo = optionElement.getOptionElementInfo();
+
+                    String freeText = optionElementInfo.getFreetext();
+
+                    for (String keyword : expectedOPCIdentificationKeyWords) {
+                        if (freeText.contains(keyword)) {
+
+                            AirlineSpecificQueueAndTimeLimitDetails airlineSpecificQueueAndTimeLimitDetails = new AirlineSpecificQueueAndTimeLimitDetails();
+
+                            String date = optionElementInfo.getDate();
+                            String time = optionElementInfo.getTime();
+                            String mainQueueOffice = optionElementInfo.getMainOffice();
+                            BigInteger queueNumber = optionElementInfo.getQueue();
+                            BigInteger categoryNumber = optionElementInfo.getCategory();
+
+                            String[] parts = freeText.split(" ");
+
+                            String airline = parts[0];
+                            String timeZone = parts[parts.length - 3];
+
+//                        Pattern pattern = Pattern.compile("^(\\S+) .* (\\S+) TIME ZONE$");
+//                        Matcher matcher = pattern.matcher(freeText);
+//
+//                        String airline = matcher.group(1);
+//                        String timeZone = matcher.group(2);
+
+                            airlineSpecificQueueAndTimeLimitDetails.setAirline(airline);
+                            airlineSpecificQueueAndTimeLimitDetails.setDate(date);
+                            airlineSpecificQueueAndTimeLimitDetails.setTime(time);
+                            airlineSpecificQueueAndTimeLimitDetails.setTimeZone(timeZone);
+                            airlineSpecificQueueAndTimeLimitDetails.setMainQueueOffice(mainQueueOffice);
+                            airlineSpecificQueueAndTimeLimitDetails.setQueueNumber(queueNumber);
+                            airlineSpecificQueueAndTimeLimitDetails.setCategory(categoryNumber);
+
+                            airlineSpecificQueueAndTimeLimitDetailsList.add(airlineSpecificQueueAndTimeLimitDetails);
+                        }
+                    }
+
+                    break;
+
+                case "SSR":
+
+
+                    break;
+
+                default:
+
+                    break;
+            }
+        }
+
+        return airlineSpecificQueueAndTimeLimitDetailsList;
+    }
+
 }
