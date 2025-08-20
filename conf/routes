@@ -34,7 +34,6 @@ POST    /getMessagesFromQueue                      @controllers.Application.getM
 GET     /                                          @controllers.Application.home()
 POST 	/ticketCancelDocuments                     @controllers.Application.ticketCancelDocuments()
 POST 	/refundSplitTicket                         @controllers.Application.refundSplitTicket()
-POST    /splitTicket                               @controllers.SplitTicketController.findPossibleRoutes
 POST	/findroute                              @controllers.Application.getRoutes
 POST    /checkSplitTicketFareAvailability                         @controllers.Application.checkSplitTicketFareAvailability
 POST    /generateSplitTicketPNR                                   @controllers.Application.generateSplitTicketWithSinglePNR

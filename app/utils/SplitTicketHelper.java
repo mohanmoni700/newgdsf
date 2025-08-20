@@ -2,18 +2,28 @@ package utils;
 
 import com.compassites.model.*;
 import com.compassites.model.splitticket.PossibleRoutes;
+import ennum.ConfigMasterConstants;
 import models.SplitTicketTransitAirports;
 import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import services.ConfigurationMasterService;
+import services.ConfigurationMasterServiceImpl;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Component
 public class SplitTicketHelper {
 
-    private static final long connectionTime = play.Play.application().configuration().getLong("split.transitpoint.connectionTime");
-
+    //private static final long connectionTime = play.Play.application().configuration().getLong("split.transitpoint.connectionTime");
+    @Autowired
+    private ConfigurationMasterService configurationMasterService;
+    /*SplitTicketHelper(ConfigurationMasterService configurationMasterService) {
+        this.configurationMasterService = configurationMasterService;
+    }*/
     public List<SearchParameters> createSearchParameters(Map<String, PossibleRoutes> possibleRoutesMap, SearchParameters searchParameters, List<SplitTicketTransitAirports> splitTicketTransitAirports) {
         List<SearchParameters> searchParametersList = new ArrayList<>();
         for (Map.Entry<String, PossibleRoutes> possibleRoutesEntry : possibleRoutesMap.entrySet()) {
@@ -97,6 +107,8 @@ public class SplitTicketHelper {
 
     public List<SearchJourney> createTransitJourneys(PossibleRoutes possibleRoutes, SearchParameters searchParameters) {
         List<SearchJourney> journeyList = new ArrayList<>();
+        long connectionTime = Long.valueOf(configurationMasterService.getConfig(ConfigMasterConstants.SPLIT_TICKET_TRANSIT_CONNECTION_TIME.getKey()));
+        System.out.println("connectionTime "+connectionTime);
         for (SearchJourney searchJourneyItem: searchParameters.getJourneyList()) {
             SearchJourney searchJourney = SerializationUtils.clone(searchJourneyItem);
             searchJourney.setOrigin(possibleRoutes.getToLocation());
