@@ -2,6 +2,7 @@ package services;
 
 import com.compassites.model.*;
 import com.compassites.model.splitticket.PossibleRoutes;
+import ennum.ConfigMasterConstants;
 import models.Airport;
 import models.FlightSearchOffice;
 import models.SplitTicketTransitAirports;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import play.libs.Json;
 import utils.SplitTicketHelper;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -39,9 +41,23 @@ public class SplitTicketSearchWrapper {
 
     public boolean isSourceAirportDomestic = false;
     public boolean isDestinationAirportDomestic = false;
+    @Autowired
+    private ConfigurationMasterService configurationMasterService;
+    @Autowired
+    private SplitTicketHelper splitTicketHelper;
 
-    private static final boolean transitEnabled = play.Play.application().configuration().getBoolean("split.transitpoint.enabled");
+    /*@Autowired
+    private SplitTicketHelper splitTicketHelper;*/
 
+    //private static final boolean transitEnabled = play.Play.application().configuration().getBoolean("split.transitpoint.enabled");
+    public boolean transitEnabled = false; // For testing purposes, set to true
+    private Map<String, String> configMap;
+    /*@PostConstruct
+    public void loadSplitConfig() {
+        logger.info("Loading split ticket configurations" + System.currentTimeMillis() + " - " + System.nanoTime() + " - " + System.currentTimeMillis() / 1000);
+        configMap = configurationMasterService.getAllConfigurations(0, 0, "splitTicket");
+        logger.info("Split ticket configurations loaded: " + configMap + " - " + System.currentTimeMillis() + " - " + System.nanoTime() + " - " + System.currentTimeMillis() / 1000);
+    }*/
     public SearchResponse createRoutes(SearchParameters searchParameters) {
         SearchResponse searchResponse = possibleRoutesService.createRoutes(searchParameters);
         return searchResponse;
@@ -107,7 +123,7 @@ public class SplitTicketSearchWrapper {
         logger.debug("responses "+Json.toJson(responses));
         Map<String, PossibleRoutes> possibleRoutesMap = this.findNextSegmentDepartureDate(responses,isSeamenSearch);
         System.out.println("responses "+Json.toJson(possibleRoutesMap));
-        SplitTicketHelper splitTicketHelper = new SplitTicketHelper();
+        //SplitTicketHelper splitTicketHelper = new SplitTicketHelper();
         List<SearchParameters> searchParameters3 = splitTicketHelper.createSplitSearchParameters(possibleRoutesMap,searchParameters, null);
         searchParameters2.addAll(searchParameters3);
         searchParametersList.addAll(searchParameters2);
@@ -145,7 +161,7 @@ public class SplitTicketSearchWrapper {
             List<SearchResponse> responses = this.splitSearch(searchParametersList,concurrentHashMap,true);
             logger.debug("responses "+Json.toJson(responses));
             Map<String, PossibleRoutes> possibleRoutesMap = this.findNextSegmentDepartureDate(responses, true);
-            SplitTicketHelper splitTicketHelper = new SplitTicketHelper();
+            //SplitTicketHelper splitTicketHelper = new SplitTicketHelper();
             List<SearchParameters> searchParameters1 = splitTicketHelper.createSearchParameters(possibleRoutesMap,searchParameters, null);
             searchParametersList.addAll(searchParameters1);
         }
@@ -297,6 +313,10 @@ public class SplitTicketSearchWrapper {
         try {
             SearchResponse searchResponse = null;
             List<SearchParameters> searchParameters1 = null;
+            //configMap = configurationMasterService.getAllConfigurations(0, 0, "splitTicket");
+            //transitEnabled = configMap.get(ConfigMasterConstants.SPLIT_TICKET_TRANSIT_ENABLED) != null && Boolean.parseBoolean(configMap.get(ConfigMasterConstants.SPLIT_TICKET_TRANSIT_ENABLED));
+            transitEnabled = Boolean.valueOf(configurationMasterService.getConfig(ConfigMasterConstants.SPLIT_TICKET_TRANSIT_ENABLED.getKey()));
+            System.out.println("transitEnabled "+transitEnabled);
             if(transitEnabled) {
                 List<SearchParameters> searchParametersTransit = null;
                 List<SplitTicketTransitAirports> splitTicketTransitAirports = isTransitAdded(searchParameters);

@@ -6,7 +6,8 @@ public enum ConfigMasterConstants {
     SPLIT_TICKET_AMADEUS_NO_OF_RESULTS("split.amadeus.noOfSearchResults"),
     SPLIT_TICKET_AMADEUS_DESTINATION_DOMESTIC_RESULTS("split.amadeus.destination.domestic"),
     SPLIT_TICKET_AMADEUS_OFFICE_ID_GLOBAL("split.ticket.officeId"),
-    SPLIT_TICKET_TRANSIT_ENABLED("split.transitpoint.enabled");
+    SPLIT_TICKET_TRANSIT_ENABLED("split.transitpoint.enabled"),
+    SPLIT_TICKET_TRANSIT_CONNECTION_TIME("split.transitpoint.connectionTime");
 
     private final String key;
 
