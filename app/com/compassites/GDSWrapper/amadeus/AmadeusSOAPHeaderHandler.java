@@ -249,7 +249,9 @@ public class AmadeusSOAPHeaderHandler implements SOAPHandler<SOAPMessageContext>
         NamedNodeMap namedNodeMap = element.getAttributes();
         String nodeName = String.valueOf(namedNodeMap.getNamedItem("xmlns"));
         if (nodeName != null && (nodeName.equalsIgnoreCase("xmlns=\"http://www.iata.org/IATA/2007/00/IATA2010.1\"")
-                || nodeName.equalsIgnoreCase("xmlns=\"http://xml.amadeus.com/2010/06/Types_v2\""))) {
+                || nodeName.equalsIgnoreCase("xmlns=\"http://xml.amadeus.com/2010/06/Types_v2\"")
+                || nodeName.equalsIgnoreCase("xmlns=\"http://xml.amadeus.com/2010/06/Retailing_Types_v2\"")
+        )) {
             namedNodeMap.removeNamedItem("xmlns");
         }
 
