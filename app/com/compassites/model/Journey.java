@@ -20,10 +20,15 @@ public class Journey implements Serializable
 {
 
     private Duration travelTime;
+
     private String travelTimeStr;
+
     private Long travelTimeMillis;
+
     private String airlinesStrForFilter;
+
     private Integer noOfStops;
+
     private String segmentKey;
 
     private String fromLocation;

@@ -92,7 +92,10 @@ public class AirSegmentInformation implements Serializable{
     private String contextType;
 
     private String validatingCarrierCode;
+
     private String ruleNumber;
+
+    private String fareType;
 
     public String getRuleNumber() {
         return ruleNumber;
@@ -100,6 +103,14 @@ public class AirSegmentInformation implements Serializable{
 
     public void setRuleNumber(String ruleNumber) {
         this.ruleNumber = ruleNumber;
+    }
+
+    public String getFareType() {
+        return fareType;
+    }
+
+    public void setFareType(String fareType) {
+        this.fareType = fareType;
     }
 
     private String airLinePnr;
