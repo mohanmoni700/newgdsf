@@ -329,16 +329,17 @@ public class SplitTicketSearchWrapper {
                 }
                 System.out.println("searchParameters1 before "+Json.toJson(searchParameters1));
                 searchParametersTransit = createNonSeamenSearchParameters(searchParameters1, splitTicketTransitAirports);
+                System.out.println("searchParametersTransit before "+Json.toJson(searchParametersTransit));
                 if(splitTicketTransitAirports.size()>1) {
                     for (int i=0; i<splitTicketTransitAirports.size()-1; i++) {
                         searchParameters1.add(searchParametersTransit.get(splitTicketTransitAirports.size()+i));
                     }
                 } else {
-                    searchParameters1.add(searchParametersTransit.get(1));
+                    searchParameters1.add(searchParametersTransit.get(searchParametersTransit.size()-1));
                 }
 
                 //searchParameters1.add(searchParametersTransit.get(1));
-                System.out.println("searchParameters1 searchParameters1 after "+Json.toJson(searchParameters1));
+                //System.out.println("searchParameters1 searchParameters1 after "+Json.toJson(searchParameters1));
             } else {
                 searchParameters1 = createSearch(searchParameters);
             }

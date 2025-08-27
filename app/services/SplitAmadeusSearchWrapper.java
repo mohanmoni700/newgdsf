@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
+import utils.AdvancedSplitTicketMerger;
 import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
 import utils.SplitTicketMerger;
@@ -62,6 +63,8 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
     private ConfigurationMasterService configurationMasterService;
     @Autowired
     private SplitTicketMerger splitTicketMerger;
+    @Autowired
+    private AdvancedSplitTicketMerger advancedSplitTicketMerger;
 
     public RedisTemplate getRedisTemplate() {
         return redisTemplate;
@@ -100,11 +103,19 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
             }
             responses.add(searchResponse);
         }
+        for (Map.Entry<String, List<FlightItinerary>> flightItineraryEntry : concurrentHashMap.entrySet()) {
+            logger.debug("flightItineraryEntry size: "+flightItineraryEntry.getKey()+"  -  "+flightItineraryEntry.getValue().size());
+            System.out.println("flightItineraryEntry size: "+flightItineraryEntry.getKey()+"  -  "+flightItineraryEntry.getValue().size());
+            if(flightItineraryEntry.getValue().size() == 0) {
+                concurrentHashMap.remove(flightItineraryEntry.getKey());
+            }
+        }
+        System.out.println("responses "+responses.size());
         return responses;
     }
 
 
-    public void splitTicketSearchOld(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) throws Exception {
+    public void splitTicketSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) throws Exception {
         final String redisKey = originalSearchRequest.redisKey();
         try {
             System.out.println("searchParameters "+Json.toJson(searchParameters));
@@ -119,7 +130,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
             int queueSize = 10;
             redisTemplate.opsForValue().set(redisKey + ":status", "started");
             redisTemplate.expire(redisKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
-            ThreadPoolExecutor newExecutor = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
+            ThreadPoolExecutor newExecutor = new ThreadPoolExecutor(1, 10, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
             //if (!checkOrSetStatus(redisKey)) {
                 //searchResponses = splitSearch(searchParameters,concurrentHashMap);
                 futureSearchResponseList.add(newExecutor.submit(new Callable<List<SearchResponse>>() {
@@ -199,8 +210,8 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
                              // Log the map before sorting
                             //sorting the flight itineraries by first journey stops
                             //flightItineraries = splitTicketMerger.connectingSegments(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic);
-                            flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
-
+                            //flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
+                            flightItineraries = advancedSplitTicketMerger.mergeAllSplitTicketCombinations(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
                             //flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, concurrentHashMap, isSourceAirportDomestic);
                             logger.info("Split Search Result " + Json.toJson(flightItineraries));
                             AirSolution airSolution = new AirSolution();
@@ -257,7 +268,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         }
     }
 
-    public void splitTicketSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) throws Exception {
+    public void splitTicketSearchNew(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) throws Exception {
         final String redisKey = originalSearchRequest.redisKey();
         try {
             System.out.println("searchParameters " + Json.toJson(searchParameters));
