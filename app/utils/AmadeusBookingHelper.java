@@ -1099,8 +1099,93 @@ public class AmadeusBookingHelper {
         passengerTypeMap.put("infantCount", infantCount);
         pricingInformation.setProvider("Amadeus");
         pricingInformation.setPassengerTaxes(getTaxBreakup(pricePNRReplyFareList, passengerTypeMap));
+        if(pricingInformation.getPaxFareDetailsList().size()==0) {
+            pricingInformation.setPaxFareDetailsList(getPaxFareDetails(pricePNRReplyFareList));
+        }
         return pricingInformation;
     }
+
+
+    public static List<PAXFareDetails> getPaxFareDetails(List<FareList> pricePNRReplyFareList) {
+        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
+
+        if (pricePNRReplyFareList == null || pricePNRReplyFareList.isEmpty()) {
+            return paxFareDetailsList;
+        }
+
+        for (FareList fareList : pricePNRReplyFareList) {
+            PAXFareDetails paxFareDetails = new PAXFareDetails();
+            List<FareJourney> fareJourneyList = new ArrayList<>();
+            FareJourney fareJourney = new FareJourney();
+            List<FareSegment> fareSegmentList = new ArrayList<>();
+
+            PassengerTypeCode paxTypeCode = PassengerTypeCode.ADT;
+
+            if (fareList.getSegmentInformation() != null && !fareList.getSegmentInformation().isEmpty()) {
+                FareList.SegmentInformation firstSegment = fareList.getSegmentInformation().get(0);
+                if (firstSegment.getFareQualifier() != null &&
+                        firstSegment.getFareQualifier().getFareBasisDetails() != null &&
+                        firstSegment.getFareQualifier().getFareBasisDetails().getDiscTktDesignator() != null) {
+
+                    String rawType = firstSegment.getFareQualifier().getFareBasisDetails().getDiscTktDesignator().trim().toUpperCase();
+
+                    switch (rawType) {
+                        case "CH":
+                        case "CHD":
+                            paxTypeCode = PassengerTypeCode.CHD;
+                            break;
+                        case "INF":
+                        case "IN":
+                            paxTypeCode = PassengerTypeCode.INF;
+                            break;
+                        case "SEA":
+                            paxTypeCode = PassengerTypeCode.SEA;
+                            break;
+                        case "SC":
+                            paxTypeCode = PassengerTypeCode.SC;
+                            break;
+                        default:
+                            paxTypeCode = PassengerTypeCode.ADT;
+                    }
+                }
+            }
+
+            paxFareDetails.setPassengerTypeCode(paxTypeCode);
+
+            // Loop through all segments for booking class and fare basis
+            if (fareList.getSegmentInformation() != null) {
+                for (FareList.SegmentInformation segmentInfo : fareList.getSegmentInformation()) {
+                    FareSegment fareSegment = new FareSegment();
+
+                    // Booking Class
+                    if (segmentInfo.getSegDetails() != null &&
+                            segmentInfo.getSegDetails().getSegmentDetail() != null) {
+                        fareSegment.setBookingClass(segmentInfo.getSegDetails().getSegmentDetail().getClassOfService());
+                    } else {
+                        fareSegment.setBookingClass("");
+                    }
+
+                    if (segmentInfo.getFareQualifier() != null &&
+                            segmentInfo.getFareQualifier().getFareBasisDetails() != null) {
+                        fareSegment.setFareBasis(segmentInfo.getFareQualifier().getFareBasisDetails().getFareBasisCode());
+                    } else {
+                        fareSegment.setFareBasis("");
+                    }
+
+                    fareSegmentList.add(fareSegment);
+                }
+            }
+
+            fareJourney.setFareSegmentList(fareSegmentList);
+            fareJourneyList.add(fareJourney);
+            paxFareDetails.setFareJourneyList(fareJourneyList);
+
+            paxFareDetailsList.add(paxFareDetails);
+        }
+
+        return paxFareDetailsList;
+    }
+
 
     public static void setTaxBreakup(PNRResponse pnrResponse, TravellerMasterInfo travellerMasterInfo, FarePricePNRWithBookingClassReply pricePNRReply) {
         Map<String, Integer> passengerTypeMap = getPassengerTypeCount(travellerMasterInfo.getTravellersList());
@@ -1756,6 +1841,7 @@ public class AmadeusBookingHelper {
         pnrResponse.setFlightAvailable(true);
 
     }
+
 
     public static List<PAXFareDetails> getPaxFareDetails(PNRReply gdsPNRReply) {
 
