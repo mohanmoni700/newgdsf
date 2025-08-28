@@ -797,7 +797,7 @@ public class Application {
         AncillaryBookingRequest ancillaryBookingRequest = Json.fromJson(json, AncillaryBookingRequest.class);
         logger.debug("Ancillary - Baggage Confirm Request {} ", Json.toJson(ancillaryBookingRequest));
 
-        AncillaryBookingResponse ancillaryBookingResponse = ancillaryService.getAncillaryBaggageConfirm(ancillaryBookingRequest);
+        Map<String, List<AncillaryBookingResponse>> ancillaryBookingResponse = ancillaryService.getAncillaryBaggageConfirm(ancillaryBookingRequest);
         logger.debug("Ancillary - Meals Request {} ", Json.toJson(ancillaryBookingResponse));
 
         return ok(Json.toJson(ancillaryBookingResponse));

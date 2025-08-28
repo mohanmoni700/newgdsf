@@ -6,6 +6,9 @@ import dto.ancillary.AncillaryBookingResponse;
 import models.AncillaryServiceRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 public interface AmadeusAncillaryService {
 
@@ -13,6 +16,6 @@ public interface AmadeusAncillaryService {
 
     AncillaryServicesResponse additionalMealsInformationStandalone ( AncillaryServiceRequest ancillaryServiceRequest);
 
-    AncillaryBookingResponse getpaymentConfirmAncillaryServices (AncillaryBookingRequest ancillaryBookingRequest);
+    Map<String, List<AncillaryBookingResponse>> getpaymentConfirmAncillaryServices (AncillaryBookingRequest ancillaryBookingRequest);
 
 }
