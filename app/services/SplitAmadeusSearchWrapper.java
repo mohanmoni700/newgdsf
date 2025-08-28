@@ -205,7 +205,6 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
                             System.out.println(fromLocation+"  -  "+toLocation);
                             ObjectMapper mapper = new ObjectMapper();
                             String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(concurrentHashMap);
-                            logger.debug("Before "+json);
                             
                              // Log the map before sorting
                             //sorting the flight itineraries by first journey stops

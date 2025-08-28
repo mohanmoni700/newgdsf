@@ -15,37 +15,49 @@ public class AdvancedSplitTicketMerger {
     static Logger logger = LoggerFactory.getLogger("gds");
 
     /**
-     * Advanced split ticket merger that finds ALL combinations of flights
+     * Advanced split ticket merger that finds combinations of flights
      * where the connection time is between 3-8 hours.
      * Prioritizes flights with 0 stops for better quality connections.
+     * Limits results to maximum 80 to prevent system crashes.
      * 
      * @param fromLocation Starting location (e.g., VXE)
      * @param toLocation Final destination (e.g., BOM)
      * @param concurrentHashMap Map containing flight itineraries by location
      * @param isSourceAirportDomestic Whether source airport is domestic
      * @param isDestinationAirportDomestic Whether destination airport is domestic
-     * @return List of all valid merged flight itineraries meeting the time constraint, prioritized by stops
+     * @return List of merged flight itineraries meeting the time constraint, limited to 80 results
      */
     public List<FlightItinerary> mergeAllSplitTicketCombinations(String fromLocation, String toLocation,
             ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap,
             boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
         
         List<FlightItinerary> allMergedResults = new ArrayList<>();
+        final int MAX_RESULTS = 80; // Limit to prevent system crashes
         
         if (fromLocation == null || toLocation == null || concurrentHashMap == null || concurrentHashMap.isEmpty()) {
             logger.warn("Invalid parameters provided for mergeAllSplitTicketCombinations");
+            logger.warn("fromLocation: " + fromLocation + ", toLocation: " + toLocation + 
+                       ", concurrentHashMap: " + (concurrentHashMap == null ? "null" : "empty"));
             return allMergedResults;
         }
+        
+        logger.info("=== STARTING SPLIT TICKET MERGE ANALYSIS ===");
+        logger.info("From: " + fromLocation + " To: " + toLocation);
+        logger.info("Available locations in map: " + concurrentHashMap.keySet());
+        logger.info("Total locations available: " + concurrentHashMap.size());
+        logger.info("Maximum results allowed: " + MAX_RESULTS);
         
         // Get all flights from the starting location
         List<FlightItinerary> firstSegmentFlights = concurrentHashMap.get(fromLocation);
         if (firstSegmentFlights == null || firstSegmentFlights.isEmpty()) {
-            logger.info("No flights found from " + fromLocation);
+            logger.error("NO FLIGHTS FOUND from " + fromLocation + " - This is why no results!");
+            logger.error("Available locations: " + concurrentHashMap.keySet());
+            logger.error("Check if " + fromLocation + " exists in the flight data");
+            logger.error("=== NO RESULTS POSSIBLE - No flights from source location ===");
             return allMergedResults;
         }
         
-        logger.info("Starting advanced split ticket merge from " + fromLocation + " to " + toLocation);
-        logger.info("Found " + firstSegmentFlights.size() + " first segment flights");
+        logger.info("First segment flights found: " + firstSegmentFlights.size() + " from " + fromLocation);
         
         // Sort first segment flights by priority (0 stops first, then 1 stop, etc.)
         firstSegmentFlights.sort((f1, f2) -> {
@@ -58,13 +70,24 @@ public class AdvancedSplitTicketMerger {
         
         // Try to find direct connections first
         List<FlightItinerary> directConnections = findDirectConnections(fromLocation, toLocation, 
-            concurrentHashMap, firstSegmentFlights, isSourceAirportDomestic, isDestinationAirportDomestic);
+            concurrentHashMap, firstSegmentFlights, isSourceAirportDomestic, isDestinationAirportDomestic, MAX_RESULTS);
         allMergedResults.addAll(directConnections);
         
-        // Then find intermediate connections
-        List<FlightItinerary> intermediateConnections = findAllIntermediateConnections(fromLocation, toLocation, 
-            concurrentHashMap, firstSegmentFlights, isSourceAirportDomestic, isDestinationAirportDomestic);
-        allMergedResults.addAll(intermediateConnections);
+        logger.info("Direct connections found: " + directConnections.size());
+        
+        // Check if we've reached the limit
+        if (allMergedResults.size() >= MAX_RESULTS) {
+            logger.info("Reached maximum results limit (" + MAX_RESULTS + ") with direct connections only");
+            logger.info("Skipping intermediate connections to respect limit");
+        } else {
+            // Then find intermediate connections
+            int remainingSlots = MAX_RESULTS - allMergedResults.size();
+            List<FlightItinerary> intermediateConnections = findAllIntermediateConnections(fromLocation, toLocation, 
+                concurrentHashMap, firstSegmentFlights, isSourceAirportDomestic, isDestinationAirportDomestic, remainingSlots);
+            allMergedResults.addAll(intermediateConnections);
+            
+            logger.info("Intermediate connections found: " + intermediateConnections.size());
+        }
         
         // Sort final results by total stops (0 stops first, then 1 stop, etc.)
         allMergedResults.sort((f1, f2) -> {
@@ -73,8 +96,29 @@ public class AdvancedSplitTicketMerger {
             return Integer.compare(totalStops1, totalStops2); // Lower total stops get higher priority
         });
         
-        logger.info("Total merged results found: " + allMergedResults.size());
-        logger.info("Results sorted by priority (0 stops first)");
+        // Final analysis and logging
+        if (allMergedResults.isEmpty()) {
+            logger.error("=== NO RESULTS FOUND - DETAILED ANALYSIS ===");
+            logger.error("Route: " + fromLocation + " -> " + toLocation);
+            logger.error("First segment flights available: " + firstSegmentFlights.size());
+            logger.error("Direct connections attempted: " + directConnections.size());
+            logger.error("Possible reasons for no results:");
+            logger.error("1. No flights from " + fromLocation + " to any intermediate location");
+            logger.error("2. No flights from intermediate locations to " + toLocation);
+            logger.error("3. Connection times not between 3-8 hours");
+            logger.error("4. Route combination not possible");
+            logger.error("5. Data mismatch between segments");
+            logger.error("=== NO RESULTS POSSIBLE FOR THIS ROUTE ===");
+        } else {
+            logger.info("Total merged results found: " + allMergedResults.size() + " (limited to " + MAX_RESULTS + ")");
+            logger.info("Results sorted by priority (0 stops first)");
+            
+            if (allMergedResults.size() >= MAX_RESULTS) {
+                logger.warn("WARNING: Results were limited to " + MAX_RESULTS + " to prevent system crashes");
+                logger.warn("There may be more valid combinations available");
+            }
+        }
+        
         return allMergedResults;
     }
     
@@ -86,16 +130,24 @@ public class AdvancedSplitTicketMerger {
     private List<FlightItinerary> findDirectConnections(String fromLocation, String toLocation,
             ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap,
             List<FlightItinerary> firstSegmentFlights,
-            boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+            boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic, int maxResults) {
         
         List<FlightItinerary> directConnections = new ArrayList<>();
+        
+        logger.info("=== ANALYZING DIRECT CONNECTIONS ===");
+        logger.info("Looking for: " + fromLocation + " -> [Intermediate] -> " + toLocation);
+        logger.info("Maximum results allowed: " + maxResults);
         
         // Get all flights from the destination location (for second segment)
         List<FlightItinerary> secondSegmentFlights = concurrentHashMap.get(toLocation);
         if (secondSegmentFlights == null || secondSegmentFlights.isEmpty()) {
-            logger.info("No second segment flights found for " + toLocation);
+            logger.error("NO SECOND SEGMENT FLIGHTS found for " + toLocation + " - This prevents direct connections!");
+            logger.error("Available locations: " + concurrentHashMap.keySet());
+            logger.error("Check if " + toLocation + " exists in the flight data");
             return directConnections;
         }
+        
+        logger.info("Second segment flights found: " + secondSegmentFlights.size() + " from " + toLocation);
         
         // Sort second segment flights by priority (0 stops first, then 1 stop, etc.)
         secondSegmentFlights.sort((f1, f2) -> {
@@ -104,11 +156,27 @@ public class AdvancedSplitTicketMerger {
             return Integer.compare(stops1, stops2); // Lower stops get higher priority
         });
         
-        logger.info("Found " + secondSegmentFlights.size() + " second segment flights (sorted by priority)");
+        logger.info("Second segment flights sorted by priority (0 stops first)");
         
-        // Check ALL combinations of first and second segment flights
+        int totalCombinationsChecked = 0;
+        int validRouteMatches = 0;
+        int validTimeConnections = 0;
+        int successfulMerges = 0;
+        
+        // Check combinations of first and second segment flights until limit is reached
         for (FlightItinerary firstFlight : firstSegmentFlights) {
+            // Early termination if we've reached the limit
+            if (directConnections.size() >= maxResults) {
+                logger.info("Reached maximum results limit (" + maxResults + ") for direct connections");
+                break;
+            }
+            
             for (FlightItinerary secondFlight : secondSegmentFlights) {
+                // Early termination if we've reached the limit
+                if (directConnections.size() >= maxResults) {
+                    break;
+                }
+                totalCombinationsChecked++;
                 
                 // Skip if it's the same flight
                 if (firstFlight.equals(secondFlight)) {
@@ -123,16 +191,21 @@ public class AdvancedSplitTicketMerger {
                     continue;
                 }
                 
+                validRouteMatches++;
+                logger.info("Route match found: " + fromLocation + " -> " + firstFlightDestination + " -> " + toLocation);
+                
                 // Calculate connection time
                 long connectionTime = calculateConnectionTime(firstFlight, secondFlight);
+                logger.info("Connection time calculated: " + connectionTime + " minutes");
                 
                 // Check if connection time is between 3-8 hours (180-480 minutes)
                 if (connectionTime >= 180 && connectionTime <= 480) {
+                    validTimeConnections++;
                     int firstFlightStops = getTotalStops(firstFlight);
                     int secondFlightStops = getTotalStops(secondFlight);
                     int totalStops = firstFlightStops + secondFlightStops;
                     
-                    logger.info("Found valid direct connection: " + fromLocation + " -> " + 
+                    logger.info("Valid connection time found: " + fromLocation + " -> " + 
                             firstFlightDestination + " -> " + toLocation + " (connection time: " + 
                             connectionTime + " minutes, total stops: " + totalStops + 
                             " [first: " + firstFlightStops + ", second: " + secondFlightStops + "])");
@@ -140,13 +213,46 @@ public class AdvancedSplitTicketMerger {
                     // Create merged itinerary
                     FlightItinerary mergedItinerary = createMergedItinerary(firstFlight, secondFlight);
                     if (mergedItinerary != null) {
+                        successfulMerges++;
                         directConnections.add(mergedItinerary);
+                        logger.info("Successfully merged itinerary #" + successfulMerges + " (Total: " + directConnections.size() + "/" + maxResults + ")");
+                        
+                        // Early termination if we've reached the limit
+                        if (directConnections.size() >= maxResults) {
+                            logger.info("Reached maximum results limit (" + maxResults + ") for direct connections");
+                            break;
+                        }
+                    } else {
+                        logger.warn("Failed to merge itinerary for route: " + fromLocation + " -> " + firstFlightDestination + " -> " + toLocation);
                     }
+                } else {
+                    logger.info("Connection time " + connectionTime + " minutes is outside valid range (3-8 hours)");
                 }
             }
         }
         
-        logger.info("Found " + directConnections.size() + " direct connections");
+        logger.info("=== DIRECT CONNECTIONS ANALYSIS SUMMARY ===");
+        logger.info("Total combinations checked: " + totalCombinationsChecked);
+        logger.info("Valid route matches: " + validRouteMatches);
+        logger.info("Valid connection times (3-8 hours): " + validTimeConnections);
+        logger.info("Successful merges: " + successfulMerges);
+        logger.info("Final direct connections: " + directConnections.size() + " (limited to " + maxResults + ")");
+        
+        if (directConnections.isEmpty()) {
+            logger.error("NO DIRECT CONNECTIONS FOUND - Analysis:");
+            if (validRouteMatches == 0) {
+                logger.error("- No routes connect " + fromLocation + " to " + toLocation + " through intermediate locations");
+            }
+            if (validTimeConnections == 0 && validRouteMatches > 0) {
+                logger.error("- Routes exist but connection times are not between 3-8 hours");
+            }
+            if (successfulMerges == 0 && validTimeConnections > 0) {
+                logger.error("- Valid routes and times exist but merge operation failed");
+            }
+        } else if (directConnections.size() >= maxResults) {
+            logger.warn("WARNING: Direct connections limited to " + maxResults + " to prevent system crashes");
+        }
+        
         return directConnections;
     }
     
@@ -158,25 +264,40 @@ public class AdvancedSplitTicketMerger {
     private List<FlightItinerary> findAllIntermediateConnections(String fromLocation, String toLocation,
             ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap,
             List<FlightItinerary> firstSegmentFlights,
-            boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+            boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic, int maxResults) {
         
         List<FlightItinerary> allIntermediateConnections = new ArrayList<>();
         
+        logger.info("=== ANALYZING INTERMEDIATE CONNECTIONS ===");
+        logger.info("Looking for: " + fromLocation + " -> [City1] -> [City2] -> " + toLocation);
+        logger.info("Maximum results allowed: " + maxResults);
+        
+        int totalIntermediateLocationsChecked = 0;
+        int locationsWithFlights = 0;
+        int totalValidConnections = 0;
+        
         // Check each location as a potential intermediate stop
         for (String intermediateLocation : concurrentHashMap.keySet()) {
+            totalIntermediateLocationsChecked++;
+            
             // Skip if it's the same as fromLocation or toLocation
             if (intermediateLocation.equalsIgnoreCase(fromLocation) || 
                 intermediateLocation.equalsIgnoreCase(toLocation)) {
+                logger.info("Skipping " + intermediateLocation + " (same as source or destination)");
                 continue;
             }
             
-            logger.info("Checking intermediate location: " + intermediateLocation);
+            logger.info("Checking intermediate location " + totalIntermediateLocationsChecked + ": " + intermediateLocation);
             
             // Get flights from intermediate location to final destination
             List<FlightItinerary> intermediateToDestination = concurrentHashMap.get(intermediateLocation);
             if (intermediateToDestination == null || intermediateToDestination.isEmpty()) {
+                logger.info("No flights found from intermediate location " + intermediateLocation + " to " + toLocation);
                 continue;
             }
+            
+            locationsWithFlights++;
+            logger.info("Found " + intermediateToDestination.size() + " flights from " + intermediateLocation + " to " + toLocation);
             
             // Sort intermediate flights by priority (0 stops first, then 1 stop, etc.)
             intermediateToDestination.sort((f1, f2) -> {
@@ -185,8 +306,17 @@ public class AdvancedSplitTicketMerger {
                 return Integer.compare(stops1, stops2); // Lower stops get higher priority
             });
             
-            // Check ALL combinations of first segment flights
+            int intermediateValidConnections = 0;
+            int routeMatchesForThisLocation = 0;
+            
+            // Check combinations of first segment flights until limit is reached
             for (FlightItinerary firstFlight : firstSegmentFlights) {
+                // Early termination if we've reached the limit
+                if (allIntermediateConnections.size() >= maxResults) {
+                    logger.info("Reached maximum results limit (" + maxResults + ") for intermediate connections");
+                    break;
+                }
+                
                 String firstFlightDestination = getLastDestination(firstFlight);
                 
                 // Check if first flight goes to this intermediate location
@@ -194,8 +324,15 @@ public class AdvancedSplitTicketMerger {
                     continue;
                 }
                 
-                // Check ALL combinations of intermediate flights
+                routeMatchesForThisLocation++;
+                logger.info("Route match found: " + fromLocation + " -> " + intermediateLocation);
+                
+                // Check combinations of intermediate flights until limit is reached
                 for (FlightItinerary intermediateFlight : intermediateToDestination) {
+                    // Early termination if we've reached the limit
+                    if (allIntermediateConnections.size() >= maxResults) {
+                        break;
+                    }
                     String intermediateFlightDestination = getLastDestination(intermediateFlight);
                     
                     // Check if intermediate flight goes to final destination
@@ -203,16 +340,21 @@ public class AdvancedSplitTicketMerger {
                         continue;
                     }
                     
+                    logger.info("Route match found: " + intermediateLocation + " -> " + toLocation);
+                    
                     // Calculate connection time
                     long connectionTime = calculateConnectionTime(firstFlight, intermediateFlight);
+                    logger.info("Connection time calculated: " + connectionTime + " minutes");
                     
                     // Check if connection time is between 3-8 hours (180-480 minutes)
                     if (connectionTime >= 180 && connectionTime <= 480) {
+                        intermediateValidConnections++;
+                        totalValidConnections++;
                         int firstFlightStops = getTotalStops(firstFlight);
                         int intermediateFlightStops = getTotalStops(intermediateFlight);
                         int totalStops = firstFlightStops + intermediateFlightStops;
                         
-                        logger.info("Found valid intermediate connection: " + fromLocation + " -> " + 
+                        logger.info("Valid intermediate connection: " + fromLocation + " -> " + 
                                 intermediateLocation + " -> " + toLocation + " (connection time: " + 
                                 connectionTime + " minutes, total stops: " + totalStops + 
                                 " [first: " + firstFlightStops + ", intermediate: " + intermediateFlightStops + "])");
@@ -221,19 +363,51 @@ public class AdvancedSplitTicketMerger {
                         FlightItinerary mergedItinerary = createMergedItinerary(firstFlight, intermediateFlight);
                         if (mergedItinerary != null) {
                             allIntermediateConnections.add(mergedItinerary);
+                            logger.info("Successfully merged intermediate itinerary #" + allIntermediateConnections.size() + " (Total: " + allIntermediateConnections.size() + "/" + maxResults + ")");
+                            
+                            // Early termination if we've reached the limit
+                            if (allIntermediateConnections.size() >= maxResults) {
+                                logger.info("Reached maximum results limit (" + maxResults + ") for intermediate connections");
+                                break;
+                            }
+                        } else {
+                            logger.warn("Failed to merge intermediate itinerary for route: " + fromLocation + " -> " + intermediateLocation + " -> " + toLocation);
                         }
-                        
-                        // Limit to prevent memory issues
-                        if (allIntermediateConnections.size() >= 100) {
-                            logger.info("Reached maximum intermediate connections limit (100)");
-                            return allIntermediateConnections;
-                        }
+                    } else {
+                        logger.info("Connection time " + connectionTime + " minutes is outside valid range (3-8 hours)");
                     }
                 }
             }
+            
+            logger.info("Intermediate location " + intermediateLocation + " summary:");
+            logger.info("- Route matches: " + routeMatchesForThisLocation);
+            logger.info("- Valid connections: " + intermediateValidConnections);
+            
+            // Early termination if we've reached the limit
+            if (allIntermediateConnections.size() >= maxResults) {
+                logger.info("Reached maximum results limit (" + maxResults + ") for intermediate connections");
+                break;
+            }
         }
         
-        logger.info("Found " + allIntermediateConnections.size() + " intermediate connections");
+        logger.info("=== INTERMEDIATE CONNECTIONS ANALYSIS SUMMARY ===");
+        logger.info("Total intermediate locations checked: " + totalIntermediateLocationsChecked);
+        logger.info("Locations with flights to destination: " + locationsWithFlights);
+        logger.info("Total valid intermediate connections: " + totalValidConnections);
+        logger.info("Final intermediate connections: " + allIntermediateConnections.size() + " (limited to " + maxResults + ")");
+        
+        if (allIntermediateConnections.isEmpty()) {
+            logger.error("NO INTERMEDIATE CONNECTIONS FOUND - Analysis:");
+            if (locationsWithFlights == 0) {
+                logger.error("- No intermediate locations have flights to " + toLocation);
+            }
+            if (totalValidConnections == 0 && locationsWithFlights > 0) {
+                logger.error("- Intermediate locations exist but no valid connection times (3-8 hours)");
+            }
+        } else if (allIntermediateConnections.size() >= maxResults) {
+            logger.warn("WARNING: Intermediate connections limited to " + maxResults + " to prevent system crashes");
+        }
+        
         return allIntermediateConnections;
     }
     
