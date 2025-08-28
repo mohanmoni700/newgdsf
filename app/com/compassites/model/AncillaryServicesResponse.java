@@ -13,6 +13,23 @@ public class AncillaryServicesResponse {
     private List<MealDetails> mealDetailsList;
     private Map<String,List<BaggageDetails>> baggageMap;
     private Map<String,List<MealDetails>> mealDetailsMap;
+    private Map<String, List<AvailableSSR>> availableSSRMap;
+    private List<AvailableSSR> availableSSRList;
+
+    public Map<String, List<AvailableSSR>> getAvailableSSRMap() {
+        return availableSSRMap;
+    }
+
+    public void setAvailableSSRMap(Map<String, List<AvailableSSR>> availableSSRMap) {
+        this.availableSSRMap = availableSSRMap;
+    }
+    public List<AvailableSSR> getAvailableSSRList() {
+        return availableSSRList;
+    }
+
+    public void setAvailableSSRList(List<AvailableSSR> availableSSRList) {
+        this.availableSSRList = availableSSRList;
+    }
 
     public Map<String, List<BaggageDetails>> getBaggageMap() {
         return baggageMap;

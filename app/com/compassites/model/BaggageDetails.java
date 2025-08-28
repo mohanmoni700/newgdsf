@@ -3,6 +3,7 @@ package com.compassites.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
+import java.util.Date;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -61,6 +62,37 @@ public class BaggageDetails {
     private Boolean returnDetails;
 
     private String amadeusPaxRef;
+
+    private Date departureDate;
+
+    public Date getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(Date departureDate) {
+        this.departureDate = departureDate;
+    }
+
+    public String getFlightNumber() {
+        return flightNumber;
+    }
+
+    public void setFlightNumber(String flightNumber) {
+        this.flightNumber = flightNumber;
+    }
+
+    public List<AvailableSSRServiceCharges> getIndigoSSRCharges() {
+        return indigoSSRCharges;
+    }
+
+    public void setIndigoSSRCharges(List<AvailableSSRServiceCharges> indigoSSRCharges) {
+        this.indigoSSRCharges = indigoSSRCharges;
+    }
+
+    private String flightNumber;
+    private List<AvailableSSRServiceCharges> indigoSSRCharges;
+
+
 
     private List<String> segmentTattooList;
 

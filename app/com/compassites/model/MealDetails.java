@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MealDetails {
@@ -58,6 +59,35 @@ public class MealDetails {
     private String amadeusPaxRef;
 
     private String segmentTattoo;
+
+    private Date departureDate;
+
+    public Date getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(Date departureDate) {
+        this.departureDate = departureDate;
+    }
+
+    public String getFlightNumber() {
+        return flightNumber;
+    }
+
+    public void setFlightNumber(String flightNumber) {
+        this.flightNumber = flightNumber;
+    }
+
+    public List<AvailableSSRServiceCharges> getIndigoSSRCharges() {
+        return indigoSSRCharges;
+    }
+
+    public void setIndigoSSRCharges(List<AvailableSSRServiceCharges> indigoSSRCharges) {
+        this.indigoSSRCharges = indigoSSRCharges;
+    }
+
+    private String flightNumber;
+    private List<AvailableSSRServiceCharges> indigoSSRCharges;
 
     public BigInteger getAvailability() {
         return availability;

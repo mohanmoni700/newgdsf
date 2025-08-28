@@ -11,6 +11,9 @@ import services.indigo.IndigoFlightService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class AncillaryServiceWrapper implements AncillaryService {
 
@@ -49,11 +52,11 @@ public class AncillaryServiceWrapper implements AncillaryService {
     }
 
     @Override
-    public AncillaryBookingResponse getAncillaryBaggageConfirm(AncillaryBookingRequest ancillaryBookingRequest) {
+    public Map<String, List<AncillaryBookingResponse>> getAncillaryBaggageConfirm(AncillaryBookingRequest ancillaryBookingRequest) {
 
         String provider = ancillaryBookingRequest.getProvider();
 
-        AncillaryBookingResponse ancillaryBookingResponse = null;
+        Map<String, List<AncillaryBookingResponse>> ancillaryBookingResponse = null;
         if (provider.equalsIgnoreCase("Amadeus")) {
             ancillaryBookingResponse = amadeusAncillaryService.getpaymentConfirmAncillaryServices(ancillaryBookingRequest);
         }

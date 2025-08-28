@@ -1,6 +1,7 @@
 package services.ancillary;
 
 import com.amadeus.xml._2010._06.servicebookandprice_v1.AMAServiceBookPriceServiceRS;
+import com.amadeus.xml._2010._06.types_v2.GenericErrorsType;
 import com.amadeus.xml.tpscgr_17_1_1a.*;
 import com.compassites.GDSWrapper.amadeus.AncillaryPaymentConfirmation;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBElement;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -81,12 +83,13 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
     }
 
     @Override
-    public AncillaryBookingResponse getpaymentConfirmAncillaryServices(AncillaryBookingRequest ancillaryBookingRequest) {
+    public Map<String, List<AncillaryBookingResponse>> getpaymentConfirmAncillaryServices(AncillaryBookingRequest ancillaryBookingRequest) {
 
         AncillaryPaymentConfirmation ancillaryPaymentConfirmation;
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         AncillaryBookingResponse confirmPaymentRS = new AncillaryBookingResponse();
         ServiceHandler serviceHandler = null;
+        Map<String, List<AncillaryBookingResponse>> ancillaryResponseMap = null;
 
         try {
             serviceHandler = new ServiceHandler();
@@ -105,7 +108,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             serviceHandler.savePNRForAncillaryServices(amadeusSessionWrapper);
 
             //Mapping amaServiceBookPriceServiceRS here to send to JOCO
-            getPaymentConfirmationForAncillaryServices(amaServiceBookPriceServiceRS, confirmPaymentRS);
+            ancillaryResponseMap = getPaymentConfirmationForAncillaryServices(amaServiceBookPriceServiceRS, confirmPaymentRS);
 
 
         } catch (Exception e) {
@@ -116,7 +119,7 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
             }
         }
 
-        return confirmPaymentRS;
+        return ancillaryResponseMap;
     }
 
     //Baggage for only F type is being retrieved here (Uses Standalone Catalogue) -> Journey Wise Baggage Response
@@ -548,8 +551,105 @@ public class AmadeusAncillaryServiceImpl implements AmadeusAncillaryService {
     }
 
     //Ancillary Services (Meal And Baggage) Booking confirmation is done here
-    private static void getPaymentConfirmationForAncillaryServices(AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS, AncillaryBookingResponse confirmPaymentRS) {
-        /// TODO: finish the response body
+    private static Map<String, List<AncillaryBookingResponse>> getPaymentConfirmationForAncillaryServices(AMAServiceBookPriceServiceRS amaServiceBookPriceServiceRS, AncillaryBookingResponse confirmPaymentRS) {
+
+        try {
+
+            Map<String, List<AncillaryBookingResponse>> ancillaryBookingResponseMap = new LinkedHashMap<>();
+            List<AncillaryBookingResponse> ancillaryBookingResponseList = new ArrayList<>();
+
+            if (amaServiceBookPriceServiceRS != null && amaServiceBookPriceServiceRS.getSuccess() != null) {
+
+                AMAServiceBookPriceServiceRS.Success success = amaServiceBookPriceServiceRS.getSuccess();
+                AMAServiceBookPriceServiceRS.Success.Services services = success.getServices();
+                AMAServiceBookPriceServiceRS.Success.Quotations quotations = success.getQuotations();
+                GenericErrorsType errors = success.getErrors();
+
+
+                List<AMAServiceBookPriceServiceRS.Success.Services.Service> serviceList = services.getService();
+                List<AMAServiceBookPriceServiceRS.Success.Quotations.Quotation> quotationList = quotations.getQuotation();
+
+                //  Handle Errors
+                if (errors != null && errors.getContent() != null && !errors.getContent().isEmpty()) {
+                    List<JAXBElement<?>> content = errors.getContent();
+                    if(content != null && !content.isEmpty()){
+
+                        for(JAXBElement<?> element : content){
+                            if (element != null && element.getValue() instanceof com.amadeus.xml._2010._06.types_v2.ErrorsType) {
+                                com.amadeus.xml._2010._06.types_v2.ErrorsType errorsType =
+                                        (com.amadeus.xml._2010._06.types_v2.ErrorsType) element.getValue();
+
+                                if (errorsType.getError() != null && !errorsType.getError().isEmpty()) {
+                                    for (com.amadeus.xml._2010._06.types_v2.ErrorType err : errorsType.getError()) {
+
+                                        AncillaryBookingResponse errorResponse = new AncillaryBookingResponse();
+                                        errorResponse.setErrorMessage(err.getShortText());
+                                        errorResponse.setErrorCode(err.getCode());
+                                        errorResponse.setChargeable(false);
+
+                                        if (!ancillaryBookingResponseMap.containsKey("ERROR")) {
+                                            ancillaryBookingResponseMap.put("ERROR", new ArrayList<AncillaryBookingResponse>());
+                                        }
+                                        ancillaryBookingResponseMap.get("ERROR").add(errorResponse);
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+
+                if (serviceList != null && !serviceList.isEmpty()) {
+                    for (AMAServiceBookPriceServiceRS.Success.Services.Service service : serviceList) {
+
+                        AncillaryBookingResponse ancillaryBookingDetails = new AncillaryBookingResponse();
+
+                        ancillaryBookingDetails.setCode(service.getCode());
+                        ancillaryBookingDetails.setChargeable("YES".equalsIgnoreCase(service.getChargeable()));
+
+                        List<String> customerRefId = service.getCustomerRefId();
+                        if (customerRefId != null && !customerRefId.isEmpty()) {
+                            ancillaryBookingDetails.setAmadeusPaxRef(customerRefId.get(0));
+                        }
+
+                        List<String> segmentRefId = service.getSegmentRefId();
+                        if (segmentRefId != null && !segmentRefId.isEmpty()) {
+                            ancillaryBookingDetails.setSegmentRefId(segmentRefId.get(0));
+                        }
+
+                        // ✅ Match quotation for this service
+                        for (AMAServiceBookPriceServiceRS.Success.Quotations.Quotation quotation : quotationList) {
+                            if (quotation.getServiceRefIds() != null
+                                    && quotation.getServiceRefIds().contains(service.getID().toString())) {
+                                ancillaryBookingDetails.setAmount(quotation.getAmount());
+                                ancillaryBookingDetails.setCurrency(quotation.getCurrencyCode());
+                            }
+                        }
+
+                        // ✅ Put into map grouped by paxRef
+                        if (ancillaryBookingResponseMap.containsKey(ancillaryBookingDetails.getAmadeusPaxRef())) {
+                            List<AncillaryBookingResponse> existingList =
+                                    ancillaryBookingResponseMap.get(ancillaryBookingDetails.getAmadeusPaxRef());
+                            existingList.add(ancillaryBookingDetails);
+                        } else {
+                            List<AncillaryBookingResponse> newList = new ArrayList<>();
+                            newList.add(ancillaryBookingDetails);
+                            ancillaryBookingResponseMap.put(ancillaryBookingDetails.getAmadeusPaxRef(), newList);
+                        }
+                    }
+                }
+
+
+            }
+
+
+            return ancillaryBookingResponseMap;
+        } catch (Exception e) {
+            logger.debug("Error getting payment confirmation for ancillary services : {} ", e.getMessage(), e);
+            return null;
+        }
+
     }
 
     private static void getAdditionalBaggageInformationStandaloneSegmentWise(ServiceStandaloneCatalogueReply serviceStandaloneCatalogueReply, AncillaryServicesResponse excessBaggageInfoStandalone) {
