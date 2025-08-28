@@ -7,9 +7,11 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
 import play.libs.Json;
 
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Component
 public class SplitTicketMerger {
 
 
@@ -173,6 +176,60 @@ public class SplitTicketMerger {
         return searchResponse.getAirSolution().getSeamenHashMap().get(mapKey).getJourneyList();
     }
 
+    public List<FlightItinerary> mergingSplitTicket(String fromLocation,String toLocation, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+        List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+        List<FlightItinerary> mergedResult = new ArrayList<>();
+        System.out.println("mergingSplitTicket fromLocation "+fromLocation+" size "+flightItineraries.size()+" toLocation "+toLocation+" isSourceAirportDomestic "+isSourceAirportDomestic+" isDestinationAirportDomestic "+isDestinationAirportDomestic+ " concurrentHashMap size "+concurrentHashMap.size()+" keySet "+concurrentHashMap.keySet().toString());
+        for (String key: concurrentHashMap.keySet()) {
+            System.out.println("key "+key+" size "+concurrentHashMap.get(key).size());
+        }
+        if(flightItineraries!=null) {
+            int k=0;
+            for (FlightItinerary flightItinerary : flightItineraries) {
+                List<PricingInformation> spiltPrices = new ArrayList<>();
+                FlightItinerary flightItinerary1 = SerializationUtils.clone(flightItinerary);
+                flightItinerary1.setSplitTicket(true);
+                spiltPrices.add(flightItinerary.getPricingInformation());
+                if(isSourceAirportDomestic) {
+                    List<FlightItinerary> newFlightItineraries = createItinerariesJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
+                    if (newFlightItineraries.size() > 0) {
+                        for (FlightItinerary flightItinerary2 : newFlightItineraries) {
+                            List<PricingInformation> newSplitPrice = new ArrayList<>();
+                            FlightItinerary newFlightItinerary1 = SerializationUtils.clone(flightItinerary1);
+                            newSplitPrice.add(newFlightItinerary1.getPricingInformation());
+                            newSplitPrice.add(flightItinerary2.getPricingInformation());
+                            newFlightItinerary1.getJourneyList().addAll(flightItinerary2.getJourneyList());
+                            createTotalPricing(newSplitPrice, newFlightItinerary1);
+                            newFlightItinerary1.setSplitPricingInformationList(newSplitPrice);
+                            String toLoc = newFlightItinerary1.getJourneyList().get(newFlightItinerary1.getJourneyList().size() - 1).getToLocation();
+
+                            System.out.println("fromLocation " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                            logger.debug("fromLocation " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                            if (toLoc != null && isAllSegmentMerged(toLocation, newFlightItinerary1) && toLoc.equalsIgnoreCase(toLocation)) {
+                                mergedResult.add(newFlightItinerary1);
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("isDestinationAirportDomestic"+ isDestinationAirportDomestic);
+                    toLocation = "VXE";
+                    creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
+                    String toLoc = flightItinerary1.getJourneyList().get(flightItinerary1.getJourneyList().size() - 1).getToLocation();
+                    System.out.println("fromLocation else " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                    logger.debug("fromLocation else " + flightItinerary.getToLocation() + " toLoc" + toLoc);
+                    if (toLoc != null && isAllSegmentMerged(toLocation, flightItinerary1) && toLoc.equalsIgnoreCase(toLocation)) {
+                        createTotalPricing(spiltPrices, flightItinerary1);
+                        flightItinerary1.setSplitPricingInformationList(spiltPrices);
+                        mergedResult.add(flightItinerary1);
+                    }
+                }
+                k++;
+            }
+        }
+        return mergedResult;
+    }
+
+    /*
     public List<FlightItinerary> mergingSplitTicket(String fromLocation,String toLocation, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic) {
         List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
         List<FlightItinerary> mergedResult = new ArrayList<>();
@@ -228,7 +285,7 @@ public class SplitTicketMerger {
                             flightItinerary2.setSplitPricingInformationList(spiltPrices);
                             mergedResult.add(flightItinerary2);
                         }
-                    }*/
+                    }
                 }
                 /*creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, flightItinerary1, k, spiltPrices);
                 String toLoc = flightItinerary1.getJourneyList().get(flightItinerary1.getJourneyList().size() - 1).getToLocation();
@@ -255,12 +312,401 @@ public class SplitTicketMerger {
                         }
                     }
                 }
-                k++;*/
                 k++;
+                k++;
+                        }
+                        }
+                        return mergedResult;
+                        }
+    */
+
+    /**
+     * Merges split tickets with time constraint between 3-8 hours for connection time.
+     * This method ensures that the connection time between first segment arrival and second segment departure
+     * is greater than 3 hours and less than 8 hours.
+     * If no suitable connection is found, it tries to find next day flights in the second segment.
+     *
+     * @param fromLocation Starting location (e.g., VXE)
+     * @param toLocation Final destination (e.g., BOM)
+     * @param concurrentHashMap Map containing flight itineraries by location
+     * @param isSourceAirportDomestic Whether source airport is domestic
+     * @param isDestinationAirportDomestic Whether destination airport is domestic
+     * @return List of merged flight itineraries meeting the time constraint
+     */
+    public List<FlightItinerary> mergingSplitTicketWithTimeConstraint(String fromLocation, String toLocation,
+            ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap,
+            boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+
+        List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+        List<FlightItinerary> mergedResult = new ArrayList<>();
+
+        if (flightItineraries == null || flightItineraries.isEmpty()) {
+            return mergedResult;
+        }
+
+        // Take the first segment's first result as requested
+        FlightItinerary firstSegment = flightItineraries.get(0);
+
+        System.out.println("mergingSplitTicketWithTimeConstraint fromLocation " + fromLocation + " size " +
+            flightItineraries.size() + " toLocation " + toLocation + " isSourceAirportDomestic " +
+            isSourceAirportDomestic + " isDestinationAirportDomestic " + isDestinationAirportDomestic);
+
+        // First try to find intermediate connections (e.g., VXE -> CMN -> BOM)
+        List<FlightItinerary> intermediateConnections = findIntermediateConnections(fromLocation, toLocation,
+            concurrentHashMap, firstSegment, isSourceAirportDomestic, isDestinationAirportDomestic);
+        if (!intermediateConnections.isEmpty()) {
+            mergedResult.addAll(intermediateConnections);
+        }
+
+        // If no intermediate connections found, try direct connections with time constraint
+        if (mergedResult.isEmpty()) {
+            List<FlightItinerary> directConnections = createItinerariesJourneyWithTimeConstraint(fromLocation,
+                toLocation, concurrentHashMap, firstSegment, isSourceAirportDomestic, isDestinationAirportDomestic);
+            if (!directConnections.isEmpty()) {
+                mergedResult.addAll(directConnections);
+            }
+        }
+
+        // If still no results, try next day flights
+        if (mergedResult.isEmpty()) {
+            List<FlightItinerary> nextDayConnections = createItinerariesJourneyWithNextDayConstraint(fromLocation,
+                toLocation, concurrentHashMap, firstSegment, isSourceAirportDomestic, isDestinationAirportDomestic);
+            if (!nextDayConnections.isEmpty()) {
+                mergedResult.addAll(nextDayConnections);
+            }
+        }
+
+        return mergedResult;
+    }
+
+    /**
+     * Finds intermediate connections by looking for routes through other locations.
+     * This will find routes like VXE-CMN-BOM where CMN is an intermediate location.
+     */
+    private List<FlightItinerary> findIntermediateConnections(String fromLocation, String toLocation,
+                                                               ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, FlightItinerary firstSegment,
+                                                               boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+
+        List<FlightItinerary> intermediateConnections = new ArrayList<>();
+
+        if (fromLocation != null && concurrentHashMap != null && concurrentHashMap.size() != 0) {
+
+            // Look through all available locations to find intermediate connections
+            for (String intermediateLocation : concurrentHashMap.keySet()) {
+                // Skip if it's the same as fromLocation or toLocation
+                if (intermediateLocation.equalsIgnoreCase(fromLocation) ||
+                        intermediateLocation.equalsIgnoreCase(toLocation)) {
+                    continue;
+                }
+
+                System.out.println("Checking intermediate location: " + intermediateLocation);
+
+                // First check if there are flights from BOM to this intermediate location
+                List<FlightItinerary> flightsFromBOM = concurrentHashMap.get(fromLocation);
+                if (flightsFromBOM == null || flightsFromBOM.isEmpty()) {
+                    System.out.println("No flights found from " + fromLocation + " to " + intermediateLocation);
+                    continue;
+                }
+
+                // Find flights from BOM that go to this intermediate location
+                List<FlightItinerary> bomToIntermediate = new ArrayList<>();
+                for (FlightItinerary flight : flightsFromBOM) {
+                    if (flight.getToLocation().equalsIgnoreCase(intermediateLocation)) {
+                        bomToIntermediate.add(flight);
+                    }
+                }
+
+                if (bomToIntermediate.isEmpty()) {
+                    System.out.println("No flights found from " + fromLocation + " to " + intermediateLocation);
+                    continue;
+                }
+
+                System.out.println("Found " + bomToIntermediate.size() + " flights from " + fromLocation + " to " + intermediateLocation);
+
+                // Now check if there are flights from this intermediate location to VXE
+                List<FlightItinerary> flightsFromIntermediate = concurrentHashMap.get(intermediateLocation);
+                if (flightsFromIntermediate == null || flightsFromIntermediate.isEmpty()) {
+                    System.out.println("No flights found from " + intermediateLocation + " to " + toLocation);
+                    continue;
+                }
+
+                // Find flights from intermediate location that go to VXE
+                List<FlightItinerary> intermediateToVXE = new ArrayList<>();
+                for (FlightItinerary flight : flightsFromIntermediate) {
+                    if (flight.getToLocation().equalsIgnoreCase(toLocation)) {
+                        intermediateToVXE.add(flight);
+                    }
+                }
+
+                if (intermediateToVXE.isEmpty()) {
+                    System.out.println("No flights found from " + intermediateLocation + " to " + toLocation);
+                    continue;
+                }
+
+                System.out.println("Found " + intermediateToVXE.size() + " flights from " + intermediateLocation + " to " + toLocation);
+
+                // Now create merged itineraries for each valid combination
+                for (FlightItinerary bomFlight : bomToIntermediate) {
+                    for (FlightItinerary intermediateFlight : intermediateToVXE) {
+                        
+                        // Check time constraint between BOM flight arrival and intermediate flight departure
+                        String arrivalTime = bomFlight.getJourneyList().get(
+                                bomFlight.getJourneyList().size() - 1).getAirSegmentList().get(
+                                bomFlight.getJourneyList().get(bomFlight.getJourneyList().size() - 1)
+                                        .getAirSegmentList().size() - 1).getArrivalTime();
+                        String departureTime = intermediateFlight.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureTime();
+
+                        long connectionTimeMinutes = calculateArrivalDeparture(arrivalTime, departureTime);
+
+                        // Check if connection time is between 3-8 hours (180-480 minutes)
+                        if (connectionTimeMinutes >= 180 && connectionTimeMinutes <= 900) {
+                            System.out.println("Found intermediate connection: " + fromLocation + " -> " +
+                                    intermediateLocation + " -> " + toLocation + " (connection time: " +
+                                    connectionTimeMinutes + " minutes)");
+
+                            // Create a merged itinerary for this intermediate connection
+                            FlightItinerary mergedItinerary = SerializationUtils.clone(bomFlight);
+                            mergedItinerary.setSplitTicket(true);
+                            List<PricingInformation> newSplitPrices = new ArrayList<>();
+                            newSplitPrices.add(bomFlight.getPricingInformation());
+                            newSplitPrices.add(intermediateFlight.getPricingInformation());
+
+                            // Add the intermediate flight's journey
+                            mergedItinerary.getJourneyList().addAll(intermediateFlight.getJourneyList());
+
+                            // Create total pricing
+                            createTotalPricing(newSplitPrices, mergedItinerary);
+                            mergedItinerary.setSplitPricingInformationList(newSplitPrices);
+
+                            intermediateConnections.add(mergedItinerary);
+
+                            // Limit the number of intermediate connections to prevent memory issues
+                            if (intermediateConnections.size() >= 30) {
+                                System.out.println("Reached maximum intermediate connections limit (30), stopping search");
+                                return intermediateConnections;
+                            }
+                        } else {
+                            System.out.println("Connection time " + connectionTimeMinutes + " minutes not in valid range (180-900) for " + 
+                                    fromLocation + " -> " + intermediateLocation + " -> " + toLocation);
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("Total intermediate connections found: " + intermediateConnections.size());
+        return intermediateConnections;
+    }
+
+    /**
+     * Creates itineraries journey with time constraint between 3-8 hours.
+     * Only adds itineraries where the connection time is between 3-8 hours.
+     */
+    private List<FlightItinerary> createItinerariesJourneyWithTimeConstraint(String fromLocation, String toLocation,
+                                                                             ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, FlightItinerary firstSegment,
+                                                                             boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+
+        List<FlightItinerary> newFlightItineraries = new ArrayList<>();
+
+        if (fromLocation != null && concurrentHashMap != null && concurrentHashMap.size() != 0 &&
+                concurrentHashMap.containsKey(fromLocation)) {
+
+            List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+
+            for (FlightItinerary flightItinerary1 : flightItineraries) {
+                if (!firstSegment.getToLocation().equalsIgnoreCase(toLocation)) {
+                    String arrivalTime = firstSegment.getJourneyList().get(
+                            firstSegment.getJourneyList().size() - 1).getAirSegmentList().get(
+                            firstSegment.getJourneyList().get(firstSegment.getJourneyList().size() - 1)
+                                    .getAirSegmentList().size() - 1).getArrivalTime();
+                    String departureTime = flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureTime();
+
+                    long connectionTimeMinutes = calculateArrivalDeparture(arrivalTime, departureTime);
+
+                    // Check if connection time is between 3-8 hours (180-480 minutes)
+                    if (connectionTimeMinutes >= 180 && connectionTimeMinutes <= 900) {
+                        if (firstSegment.getJourneyList().get(0).getAirSegmentList().size() > 1) {
+                            newFlightItineraries.add(flightItinerary1);
+                            break;
+                        }
+                        newFlightItineraries.add(flightItinerary1);
+                    }
+                }
+            }
+        }
+        return newFlightItineraries;
+    }
+
+    /**
+     * Creates itineraries journey with next day constraint.
+     * Looks for flights on the next day when no same-day connection is available.
+     */
+    private List<FlightItinerary> createItinerariesJourneyWithNextDayConstraint(String fromLocation, String toLocation,
+                                                                                ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, FlightItinerary firstSegment,
+                                                                                boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
+
+        List<FlightItinerary> newFlightItineraries = new ArrayList<>();
+
+        if (fromLocation != null && concurrentHashMap != null && concurrentHashMap.size() != 0 &&
+                concurrentHashMap.containsKey(fromLocation)) {
+
+            List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+
+            for (FlightItinerary flightItinerary1 : flightItineraries) {
+                if (!firstSegment.getToLocation().equalsIgnoreCase(toLocation)) {
+                    String arrivalTime = firstSegment.getJourneyList().get(
+                            firstSegment.getJourneyList().size() - 1).getAirSegmentList().get(
+                            firstSegment.getJourneyList().get(firstSegment.getJourneyList().size() - 1)
+                                    .getAirSegmentList().size() - 1).getArrivalTime();
+                    String departureTime = flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureTime();
+
+                    long connectionTimeMinutes = calculateArrivalDeparture(arrivalTime, departureTime);
+
+                    // For next day flights, we want connection time > 24 hours (1440 minutes)
+                    // but still reasonable (let's say less than 48 hours - 2880 minutes)
+                    if (connectionTimeMinutes >= 600 && connectionTimeMinutes <= 2880) {
+                        if (firstSegment.getJourneyList().get(0).getAirSegmentList().size() > 1) {
+                            newFlightItineraries.add(flightItinerary1);
+                            break;
+                        }
+                        newFlightItineraries.add(flightItinerary1);
+                    }
+                }
+            }
+        }
+        return newFlightItineraries;
+    }
+
+    public List<FlightItinerary> connectingSegments(String fromLocation, String toLocation, ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic) {
+        List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+        List<FlightItinerary> mergedResult = new ArrayList<>();
+        if (flightItineraries != null) {
+            for (FlightItinerary flightItinerary : flightItineraries) {
+                List<PricingInformation> splitPrices = new ArrayList<>();
+                FlightItinerary clonedItinerary = SerializationUtils.clone(flightItinerary);
+                clonedItinerary.setSplitTicket(true);
+                splitPrices.add(flightItinerary.getPricingInformation());
+
+                if (flightItinerary.getJourneyList().get(0).getNoOfStops() == 1 || flightItinerary.getJourneyList().get(0).getNoOfStops() == 0) {
+                    for (FlightItinerary otherItinerary : flightItineraries) {
+                        if (!flightItinerary.equals(otherItinerary)) {
+                            FlightItinerary mergedItinerary = SerializationUtils.clone(clonedItinerary);
+                            mergedItinerary.getJourneyList().addAll(otherItinerary.getJourneyList());
+                            splitPrices.add(otherItinerary.getPricingInformation());
+                            createTotalPricing(splitPrices, mergedItinerary);
+                            mergedItinerary.setSplitPricingInformationList(splitPrices);
+                            mergedResult.add(mergedItinerary);
+
+                            // Limit the size of mergedResult to prevent memory overflow
+                            if (mergedResult.size() >= 80) {
+                                return mergedResult;
+                            }
+                        }
+                    }
+                } else {
+                    if (isSourceAirportDomestic) {
+                        List<FlightItinerary> newItineraries = createItinerariesJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        for (FlightItinerary newItinerary : newItineraries) {
+                            List<PricingInformation> newSplitPrices = new ArrayList<>(splitPrices);
+                            newSplitPrices.add(newItinerary.getPricingInformation());
+                            clonedItinerary.getJourneyList().addAll(newItinerary.getJourneyList());
+                            createTotalPricing(newSplitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(newSplitPrices);
+                            if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                                mergedResult.add(clonedItinerary);
+
+                                // Limit the size of mergedResult to prevent memory overflow
+                                if (mergedResult.size() >= 80) {
+                                    return mergedResult;
+                                }
+                            }
+                        }
+                    } else {
+                        creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                            createTotalPricing(splitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(splitPrices);
+                            mergedResult.add(clonedItinerary);
+
+                            // Limit the size of mergedResult to prevent memory overflow
+                            if (mergedResult.size() >= 80) {
+                                return mergedResult;
+                            }
+                        }
+                    }
+                }
             }
         }
         return mergedResult;
     }
+
+    /*
+    public List<FlightItinerary> connectingSegments(String fromLocation, String toLocation, ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, boolean isSourceAirportDomestic) {
+        List<FlightItinerary> flightItineraries = concurrentHashMap.get(fromLocation);
+        List<FlightItinerary> mergedResult = new ArrayList<>();
+        if (flightItineraries != null) {
+            for (FlightItinerary flightItinerary : flightItineraries) {
+                List<PricingInformation> splitPrices = new ArrayList<>();
+                FlightItinerary clonedItinerary = SerializationUtils.clone(flightItinerary);
+                clonedItinerary.setSplitTicket(true);
+                splitPrices.add(flightItinerary.getPricingInformation());
+
+                if (flightItinerary.getJourneyList().size() == 1) { // Single leg check
+                    List<FlightItinerary> secondLegItineraries = concurrentHashMap.get(flightItinerary.getToLocation());
+                    if (secondLegItineraries != null) {
+                        for (FlightItinerary secondLeg : secondLegItineraries) {
+                            if (!flightItinerary.equals(secondLeg)) {
+                                FlightItinerary mergedItinerary = SerializationUtils.clone(clonedItinerary);
+                                mergedItinerary.getJourneyList().addAll(secondLeg.getJourneyList());
+                                splitPrices.add(secondLeg.getPricingInformation());
+                                createTotalPricing(splitPrices, mergedItinerary);
+                                mergedItinerary.setSplitPricingInformationList(splitPrices);
+                                mergedResult.add(mergedItinerary);
+                            }
+                        }
+                    }
+                } else {
+                    if (isSourceAirportDomestic) {
+                        List<FlightItinerary> newItineraries = createItinerariesJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        for (FlightItinerary newItinerary : newItineraries) {
+                            List<PricingInformation> newSplitPrices = new ArrayList<>(splitPrices);
+                            newSplitPrices.add(newItinerary.getPricingInformation());
+                            clonedItinerary.getJourneyList().addAll(newItinerary.getJourneyList());
+                            createTotalPricing(newSplitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(newSplitPrices);
+                            if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                                mergedResult.add(clonedItinerary);
+                            }
+                        }
+                    } else {
+                        creatingNewJourney(flightItinerary.getToLocation(), toLocation, concurrentHashMap, clonedItinerary, 0, splitPrices);
+                        if (isAllSegmentMerged(toLocation, clonedItinerary)) {
+                            createTotalPricing(splitPrices, clonedItinerary);
+                            clonedItinerary.setSplitPricingInformationList(splitPrices);
+                            mergedResult.add(clonedItinerary);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove null elements and handle null values in the comparator
+        mergedResult.removeIf(Objects::isNull);
+        mergedResult.sort(Comparator.comparing(itinerary -> {
+            PricingInformation pricingInfo = itinerary.getPricingInformation();
+            return pricingInfo != null && pricingInfo.getTotalPriceValue() != null ? pricingInfo.getTotalPriceValue() : BigDecimal.ZERO;
+        }));
+
+        // Limit the result to 150 entries
+        if (mergedResult.size() > 150) {
+            mergedResult = mergedResult.subList(0, 150);
+        }
+
+        return mergedResult;
+    }
+
+    */
+
 
     private List<FlightItinerary> createItinerariesJourney(String fromLocation, String toLocation, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, FlightItinerary flightItinerary, int count, List<PricingInformation> spiltPrices) {
         List<FlightItinerary> newFlightItineraries = new ArrayList<>();
