@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Date;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MealDetails {
@@ -60,13 +62,13 @@ public class MealDetails {
 
     private String segmentTattoo;
 
-    private Date departureDate;
+    private XMLGregorianCalendar departureDate;
 
-    public Date getDepartureDate() {
+    public XMLGregorianCalendar getDepartureDate() {
         return departureDate;
     }
 
-    public void setDepartureDate(Date departureDate) {
+    public void setDepartureDate(XMLGregorianCalendar departureDate) {
         this.departureDate = departureDate;
     }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 import java.util.Date;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -63,13 +64,13 @@ public class BaggageDetails {
 
     private String amadeusPaxRef;
 
-    private Date departureDate;
+    private XMLGregorianCalendar departureDate;
 
-    public Date getDepartureDate() {
+    public XMLGregorianCalendar getDepartureDate() {
         return departureDate;
     }
 
-    public void setDepartureDate(Date departureDate) {
+    public void setDepartureDate(XMLGregorianCalendar departureDate) {
         this.departureDate = departureDate;
     }
 
