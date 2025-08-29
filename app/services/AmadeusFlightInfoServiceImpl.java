@@ -739,6 +739,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
             serviceHandler.logOut(amadeusSessionWrapper);
             return null;
         }
+  
 //		finally {
 //			serviceHandler.logOut(amadeusSessionWrapper);
 //		}
