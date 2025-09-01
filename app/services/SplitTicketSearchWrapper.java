@@ -10,6 +10,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class SplitTicketSearchWrapper {
 
     @Autowired
+    @Qualifier("splitAmadeusSearchWrapper")
     private SplitAmadeusSearch splitAmadeusSearch;
 
     @Autowired
