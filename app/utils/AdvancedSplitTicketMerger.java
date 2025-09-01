@@ -98,17 +98,17 @@ public class AdvancedSplitTicketMerger {
         
         // Final analysis and logging
         if (allMergedResults.isEmpty()) {
-            logger.error("=== NO RESULTS FOUND - DETAILED ANALYSIS ===");
-            logger.error("Route: " + fromLocation + " -> " + toLocation);
-            logger.error("First segment flights available: " + firstSegmentFlights.size());
-            logger.error("Direct connections attempted: " + directConnections.size());
-            logger.error("Possible reasons for no results:");
-            logger.error("1. No flights from " + fromLocation + " to any intermediate location");
-            logger.error("2. No flights from intermediate locations to " + toLocation);
-            logger.error("3. Connection times not between 3-8 hours");
-            logger.error("4. Route combination not possible");
-            logger.error("5. Data mismatch between segments");
-            logger.error("=== NO RESULTS POSSIBLE FOR THIS ROUTE ===");
+            logger.warn("=== NO RESULTS FOUND - DETAILED ANALYSIS ===");
+            logger.warn("Route: " + fromLocation + " -> " + toLocation);
+            logger.warn("First segment flights available: " + firstSegmentFlights.size());
+            logger.warn("Direct connections attempted: " + directConnections.size());
+            logger.warn("Possible reasons for no results:");
+            logger.warn("1. No flights from " + fromLocation + " to any intermediate location");
+            logger.warn("2. No flights from intermediate locations to " + toLocation);
+            logger.warn("3. Connection times not between 3-8 hours");
+            logger.warn("4. Route combination not possible");
+            logger.warn("5. Data mismatch between segments");
+            logger.warn("=== NO RESULTS POSSIBLE FOR THIS ROUTE ===");
         } else {
             logger.info("Total merged results found: " + allMergedResults.size() + " (limited to " + MAX_RESULTS + ")");
             logger.info("Results sorted by priority (0 stops first)");

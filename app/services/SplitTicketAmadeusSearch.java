@@ -2,11 +2,9 @@ package services;
 
 import com.amadeus.xml.fmptbr_14_2_1a.*;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
-import com.compassites.constants.CacheConstants;
 import com.compassites.exceptions.IncompleteDetailsMessage;
 import com.compassites.exceptions.RetryException;
 import com.compassites.model.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.xml.ws.client.ClientTransportException;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
@@ -22,14 +20,11 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import play.libs.Json;
-import utils.AdvancedSplitTicketMerger;
 import utils.AmadeusSessionManager;
 import utils.ErrorMessageHelper;
-import utils.SplitTicketMerger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -38,15 +33,19 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
+public class SplitTicketAmadeusSearch implements SplitTicketSearch{
 
-    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
-
+    @Autowired
+    private RedisTemplate redisTemplate;
+    @Autowired
+    private ConfigurationMasterService configurationMasterService;
     static org.slf4j.Logger amadeusLogger = LoggerFactory.getLogger("amadeus");
 
     @Autowired
@@ -58,15 +57,6 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
     @Autowired
     private AmadeusSourceOfficeService sourceOfficeService;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
-    @Autowired
-    private ConfigurationMasterService configurationMasterService;
-    @Autowired
-    private SplitTicketMerger splitTicketMerger;
-    @Autowired
-    private AdvancedSplitTicketMerger advancedSplitTicketMerger;
-
     public RedisTemplate getRedisTemplate() {
         return redisTemplate;
     }
@@ -75,16 +65,11 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         this.redisTemplate = redisTemplate;
     }
 
-    @Autowired
-    @Qualifier("splitTicketAmadeusSearch")
-    private SplitTicketSearch splitTicketSearch;
-
     //private String searchOfficeID = play.Play.application().configuration().getString("split.ticket.officeId");
     private static String searchOfficeID = "";
-    /*SplitAmadeusSearchWrapper() {
-        searchOfficeID = configurationMasterService.getConfig(ConfigMasterConstants.SPLIT_TICKET_AMADEUS_OFFICE_ID_GLOBAL.getKey());
-    }*/
-    public List<SearchResponse> splitSearch(List<SearchParameters> searchParameters, ConcurrentHashMap<String,List<FlightItinerary>> concurrentHashMap, boolean isDomestic) throws Exception {
+    static org.slf4j.Logger logger = LoggerFactory.getLogger("gds");
+    @Override
+    public List<SearchResponse> splitSearch(List<SearchParameters> searchParameters, ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap, boolean isDomestic) throws Exception {
         List<SearchResponse> responses = new ArrayList<>();
         searchOfficeID = configurationMasterService.getConfig(ConfigMasterConstants.SPLIT_TICKET_AMADEUS_OFFICE_ID_GLOBAL.getKey());
         for (SearchParameters searchParameters1: searchParameters)  {
@@ -118,280 +103,6 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         System.out.println("responses "+responses.size());
         return responses;
     }
-
-
-    public void splitTicketSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) throws Exception {
-        final String redisKey = originalSearchRequest.redisKey();
-        try {
-            System.out.println("searchParameters "+Json.toJson(searchParameters));
-            ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap = new ConcurrentHashMap<>();
-            String fromLocation = originalSearchRequest.getJourneyList().get(0).getOrigin();
-            String toLocation = searchParameters.get(searchParameters.size()-1).getJourneyList().get(0).getDestination();
-            List<SearchResponse> searchResponses = null;
-            List<Future<List<SearchResponse>>> futureSearchResponseList = new ArrayList<>();
-            List<ErrorMessage> errorMessageList = new ArrayList<>();
-            List<FlightItinerary> flightItineraries = null;
-            logger.debug("\n\n***********SEARCH STARTED key: [" + redisKey + "]***********");
-            int queueSize = 10;
-            redisTemplate.opsForValue().set(redisKey + ":status", "started");
-            redisTemplate.expire(redisKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
-            ThreadPoolExecutor newExecutor = new ThreadPoolExecutor(2, 10, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
-                futureSearchResponseList.add(newExecutor.submit(new Callable<List<SearchResponse>>() {
-                    @Override
-                    public List<SearchResponse> call() throws Exception {
-                        return splitTicketSearch.splitSearch(searchParameters,concurrentHashMap,false);
-                    }
-                }));
-
-            /********** Multi threaded search for single office id **********/
-            logger.debug("["+redisKey+"] : " + futureSearchResponseList.size()+ "Threads initiated");
-            int counter = 0;
-            boolean loop = true;
-            int searchResponseListSize = futureSearchResponseList.size();
-            int exceptionCounter = 0;
-
-            while (loop) {
-                ListIterator<Future<List<SearchResponse>>> listIterator = futureSearchResponseList.listIterator();
-                while (listIterator.hasNext()) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    Future<List<SearchResponse>> future = listIterator.next();
-                    List<SearchResponse> searchResponses1 = null;
-                    if(future.isDone()) {
-                        listIterator.remove();
-                        counter++;
-                        try {
-                            searchResponses1 = future.get();
-                            logger.debug("result size "+searchResponses1.size());
-                        } catch (RetryException retryOnFailure) {
-                            exceptionCounter++;
-                            logger.error("retrialError in FlightSearchWrapper : ", retryOnFailure);
-                            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("retrialError",ErrorMessage.ErrorType.ERROR,"Application");
-                            errorMessageList.add(errorMessage);
-                        } catch (Exception e){
-                            logger.error("Exception in FlightSearchWrapper : ", e);
-                            ErrorMessage errorMessage = ErrorMessageHelper.createErrorMessage("partialResults",ErrorMessage.ErrorType.WARNING,"Application");
-                            errorMessageList.add(errorMessage);
-                            e.printStackTrace();
-                        }
-
-                        if(searchResponses1 != null && searchResponses1.size() !=0) {
-                            /******* new merge logic for split ticket *******/
-                            SplitTicketMerger splitTicketMerger = new SplitTicketMerger();
-                            SearchResponse searchResponseCache = new SearchResponse();
-                            FlightSearchOffice searchOffice = new FlightSearchOffice();
-                            searchOffice.setOfficeId(searchOfficeID);
-                            searchOffice.setName("");
-                            searchResponseCache.setFlightSearchOffice(searchOffice);
-                            searchResponseCache.setProvider("Amadeus");
-                            for (Map.Entry<String, List<FlightItinerary>> flightItineraryEntry : concurrentHashMap.entrySet()) {
-                                logger.debug("flightItineraryEntry size: "+flightItineraryEntry.getKey()+"  -  "+flightItineraryEntry.getValue().size());
-                                System.out.println("flightItineraryEntry size: "+flightItineraryEntry.getKey()+"  -  "+flightItineraryEntry.getValue().size());
-                                for (FlightItinerary flightItinerary : flightItineraryEntry.getValue()) {
-                                    for (Journey journey: flightItinerary.getJourneyList()) {
-                                        logger.debug(journey.getAirSegmentList().get(0).getFromLocation()+"  - "+ journey.getAirSegmentList().get(0).getAirline().getIataCode()+" - "+journey.getAirSegmentList().get(journey.getAirSegmentList().size()-1).getToLocation()+" - "+journey.getAirSegmentList().get(journey.getAirSegmentList().size()-1).getAirline().getIataCode());
-                                        System.out.print(journey.getAirSegmentList().get(0).getFromLocation()+"  - "+ journey.getAirSegmentList().get(0).getAirline().getIataCode());
-                                        System.out.print(" - ");
-                                        System.out.println(journey.getAirSegmentList().get(journey.getAirSegmentList().size()-1).getToLocation()+" - "+journey.getAirSegmentList().get(journey.getAirSegmentList().size()-1).getAirline().getIataCode());
-                                    }
-                                }
-                                if(flightItineraryEntry.getValue().size() == 0) {
-                                    concurrentHashMap.remove(flightItineraryEntry.getKey());
-                                }
-                            }
-                            System.out.println(fromLocation+"  -  "+toLocation);
-                            ObjectMapper mapper = new ObjectMapper();
-                            String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(concurrentHashMap);
-                            
-                             // Log the map before sorting
-                            //sorting the flight itineraries by first journey stops
-                            //flightItineraries = splitTicketMerger.connectingSegments(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic);
-                            //flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
-                            flightItineraries = advancedSplitTicketMerger.mergeAllSplitTicketCombinations(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
-                            //flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, concurrentHashMap, isSourceAirportDomestic);
-                            logger.info("Split Search Result " + Json.toJson(flightItineraries));
-                            AirSolution airSolution = new AirSolution();
-                            airSolution.setReIssueSearch(false);
-                            airSolution.setFlightItineraryList(flightItineraries);
-                            searchResponseCache.setAirSolution(airSolution);
-                            searchResponseCache.setReIssueSearch(false);
-                            for (SearchResponse searchResponse : searchResponses1) {
-                                searchResponseCache.getErrorMessageList().addAll(searchResponse.getErrorMessageList());
-                            }
-                            redisTemplate.opsForValue().set(redisKey, Json.stringify(Json.toJson(searchResponseCache)));
-                            redisTemplate.expire(redisKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
-                            redisTemplate.opsForValue().set(redisKey + ":status", "partial" + 1);
-                            redisTemplate.expire(redisKey + ":status", CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
-                        } else
-                        {
-                            logger.debug("["+redisKey+"]Received Response "+ counter +" Null" );
-                        }
-                    }
-                }
-                newExecutor.shutdown();
-                if(counter == searchResponseListSize){
-                    Integer timeout = CacheConstants.CACHE_TIMEOUT_IN_SECS;
-                    if(errorMessageList.size() > 0){
-                        timeout = CacheConstants.CACHE_TIMEOUT_FOR_ERROR_IN_SECS;
-                    }
-
-                    loop = false;
-                    if(flightItineraries.size() == 0 && errorMessageList.size() > 0)  {
-                        SearchResponse searchResponse = new SearchResponse();
-                        searchResponse.setErrorMessageList(errorMessageList);
-                        redisTemplate.opsForValue().set(originalSearchRequest.redisKey(), Json.stringify(Json.toJson(searchResponse)));
-                        redisTemplate.expire(originalSearchRequest.redisKey(),timeout,TimeUnit.SECONDS);
-                    }
-                    redisTemplate.opsForValue().set(originalSearchRequest.redisKey()+":status", "complete");
-                    redisTemplate.expire(originalSearchRequest.redisKey()+":status",timeout,TimeUnit.SECONDS);
-                    logger.debug("***********SEARCH END key: ["+ redisKey +"]***********");
-                }
-            }
-            logger.debug("=================================>\n"+
-                    "=================================>\n"+
-                    String.format("[monitor] [%d/%d] Active: %d, Completed: %d, Task: %d, isShutdown: %s, isTerminated: %s",
-                            newExecutor.getPoolSize(),
-                            newExecutor.getCorePoolSize(),
-                            newExecutor.getActiveCount(),
-                            newExecutor.getCompletedTaskCount(),
-                            newExecutor.getTaskCount(),
-                            newExecutor.isShutdown(),
-                            newExecutor.isTerminated()));
-
-        }  catch (Exception e) {
-            checkResponseAndSetStatus(null, redisKey);
-            e.printStackTrace();
-        }
-    }
-
-    public void splitTicketSearchNew(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest, boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) throws Exception {
-        final String redisKey = originalSearchRequest.redisKey();
-        try {
-            System.out.println("searchParameters " + Json.toJson(searchParameters));
-            ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap = new ConcurrentHashMap<>();
-            String fromLocation = originalSearchRequest.getJourneyList().get(0).getOrigin();
-            String toLocation = searchParameters.get(searchParameters.size() - 1).getJourneyList().get(0).getDestination();
-            List<ErrorMessage> errorMessageList = new ArrayList<>();
-            List<FlightItinerary> flightItineraries = null;
-
-            logger.debug("\n\n***********SEARCH STARTED key: [" + redisKey + "]***********");
-
-            // Use a fixed thread pool for better scalability
-            int threadPoolSize = Math.min(10, searchParameters.size());
-            ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
-
-            List<Future<List<SearchResponse>>> futureSearchResponseList = new ArrayList<>();
-            for (SearchParameters param : searchParameters) {
-                futureSearchResponseList.add(executorService.submit(() -> splitSearch(Collections.singletonList(param), concurrentHashMap, false)));
-            }
-
-            // Process futures
-            List<SearchResponse> searchResponses = new ArrayList<>();
-            for (Future<List<SearchResponse>> future : futureSearchResponseList) {
-                try {
-                    searchResponses.addAll(future.get(60, TimeUnit.SECONDS)); // Timeout to prevent indefinite blocking
-                } catch (TimeoutException e) {
-                    logger.error("Task timed out", e);
-                    errorMessageList.add(ErrorMessageHelper.createErrorMessage("timeout", ErrorMessage.ErrorType.ERROR, "Application"));
-                } catch (Exception e) {
-                    logger.error("Exception in task execution", e);
-                    errorMessageList.add(ErrorMessageHelper.createErrorMessage("partialResults", ErrorMessage.ErrorType.WARNING, "Application"));
-                }
-            }
-
-            executorService.shutdown();
-            executorService.awaitTermination(1, TimeUnit.MINUTES);
-
-            // Merge results
-            if (!searchResponses.isEmpty()) {
-                flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
-
-                AirSolution airSolution = new AirSolution();
-                airSolution.setReIssueSearch(false);
-                airSolution.setFlightItineraryList(flightItineraries);
-
-                SearchResponse searchResponseCache = new SearchResponse();
-                searchResponseCache.setAirSolution(airSolution);
-                searchResponseCache.setReIssueSearch(false);
-                redisTemplate.opsForValue().set(redisKey, Json.stringify(Json.toJson(searchResponseCache)));
-                redisTemplate.expire(redisKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
-            }
-
-            // Handle errors
-            if (flightItineraries == null || flightItineraries.isEmpty()) {
-                SearchResponse errorResponse = new SearchResponse();
-                errorResponse.setErrorMessageList(errorMessageList);
-                redisTemplate.opsForValue().set(redisKey, Json.stringify(Json.toJson(errorResponse)));
-                redisTemplate.expire(redisKey, CacheConstants.CACHE_TIMEOUT_FOR_ERROR_IN_SECS, TimeUnit.SECONDS);
-            }
-
-            redisTemplate.opsForValue().set(redisKey + ":status", "complete");
-            redisTemplate.expire(redisKey + ":status", CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
-            logger.debug("***********SEARCH END key: [" + redisKey + "]***********");
-        } catch (Exception e) {
-            logger.error("Exception in splitTicketSearch", e);
-            throw e;
-        }
-    }
-
-    public static ConcurrentHashMap<String, List<FlightItinerary>> sortMapByFirstJourneyStops(
-            ConcurrentHashMap<String, List<FlightItinerary>> flightMap) {
-        logger.debug("Sorting flightMap by first journey stops...");
-        ConcurrentHashMap<String, List<FlightItinerary>> sortedMap = new ConcurrentHashMap<>();
-
-        for (Map.Entry<String, List<FlightItinerary>> entry : flightMap.entrySet()) {
-            String key = entry.getKey();
-            List<FlightItinerary> itineraries = entry.getValue();
-
-            List<FlightItinerary> sortedList = itineraries.stream()
-                    .sorted(Comparator.comparingInt(itinerary -> {
-                        List<Journey> journeys = itinerary.getJourneyList();
-                        return (journeys != null && !journeys.isEmpty()) ? journeys.get(0).getNoOfStops() : Integer.MAX_VALUE;
-                    }))
-                    .collect(Collectors.toList());
-
-            sortedMap.put(key, sortedList);
-        }
-
-        return sortedMap;
-    }
-
-
-    private boolean validResponse(SearchResponse response){
-        if ((response != null) && (response.getAirSolution() != null)){
-            if (response.getAirSolution().getFlightItineraryList() != null){
-                return (response.getAirSolution().getFlightItineraryList().size() > 0);
-            }
-        }
-        return false;
-    }
-
-    private boolean checkResponseAndSetStatus(SearchResponse response, String providerStatusCacheKey) {
-        String status = "invalid";
-        if (validResponse(response))
-            status = "success";
-        setCacheValue(providerStatusCacheKey, status);
-        return status=="success";
-    }
-
-    private Boolean checkOrSetStatus(String key){
-        String status = (String) redisTemplate.opsForValue().get(key);
-        if (status != null){
-            return status.equalsIgnoreCase("success");
-        }
-
-        setCacheValue(key, "in-progress");
-        return false;
-    }
-
-    private void setCacheValue(String key, String value){
-        redisTemplate.opsForValue().set( key, value );
-        redisTemplate.expire( key,CacheConstants.CACHE_TIMEOUT_IN_SECS,TimeUnit.SECONDS );
-    }
-
 
     public SearchResponse findNextSegmentDeparture(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         logger.debug("#####################AmadeusFlightSearch started  : ");
@@ -440,7 +151,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         }
 
         FareMasterPricerTravelBoardSearchReply.ErrorMessage seamenErrorMessage = null;
-         FareMasterPricerTravelBoardSearchReply.ErrorMessage errorMessage = null;
+        FareMasterPricerTravelBoardSearchReply.ErrorMessage errorMessage = null;
         if (seamenReply != null) {
             seamenErrorMessage = seamenReply.getErrorMessage();
             if(seamenErrorMessage != null)
@@ -467,6 +178,9 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         return searchResponse;
     }
 
+    public String provider() {
+        return "Amadeus";
+    }
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
         logger.debug("#####################AmadeusFlightSearch started  : ");
@@ -539,14 +253,6 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         searchResponse.setProvider(provider());
         searchResponse.setFlightSearchOffice(office);
         return searchResponse;
-    }
-
-    public String provider() {
-        return "Amadeus";
-    }
-
-    public List<FlightSearchOffice> getOfficeList() {
-        return sourceOfficeService.getAllOffices();
     }
 
     private ConcurrentHashMap<Integer, FlightItinerary> getFlightItineraryHashmap(FareMasterPricerTravelBoardSearchReply fareMasterPricerTravelBoardSearchReply, FlightSearchOffice office, boolean isSeamen) {
@@ -810,121 +516,6 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         return pricingInformation;
     }
 
-    private AirSegmentInformation createSegment(TravelProductType flightInformation, String prevArrivalTime) {
-
-        AirSegmentInformation airSegmentInformation = new AirSegmentInformation();
-        airSegmentInformation.setCarrierCode(flightInformation.getCompanyId().getMarketingCarrier());
-        if(flightInformation.getCompanyId().getOperatingCarrier() != null)
-            airSegmentInformation.setOperatingCarrierCode(flightInformation.getCompanyId().getOperatingCarrier());
-        airSegmentInformation.setFlightNumber(flightInformation.getFlightOrtrainNumber());
-
-        //airSegmentInformation.setArrivalTime(flightInformation.getProductDateTime().getTimeOfArrival());
-        //airSegmentInformation.setDepartureTime(flightInformation.getProductDateTime().getDateOfDeparture());
-        airSegmentInformation.setFromTerminal(flightInformation.getLocation().get(0).getTerminal());
-        airSegmentInformation.setToTerminal(flightInformation.getLocation().get(1).getTerminal());
-        airSegmentInformation.setToDate(flightInformation.getProductDateTime().getDateOfDeparture());
-        airSegmentInformation.setFromDate(flightInformation.getProductDateTime().getDateOfArrival());
-        airSegmentInformation.setToLocation(flightInformation.getLocation().get(1).getLocationId());
-        airSegmentInformation.setFromLocation(flightInformation.getLocation().get(0).getLocationId());
-        Airport fromAirport = new Airport();
-        Airport toAirport = new Airport();
-        fromAirport = Airport.getAirport(airSegmentInformation.getFromLocation(), redisTemplate);
-        toAirport = Airport.getAirport(airSegmentInformation.getToLocation(), redisTemplate);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyHHmm");
-        String DATE_FORMAT = "ddMMyyHHmm";
-        DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat.forPattern(DATE_FORMAT);
-        DateTimeZone dateTimeZone = DateTimeZone.forID(fromAirport.getTime_zone());
-        DateTime departureDate = DATETIME_FORMATTER.withZone(dateTimeZone).parseDateTime(flightInformation.getProductDateTime().getDateOfDeparture() + flightInformation.getProductDateTime().getTimeOfDeparture());
-        dateTimeZone = DateTimeZone.forID(toAirport.getTime_zone());
-        DateTime arrivalDate = DATETIME_FORMATTER.withZone(dateTimeZone).parseDateTime(flightInformation.getProductDateTime().getDateOfArrival() + flightInformation.getProductDateTime().getTimeOfArrival());
-
-        airSegmentInformation.setDepartureDate(departureDate.toDate());
-        airSegmentInformation.setDepartureTime(departureDate.toString());
-        airSegmentInformation.setArrivalTime(arrivalDate.toString());
-        airSegmentInformation.setArrivalDate(arrivalDate.toDate());
-        airSegmentInformation.setFromAirport(fromAirport);
-        airSegmentInformation.setToAirport(toAirport);
-        Minutes diff = Minutes.minutesBetween(departureDate, arrivalDate);
-
-        if (prevArrivalTime.equalsIgnoreCase("")) {
-            airSegmentInformation.setConnectionTime(0);
-        } else {
-            String pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-            DateTimeFormatter dtf = DateTimeFormat.forPattern(pattern);
-            DateTime prevArrivalDateTime = dtf.parseDateTime(prevArrivalTime);
-            Minutes diffDeparture = Minutes.minutesBetween(prevArrivalDateTime, departureDate);
-            airSegmentInformation.setConnectionTime(diffDeparture.getMinutes());
-        }
-
-        airSegmentInformation.setTravelTime("" + diff.getMinutes());
-        if (flightInformation.getCompanyId() != null && flightInformation.getCompanyId().getMarketingCarrier() != null && flightInformation.getCompanyId().getMarketingCarrier().length() >= 2) {
-            airSegmentInformation.setAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getMarketingCarrier(), redisTemplate));
-            airSegmentInformation.setOperatingAirline(Airline.getAirlineByCode(flightInformation.getCompanyId().getOperatingCarrier(), redisTemplate));
-        }
-
-        return airSegmentInformation;
-    }
-
-    private SearchResponse addSeamenFareToSolution(AirSolution allSolution, AirSolution seamenSolution) {
-        logger.debug("==============================================================================");
-        logger.debug("[Amadeus] All Solution Length:::::" + allSolution.getFlightItineraryList().size());
-        logger.debug("[Amadeus] Seamen Solution Length:::::" + seamenSolution.getFlightItineraryList().size());
-        logger.debug("==============================================================================");
-        SearchResponse searchResponse = new SearchResponse();
-        ConcurrentHashMap<Integer, FlightItinerary> allFaresHash = new ConcurrentHashMap<>();
-        ConcurrentHashMap<Integer, FlightItinerary> seamenFareHash = new ConcurrentHashMap<>();
-        for (FlightItinerary flightItinerary : seamenSolution.getFlightItineraryList()) {
-            seamenFareHash.put(flightItinerary.hashCode(), flightItinerary);
-        }
-        for (FlightItinerary flightItinerary : allSolution.getFlightItineraryList()) {
-            allFaresHash.put(flightItinerary.hashCode(), flightItinerary);
-        }
-        for (Integer hashKey : seamenFareHash.keySet()) {
-            FlightItinerary seamenItinerary = null;
-            if (allFaresHash.containsKey(hashKey)) {
-                seamenItinerary = allFaresHash.get(hashKey);
-                seamenItinerary.setPriceOnlyPTC(true);
-                seamenItinerary.setPricingMessage(seamenFareHash.get(hashKey).getPricingMessage());
-                seamenItinerary.setSeamanPricingInformation(seamenFareHash.get(hashKey).getPricingInformation());
-                allFaresHash.put(hashKey, seamenItinerary);
-            } else {
-                seamenItinerary = seamenFareHash.get(hashKey);
-                seamenItinerary.setPriceOnlyPTC(true);
-                seamenItinerary.setSeamanPricingInformation(seamenItinerary.getPricingInformation());
-                seamenItinerary.setPricingInformation(null);
-                allFaresHash.put(hashKey, seamenItinerary);
-            }
-        }
-        AirSolution airSolution = new AirSolution();
-        airSolution.setFlightItineraryList(new ArrayList<FlightItinerary>(allFaresHash.values()));
-        searchResponse.setAirSolution(airSolution);
-        return searchResponse;
-    }
-
-
-    private List<PAXFareDetails> createFareDetails(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation, List<Journey> journeys){
-        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
-        for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct :recommendation.getPaxFareProduct()){
-            PAXFareDetails paxFareDetails = new PAXFareDetails();
-            for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails :paxFareProduct.getFareDetails()){
-                FareJourney fareJourney = new FareJourney();
-                for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares: fareDetails.getGroupOfFares()){
-                    FareSegment fareSegment = new FareSegment();
-                    fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
-                    fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
-                    paxFareDetails.setPassengerTypeCode(PassengerTypeCode.valueOf(groupOfFares.getProductInformation().getFareProductDetail().getPassengerType()));
-
-                    fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
-                    fareJourney.getFareSegmentList().add(fareSegment);
-                }
-                paxFareDetails.getFareJourneyList().add(fareJourney);
-            }
-            paxFareDetailsList.add(paxFareDetails);
-        }
-        return paxFareDetailsList;
-    }
-
     public String getFareBasis(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails){
         for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares : fareDetails.getGroupOfFares()){
             return groupOfFares.getProductInformation().getFareProductDetail().getFareBasis();
@@ -959,4 +550,25 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
         return contextList;
     }
 
+    private List<PAXFareDetails> createFareDetails(FareMasterPricerTravelBoardSearchReply.Recommendation recommendation, List<Journey> journeys){
+        List<PAXFareDetails> paxFareDetailsList = new ArrayList<>();
+        for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct paxFareProduct :recommendation.getPaxFareProduct()){
+            PAXFareDetails paxFareDetails = new PAXFareDetails();
+            for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails fareDetails :paxFareProduct.getFareDetails()){
+                FareJourney fareJourney = new FareJourney();
+                for(FareMasterPricerTravelBoardSearchReply.Recommendation.PaxFareProduct.FareDetails.GroupOfFares groupOfFares: fareDetails.getGroupOfFares()){
+                    FareSegment fareSegment = new FareSegment();
+                    fareSegment.setBookingClass(groupOfFares.getProductInformation().getCabinProduct().getRbd());
+                    fareSegment.setCabinClass(groupOfFares.getProductInformation().getCabinProduct().getCabin());
+                    paxFareDetails.setPassengerTypeCode(PassengerTypeCode.valueOf(groupOfFares.getProductInformation().getFareProductDetail().getPassengerType()));
+
+                    fareSegment.setFareBasis(groupOfFares.getProductInformation().getFareProductDetail().getFareBasis());
+                    fareJourney.getFareSegmentList().add(fareSegment);
+                }
+                paxFareDetails.getFareJourneyList().add(fareJourney);
+            }
+            paxFareDetailsList.add(paxFareDetails);
+        }
+        return paxFareDetailsList;
+    }
 }
