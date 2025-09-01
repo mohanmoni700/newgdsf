@@ -6,6 +6,9 @@ import dto.ancillary.AncillaryBookingResponse;
 import com.compassites.model.traveller.TravellerMasterInfo;
 import models.AncillaryServiceRequest;
 
+import java.util.List;
+import java.util.Map;
+
 public interface AncillaryService {
 
 
@@ -16,7 +19,7 @@ public interface AncillaryService {
     AncillaryServicesResponse getMealsInfoStandalone( AncillaryServiceRequest ancillaryServiceRequest);
     AncillaryServicesResponse getAvailableAncillaryServices(TravellerMasterInfo travellerMasterInfo);
 
-    AncillaryBookingResponse getAncillaryBaggageConfirm(AncillaryBookingRequest ancillaryBookingRequest);
+    Map<String, List<AncillaryBookingResponse>> getAncillaryBaggageConfirm(AncillaryBookingRequest ancillaryBookingRequest);
 
 }
 

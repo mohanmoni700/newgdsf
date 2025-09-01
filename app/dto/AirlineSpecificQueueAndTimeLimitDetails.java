@@ -1,6 +1,7 @@
 package dto;
 
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 
 public class AirlineSpecificQueueAndTimeLimitDetails {
 
@@ -17,6 +18,10 @@ public class AirlineSpecificQueueAndTimeLimitDetails {
     private BigInteger queueNumber;
 
     private BigInteger category;
+
+    private ZonedDateTime utcDateTime;
+
+    private ZonedDateTime localDateTime;
 
     public String getAirline() {
         return airline;
@@ -72,6 +77,22 @@ public class AirlineSpecificQueueAndTimeLimitDetails {
 
     public void setCategory(BigInteger category) {
         this.category = category;
+    }
+
+    public ZonedDateTime getUtcDateTime() {
+        return utcDateTime;
+    }
+
+    public void setUtcDateTime(ZonedDateTime utcDateTime) {
+        this.utcDateTime = utcDateTime;
+    }
+
+    public ZonedDateTime getLocalDateTime() {
+        return localDateTime;
+    }
+
+    public void setLocalDateTime(ZonedDateTime localDateTime) {
+        this.localDateTime = localDateTime;
     }
 
 }
