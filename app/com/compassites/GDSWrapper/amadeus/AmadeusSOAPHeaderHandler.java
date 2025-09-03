@@ -251,6 +251,7 @@ public class AmadeusSOAPHeaderHandler implements SOAPHandler<SOAPMessageContext>
         if (nodeName != null && (nodeName.equalsIgnoreCase("xmlns=\"http://www.iata.org/IATA/2007/00/IATA2010.1\"")
                 || nodeName.equalsIgnoreCase("xmlns=\"http://xml.amadeus.com/2010/06/Types_v2\"")
                 || nodeName.equalsIgnoreCase("xmlns=\"http://xml.amadeus.com/2010/06/Retailing_Types_v2\"")
+                || nodeName.equalsIgnoreCase("xlmns=\"http://www.opentravel.org/OTA/2003/05/OTA2010B\"")
         )) {
             namedNodeMap.removeNamedItem("xmlns");
         }
