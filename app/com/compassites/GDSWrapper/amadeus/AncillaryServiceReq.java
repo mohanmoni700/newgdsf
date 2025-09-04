@@ -13,6 +13,7 @@ import models.AncillaryServiceRequest;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class AncillaryServiceReq {
@@ -442,13 +443,15 @@ public class AncillaryServiceReq {
             AMAServiceBookPriceServiceRQ amaServiceBookPriceServiceRQ = new AMAServiceBookPriceServiceRQ();
             amaServiceBookPriceServiceRQ.setVersion(BigDecimal.valueOf(1));
 
+            int[] tidCount = {1};
+
             if (baggageDetailsList != null && !baggageDetailsList.isEmpty()) {
-                List<AMAServiceBookPriceServiceRQ.Product> productList = getAdditionalBaggageProductList(baggageDetailsList);
+                List<AMAServiceBookPriceServiceRQ.Product> productList = getAdditionalBaggageProductList(baggageDetailsList , tidCount);
                 amaServiceBookPriceServiceRQ.getProduct().addAll(productList);
             }
 
             if (mealDetailsList != null && !mealDetailsList.isEmpty()) {
-                List<AMAServiceBookPriceServiceRQ.Product> productList = getAdditionalMealProductList(mealDetailsList);
+                List<AMAServiceBookPriceServiceRQ.Product> productList = getAdditionalMealProductList(mealDetailsList, tidCount);
                 amaServiceBookPriceServiceRQ.getProduct().addAll(productList);
             }
 
@@ -457,11 +460,11 @@ public class AncillaryServiceReq {
     }
 
     //Creates Request body for baggage confirmation
-    private static List<AMAServiceBookPriceServiceRQ.Product> getAdditionalBaggageProductList(List<BaggageDetails> baggageDetailsList) {
+    private static List<AMAServiceBookPriceServiceRQ.Product> getAdditionalBaggageProductList(List<BaggageDetails> baggageDetailsList, int[] tidCount) {
 
         List<AMAServiceBookPriceServiceRQ.Product> productList = new ArrayList<>();
 
-        int tidCount = 1;
+
         for (BaggageDetails baggageDetails : baggageDetailsList) {
 
             String customerRefId = baggageDetails.getAmadeusPaxRef();
@@ -478,7 +481,7 @@ public class AncillaryServiceReq {
 
             AMAServiceBookPriceServiceRQ.Product.Service service = new AMAServiceBookPriceServiceRQ.Product.Service();
             //Service Request Id
-            service.setTID(Integer.toString(tidCount));
+            service.setTID(Integer.toString(tidCount[0]));
 
             //Amadeus pax ref tattoo
             service.getCustomerRefIDs().add(customerRefId);
@@ -505,17 +508,16 @@ public class AncillaryServiceReq {
             product.setService(service);
             productList.add(product);
 
-            tidCount++;
+            tidCount[0]++;
         }
         return productList;
     }
 
     //Creates Request Body for Meal confirmation
-    private static List<AMAServiceBookPriceServiceRQ.Product> getAdditionalMealProductList(List<MealDetails> mealDetailsList) {
+    private static List<AMAServiceBookPriceServiceRQ.Product> getAdditionalMealProductList(List<MealDetails> mealDetailsList, int[] tidCount) {
 
         List<AMAServiceBookPriceServiceRQ.Product> productList = new ArrayList<>();
 
-        int tidCount = 1;
         for (MealDetails mealDetails : mealDetailsList) {
 
             String customerRefId = mealDetails.getAmadeusPaxRef();
@@ -531,7 +533,7 @@ public class AncillaryServiceReq {
 
             AMAServiceBookPriceServiceRQ.Product.Service service = new AMAServiceBookPriceServiceRQ.Product.Service();
             //Service Request Id
-            service.setTID(Integer.toString(tidCount));
+            service.setTID(Integer.toString(tidCount[0]));
 
             //Amadeus pax ref tattoo
             service.getCustomerRefIDs().add(customerRefId);
@@ -555,7 +557,7 @@ public class AncillaryServiceReq {
             product.setService(service);
             productList.add(product);
 
-            tidCount++;
+            tidCount[0]++;
         }
         return productList;
     }

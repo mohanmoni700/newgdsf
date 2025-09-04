@@ -435,6 +435,10 @@ public class AmadeusRefundServiceImpl implements RefundService{
                             //Process Refund
                             amaTicketProcessRefundRS = refundServiceHandler.ticketProcessRefund(amadeusSessionWrapper);
                             if(amaTicketProcessRefundRS != null && amaTicketProcessRefundRS.getGeneralReply().getErrors() == null){
+
+                                List<PerPaxRefundPricingInformation> perPaxRefundPricingInformationList = refundHelper.getRefundedPerPaxPricingInformation(amaTicketInitRefundRS.getFunctionalData().getContractBundle());
+                                ticketProcessRefundRes.setPerPaxRefundPricingInformationList(perPaxRefundPricingInformationList);
+
                                 List<AMATicketProcessRefundRS.FunctionalData.ContractBundle> contractBundles = amaTicketProcessRefundRS.getFunctionalData().getContractBundle();
                                 for(AMATicketProcessRefundRS.FunctionalData.ContractBundle contractBundle:contractBundles){
                                     List<RefundDetailsLightType.Contracts.Contract> contracts = contractBundle.getRefundDetails().getContracts().getContract();
