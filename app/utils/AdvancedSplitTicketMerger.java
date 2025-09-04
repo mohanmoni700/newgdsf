@@ -15,19 +15,6 @@ public class AdvancedSplitTicketMerger {
 
     static Logger logger = LoggerFactory.getLogger("gds");
 
-    /**
-     * Advanced split ticket merger that finds combinations of flights
-     * where the connection time is between 3-8 hours.
-     * Prioritizes flights with 0 stops for better quality connections.
-     * Limits results to maximum 80 to prevent system crashes.
-     * 
-     * @param fromLocation Starting location (e.g., VXE)
-     * @param toLocation Final destination (e.g., BOM)
-     * @param concurrentHashMap Map containing flight itineraries by location
-     * @param isSourceAirportDomestic Whether source airport is domestic
-     * @param isDestinationAirportDomestic Whether destination airport is domestic
-     * @return List of merged flight itineraries meeting the time constraint, limited to 80 results
-     */
     public List<FlightItinerary> mergeAllSplitTicketCombinations(String fromLocation, String toLocation,
             ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap,
             boolean isSourceAirportDomestic, boolean isDestinationAirportDomestic) {
@@ -123,11 +110,7 @@ public class AdvancedSplitTicketMerger {
         return allMergedResults;
     }
     
-    /**
-     * Finds direct connections from fromLocation to toLocation with 3-8 hour connection time.
-     * Checks ALL combinations of first and second segment flights.
-     * Prioritizes flights with 0 stops.
-     */
+
     private List<FlightItinerary> findDirectConnections(String fromLocation, String toLocation,
             ConcurrentHashMap<String, List<FlightItinerary>> concurrentHashMap,
             List<FlightItinerary> firstSegmentFlights,
@@ -169,6 +152,11 @@ public class AdvancedSplitTicketMerger {
             if (directConnections.size() >= maxResults) {
                 logger.info("Reached maximum results limit (" + maxResults + ") for direct connections");
                 break;
+            }
+            // Skip if the first segment passes through the final destination en-route
+            if (itineraryPassesThroughButNotEndAt(firstFlight, toLocation)) {
+                logger.info("Skipping first segment that passes through final destination en-route: " + toLocation);
+                continue;
             }
             //System.out.println("First loop "+firstFlight.getPricingInformation().getProvider());
             
@@ -319,6 +307,11 @@ public class AdvancedSplitTicketMerger {
                     logger.info("Reached maximum results limit (" + maxResults + ") for intermediate connections");
                     break;
                 }
+                // Skip if the first segment passes through the final destination en-route
+                if (itineraryPassesThroughButNotEndAt(firstFlight, toLocation)) {
+                    logger.info("Skipping first segment that passes through final destination en-route: " + toLocation);
+                    continue;
+                }
                 //System.out.println("firstFlight loop "+firstFlight.getPricingInformation().getProvider()+" intermediateLocation "+intermediateLocation);
                 String firstFlightDestination = getLastDestination(firstFlight);
                 
@@ -448,6 +441,30 @@ public class AdvancedSplitTicketMerger {
         AirSegmentInformation firstSegment = firstJourney.getAirSegmentList().get(0);
         return firstSegment != null ? firstSegment.getFromLocation() : null;
     }
+
+    private boolean itineraryPassesThroughButNotEndAt(FlightItinerary itinerary, String targetLocation) {
+        if (itinerary == null || itinerary.getJourneyList() == null || itinerary.getJourneyList().isEmpty() || targetLocation == null) {
+            return false;
+        }
+        // Determine final destination of the itinerary
+        String finalDest = getLastDestination(itinerary);
+        if (finalDest != null && finalDest.equalsIgnoreCase(targetLocation)) {
+            // Ends at final destination - allowed
+            return false;
+        }
+        // Scan all segments; if any segment's toLocation equals targetLocation, it's a through-touch
+        for (Journey journey : itinerary.getJourneyList()) {
+            if (journey == null || journey.getAirSegmentList() == null) continue;
+            List<AirSegmentInformation> segs = journey.getAirSegmentList();
+            for (int i = 0; i < segs.size(); i++) {
+                AirSegmentInformation seg = segs.get(i);
+                if (seg != null && seg.getToLocation() != null && seg.getToLocation().equalsIgnoreCase(targetLocation)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     
     /**
      * Calculates the connection time between two flights in minutes.
@@ -460,9 +477,6 @@ public class AdvancedSplitTicketMerger {
             if (arrivalTime == null || departureTime == null) {
                 return -1;
             }
-            /*if(firstFlight.getPricingInformation().getProvider().equalsIgnoreCase("Indigo") || secondFlight.getPricingInformation().getProvider().equalsIgnoreCase("Indigo")){
-                System.out.println("firstFlight "+firstFlight.getPricingInformation().getProvider()+"  secondFlight "+secondFlight.getPricingInformation().getProvider()+" arrivalTime "+arrivalTime+" departureTime "+departureTime);
-            }*/
             
             // Try multiple date formats to handle different providers
             java.time.ZonedDateTime arrivalDateTime = parseDateTime(arrivalTime);
@@ -482,37 +496,31 @@ public class AdvancedSplitTicketMerger {
         }
     }
     
-    /**
-     * Parses date-time string using multiple format patterns to handle different providers
-     */
+
     private java.time.ZonedDateTime parseDateTime(String dateTimeStr) {
         if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
             return null;
         }
-        
-        // List of common date-time patterns
+
         String[] patterns = {
-            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",  // Amadeus format: 2025-09-26T18:50:00.000+05:30
-            "yyyy-MM-dd'T'HH:mm:ssXXX",      // Indigo format: 2025-09-26T18:50:00+05:30
-            "yyyy-MM-dd'T'HH:mm:ss.SSSZ",    // Alternative format with Z
-            "yyyy-MM-dd'T'HH:mm:ssZ",        // Alternative format without milliseconds
-            "yyyy-MM-dd'T'HH:mm:ss",         // Format without timezone
-            "yyyy-MM-dd HH:mm:ss"            // Alternative format with space
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+            "yyyy-MM-dd'T'HH:mm:ssZ",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd HH:mm:ss"
         };
         
         for (String pattern : patterns) {
             try {
                 java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(pattern);
                 if (pattern.contains("XXX") || pattern.contains("Z")) {
-                    // Parse as ZonedDateTime for timezone-aware formats
                     return java.time.ZonedDateTime.parse(dateTimeStr, formatter);
                 } else {
-                    // Parse as LocalDateTime and assume system timezone
                     java.time.LocalDateTime localDateTime = java.time.LocalDateTime.parse(dateTimeStr, formatter);
                     return localDateTime.atZone(java.time.ZoneId.systemDefault());
                 }
             } catch (Exception e) {
-                // Try next pattern
                 continue;
             }
         }
@@ -631,10 +639,6 @@ public class AdvancedSplitTicketMerger {
         }
     }
 
-    /**
-     * Gets the total number of stops for a flight itinerary.
-     * Returns the sum of stops across all journeys.
-     */
     private int getTotalStops(FlightItinerary flightItinerary) {
         if (flightItinerary.getJourneyList() == null || flightItinerary.getJourneyList().isEmpty()) {
             return 0;
