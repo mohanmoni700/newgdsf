@@ -2551,4 +2551,35 @@ public class AmadeusBookingServiceImpl implements BookingService {
         }
     }
 
+
+    public PNRResponse fetchAirlineWiseTimeLimitDetails (String gdsPNR ) {
+
+            logger.debug(" fetchAirlineWiseTimeLimitDetails called ........");
+
+            PNRResponse pnrResponse = new PNRResponse();
+            PNRReply gdsPNRReply = null;
+
+            AmadeusSessionWrapper amadeusSessionWrapper = null;
+        try{
+            amadeusSessionWrapper = serviceHandler.logIn(false);
+            gdsPNRReply = serviceHandler.retrievePNR(gdsPNR, amadeusSessionWrapper);
+
+            List<AirlineSpecificQueueAndTimeLimitDetails> airlineSpecificTicketingTimeLimit = getAirlineSpecificTicketingTimeLimit(gdsPNRReply);
+            pnrResponse.setPnrNumber(gdsPNR);
+            pnrResponse.setAirlineSpecificQueueAndTimeLimitDetailsList(airlineSpecificTicketingTimeLimit);
+
+            return pnrResponse;
+        } catch (Exception e) {
+            logger.error("Error in fetchAirlineWiseTimeLimitDetails", e);
+            throw new RuntimeException(e);
+        }finally {
+            if (amadeusSessionWrapper != null) {
+            serviceHandler.logOut(amadeusSessionWrapper);
+            }
+        }
+
+
+    }
+
+
 }

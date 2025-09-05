@@ -19,9 +19,25 @@ public class AirlineSpecificQueueAndTimeLimitDetails {
 
     private BigInteger category;
 
-    private ZonedDateTime utcDateTime;
+    private String utcDateTimeStr;
 
-    private ZonedDateTime localDateTime;
+    private String localDateTimeStr;
+
+    public String getUtcDateTimeStr() {
+        return utcDateTimeStr;
+    }
+
+    public void setUtcDateTimeStr(String utcDateTimeStr) {
+        this.utcDateTimeStr = utcDateTimeStr;
+    }
+
+    public String getLocalDateTimeStr() {
+        return localDateTimeStr;
+    }
+
+    public void setLocalDateTimeStr(String localDateTimeStr) {
+        this.localDateTimeStr = localDateTimeStr;
+    }
 
     public String getAirline() {
         return airline;
@@ -79,20 +95,26 @@ public class AirlineSpecificQueueAndTimeLimitDetails {
         this.category = category;
     }
 
-    public ZonedDateTime getUtcDateTime() {
-        return utcDateTime;
-    }
 
-    public void setUtcDateTime(ZonedDateTime utcDateTime) {
-        this.utcDateTime = utcDateTime;
-    }
+    //    private ZonedDateTime utcDateTime;
+//    private ZonedDateTime localDateTime;
 
-    public ZonedDateTime getLocalDateTime() {
-        return localDateTime;
-    }
+//    public ZonedDateTime getUtcDateTime() {
+//        return utcDateTime;
+//    }
+//
+//    public void setUtcDateTime(ZonedDateTime utcDateTime) {
+//        this.utcDateTime = utcDateTime;
+//    }
+//
+//    public ZonedDateTime getLocalDateTime() {
+//        return localDateTime;
+//    }
+//
+//    public void setLocalDateTime(ZonedDateTime localDateTime) {
+//        this.localDateTime = localDateTime;
+//    }
 
-    public void setLocalDateTime(ZonedDateTime localDateTime) {
-        this.localDateTime = localDateTime;
-    }
+
 
 }
