@@ -46,9 +46,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 /**
  * Created by Yaseen on 18-12-2014.
@@ -2778,8 +2780,8 @@ public class AmadeusBookingHelper {
 
                                 AirlineSpecificQueueAndTimeLimitDetails airlineSpecificQueueAndTimeLimitDetails = new AirlineSpecificQueueAndTimeLimitDetails();
 
-                                String date = optionElementInfo.getDate();
-                                String time = optionElementInfo.getTime();
+                                String dateStr = optionElementInfo.getDate();
+                                String timeStr = optionElementInfo.getTime();
                                 String mainQueueOffice = optionElementInfo.getMainOffice();
                                 BigInteger queueNumber = optionElementInfo.getQueue();
                                 BigInteger categoryNumber = optionElementInfo.getCategory();
@@ -2789,6 +2791,35 @@ public class AmadeusBookingHelper {
                                 String airline = parts[0];
                                 String timeZone = parts[parts.length - 3];
 
+                                LocalDate date = parseFlexibleDate(dateStr);
+
+                                java.time.format.DateTimeFormatter dateFormatter = new DateTimeFormatterBuilder()
+                                        .parseCaseInsensitive()
+                                        .appendPattern("ddMMMyy")
+                                        .toFormatter();
+
+
+                                int hour = Integer.parseInt(timeStr.substring(0, 2));
+                                int minute = Integer.parseInt(timeStr.substring(2, 4));
+                                LocalTime time = LocalTime.of(hour, minute);
+
+                                // Create LocalDateTimes
+                                LocalDateTime localDateTimes = LocalDateTime.of(date, time);
+
+                                ZoneId zoneId;
+                                try {
+                                    zoneId = ZoneId.of(timeZone);
+                                } catch (DateTimeException e) {
+                                    zoneId = ZoneOffset.UTC;
+                                }
+
+                                // ZonedDateTime in specified zone
+                                ZonedDateTime zonedLocalDateTime = ZonedDateTime.of(localDateTimes, zoneId);
+
+                                ZonedDateTime utcDateTime = zonedLocalDateTime.of(date, time, ZoneOffset.UTC);
+
+                                ZonedDateTime localDateTimeInSystemTZ = utcDateTime.withZoneSameInstant(ZoneId.systemDefault());
+
 //                        Pattern pattern = Pattern.compile("^(\\S+) .* (\\S+) TIME ZONE$");
 //                        Matcher matcher = pattern.matcher(freeTextOpc);
 //
@@ -2796,12 +2827,14 @@ public class AmadeusBookingHelper {
 //                        String timeZone = matcher.group(2);
 
                                 airlineSpecificQueueAndTimeLimitDetails.setAirline(airline);
-                                airlineSpecificQueueAndTimeLimitDetails.setDate(date);
-                                airlineSpecificQueueAndTimeLimitDetails.setTime(time);
+                                airlineSpecificQueueAndTimeLimitDetails.setDate(dateStr);
+                                airlineSpecificQueueAndTimeLimitDetails.setTime(timeStr);
                                 airlineSpecificQueueAndTimeLimitDetails.setTimeZone(timeZone);
                                 airlineSpecificQueueAndTimeLimitDetails.setMainQueueOffice(mainQueueOffice);
                                 airlineSpecificQueueAndTimeLimitDetails.setQueueNumber(queueNumber);
                                 airlineSpecificQueueAndTimeLimitDetails.setCategory(categoryNumber);
+                                airlineSpecificQueueAndTimeLimitDetails.setUtcDateTimeStr(utcDateTime != null ? utcDateTime.toString() : null);
+                                airlineSpecificQueueAndTimeLimitDetails.setLocalDateTimeStr(localDateTimeInSystemTZ != null ? localDateTimeInSystemTZ.toString() : null);
 
                                 airlineSpecificQueueAndTimeLimitDetailsList.add(airlineSpecificQueueAndTimeLimitDetails);
                             }
@@ -2863,6 +2896,11 @@ public class AmadeusBookingHelper {
                                 }
                             }
                         }
+                        if (ssrAdtkFreeText != null) {
+                            AirlineSpecificQueueAndTimeLimitDetails airlineSpecificQueueAndTimeLimitDetails = new AirlineSpecificQueueAndTimeLimitDetails();
+                            getSSRADTKAirlineTimeLimit(ssrAdtkFreeText, airlineSpecificQueueAndTimeLimitDetails);
+                            airlineSpecificQueueAndTimeLimitDetailsList.add(airlineSpecificQueueAndTimeLimitDetails);
+                        }
 
 
                         break;
@@ -2912,12 +2950,130 @@ public class AmadeusBookingHelper {
                 airlineSpecificQueueAndTimeLimitDetails.setTime(hour + minute);
                 airlineSpecificQueueAndTimeLimitDetails.setTimeZone(timezone);
                 airlineSpecificQueueAndTimeLimitDetails.setAirline(airline);
-                airlineSpecificQueueAndTimeLimitDetails.setUtcDateTime(utcDateTime);
-                airlineSpecificQueueAndTimeLimitDetails.setLocalDateTime(localDateTime);
+                airlineSpecificQueueAndTimeLimitDetails.setUtcDateTimeStr(utcDateTime != null ? utcDateTime.toString() : null);
+                airlineSpecificQueueAndTimeLimitDetails.setLocalDateTimeStr(localDateTime != null ? localDateTime.toString() : null);
             }
         } catch (Exception e) {
             logger.debug("Error Parsing Airline Time Limit From OTHS Free Text {} ", e.getMessage(), e);
         }
     }
+
+
+
+    private static void getSSRADTKAirlineTimeLimit(String ssrAdtkFreeText, AirlineSpecificQueueAndTimeLimitDetails airlineSpecificQueueAndTimeLimitDetails) {
+
+        try {
+            List<Pattern> patterns = Arrays.asList(
+                    //  <AIRLINE> <DATE> <TIME> <TIMEZONE>
+                    Pattern.compile("TO\\s+([A-Z]{2})\\s+BY\\s+(\\d{2}[A-Z]{3})\\s+(\\d{4})\\s+([A-Z]{3})"),
+
+                    //  <DATE><YEAR> <TIME> <TIMEZONE> <AIRLINE>
+                    Pattern.compile("BY\\s+(\\d{2}[A-Z]{3})(\\d{2})\\s+(\\d{4})\\s+([A-Z]{3})\\s+([A-Z]{2})"),
+
+                    //  <TIMEZONE><DATE><YEAR>/<TIME> <AIRLINE>
+                    Pattern.compile("BY\\s+([A-Z]{3})(\\d{2}[A-Z]{3})(\\d{2})/(\\d{4}).*\\b([A-Z]{2})\\b"),
+
+                    //  TKT <AIRLINE> SEGS BY <DATE><YEAR>
+                    Pattern.compile("TKT\\s+([A-Z]{2})\\s+SEGS\\s+BY\\s+(\\d{2}[A-Z]{3})(\\d{2})")
+            );
+
+            for (Pattern pattern : patterns) {
+                Matcher matcher = pattern.matcher(ssrAdtkFreeText);
+                if (matcher.find()) {
+                    String dayMonth, year, hour = "00", minute = "00", timezone = null, airline;
+
+                    if (pattern.pattern().startsWith("TO")) {
+                        airline = matcher.group(1);
+                        dayMonth = matcher.group(2);
+                        hour = matcher.group(3).substring(0, 2);
+                        minute = matcher.group(3).substring(2);
+                        timezone = matcher.group(4);
+                        year = String.valueOf(Year.now().getValue()).substring(2);
+
+                    } else if (pattern.pattern().startsWith("BY\\s+(\\d{2}[A-Z]{3})")) {
+                        dayMonth = matcher.group(1);
+                        year = matcher.group(2);
+                        hour = matcher.group(3).substring(0, 2);
+                        minute = matcher.group(3).substring(2);
+                        timezone = matcher.group(4);
+                        airline = matcher.group(5);
+
+                    } else if (pattern.pattern().startsWith("BY\\s+([A-Z]{3})")) {
+                        timezone = matcher.group(1);
+                        dayMonth = matcher.group(2);
+                        year = matcher.group(3);
+                        hour = matcher.group(4).substring(0, 2);
+                        minute = matcher.group(4).substring(2);
+                        airline = matcher.group(5);
+                    } else {
+                        //  No timezone
+                        airline = matcher.group(1);
+                        dayMonth = matcher.group(2);
+                        year = matcher.group(3);
+                    }
+
+                    java.time.format.DateTimeFormatter dateFormatter = new DateTimeFormatterBuilder()
+                            .parseCaseInsensitive()
+                            .appendPattern("ddMMMyy")
+                            .toFormatter();
+
+                    LocalDate date = LocalDate.parse(dayMonth + year, dateFormatter);
+                    LocalTime time = LocalTime.of(Integer.parseInt(hour), Integer.parseInt(minute));
+
+                    ZonedDateTime utcDateTime = ZonedDateTime.of(date, time, ZoneOffset.UTC);
+
+                    ZonedDateTime localDateTime = utcDateTime.withZoneSameInstant(ZoneId.systemDefault());
+
+                    airlineSpecificQueueAndTimeLimitDetails.setDate(dayMonth);
+                    airlineSpecificQueueAndTimeLimitDetails.setTime(hour + minute);
+
+                     if (timezone == null ) {
+                        if(airline.equalsIgnoreCase("LX") || airline.equalsIgnoreCase("LH") || airline.equalsIgnoreCase("UA")) {
+                            timezone = "LHG";
+                        }else{
+                            timezone = "Undefined";
+                        }
+                    }
+
+
+                    airlineSpecificQueueAndTimeLimitDetails.setTimeZone(timezone);
+                    airlineSpecificQueueAndTimeLimitDetails.setAirline(airline);
+                    airlineSpecificQueueAndTimeLimitDetails.setUtcDateTimeStr(utcDateTime != null ? utcDateTime.toString() : null);
+                    airlineSpecificQueueAndTimeLimitDetails.setLocalDateTimeStr(localDateTime != null ? localDateTime.toString() : null);
+                    break;
+                }
+            }
+
+
+        } catch (Exception e) {
+            logger.debug("Error Parsing Airline Time Limit From SRSADTK Free Text {} ", e.getMessage(), e);
+        }
+    }
+
+    public static LocalDate parseFlexibleDate(String dateStr) {
+        // numeric format
+        try {
+            java.time.format.DateTimeFormatter numericFormatter = new DateTimeFormatterBuilder()
+                    .appendPattern("ddMMyy")
+                    .toFormatter();
+            return LocalDate.parse(dateStr, numericFormatter);
+        } catch (Exception e1) {
+            //  month name format
+
+            try {
+                java.time.format.DateTimeFormatter monthFormatter = new DateTimeFormatterBuilder()
+                        .parseCaseInsensitive()
+                        .appendPattern("ddMMMyy")
+                        .toFormatter();
+                return LocalDate.parse(dateStr, monthFormatter);
+            } catch (Exception e2) {
+                throw new IllegalArgumentException("Cannot parse date: " + dateStr);
+            }
+        }
+
+    }
+
+
+
 
 }

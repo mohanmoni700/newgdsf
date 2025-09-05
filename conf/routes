@@ -84,3 +84,5 @@ POST    /saveBooking   @controllers.Application.saveIndigoBooking()
 #Exchange Rates
 POST    /getAmadeusExchangeRates   @controllers.Application.getAmadeusExchangeRates()
 
+#AirlineTimeLimit
+POST    /getAirlineWiseTimeLimit   @controllers.Application.getAirlineWiseTimeLimit()

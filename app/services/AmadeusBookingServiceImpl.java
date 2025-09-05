@@ -2080,6 +2080,7 @@ public class AmadeusBookingServiceImpl implements BookingService {
             List<Traveller> childTravellersList = new ArrayList<>();
             List<Traveller> infantTravellersList = new ArrayList<>();
             List<TravellerInfo> travellerinfoList = gdsPNRReply.getTravellerInfo();
+            String officeId = gdsPNRReply.getSecurityInformation().getQueueingInformation().getQueueingOfficeId();
             Preferences preferences = getPreferenceFromPNR(gdsPNRReply);
             for (TravellerInfo travellerInfo : travellerinfoList) {
                 Traveller traveller = new Traveller();
@@ -2288,6 +2289,15 @@ public class AmadeusBookingServiceImpl implements BookingService {
                 segmentStatus = pnrResponse.getStatus();
             }
 
+
+            // Current office check
+            if(!officeId.equalsIgnoreCase("BOMVS34C3") && !officeId.equalsIgnoreCase("DELVS38LF") && !officeId.equalsIgnoreCase("BOMAK38SN")){
+                pnrResponse.setNonOfficeId(true);
+            }
+
+            // checking if the ticket number is present in the Pnr
+            pnrResponse.setTicketPresent(isTicketNumberPresent(gdsPNRReply));
+
             if (segmentStatus != null && !segmentStatus.equalsIgnoreCase("GK")) {
 
                 // fetch generic fare rule
@@ -2327,6 +2337,9 @@ public class AmadeusBookingServiceImpl implements BookingService {
             json.put("travellerMasterInfo", masterInfo);
             json.put("pnrResponse", pnrResponse);
             json.put("miniRuleResponse", miniRules);
+
+
+
 
         } catch (Exception e) {
             logger.error("Error in Amadeus getBookingDetails : ", e);
@@ -2550,5 +2563,63 @@ public class AmadeusBookingServiceImpl implements BookingService {
             return false;
         }
     }
+
+
+    public boolean isTicketNumberPresent(PNRReply pnrReply) {
+        if (pnrReply.getDataElementsMaster() != null &&
+                pnrReply.getDataElementsMaster().getDataElementsIndiv() != null) {
+
+            List<PNRReply.DataElementsMaster.DataElementsIndiv> dataElements =
+                    pnrReply.getDataElementsMaster().getDataElementsIndiv();
+
+            for (PNRReply.DataElementsMaster.DataElementsIndiv element : dataElements) {
+                if (element.getElementManagementData() != null &&
+                        element.getElementManagementData().getSegmentName() != null) {
+                    if ("FHM".equals(element.getElementManagementData().getSegmentName())) {
+                        List<LongFreeTextType> otherDataFreetext = element.getOtherDataFreetext();
+                        for(LongFreeTextType textType : otherDataFreetext) {
+                            if(textType.getFreetextDetail() != null && textType.getLongFreetext() != null) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+
+    public PNRResponse fetchAirlineWiseTimeLimitDetails (String gdsPNR ) {
+
+            logger.debug(" fetchAirlineWiseTimeLimitDetails called ........");
+
+            PNRResponse pnrResponse = new PNRResponse();
+            PNRReply gdsPNRReply = null;
+
+            AmadeusSessionWrapper amadeusSessionWrapper = null;
+        try{
+            amadeusSessionWrapper = serviceHandler.logIn(false);
+            gdsPNRReply = serviceHandler.retrievePNR(gdsPNR, amadeusSessionWrapper);
+
+            List<AirlineSpecificQueueAndTimeLimitDetails> airlineSpecificTicketingTimeLimit = getAirlineSpecificTicketingTimeLimit(gdsPNRReply);
+            pnrResponse.setPnrNumber(gdsPNR);
+            pnrResponse.setAirlineSpecificQueueAndTimeLimitDetailsList(airlineSpecificTicketingTimeLimit);
+
+            return pnrResponse;
+        } catch (Exception e) {
+            logger.error("Error in fetchAirlineWiseTimeLimitDetails", e);
+            throw new RuntimeException(e);
+        }finally {
+            if (amadeusSessionWrapper != null) {
+            serviceHandler.logOut(amadeusSessionWrapper);
+            }
+        }
+
+
+    }
+
+
 
 }

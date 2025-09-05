@@ -890,4 +890,20 @@ public class Application {
     }
 
 
+//    AirlineWise Time Limit
+    public Result getAirlineWiseTimeLimit(){
+    JsonNode json = request().body().asJson();
+        logger.debug("-----------------  getAirlineWiseTimeLimit Request: "+json);
+
+        List<String> gdsPnrList = new ArrayList<>();
+        for (JsonNode node : json.get("gdsPNRList")) {
+            gdsPnrList.add(node.asText());
+        }
+
+        Map<String , PNRResponse> pnrResponseMap  = bookingService.airlineWiseTimeLimit(gdsPnrList);
+        logger.debug("-----------------PNR Response: "+Json.toJson(pnrResponseMap));
+        return Controller.ok(Json.toJson(pnrResponseMap));
+    }
+
+
 }

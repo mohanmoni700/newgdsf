@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by user on 07-08-2014.
@@ -302,6 +303,22 @@ public class BookingServiceWrapper {
 		}
 	}
 
+
+	public Map<String , PNRResponse>  airlineWiseTimeLimit(List<String> gdsPnrList) {
+		try {
+			Map<String, PNRResponse> pnrResponseMap = new HashMap<>();
+			if (gdsPnrList != null && gdsPnrList.size() > 0) {
+				for (String gdsPnr : gdsPnrList) {
+					PNRResponse pnrResponse = null;
+					pnrResponse = amadeusBookingService.fetchAirlineWiseTimeLimitDetails(gdsPnr);
+					pnrResponseMap.put(gdsPnr, pnrResponse);
+				}
+			}
+			return pnrResponseMap;
+		} catch (RuntimeException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	/*public IssuanceResponse readTripDetails(IssuanceRequest issuanceRequest) {
 		IssuanceResponse issuanceResponse = null;
 		issuanceResponse = mystiflyBookingService.readTripDetails(issuanceRequest);

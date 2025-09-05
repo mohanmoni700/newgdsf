@@ -132,6 +132,10 @@ public class PNRResponse implements Serializable  {
 
     private String status;
 
+    private boolean nonOfficeId;
+
+    private boolean isTicketPresent;
+
     public Map<String, String> getPnrMap() {
         return pnrMap;
     }
@@ -508,5 +512,20 @@ public class PNRResponse implements Serializable  {
         this.airlineSpecificQueueAndTimeLimitDetailsList = airlineSpecificQueueAndTimeLimitDetailsList;
     }
 
+    public boolean isNonOfficeId() {
+        return nonOfficeId;
+    }
+
+    public void setNonOfficeId(boolean nonOfficeId) {
+        this.nonOfficeId = nonOfficeId;
+    }
+
+    public boolean isTicketPresent() {
+        return isTicketPresent;
+    }
+
+    public void setTicketPresent(boolean ticketPresent) {
+        isTicketPresent = ticketPresent;
+    }
 }
 
