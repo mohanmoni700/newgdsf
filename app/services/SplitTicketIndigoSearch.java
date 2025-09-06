@@ -19,6 +19,7 @@ import utils.AmadeusSessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -58,18 +59,47 @@ public class SplitTicketIndigoSearch implements SplitTicketSearch{
         List<SearchResponse> responses = new ArrayList<>();
         searchOfficeID = configurationMasterService.getConfig(ConfigMasterConstants.SPLIT_TICKET_AMADEUS_OFFICE_ID_GLOBAL.getKey());
         for (SearchParameters searchParameters1: searchParameters)  {
-            FlightSearchOffice office = new FlightSearchOffice();
-            if(office==null){
+            FlightSearchOffice searchOffice = new FlightSearchOffice();
+            searchOffice.setOfficeId("Indigo");
+            searchOffice.setName("");
+            if(searchOffice==null){
                 logger.error("Invalid Indigo Office Id " + searchOfficeID + " provided for Split Ticketing");
                 SearchResponse searchResponse = new SearchResponse();
-                searchResponse.setFlightSearchOffice(office);
+                searchResponse.setFlightSearchOffice(searchOffice);
                 searchResponse.setProvider("Indigo");
                 responses.add(searchResponse);
             } else {
-                SearchResponse response = search(searchParameters1, office);
-                responses.add(response);
+                SearchResponse searchResponse = search(searchParameters1, searchOffice);
+                if (searchResponse.getAirSolution().getFlightItineraryList().size()>0) {
+                    if (concurrentHashMap.containsKey(searchParameters1.getJourneyList().get(0).getOrigin())) {
+                        concurrentHashMap.get(searchParameters1.getJourneyList().get(0).getOrigin()).addAll(new ArrayList<FlightItinerary>(searchResponse.getAirSolution().getSeamenHashMap().values()));
+                        concurrentHashMap.get(searchParameters1.getJourneyList().get(0).getOrigin()).addAll(new ArrayList<FlightItinerary>(searchResponse.getAirSolution().getNonSeamenHashMap().values()));
+                        System.out.println("Size of non indigo seamen if "+searchResponse.getAirSolution().getNonSeamenHashMap().values().size());
+                    } else {
+                        concurrentHashMap.put(searchParameters1.getJourneyList().get(0).getOrigin(), new ArrayList<FlightItinerary>(searchResponse.getAirSolution().getSeamenHashMap().values()));
+                        System.out.println("Size of indigo non seamen else "+searchResponse.getAirSolution().getNonSeamenHashMap().values().size());
+                        //concurrentHashMap.put(searchParameters1.getJourneyList().get(0).getOrigin(), new ArrayList<FlightItinerary>(searchResponse.getAirSolution().getNonSeamenHashMap().values()));
+                    }
+                    responses.add(searchResponse);
+                }
             }
         }
+        System.out.println("indigo split search response size: "+responses.size());
+        System.out.println("indigo split search concurrentHashMap size: "+concurrentHashMap.size());
+        for (Map.Entry<String, List<FlightItinerary>> flightItineraryEntry : concurrentHashMap.entrySet()) {
+            logger.debug("flightItineraryEntry size: "+flightItineraryEntry.getKey()+"  -  "+flightItineraryEntry.getValue().size());
+            System.out.println("indigo size: "+flightItineraryEntry.getKey()+"  -  "+flightItineraryEntry.getValue().size());
+            if(flightItineraryEntry.getValue().size() == 0) {
+                concurrentHashMap.remove(flightItineraryEntry.getKey());
+            }
+        }
+        logger.info("indigo split search response size: "+responses.size());
+        logger.info("indigo split search concurrentHashMap size: "+concurrentHashMap.size());
+
+        System.out.println("indigo split search response size: "+responses.size());
+        System.out.println("indigo split search concurrentHashMap size: "+concurrentHashMap.size());
+        //logger.info("indigo split search concurrentHashMap details response : "+ Json.toJson(responses));
+        //logger.info("indigo split search concurrentHashMap details: "+ Json.toJson(concurrentHashMap));
         return responses;
     }
 
