@@ -319,6 +319,7 @@ public class SplitTicketSearchWrapper {
             //transitEnabled = configMap.get(ConfigMasterConstants.SPLIT_TICKET_TRANSIT_ENABLED) != null && Boolean.parseBoolean(configMap.get(ConfigMasterConstants.SPLIT_TICKET_TRANSIT_ENABLED));
             transitEnabled = Boolean.valueOf(configurationMasterService.getConfig(ConfigMasterConstants.SPLIT_TICKET_TRANSIT_ENABLED.getKey()));
             System.out.println("transitEnabled "+transitEnabled);
+            logger.debug("transitEnabled "+transitEnabled);
             if(transitEnabled) {
                 List<SearchParameters> searchParametersTransit = null;
                 List<SplitTicketTransitAirports> splitTicketTransitAirports = isTransitAdded(searchParameters);
