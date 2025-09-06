@@ -81,7 +81,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
 
     @Autowired
     private SplitTicketIndigoSearch ticketIndigoSearch;
-
+  
     //private String searchOfficeID = play.Play.application().configuration().getString("split.ticket.officeId");
     private static String searchOfficeID = "";
     /*SplitAmadeusSearchWrapper() {
@@ -155,6 +155,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
             redisTemplate.opsForValue().set(redisKey + ":status", "started");
             redisTemplate.expire(redisKey, CacheConstants.CACHE_TIMEOUT_IN_SECS, TimeUnit.SECONDS);
             ThreadPoolExecutor newExecutor = new ThreadPoolExecutor(4, 10, Long.MAX_VALUE, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(queueSize, true));
+
                 futureSearchResponseList.add(newExecutor.submit(new Callable<List<SearchResponse>>() {
                     @Override
                     public List<SearchResponse> call() throws Exception {
