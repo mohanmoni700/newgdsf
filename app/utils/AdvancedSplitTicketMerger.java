@@ -90,6 +90,10 @@ public class AdvancedSplitTicketMerger {
             logger.warn("Route: " + fromLocation + " -> " + toLocation);
             logger.warn("First segment flights available: " + firstSegmentFlights.size());
             logger.warn("Direct connections attempted: " + directConnections.size());
+            int firstLegCount = concurrentHashMap.get(fromLocation) != null ? concurrentHashMap.get(fromLocation).size() : 0;
+            int secondLegCount = concurrentHashMap.get(toLocation) != null ? concurrentHashMap.get(toLocation).size() : 0;
+            logger.warn("First-leg options from " + fromLocation + ": " + firstLegCount + ", second-leg options from " + toLocation + ": " + secondLegCount);
+            logger.warn("Intermediates considered: " + (Math.max(concurrentHashMap.keySet().size() - 2, 0)) + " -> " + concurrentHashMap.keySet());
             logger.warn("Possible reasons for no results:");
             logger.warn("1. No flights from " + fromLocation + " to any intermediate location");
             logger.warn("2. No flights from intermediate locations to " + toLocation);

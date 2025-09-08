@@ -262,8 +262,32 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
                         flightItineraries = advancedSplitTicketMerger.mergeAllSplitTicketCombinations(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
                         //flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, concurrentHashMap, isSourceAirportDomestic);
                         logger.info("Combined Split Search Result " + Json.toJson(flightItineraries));
+                        if (flightItineraries == null || flightItineraries.isEmpty()) {
+                            int firstLegCount = concurrentHashMap.get(fromLocation) != null ? concurrentHashMap.get(fromLocation).size() : 0;
+                            int secondLegCount = concurrentHashMap.get(toLocation) != null ? concurrentHashMap.get(toLocation).size() : 0;
+                            logger.warn("[split] No split results for route: " + fromLocation + " -> " + toLocation);
+                            logger.warn("[split] First-leg options from " + fromLocation + ": " + firstLegCount + ", second-leg options from " + toLocation + ": " + secondLegCount);
+                            logger.warn("[split] Intermediates considered: " + (Math.max(concurrentHashMap.keySet().size() - 2, 0)) + " -> " + concurrentHashMap.keySet());
+                        }
                         AirSolution airSolution = new AirSolution();
                         airSolution.setReIssueSearch(false);
+                        // Deduplicate itineraries by route+time signature, keep the cheaper option when duplicates found
+                        if (flightItineraries != null && !flightItineraries.isEmpty()) {
+                            Map<String, FlightItinerary> unique = new LinkedHashMap<>();
+                            for (FlightItinerary fi : flightItineraries) {
+                                if (fi == null) continue;
+                                String key = buildItinerarySignature(fi);
+                                if (!unique.containsKey(key)) {
+                                    unique.put(key, fi);
+                                } else {
+                                    FlightItinerary existing = unique.get(key);
+                                    if (isCheaper(fi, existing)) {
+                                        unique.put(key, fi);
+                                    }
+                                }
+                            }
+                            flightItineraries = new ArrayList<>(unique.values());
+                        }
                         airSolution.setFlightItineraryList(flightItineraries);
                         searchResponseCache.setAirSolution(airSolution);
                         searchResponseCache.setReIssueSearch(false);
@@ -584,6 +608,40 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
 
     public String provider() {
         return "Amadeus";
+    }
+
+    private String buildItinerarySignature(FlightItinerary itinerary) {
+        if (itinerary == null || itinerary.getJourneyList() == null || itinerary.getJourneyList().isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Journey j : itinerary.getJourneyList()) {
+            if (j == null || j.getAirSegmentList() == null || j.getAirSegmentList().isEmpty()) continue;
+            AirSegmentInformation first = j.getAirSegmentList().get(0);
+            AirSegmentInformation last = j.getAirSegmentList().get(j.getAirSegmentList().size()-1);
+            sb.append(first.getFromLocation()).append("-")
+              .append(last.getToLocation()).append("|")
+              .append(first.getDepartureTime()).append("->")
+              .append(last.getArrivalTime()).append("|");
+        }
+        return sb.toString();
+    }
+
+    private boolean isCheaper(FlightItinerary a, FlightItinerary b) {
+        try {
+            if (a == null) return false;
+            if (b == null) return true;
+            PricingInformation pa = a.getPricingInformation();
+            PricingInformation pb = b.getPricingInformation();
+            if (pa == null || pb == null) return false;
+            if (pa.getTotalPriceValue() != null && pb.getTotalPriceValue() != null) {
+                return pa.getTotalPriceValue().compareTo(pb.getTotalPriceValue()) < 0;
+            }
+            if (pa.getTotalPrice() != null && pb.getTotalPrice() != null) {
+                return pa.getTotalPrice().compareTo(pb.getTotalPrice()) < 0;
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 
     public List<FlightSearchOffice> getOfficeList() {
