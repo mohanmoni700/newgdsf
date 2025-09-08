@@ -482,9 +482,13 @@ public class AdvancedSplitTicketMerger {
                 return -1;
             }
             
-            // Try multiple date formats to handle different providers
-            java.time.ZonedDateTime arrivalDateTime = parseDateTime(arrivalTime);
-            java.time.ZonedDateTime departureDateTime = parseDateTime(departureTime);
+            // Use airport time zones; never fall back to system default
+            java.time.ZoneId arrivalZone = getArrivalZone(firstFlight);
+            java.time.ZoneId departureZone = getDepartureZone(secondFlight);
+
+            // Try multiple date formats; attach derived airport zone when no zone present in the string
+            java.time.ZonedDateTime arrivalDateTime = parseDateTime(arrivalTime, arrivalZone);
+            java.time.ZonedDateTime departureDateTime = parseDateTime(departureTime, departureZone);
             
             if (arrivalDateTime == null || departureDateTime == null) {
                 logger.error("Failed to parse date times - arrival: " + arrivalTime + ", departure: " + departureTime);
@@ -530,6 +534,63 @@ public class AdvancedSplitTicketMerger {
         }
         
         logger.warn("Could not parse date-time string with any known pattern: " + dateTimeStr);
+        return null;
+    }
+
+    // Overload with explicit fallback zone (no system default usage)
+    private java.time.ZonedDateTime parseDateTime(String dateTimeStr, java.time.ZoneId fallbackZone) {
+        if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
+            return null;
+        }
+        String[] patterns = {
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+            "yyyy-MM-dd'T'HH:mm:ssZ",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd HH:mm:ss"
+        };
+        for (String pattern : patterns) {
+            try {
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(pattern);
+                if (pattern.contains("XXX") || pattern.contains("Z")) {
+                    return java.time.ZonedDateTime.parse(dateTimeStr, formatter);
+                } else {
+                    java.time.LocalDateTime localDateTime = java.time.LocalDateTime.parse(dateTimeStr, formatter);
+                    // Use provided airport zone; if unavailable, use UTC (not system default)
+                    java.time.ZoneId zone = (fallbackZone != null) ? fallbackZone : java.time.ZoneOffset.UTC;
+                    return localDateTime.atZone(zone);
+                }
+            } catch (Exception ignored) {}
+        }
+        logger.warn("Could not parse date-time string with any known pattern: " + dateTimeStr);
+        return null;
+    }
+
+    // Helpers to derive airport time zones for last arrival and first departure
+    private java.time.ZoneId getArrivalZone(FlightItinerary itinerary) {
+        try {
+            if (itinerary == null || itinerary.getJourneyList() == null || itinerary.getJourneyList().isEmpty()) return null;
+            Journey lastJourney = itinerary.getJourneyList().get(itinerary.getJourneyList().size()-1);
+            if (lastJourney == null || lastJourney.getAirSegmentList() == null || lastJourney.getAirSegmentList().isEmpty()) return null;
+            AirSegmentInformation lastSeg = lastJourney.getAirSegmentList().get(lastJourney.getAirSegmentList().size()-1);
+            if (lastSeg != null && lastSeg.getToAirport() != null && lastSeg.getToAirport().getTime_zone() != null) {
+                return java.time.ZoneId.of(lastSeg.getToAirport().getTime_zone());
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private java.time.ZoneId getDepartureZone(FlightItinerary itinerary) {
+        try {
+            if (itinerary == null || itinerary.getJourneyList() == null || itinerary.getJourneyList().isEmpty()) return null;
+            Journey firstJourney = itinerary.getJourneyList().get(0);
+            if (firstJourney == null || firstJourney.getAirSegmentList() == null || firstJourney.getAirSegmentList().isEmpty()) return null;
+            AirSegmentInformation firstSeg = firstJourney.getAirSegmentList().get(0);
+            if (firstSeg != null && firstSeg.getFromAirport() != null && firstSeg.getFromAirport().getTime_zone() != null) {
+                return java.time.ZoneId.of(firstSeg.getFromAirport().getTime_zone());
+            }
+        } catch (Exception ignored) {}
         return null;
     }
     
