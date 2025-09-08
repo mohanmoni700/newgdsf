@@ -130,6 +130,22 @@ public class SplitTicketSearchWrapper {
         searchParameters2.addAll(searchParameters3);
         searchParametersList.addAll(searchParameters2);
         return searchParametersList;
+        /*List<SearchParameters> finalSearchParameters = new ArrayList<>();
+        for (SearchParameters sp : searchParametersList) {
+            SearchParameters seamenSp = SerializationUtils.clone(sp);
+            seamenSp.setBookingType(BookingType.SEAMEN);
+            finalSearchParameters.add(seamenSp);
+
+            SearchParameters nonMarineSp = SerializationUtils.clone(sp);
+            nonMarineSp.setBookingType(BookingType.NON_MARINE);
+            finalSearchParameters.add(nonMarineSp);
+        }
+        // De-duplicate using redisKey (captures journey, dates, pax, cabin, booking type, etc.)
+        Map<String, SearchParameters> uniqueByKey = new LinkedHashMap<>();
+        for (SearchParameters sp : finalSearchParameters) {
+            uniqueByKey.put(sp.redisKey(), sp);
+        }
+        return new ArrayList<>(uniqueByKey.values());*/
     }
 
     public List<SearchParameters> createSearch(SearchParameters searchParameters) throws Exception {
@@ -241,7 +257,7 @@ public class SplitTicketSearchWrapper {
                 searchParametersList.add(searchParameters1);
             }
         }
-        return searchParametersList;
+        return addNonMarineForSeamenAndDedup(searchParametersList);
     }
 
     private List<SearchParameters> findNearestDestinationAirport(SearchParameters searchParameters, boolean isDomestic, Airport airport, boolean isSourceDomestic) {
@@ -438,7 +454,31 @@ public class SplitTicketSearchWrapper {
     }
 
     public void createSplitSearch(List<SearchParameters> searchParameters, SearchParameters originalSearchRequest) throws Exception {
+        searchParameters = addNonMarineForSeamenAndDedup(searchParameters);
         splitAmadeusSearch.splitTicketSearch(searchParameters, originalSearchRequest, isSourceAirportDomestic,isDestinationAirportDomestic);
+    }
+
+    // Adds a NON_MARINE variant for every SEAMEN search parameter and removes duplicates (by redisKey)
+    private List<SearchParameters> addNonMarineForSeamenAndDedup(List<SearchParameters> searchParameters) {
+        if (searchParameters == null || searchParameters.isEmpty()) {
+            return searchParameters;
+        }
+        List<SearchParameters> expanded = new ArrayList<>(searchParameters.size() * 2);
+        for (SearchParameters sp : searchParameters) {
+            expanded.add(sp);
+            if (sp != null && sp.getBookingType() == BookingType.SEAMEN) {
+                SearchParameters nm = SerializationUtils.clone(sp);
+                nm.setBookingType(BookingType.NON_MARINE);
+                expanded.add(nm);
+            }
+        }
+        Map<String, SearchParameters> unique = new LinkedHashMap<>();
+        for (SearchParameters sp : expanded) {
+            if (sp != null) {
+                unique.put(sp.redisKey(), sp);
+            }
+        }
+        return new ArrayList<>(unique.values());
     }
 
 }
