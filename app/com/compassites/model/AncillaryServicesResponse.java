@@ -15,6 +15,15 @@ public class AncillaryServicesResponse {
     private Map<String,List<MealDetails>> mealDetailsMap;
     private Map<String, List<AvailableSSR>> availableSSRMap;
     private List<AvailableSSR> availableSSRList;
+    private Map<Integer, String> paxReferenceMap;
+
+    public Map<Integer, String> getPaxReferenceMap() {
+        return paxReferenceMap;
+    }
+
+    public void setPaxReferenceMap(Map<Integer, String> paxReferenceMap) {
+        this.paxReferenceMap = paxReferenceMap;
+    }
 
     public Map<String, List<AvailableSSR>> getAvailableSSRMap() {
         return availableSSRMap;
