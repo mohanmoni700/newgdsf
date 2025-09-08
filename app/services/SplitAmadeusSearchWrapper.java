@@ -262,6 +262,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
                         flightItineraries = advancedSplitTicketMerger.mergeAllSplitTicketCombinations(fromLocation, toLocation, sortMapByFirstJourneyStops(concurrentHashMap), isSourceAirportDomestic, isDestinationAirportDomestic);
                         //flightItineraries = splitTicketMerger.mergingSplitTicket(fromLocation, toLocation, concurrentHashMap, isSourceAirportDomestic);
                         logger.info("Combined Split Search Result " + Json.toJson(flightItineraries));
+
                         if (flightItineraries == null || flightItineraries.isEmpty()) {
                             int firstLegCount = concurrentHashMap.get(fromLocation) != null ? concurrentHashMap.get(fromLocation).size() : 0;
                             int secondLegCount = concurrentHashMap.get(toLocation) != null ? concurrentHashMap.get(toLocation).size() : 0;
