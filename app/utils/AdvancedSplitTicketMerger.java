@@ -4,8 +4,10 @@ import com.compassites.model.*;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import play.libs.Json;
+import services.ConfigurationMasterService;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -125,16 +127,20 @@ public class AdvancedSplitTicketMerger {
         logger.info("Looking for: " + fromLocation + " -> [Intermediate] -> " + toLocation);
         logger.info("Maximum results allowed: " + maxResults);
         
-        // Get all flights from the destination location (for second segment)
-        List<FlightItinerary> secondSegmentFlights = concurrentHashMap.get(toLocation);
-        if (secondSegmentFlights == null || secondSegmentFlights.isEmpty()) {
-            logger.error("NO SECOND SEGMENT FLIGHTS found for " + toLocation + " - This prevents direct connections!");
+        // Collect all possible second-segment flights (from any origin)
+        List<FlightItinerary> secondSegmentFlights = new ArrayList<>();
+        for (List<FlightItinerary> list : concurrentHashMap.values()) {
+            if (list != null && !list.isEmpty()) {
+                secondSegmentFlights.addAll(list);
+            }
+        }
+        if (secondSegmentFlights.isEmpty()) {
+            logger.error("NO SECOND SEGMENT FLIGHTS available in provided data");
             logger.error("Available locations: " + concurrentHashMap.keySet());
-            logger.error("Check if " + toLocation + " exists in the flight data");
             return directConnections;
         }
         
-        logger.info("Second segment flights found: " + secondSegmentFlights.size() + " from " + toLocation);
+        logger.info("Second segment flights found (all origins): " + secondSegmentFlights.size());
         
         // Sort second segment flights by priority (0 stops first, then 1 stop, etc.)
         secondSegmentFlights.sort((f1, f2) -> {
@@ -194,7 +200,7 @@ public class AdvancedSplitTicketMerger {
                 logger.info("Connection time calculated: " + connectionTime + " minutes");
                 
                 // Check if connection time is between 3-8 hours (180-480 minutes)
-                if (connectionTime >= 180 && connectionTime <= 480) {
+                if (connectionTime >= 120 && connectionTime <= 480) {
                     validTimeConnections++;
                     int firstFlightStops = getTotalStops(firstFlight);
                     int secondFlightStops = getTotalStops(secondFlight);
