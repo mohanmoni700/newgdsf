@@ -362,10 +362,11 @@ public class SplitTicketSearchWrapper {
             } else {
                 searchParameters1 = createSearch(searchParameters);
             }
-            System.out.println("after searchParameters1 "+Json.toJson(searchParameters1));
+            //System.out.println("after searchParameters1 "+Json.toJson(searchParameters1));
             logger.debug("Possible search routes "+Json.toJson(searchParameters1));
             createSplitSearch(searchParameters1, searchParameters);
         } catch (Exception e) {
+            logger.error("Error in split ticket search", e);
             e.printStackTrace();
         }
     }
@@ -450,6 +451,7 @@ public class SplitTicketSearchWrapper {
         if (splitTicketTransitAirports == null || splitTicketTransitAirports.size() == 0) {
             splitTicketTransitAirports = SplitTicketTransitAirports.getAllTransitByIata(fromLocation);
         }
+        logger.info("splitTicketTransitAirports "+Json.toJson(splitTicketTransitAirports));
         return splitTicketTransitAirports;
     }
 
