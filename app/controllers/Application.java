@@ -114,6 +114,7 @@ public class Application {
             try {
                 splitTicketSearchWrapper.searchSplitTicket(searchParameters);
             } catch (Exception e) {
+                logger.info("Exception in split ticket search ", e);
                 e.printStackTrace();
             }
         } else {

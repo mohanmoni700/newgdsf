@@ -460,7 +460,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
 
 
     public SearchResponse findNextSegmentDeparture(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
-        logger.debug("#####################AmadeusFlightSearch started  : ");
+        logger.debug("##################### findNextSegmentDeparture in 463 AmadeusFlightSearch started  : ");
         logger.debug("#####################SearchParameters: \n"+ Json.toJson(searchParameters));
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
@@ -535,7 +535,7 @@ public class SplitAmadeusSearchWrapper implements SplitAmadeusSearch {
 
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
-        logger.debug("#####################AmadeusFlightSearch started  : ");
+        logger.debug("##################### search 538 AmadeusFlightSearch started  : ");
         logger.debug("#####################SearchParameters: \n"+ Json.toJson(searchParameters));
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
