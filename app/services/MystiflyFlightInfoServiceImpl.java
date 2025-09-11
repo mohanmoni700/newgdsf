@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.compassites.GDSWrapper.mystifly.AirRevalidateClient;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import org.datacontract.schemas._2004._07.mystifly_onepoint.AirRevalidateRS;
 import org.datacontract.schemas._2004._07.mystifly_onepoint_airrules1_1.*;
 import org.slf4j.Logger;
@@ -111,6 +112,9 @@ public class MystiflyFlightInfoServiceImpl implements FlightInfoService {
 		return fareRuleString;
 	}
 
+	public FlightItinerary getSplitTicketBaggage(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen, TravellerMasterInfo travellerMasterInfo) {
+		return null;
+	}
 	public FlightItinerary getInFlightDetails(FlightItinerary flightItinerary, boolean seamen) {
 		return flightItinerary;
 	}

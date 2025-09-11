@@ -14,9 +14,11 @@ import com.amadeus.xml.tmrxrr_18_1_1a.MiniRuleGetFromRecReply.MnrByPricingRecord
 import com.compassites.GDSWrapper.amadeus.FareRules;
 import com.compassites.GDSWrapper.amadeus.ServiceHandler;
 import com.compassites.model.*;
+import com.compassites.model.traveller.TravellerMasterInfo;
 import com.sun.xml.ws.fault.ServerSOAPFaultException;
 import com.thoughtworks.xstream.XStream;
 import dto.FareCheckRulesResponse;
+import ennum.ConfigMasterConstants;
 import models.AmadeusSessionWrapper;
 import models.FlightSearchOffice;
 import models.MiniRule;
@@ -64,6 +66,13 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
     private AmadeusBookingHelper amadeusBookingHelper;
 
     @Autowired
+    private IndigoFlightInfoService indigoFlightInfoService;
+
+    private static String splitOfficeId = "";
+    @Autowired
+    private ConfigurationMasterService configurationMasterService;
+
+    @Autowired
     public void setAmadeusSessionManager(AmadeusSessionManager amadeusSessionManager) {
         this.amadeusSessionManager = amadeusSessionManager;
     }
@@ -83,7 +92,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
     @Override
     public FlightItinerary getBaggageInfo(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
         if (flightItinerary.isSplitTicket()) {
-            return createSplitTicketBaggage(flightItinerary, searchParams, seamen);
+            return createSplitTicketBaggage(flightItinerary, searchParams, seamen, null);
         }
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
@@ -119,36 +128,41 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
         return flightItinerary;
     }
 
-    private FlightItinerary createSplitTicketBaggage(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen) {
+    @Override
+    public FlightItinerary getSplitTicketBaggage(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen, TravellerMasterInfo travellerMasterInfo) {
+        if (flightItinerary.isSplitTicket()) {
+            return createSplitTicketBaggage(flightItinerary, searchParams, seamen, travellerMasterInfo);
+        }
+        return null;
+    }
+
+    private FlightItinerary createSplitTicketBaggage(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen, TravellerMasterInfo travellerMasterInfo) {
         amadeusLogger.info("baggage called createSplitTicketBaggage");
         AmadeusSessionWrapper amadeusSessionWrapper = null;
         try {
-            String officeId = null;
-            if (seamen) {
-                officeId = flightItinerary.getSeamanPricingInformation().getPricingOfficeId();
-            } else {
-                officeId = flightItinerary.getPricingInformation().getPricingOfficeId();
-            }
-
-            FlightSearchOffice flightSearchOffice = new FlightSearchOffice(officeId);
+            splitOfficeId = configurationMasterService.getConfig(ConfigMasterConstants.SPLIT_TICKET_AMADEUS_OFFICE_ID_GLOBAL.getKey());
+            FlightSearchOffice flightSearchOffice = new FlightSearchOffice(splitOfficeId);
             amadeusSessionWrapper = amadeusSessionManager.getSession(flightSearchOffice);
-            List<Journey> journeyList = seamen ? flightItinerary.getJourneyList() : flightItinerary.getNonSeamenJourneyList();
-            List<PAXFareDetails> paxFareDetailsList = flightItinerary.getPricingInformation(seamen).getPaxFareDetailsList();
             int i = 0;
-            for (Journey journey : journeyList) {
-                List<Journey> journeyList1 = new ArrayList<>();
-                List<PAXFareDetails> paxFareDetails = new ArrayList<>();
-                PAXFareDetails paxFareDetails1 = new PAXFareDetails();
-                List<FareJourney> fareJourneyList = new ArrayList<>();
-                paxFareDetails1.setPassengerTypeCode(paxFareDetailsList.get(0).getPassengerTypeCode());
-                FareJourney fareJourney = SerializationUtils.clone(paxFareDetailsList.get(0).getFareJourneyList().get(i));
-                fareJourneyList.add(fareJourney);
-                journeyList1.add(journey);
-                paxFareDetails1.setFareJourneyList(fareJourneyList);
-                paxFareDetails.add(paxFareDetails1);
-                FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, journey.isSeamen(), searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
-//				FareCheckRulesReply fareCheckRulesReply = serviceHandler.getFareRules(amadeusSessionWrapper);
-                addBaggageInfo(flightItinerary, reply.getMainGroup().getPricingGroupLevelGroup(), seamen);
+            for (Journey journey : flightItinerary.getJourneyList()) {
+                if(journey.getProvider().equalsIgnoreCase("Amadeus")) {
+                    List<Journey> journeyList1 = new ArrayList<>();
+                    List<PAXFareDetails> paxFareDetails = new ArrayList<>();
+                    PAXFareDetails paxFareDetails1 = new PAXFareDetails();
+                    List<FareJourney> fareJourneyList = new ArrayList<>();
+                    paxFareDetails1.setPassengerTypeCode(flightItinerary.getSplitPricingInformationList().get(i).getPaxFareDetailsList().get(0).getPassengerTypeCode());
+                    FareJourney fareJourney = SerializationUtils.clone(flightItinerary.getSplitPricingInformationList().get(i).getPaxFareDetailsList().get(0).getFareJourneyList().get(0));
+                    fareJourneyList.add(fareJourney);
+                    journeyList1.add(journey);
+                    paxFareDetails1.setFareJourneyList(fareJourneyList);
+                    paxFareDetails.add(paxFareDetails1);
+                    FareInformativePricingWithoutPNRReply reply = serviceHandler.getFareInfo(journeyList1, journey.isSeamen(), searchParams.getAdultCount(), searchParams.getChildCount(), searchParams.getInfantCount(), paxFareDetails, amadeusSessionWrapper);
+                    addBaggageInfo(journey, reply.getMainGroup().getPricingGroupLevelGroup());
+                    flightItinerary.getJourneyList().get(i).setAirSegmentList(journey.getAirSegmentList());
+                } else if(journey.getProvider().equalsIgnoreCase("Indigo")) {
+                    flightItinerary = indigoFlightInfoService.getFlightInfo(flightItinerary, travellerMasterInfo);
+                    addIndigoBaggageInfo(journey, flightItinerary);
+                }
                 i++;
             }
 
@@ -165,6 +179,12 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
             }
         }
         return flightItinerary;
+    }
+
+    private void addIndigoBaggageInfo(Journey journey, FlightItinerary flightItinerary) {
+        for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+
+        }
     }
 
     public List<HashMap> addMiniFareRulesForFlightItenary(MiniRuleGetFromRecReply miniRuleGetFromPricingReply) {
@@ -578,7 +598,7 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
         return fareRuleText.toString();
     }
 
-    private void addBaggageInfo(FlightItinerary itinerary, List<PricingGroupLevelGroup> pricingLevelGroup, boolean seamen) {
+    private void addBaggageInfo(Journey journey, List<PricingGroupLevelGroup> pricingLevelGroup) {
         try {
             List<SegmentLevelGroup> segmentGrpList = new ArrayList<>();
             for (PricingGroupLevelGroup pricingLevelGrp : pricingLevelGroup) {
@@ -586,18 +606,16 @@ public class AmadeusFlightInfoServiceImpl implements FlightInfoService {
                     segmentGrpList.add(segment);
                 }
             }
-            for (Journey journey : seamen ? itinerary.getJourneyList() : itinerary.getNonSeamenJourneyList()) {
-                for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
-                    for (SegmentLevelGroup segmentGrp : segmentGrpList) {
-                        String from = segmentGrp.getSegmentInformation().getBoardPointDetails().getTrueLocationId();
-                        String to = segmentGrp.getSegmentInformation().getOffpointDetails().getTrueLocationId();
-                        if (airSegment.getFromLocation().equalsIgnoreCase(from) && airSegment.getToLocation().equalsIgnoreCase(to)) {
-                            FlightInfo baggageInfo = new FlightInfo();
-                            BaggageDetails baggageDetails = segmentGrp.getBaggageAllowance().getBaggageDetails();
-                            baggageInfo.setBaggageAllowance(baggageDetails.getFreeAllowance().toBigInteger());
-                            baggageInfo.setBaggageUnit(baggageCodes.get(baggageDetails.getQuantityCode()));
-                            airSegment.setFlightInfo(baggageInfo);
-                        }
+            for (AirSegmentInformation airSegment : journey.getAirSegmentList()) {
+                for (SegmentLevelGroup segmentGrp : segmentGrpList) {
+                    String from = segmentGrp.getSegmentInformation().getBoardPointDetails().getTrueLocationId();
+                    String to = segmentGrp.getSegmentInformation().getOffpointDetails().getTrueLocationId();
+                    if (airSegment.getFromLocation().equalsIgnoreCase(from) && airSegment.getToLocation().equalsIgnoreCase(to)) {
+                        FlightInfo baggageInfo = new FlightInfo();
+                        BaggageDetails baggageDetails = segmentGrp.getBaggageAllowance().getBaggageDetails();
+                        baggageInfo.setBaggageAllowance(baggageDetails.getFreeAllowance().toBigInteger());
+                        baggageInfo.setBaggageUnit(baggageCodes.get(baggageDetails.getQuantityCode()));
+                        airSegment.setFlightInfo(baggageInfo);
                     }
                 }
             }

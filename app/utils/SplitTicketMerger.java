@@ -839,13 +839,15 @@ public class SplitTicketMerger {
                     }*/
                     if (!flightItinerary.getToLocation().equalsIgnoreCase(toLocation)) {
                         String arrivalTime = flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().get(flightItinerary.getJourneyList().get(flightItinerary.getJourneyList().size() - 1).getAirSegmentList().size() - 1).getArrivalTime();
-                        String departureTime = flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureTime();
-                        if (calculateArrivalDeparture(arrivalTime, departureTime) > connectionTime) {
-                            spiltPrices.add(flightItinerary1.getPricingInformation());
-                            System.out.println("is seamen "+flightItinerary1.getJourneyList().get(0).isSeamen());
-                            flightItinerary.getJourneyList().addAll(flightItinerary1.getJourneyList());
-                            flightItineraries.remove(flightItinerary1);
-                            break;
+                        if (flightItinerary1.getJourneyList().size()>0 && flightItinerary1.getJourneyList().get(0).getAirSegmentList().size()>0) {
+                            String departureTime = flightItinerary1.getJourneyList().get(0).getAirSegmentList().get(0).getDepartureTime();
+                            if (calculateArrivalDeparture(arrivalTime, departureTime) > connectionTime) {
+                                spiltPrices.add(flightItinerary1.getPricingInformation());
+                                System.out.println("is seamen " + flightItinerary1.getJourneyList().get(0).isSeamen());
+                                flightItinerary.getJourneyList().addAll(flightItinerary1.getJourneyList());
+                                flightItineraries.remove(flightItinerary1);
+                                break;
+                            }
                         }
                     } else {
                         System.out.println("Merged");

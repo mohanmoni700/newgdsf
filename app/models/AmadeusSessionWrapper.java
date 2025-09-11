@@ -225,6 +225,12 @@ public class AmadeusSessionWrapper extends Model {
             mSession.value.setSequenceNumber(this.sequenceNumber != null ? this.sequenceNumber : "0");
             mSession.value.setSessionId(this.sessionId);
             mSession.value.setSecurityToken(this.securityToken);
+        } else if(mSession == null && !sessionId.isEmpty()) {
+            mSession = new Holder<>();
+            mSession.value = new Session();
+            mSession.value.setSequenceNumber(this.sequenceNumber != null ? this.sequenceNumber : "0");
+            mSession.value.setSessionId(this.sessionId);
+            mSession.value.setSecurityToken(this.securityToken);
         }
         return mSession;
     }
