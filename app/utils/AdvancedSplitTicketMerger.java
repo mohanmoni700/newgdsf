@@ -652,6 +652,7 @@ public class AdvancedSplitTicketMerger {
             
             // Add the second flight's journey
             mergedItinerary.getJourneyList().addAll(secondFlight.getJourneyList());
+            mergedItinerary.getNonSeamenJourneyList().addAll(secondFlight.getJourneyList());
             
             // Create total pricing
             createTotalPricing(splitPricing, mergedItinerary);

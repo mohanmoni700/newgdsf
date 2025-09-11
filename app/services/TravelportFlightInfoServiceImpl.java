@@ -3,6 +3,7 @@ package services;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.compassites.model.traveller.TravellerMasterInfo;
 import org.springframework.stereotype.Service;
 
 import com.compassites.GDSWrapper.travelport.FlightDetailsClient;
@@ -64,4 +65,7 @@ public class TravelportFlightInfoServiceImpl implements FlightInfoService {
 		return null;
 	}
 
+	public FlightItinerary getSplitTicketBaggage(FlightItinerary flightItinerary, SearchParameters searchParams, boolean seamen, TravellerMasterInfo travellerMasterInfo) {
+		return null;
+	}
 }
