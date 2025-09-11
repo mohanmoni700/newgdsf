@@ -11,6 +11,7 @@ import org.joda.time.PeriodType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import play.libs.Json;
 import services.AmadeusSourceOfficeService;
 
 import javax.xml.ws.Holder;
@@ -143,33 +144,38 @@ public class AmadeusSessionManager {
     }
 
     private synchronized AmadeusSessionWrapper getSession(FlightSearchOffice office, int recursionDepth) throws InterruptedException {
-        logger.debug("AmadeusSessionManager getSession called, recursionDepth={}", recursionDepth);
+        logger.debug("AmadeusSessionManager getSession called, recursionDepth={}", recursionDepth," office id = {}", office.getOfficeId());
         List<AmadeusSessionWrapper> amadeusSessionWrapperList = AmadeusSessionWrapper.findAllInactiveContextListByOfficeId(office.getOfficeId());
-
+        logger.info("amadeusSessionWrapperList size : {}" , amadeusSessionWrapperList.size()," json obj = {}", Json.toJson(amadeusSessionWrapperList));
         int count = 0;
-        for (AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList) {
-            count++;
-            if (amadeusSessionWrapper.isQueryInProgress()) {
-                continue;
+        try {
+            for (AmadeusSessionWrapper amadeusSessionWrapper : amadeusSessionWrapperList) {
+                count++;
+                if (amadeusSessionWrapper.isQueryInProgress()) {
+                    continue;
+                }
+                Period p = new Period(new DateTime(amadeusSessionWrapper.getLastQueryDate()), new DateTime(), PeriodType.minutes());
+                int inactivityTimeInMinutes = p.getMinutes();
+                if (inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT) {
+                    amadeusSessionWrapper.delete();
+                    continue;
+                }
+                amadeusSessionWrapper.setQueryInProgress(true);
+                amadeusSessionWrapper.setLastQueryDate(new Date());
+                amadeusSessionWrapper.save();
+                if (amadeusSessionWrapper.getmSession() != null) {
+                    logger.debug("Returning existing session .........................................{}", amadeusSessionWrapper.getmSession().value.getSessionId());
+                    System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
+                }
+                return amadeusSessionWrapper;
             }
-            Period p = new Period(new DateTime(amadeusSessionWrapper.getLastQueryDate()), new DateTime(), PeriodType.minutes());
-            int inactivityTimeInMinutes = p.getMinutes();
-            if (inactivityTimeInMinutes >= AmadeusConstants.INACTIVITY_TIMEOUT) {
-                amadeusSessionWrapper.delete();
-                continue;
-            }
-            amadeusSessionWrapper.setQueryInProgress(true);
-            amadeusSessionWrapper.setLastQueryDate(new Date());
-            amadeusSessionWrapper.save();
-            if (amadeusSessionWrapper.getmSession() != null) {
-                logger.debug("Returning existing session .........................................{}", amadeusSessionWrapper.getmSession().value.getSessionId());
-                System.out.println("Returning existing session ........................................." + amadeusSessionWrapper.getmSession().value.getSessionId());
-            }
-            return amadeusSessionWrapper;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("Amadeus getSession error ", e);
         }
 
         if (count >= AmadeusConstants.SESSION_POOL_SIZE) {
-
+            logger.info("Session Pool Size reached : {}" , count);
             if (recursionDepth >= 2) {
 
                 logger.error("Recursed Twice, Unsetting query In progress");
@@ -196,6 +202,7 @@ public class AmadeusSessionManager {
             Thread.sleep(2000);
             return getSession(office, recursionDepth + 1);
         } else {
+            logger.debug("No existing session found, creating new session");
             return createSession(office);
         }
     }
