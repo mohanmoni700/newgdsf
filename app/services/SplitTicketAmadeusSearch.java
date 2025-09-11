@@ -105,7 +105,7 @@ public class SplitTicketAmadeusSearch implements SplitTicketSearch{
     }
 
     public SearchResponse findNextSegmentDeparture(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
-        logger.debug("#####################AmadeusFlightSearch started  : ");
+        logger.debug("##################### findNextSegmentDeparture AmadeusFlightSearch started  : ");
         logger.debug("#####################SearchParameters: \n"+ Json.toJson(searchParameters));
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
@@ -183,7 +183,7 @@ public class SplitTicketAmadeusSearch implements SplitTicketSearch{
     }
     @RetryOnFailure(attempts = 2, delay = 2000, exception = RetryException.class)
     public SearchResponse search(SearchParameters searchParameters, FlightSearchOffice office) throws Exception {
-        logger.debug("#####################AmadeusFlightSearch started for split  : ");
+        logger.debug("##################### search 186 AmadeusFlightSearch started for split  : ");
         logger.debug("##################### Original SearchParameters: \n"+ Json.toJson(searchParameters));
         SearchResponse searchResponse = new SearchResponse();
         AmadeusSessionWrapper amadeusSessionWrapper = null;
