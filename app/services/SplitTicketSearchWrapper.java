@@ -156,6 +156,7 @@ public class SplitTicketSearchWrapper {
         isDestinationAirportDomestic = isDomesticAirport(Airport.getAirportByIataCode(searchParameters.getJourneyList().get(0).getDestination()));
         if(!isDomestic) {
             System.out.println("Domestic false");
+            logger.info("Domestic false");
             isSourceDomestic = true;
             searchParametersList = findNearestAirport(searchParameters,isDomestic, airport,isSourceDomestic);
             isSourceAirportDomestic = true;
@@ -171,6 +172,7 @@ public class SplitTicketSearchWrapper {
             searchParametersList.addAll(searchParameters1);*/
         } else {
             System.out.println("Domestic true");
+            logger.info("Domestic true");
             isSourceAirportDomestic = false;
             isSourceDomestic = false;
             Airport destinationAirport = Airport.getAirportByIataCode(searchParameters.getJourneyList().get(0).getDestination());
@@ -183,6 +185,7 @@ public class SplitTicketSearchWrapper {
             List<SearchParameters> searchParameters1 = splitTicketHelper.createSearchParameters(possibleRoutesMap,searchParameters, null);
             searchParametersList.addAll(searchParameters1);
         }
+        logger.info("searchParametersList in createSearch size "+searchParametersList.size()+" - "+Json.toJson(searchParametersList)+"");
         return searchParametersList;
     }
 
@@ -337,6 +340,7 @@ public class SplitTicketSearchWrapper {
             System.out.println("transitEnabled "+transitEnabled);
             logger.debug("transitEnabled "+transitEnabled);
             if(transitEnabled) {
+                logger.info("#################Transit point enabled for split ticket search");
                 List<SearchParameters> searchParametersTransit = null;
                 List<SplitTicketTransitAirports> splitTicketTransitAirports = isTransitAdded(searchParameters);
                 System.out.println("splitTicketTransitAirports "+splitTicketTransitAirports.size());
@@ -360,6 +364,7 @@ public class SplitTicketSearchWrapper {
                 //searchParameters1.add(searchParametersTransit.get(1));
                 //System.out.println("searchParameters1 searchParameters1 after "+Json.toJson(searchParameters1));
             } else {
+                logger.info("#################Without Transit point enabled for split ticket search");
                 searchParameters1 = createSearch(searchParameters);
             }
             //System.out.println("after searchParameters1 "+Json.toJson(searchParameters1));
@@ -449,6 +454,7 @@ public class SplitTicketSearchWrapper {
         String fromLocation = searchParameters.getJourneyList().get(0).getOrigin();
         splitTicketTransitAirports = SplitTicketTransitAirports.getAllTransitByIata(toLocation);
         if (splitTicketTransitAirports == null || splitTicketTransitAirports.size() == 0) {
+            logger.info("toLocation not found in transit airports, checking fromLocation");
             splitTicketTransitAirports = SplitTicketTransitAirports.getAllTransitByIata(fromLocation);
         }
         logger.info("splitTicketTransitAirports "+Json.toJson(splitTicketTransitAirports));
