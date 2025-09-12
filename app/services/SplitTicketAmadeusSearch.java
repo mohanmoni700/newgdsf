@@ -123,6 +123,21 @@ public class SplitTicketAmadeusSearch implements SplitTicketSearch{
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
 
+            // Check if session is null or has null session ID, create new session if needed
+            if (amadeusSessionWrapper == null || amadeusSessionWrapper.getmSession() == null || 
+                amadeusSessionWrapper.getmSession().value == null || 
+                amadeusSessionWrapper.getmSession().value.getSessionId() == null || 
+                amadeusSessionWrapper.getmSession().value.getSessionId().isEmpty()) {
+                
+                logger.warn("Session is null or has null session ID, creating new session");
+                amadeusSessionWrapper = amadeusSessionManager.createSession(office);
+                
+                if (amadeusSessionWrapper == null) {
+                    logger.error("Failed to create new Amadeus session");
+                    throw new Exception("Failed to create new Amadeus session");
+                }
+            }
+
             logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
             logger.debug("Execution time in getting session:: " + duration/1000 + " seconds");//to be removed
             if (searchParameters.getBookingType() == BookingType.SEAMEN) {
@@ -200,6 +215,21 @@ public class SplitTicketAmadeusSearch implements SplitTicketSearch{
             amadeusSessionWrapper = amadeusSessionManager.getSession(office);
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
+
+            // Check if session is null or has null session ID, create new session if needed
+            if (amadeusSessionWrapper == null || amadeusSessionWrapper.getmSession() == null || 
+                amadeusSessionWrapper.getmSession().value == null || 
+                amadeusSessionWrapper.getmSession().value.getSessionId() == null || 
+                amadeusSessionWrapper.getmSession().value.getSessionId().isEmpty()) {
+                
+                logger.warn("Session is null or has null session ID, creating new session");
+                amadeusSessionWrapper = amadeusSessionManager.createSession(office);
+                
+                if (amadeusSessionWrapper == null) {
+                    logger.error("Failed to create new Amadeus session");
+                    throw new Exception("Failed to create new Amadeus session");
+                }
+            }
 
             logger.debug("...................................Amadeus Search Session used: " + Json.toJson(amadeusSessionWrapper.getmSession().value));
             logger.debug("Execution time in getting session:: " + duration/1000 + " seconds");//to be removed
