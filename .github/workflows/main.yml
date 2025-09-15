@@ -1,4 +1,4 @@
-ame: Preprod CI
+name: Preprod CI
 
 on:
   push:
